@@ -47,23 +47,15 @@ void clearscreen(u8* fb, int time) {
     for(x = 0; x < 400; x++) {
     	for(y = 0; y < 240; y++) {
 			if (x < 128 && y < 128) {
-				/*
-				float b = (((sin(y*sin(time/40.0)*M_PI*10.0/400.0)+1)/4) + ((sin(x*sin(time/77.0)*M_PI*13.0/400.0)+1)/4));
-				float g = (((sin(y*sin(time/53.0)*M_PI*23.0/400.0)+1)/4) + ((sin(x*sin(time/97.0)*M_PI*17.0/400.0)+1)/4));
-				float r = (((sin(y*sin(time/27.0)*M_PI*17.0/400.0)+1)/4) + ((sin(x*sin(time/27.0)*M_PI*31.0/400.0)+1)/4));
-				fb[((x*240)+y)*3+0] = (int)(b*255);
-				fb[((x*240)+y)*3+1] = (int)(g*255);
-				fb[((x*240)+y)*3+2] = (int)(r*255);
-				*/
-				fb[((x*240)+y)*3+0] = 0;
-				fb[((x*240)+y)*3+1] = 0;
-				fb[((x*240)+y)*3+2] = 0;
+				fb[((x*240)+ (239 - y))*3+0] = 0;
+				fb[((x*240)+ (239 - y))*3+1] = 0;
+				fb[((x*240)+ (239 - y))*3+2] = 0;
 			}
 			else {
 				//gray
-				fb[((x*240)+y)*3+0] = BgGray.Red;
-				fb[((x*240)+y)*3+1] = BgGray.Green;
-				fb[((x*240)+y)*3+2] = BgGray.Blue;
+				fb[((x*240)+ (239 - y))*3+0] = BgGray.Red;
+				fb[((x*240)+ (239 - y))*3+1] = BgGray.Green;
+				fb[((x*240)+ (239 - y))*3+2] = BgGray.Blue;
 			}
     	}
     }
@@ -114,9 +106,9 @@ void flipBuffer(u8* fb) {
 				uint16_t c = _pico8_fb[x*128 + y];
 				Color col = PaletteColors[c];
 
-				fb[((x*240)+y)*3+0] = col.Red;
-				fb[((x*240)+y)*3+1] = col.Green;
-				fb[((x*240)+y)*3+2] = col.Blue;
+				fb[((x*240)+ (239 - y))*3+0] = col.Red;
+				fb[((x*240)+ (239 - y))*3+1] = col.Green;
+				fb[((x*240)+ (239 - y))*3+2] = col.Blue;
 			}
     	}
     }
