@@ -1,1 +1,2 @@
-void draw();
+void _draw();
+void _update();
