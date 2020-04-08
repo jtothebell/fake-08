@@ -62,15 +62,18 @@ void cls() {
 	memset(_pico8_fb, 0, sizeof(_pico8_fb));
 }
 
-void rect(short x, short y, short x1, short y1, uint16_t col) {
-	/*
-	char w = x1 - x;
-	char h = y1 - y;
+void rect(short x1, short y1, short x2, short y2, uint16_t col) {
+	sortcoords(&x1, &x2);
+	sortcoords(&y1, &y2);
 
-	char currentX = 0;
-	char currentY = 0;
-	*/
-
+	for (int i = x1; i <= x2; i++) {
+		for (int j = y1; j <= y2; j++) {
+			if (i >= 0 && i < 127 && j >= 0 && j < 127 &&
+				(i == x1 || i == x2 || j == y1 || j == y2) ) {
+				_pico8_fb[(i * 128) + j] = col;
+			}
+		}
+	}
 
 }
 

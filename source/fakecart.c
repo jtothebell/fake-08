@@ -25,16 +25,13 @@ void _draw() {
 
     cls();
 
-    rect(10, 10, 50, 50, 2);
-
-    
     rectfill(0, 0, 127, 127, 10);
 
     rectfill(50, -1, 60, 10, 11);
 
     rectfill((short)r1x0, (short)r1y0, (short)r1x1, (short)r1y1, r1c);
 
-    rectfill((short)r2x1, (short)r2y1, (short)r2x0, (short)r2y0, r2c);
+    rect((short)r2x1, (short)r2y1, (short)r2x0, (short)r2y0, r2c);
 }
 
 void _update() {
