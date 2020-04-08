@@ -30,6 +30,9 @@ typedef struct {
 
 void cls();
 
+void pset(short x, short y, uint16_t col);
+uint16_t pget(short x, short y);
+
 void rect(short x1, short y1, short x2, short y2, uint16_t col);
 void rectfill(short x1, short y1, short x2, short y2, uint16_t col);
 

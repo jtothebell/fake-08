@@ -58,18 +58,35 @@ void sortcoords(short *expectedLower, short *expectedHigher){
 	}
 }
 
+bool isOnScreen(short *x, short* y) {
+	return *x >= 0 && *x < 127 && *y >= 0 && *y < 127;
+}
+
 void cls() {
 	memset(_pico8_fb, 0, sizeof(_pico8_fb));
+}
+
+void pset(short x, short y, uint16_t col){
+	if (isOnScreen(&x, &y)){
+		_pico8_fb[(x * 128) + y] = col;
+	}
+}
+
+uint16_t pget(short x, short y){
+	if (isOnScreen(&x, &y)){
+		return _pico8_fb[(x * 128) + y];
+	}
+
+	return 0;
 }
 
 void rect(short x1, short y1, short x2, short y2, uint16_t col) {
 	sortcoords(&x1, &x2);
 	sortcoords(&y1, &y2);
 
-	for (int i = x1; i <= x2; i++) {
-		for (int j = y1; j <= y2; j++) {
-			if (i >= 0 && i < 127 && j >= 0 && j < 127 &&
-				(i == x1 || i == x2 || j == y1 || j == y2) ) {
+	for (short i = x1; i <= x2; i++) {
+		for (short j = y1; j <= y2; j++) {
+			if (isOnScreen(&i, &j) && (i == x1 || i == x2 || j == y1 || j == y2) ) {
 				_pico8_fb[(i * 128) + j] = col;
 			}
 		}
@@ -81,9 +98,9 @@ void rectfill(short x1, short y1, short x2, short y2, uint16_t col) {
 	sortcoords(&x1, &x2);
 	sortcoords(&y1, &y2);
 
-	for (int i = x1; i <= x2; i++) {
-		for (int j = y1; j <= y2; j++) {
-			if (i >= 0 && i < 127 && j >= 0 && j < 127) {
+	for (short i = x1; i <= x2; i++) {
+		for (short j = y1; j <= y2; j++) {
+			if (isOnScreen(&i, &j)) {
 				_pico8_fb[(i * 128) + j] = col;
 			}
 		}

@@ -32,6 +32,8 @@ void _draw() {
     rectfill((short)r1x0, (short)r1y0, (short)r1x1, (short)r1y1, r1c);
 
     rect((short)r2x1, (short)r2y1, (short)r2x0, (short)r2y0, r2c);
+
+    pset(40, 10, 13);
 }
 
 void _update() {
