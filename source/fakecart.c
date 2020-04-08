@@ -22,14 +22,17 @@ float r2dx = 2;
 float r2dy = 2;
 
 void _draw() {
-    
+
     cls();
 
     rect(10, 10, 50, 50, 2);
 
+    
+    rectfill(0, 0, 127, 127, 10);
+
     rectfill((int)r1x0, (int)r1y0, (int)r1x1, (int)r1y1, r1c);
 
-    rectfill((int)r2x0, (int)r2y0, (int)r2x1, (int)r2y1, r2c);
+    rectfill((int)r2x1, (int)r2y1, (int)r2x0, (int)r2y0, r2c);
 }
 
 void _update() {

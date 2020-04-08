@@ -17,6 +17,8 @@ int main(int argc, char **argv)
 	int frames = 0; 
 	gfxInitDefault();
 
+	consoleInit(GFX_BOTTOM, NULL);
+
 	// Main loop
 	while (aptMainLoop())
 	{
@@ -38,7 +40,7 @@ int main(int argc, char **argv)
 		
 		u8* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
 		//clear whole framebuffer
-		memset(fb, 128, 240*400*3);
+		memset(fb, 192, 240*400*3);
 
 		//cart draw
 		_draw();
@@ -47,7 +49,6 @@ int main(int argc, char **argv)
 		flipBuffer(fb);
 
     	frames++;
-		
 	}
 
 	gfxExit();

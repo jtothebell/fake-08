@@ -43,6 +43,21 @@ const Color PaletteColors[] = {
 
 uint16_t _pico8_fb[128*128]; 
 
+void swap(char *x, char *y) {
+   char temp;
+   temp = *x;
+   *x = *y;
+   *y = temp;
+  
+   return;
+}
+
+void sortcoords(char *expectedLower, char *expectedHigher){
+	if (*expectedHigher < *expectedLower) {
+		swap(expectedLower, expectedHigher);
+	}
+}
+
 void cls() {
 	memset(_pico8_fb, 0, sizeof(_pico8_fb));
 }
@@ -59,26 +74,14 @@ void rect(char x, char y, char x1, char y1, uint16_t col) {
 
 }
 
-void rectfill(char x, char y, char x1, char y1, uint16_t col) {
-	char holder;
-	if (x1 < x) {
-		holder = x;
-		x = x1;
-		x1 = holder;
-	}
-	if (y1 < y) {
-		holder = y;
-		y = y1;
-		y1 = holder;
-	}
+void rectfill(char x1, char y1, char x2, char y2, uint16_t col) {
+	sortcoords(&x1, &x2);
+	sortcoords(&y1, &y2);
 
-	int width = x1 - x;
-	int height = y1 - y;
-
-	for (int i = 0; i < width; i++) {
-		for (int j = 0; j < height; j++) {
-			if (x < 128 && y < 128) {
-				_pico8_fb[((x + i) * 128) + (y + j)] = col;
+	for (int i = x1; i <= x2; i++) {
+		for (int j = y1; j <= y2; j++) {
+			if (i >= 0 && i < 127 && j >= 0 && j < 127) {
+				_pico8_fb[(i * 128) + j] = col;
 			}
 		}
 	}
