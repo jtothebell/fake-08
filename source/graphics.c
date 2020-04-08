@@ -43,8 +43,8 @@ const Color PaletteColors[] = {
 
 uint16_t _pico8_fb[128*128]; 
 
-void swap(char *x, char *y) {
-   char temp;
+void swap(short *x, short *y) {
+   short temp;
    temp = *x;
    *x = *y;
    *y = temp;
@@ -52,7 +52,7 @@ void swap(char *x, char *y) {
    return;
 }
 
-void sortcoords(char *expectedLower, char *expectedHigher){
+void sortcoords(short *expectedLower, short *expectedHigher){
 	if (*expectedHigher < *expectedLower) {
 		swap(expectedLower, expectedHigher);
 	}
@@ -62,7 +62,7 @@ void cls() {
 	memset(_pico8_fb, 0, sizeof(_pico8_fb));
 }
 
-void rect(char x, char y, char x1, char y1, uint16_t col) {
+void rect(short x, short y, short x1, short y1, uint16_t col) {
 	/*
 	char w = x1 - x;
 	char h = y1 - y;
@@ -74,7 +74,7 @@ void rect(char x, char y, char x1, char y1, uint16_t col) {
 
 }
 
-void rectfill(char x1, char y1, char x2, char y2, uint16_t col) {
+void rectfill(short x1, short y1, short x2, short y2, uint16_t col) {
 	sortcoords(&x1, &x2);
 	sortcoords(&y1, &y2);
 

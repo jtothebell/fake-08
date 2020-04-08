@@ -30,9 +30,11 @@ void _draw() {
     
     rectfill(0, 0, 127, 127, 10);
 
-    rectfill((int)r1x0, (int)r1y0, (int)r1x1, (int)r1y1, r1c);
+    rectfill(50, -1, 60, 10, 11);
 
-    rectfill((int)r2x1, (int)r2y1, (int)r2x0, (int)r2y0, r2c);
+    rectfill((short)r1x0, (short)r1y0, (short)r1x1, (short)r1y1, r1c);
+
+    rectfill((short)r2x1, (short)r2y1, (short)r2x0, (short)r2y0, r2c);
 }
 
 void _update() {

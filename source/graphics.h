@@ -30,7 +30,7 @@ typedef struct {
 
 void cls();
 
-void rect(char x0, char y0, char x1, char y1, uint16_t col);
-void rectfill(char x, char y, char x1, char y1, uint16_t col);
+void rect(short x0, short y0, short x1, short y1, uint16_t col);
+void rectfill(short x, short y, short x1, short y1, uint16_t col);
 
 void flipBuffer(u8* fb);
