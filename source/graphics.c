@@ -43,6 +43,13 @@ const Color PaletteColors[] = {
 
 uint16_t _pico8_fb[128*128]; 
 
+GraphicsState _graphicsState;
+
+void initPico8Graphics() {
+	_graphicsState.bgColor = 0;
+	_graphicsState.color = 7;
+}
+
 void swap(short *x, short *y) {
    short temp;
    temp = *x;
@@ -63,7 +70,7 @@ bool isOnScreen(short *x, short* y) {
 }
 
 void cls() {
-	memset(_pico8_fb, 0, sizeof(_pico8_fb));
+	memset(_pico8_fb, _graphicsState.bgColor, sizeof(_pico8_fb));
 }
 
 void pset(short x, short y, uint16_t col){
@@ -78,6 +85,10 @@ uint16_t pget(short x, short y){
 	}
 
 	return 0;
+}
+
+void color(uint16_t col){
+	_graphicsState.color = col;
 }
 
 void rect(short x1, short y1, short x2, short y2, uint16_t col) {

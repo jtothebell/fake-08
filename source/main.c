@@ -17,8 +17,10 @@ int main(int argc, char **argv)
 	int frames = 0; 
 	gfxInitDefault();
 
-	consoleInit(GFX_BOTTOM, NULL);
+	initPico8Graphics();
 
+	consoleInit(GFX_BOTTOM, NULL);
+	
 	// Main loop
 	while (aptMainLoop())
 	{
