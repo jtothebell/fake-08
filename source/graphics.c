@@ -45,11 +45,13 @@ uint16_t _pico8_fb[128*128];
 
 GraphicsState _graphicsState;
 
+//call initialize to make sure defaults are correct
 void initPico8Graphics() {
 	_graphicsState.bgColor = 0;
 	_graphicsState.color = 7;
 }
 
+//start helper methods
 void swap(short *x, short *y) {
    short temp;
    temp = *x;
@@ -68,6 +70,7 @@ void sortcoords(short *expectedLower, short *expectedHigher){
 bool isOnScreen(short *x, short* y) {
 	return *x >= 0 && *x < 127 && *y >= 0 && *y < 127;
 }
+//end helper methods
 
 void cls() {
 	memset(_pico8_fb, _graphicsState.bgColor, sizeof(_pico8_fb));
