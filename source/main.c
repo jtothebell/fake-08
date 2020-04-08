@@ -37,11 +37,13 @@ int main(int argc, char **argv)
 		_update();
 		
 		u8* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
+		//clear whole framebuffer
+		memset(fb, 128, 240*400*3);
 
-    	clearscreen(fb, frames);
-
+		//cart draw
 		_draw();
 
+		//send pico 8 screen to framebuffer
 		flipBuffer(fb);
 
     	frames++;

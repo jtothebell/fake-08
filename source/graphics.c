@@ -43,10 +43,8 @@ const Color PaletteColors[] = {
 
 uint16_t _pico8_fb[128*128]; 
 
-void clearscreen(u8* fb, int time) {
-
-	memset(fb, BgGray.Red, 240*400*3);
-
+void cls() {
+	memset(_pico8_fb, 0, sizeof(_pico8_fb));
 }
 
 void rect(char x, char y, char x1, char y1, uint16_t col) {

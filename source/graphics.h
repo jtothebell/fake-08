@@ -28,7 +28,7 @@ typedef struct {
 } Color;
 
 
-void clearscreen(u8* fb, int time);
+void cls();
 
 void rect(char x0, char y0, char x1, char y1, uint16_t col);
 void rectfill(char x, char y, char x1, char y1, uint16_t col);
