@@ -34,14 +34,13 @@ int main(int argc, char **argv)
 		gfxFlushBuffers();
 		gfxSwapBuffers();
 		
+		_update();
+		
 		u8* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
-
-		//clear framebuffer
-		memset(fb, 0, 240*400*3);
 
     	clearscreen(fb, frames);
 
-		draw();
+		_draw();
 
 		flipBuffer(fb);
 

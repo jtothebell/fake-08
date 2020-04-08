@@ -2,6 +2,7 @@
 #include <3ds.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "graphics.h"
 
@@ -43,22 +44,9 @@ const Color PaletteColors[] = {
 uint16_t _pico8_fb[128*128]; 
 
 void clearscreen(u8* fb, int time) {
-    int x, y;
-    for(x = 0; x < 400; x++) {
-    	for(y = 0; y < 240; y++) {
-			if (x < 128 && y < 128) {
-				fb[((x*240)+ (239 - y))*3+0] = 0;
-				fb[((x*240)+ (239 - y))*3+1] = 0;
-				fb[((x*240)+ (239 - y))*3+2] = 0;
-			}
-			else {
-				//gray
-				fb[((x*240)+ (239 - y))*3+0] = BgGray.Red;
-				fb[((x*240)+ (239 - y))*3+1] = BgGray.Green;
-				fb[((x*240)+ (239 - y))*3+2] = BgGray.Blue;
-			}
-    	}
-    }
+
+	memset(fb, BgGray.Red, 240*400*3);
+
 }
 
 void rect(char x, char y, char x1, char y1, uint16_t col) {
