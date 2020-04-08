@@ -92,9 +92,9 @@ void flipBuffer(u8* fb) {
 				uint16_t c = _pico8_fb[x*128 + y];
 				Color col = PaletteColors[c];
 
-				fb[((x*240)+ (239 - y))*3+0] = col.Red;
+				fb[((x*240)+ (239 - y))*3+0] = col.Blue;
 				fb[((x*240)+ (239 - y))*3+1] = col.Green;
-				fb[((x*240)+ (239 - y))*3+2] = col.Blue;
+				fb[((x*240)+ (239 - y))*3+2] = col.Red;
 			}
     	}
     }
