@@ -46,10 +46,34 @@ uint8_t _pico8_fb[128*128];
 
 GraphicsState _graphicsState;
 
+SpriteSheet _fontSpriteSheet;
+
+void copy_data_to_sprites(SpriteSheet *sprites, const char* data, size_t datalength, bool bits8) {
+	uint16_t i = 0;
+
+	for (size_t n = 0; n < datalength; n++) {
+		char buf[3] = {0};
+
+		if (data[n] > ' ') {
+			buf[0] = data[n++];
+			buf[1] = data[n];
+			uint8_t val = (uint8_t)strtol(buf, NULL, 16);
+			if (bits8) {
+				sprites->sprite_data[i++] = val;
+			} else {
+				sprites->sprite_data[i++] = val >> 4;
+				sprites->sprite_data[i++] = val & 0x0f;
+			}
+		}
+	}
+}
+
 //call initialize to make sure defaults are correct
 void initPico8Graphics() {
 	_graphicsState.bgColor = 0;
 	_graphicsState.color = 7;
+
+	copy_data_to_sprites(&_fontSpriteSheet, FONT_SS_STR, sizeof(FONT_SS_STR), false);
 }
 
 //start helper methods
@@ -207,6 +231,10 @@ void rectfill(short x1, short y1, short x2, short y2, uint8_t col) {
 	}
 }
 
+void print(char* str, size_t strlength, short x, short y, uint8_t col){
+
+}
+
 void flipBuffer(u8* fb) {
 	int x, y;
     for(x = 0; x < 400; x++) {
@@ -221,7 +249,6 @@ void flipBuffer(u8* fb) {
 			}
     	}
     }
-
 }
 
 
