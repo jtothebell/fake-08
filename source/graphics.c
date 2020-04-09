@@ -61,6 +61,23 @@ void swap(short *x, short *y) {
    return;
 }
 
+void sortPointsLtoR(short *x1, short *y1, short *x2, short *y2){
+	if (*x1 > *x2) {
+		swap(x1, x2);
+		swap(y1, y2);
+	}
+}
+
+void sortCoordsForRect(short *x1, short *y1, short *x2, short *y2){
+	if (*x1 > *x2) {
+		swap(x1, x2);
+	}
+
+	if (*y1 > *y2) {
+		swap(y1, y2);
+	}
+}
+
 bool isOnScreen(short *x, short* y) {
 	return *x >= 0 && *x < 127 && *y >= 0 && *y < 127;
 }
@@ -89,10 +106,7 @@ void color(uint16_t col){
 }
 
 void line (short x1, short y1, short x2, short y2, uint16_t col) {
-	if (x1 > x2) {
-		swap(&x1, &x2);
-		swap(&y1, &y2);
-	}
+	sortPointsLtoR(&x1, &y1, &x2, &y2);
 
 	float run = x2 - x1;
 	float rise = y2 - y1;
@@ -117,11 +131,40 @@ void line (short x1, short y1, short x2, short y2, uint16_t col) {
 	}
 }
 
-void rect(short x1, short y1, short x2, short y2, uint16_t col) {
-	if (x1 > x2) {
-		swap(&x1, &x2);
-		swap(&y1, &y2);
+void circ(short ox, short oy, short r, uint16_t col){
+	short x = r;
+	short y = 0;
+	short decisionOver2 = 1-x;
+
+	while (y <= x) {
+		pset(ox + x, oy + y, col);
+		pset(ox + y, oy + x, col);
+		pset(ox - x, oy + y, col);
+		pset(ox - y, oy + x, col);
+
+		pset(ox - x, oy - y, col);
+		pset(ox - y, oy - x, col);
+		pset(ox + x, oy - y, col);
+		pset(ox + y, oy - x, col);
+
+		y += 1;
+		if (decisionOver2 < 0) {
+			decisionOver2=decisionOver2+2*y+1;
+		}
+		else {
+			x = x-1;
+			decisionOver2 = decisionOver2 + 2 * (y - x) + 1;
+		}
 	}
+
+}
+
+void circfill(short ox, short oy, short r, uint16_t col){
+	
+}
+
+void rect(short x1, short y1, short x2, short y2, uint16_t col) {
+	sortCoordsForRect(&x1, &y1, &x2, &y2);
 
 	for (short i = x1; i <= x2; i++) {
 		for (short j = y1; j <= y2; j++) {
@@ -134,10 +177,7 @@ void rect(short x1, short y1, short x2, short y2, uint16_t col) {
 }
 
 void rectfill(short x1, short y1, short x2, short y2, uint16_t col) {
-	if (x1 > x2) {
-		swap(&x1, &x2);
-		swap(&y1, &y2);
-	}
+	sortCoordsForRect(&x1, &y1, &x2, &y2);
 
 	for (short i = x1; i <= x2; i++) {
 		for (short j = y1; j <= y2; j++) {

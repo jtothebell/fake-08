@@ -43,6 +43,9 @@ void color(uint16_t c);
 
 void line (short x1, short y1, short x2, short y2, uint16_t col);
 
+void circ(short ox, short oy, short r, uint16_t col);
+void circfill(short ox, short oy, short r, uint16_t col);
+
 void rect(short x1, short y1, short x2, short y2, uint16_t col);
 void rectfill(short x1, short y1, short x2, short y2, uint16_t col);
 
