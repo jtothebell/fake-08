@@ -28,25 +28,30 @@ typedef struct {
 } Color;
 
 typedef struct {
-    uint16_t color;
-    uint16_t bgColor;
+    uint8_t color;
+    uint8_t bgColor;
 } GraphicsState;
+
+typedef struct {
+	uint8_t sprite_data[128 * 128];
+	uint8_t flags[256];
+} SpriteSheet;
 
 void initPico8Graphics();
 
 void cls();
 
-void pset(short x, short y, uint16_t col);
-uint16_t pget(short x, short y);
+void pset(short x, short y, uint8_t col);
+uint8_t pget(short x, short y);
 
-void color(uint16_t c);
+void color(uint8_t c);
 
-void line (short x1, short y1, short x2, short y2, uint16_t col);
+void line (short x1, short y1, short x2, short y2, uint8_t col);
 
-void circ(short ox, short oy, short r, uint16_t col);
-void circfill(short ox, short oy, short r, uint16_t col);
+void circ(short ox, short oy, short r, uint8_t col);
+void circfill(short ox, short oy, short r, uint8_t col);
 
-void rect(short x1, short y1, short x2, short y2, uint16_t col);
-void rectfill(short x1, short y1, short x2, short y2, uint16_t col);
+void rect(short x1, short y1, short x2, short y2, uint8_t col);
+void rectfill(short x1, short y1, short x2, short y2, uint8_t col);
 
 void flipBuffer(u8* fb);

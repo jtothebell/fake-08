@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "graphics.h"
+#include "fontdata.h"
 
 
 /*
@@ -41,7 +42,7 @@ const Color PaletteColors[] = {
 };
 
 
-uint16_t _pico8_fb[128*128]; 
+uint8_t _pico8_fb[128*128]; 
 
 GraphicsState _graphicsState;
 
@@ -87,13 +88,13 @@ void cls() {
 	memset(_pico8_fb, _graphicsState.bgColor, sizeof(_pico8_fb));
 }
 
-void pset(short x, short y, uint16_t col){
+void pset(short x, short y, uint8_t col){
 	if (isOnScreen(&x, &y)){
 		_pico8_fb[(x * 128) + y] = col;
 	}
 }
 
-uint16_t pget(short x, short y){
+uint8_t pget(short x, short y){
 	if (isOnScreen(&x, &y)){
 		return _pico8_fb[(x * 128) + y];
 	}
@@ -101,11 +102,11 @@ uint16_t pget(short x, short y){
 	return 0;
 }
 
-void color(uint16_t col){
+void color(uint8_t col){
 	_graphicsState.color = col;
 }
 
-void line (short x1, short y1, short x2, short y2, uint16_t col) {
+void line (short x1, short y1, short x2, short y2, uint8_t col) {
 	sortPointsLtoR(&x1, &y1, &x2, &y2);
 
 	float run = x2 - x1;
@@ -131,7 +132,7 @@ void line (short x1, short y1, short x2, short y2, uint16_t col) {
 	}
 }
 
-void circ(short ox, short oy, short r, uint16_t col){
+void circ(short ox, short oy, short r, uint8_t col){
 	short x = r;
 	short y = 0;
 	short decisionOver2 = 1-x;
@@ -159,7 +160,7 @@ void circ(short ox, short oy, short r, uint16_t col){
 
 }
 
-void circfill(short ox, short oy, short r, uint16_t col){
+void circfill(short ox, short oy, short r, uint8_t col){
 	if (r == 0) {
 		pset(ox, oy, col);
 	}
@@ -183,7 +184,7 @@ void circfill(short ox, short oy, short r, uint16_t col){
 	
 }
 
-void rect(short x1, short y1, short x2, short y2, uint16_t col) {
+void rect(short x1, short y1, short x2, short y2, uint8_t col) {
 	sortCoordsForRect(&x1, &y1, &x2, &y2);
 
 	for (short i = x1; i <= x2; i++) {
@@ -196,7 +197,7 @@ void rect(short x1, short y1, short x2, short y2, uint16_t col) {
 
 }
 
-void rectfill(short x1, short y1, short x2, short y2, uint16_t col) {
+void rectfill(short x1, short y1, short x2, short y2, uint8_t col) {
 	sortCoordsForRect(&x1, &y1, &x2, &y2);
 
 	for (short i = x1; i <= x2; i++) {
@@ -211,7 +212,7 @@ void flipBuffer(u8* fb) {
     for(x = 0; x < 400; x++) {
     	for(y = 0; y < 240; y++) {
 			if (x < 128 && y < 128) {
-				uint16_t c = _pico8_fb[x*128 + y];
+				uint8_t c = _pico8_fb[x*128 + y];
 				Color col = PaletteColors[c];
 
 				fb[((x*240)+ (239 - y))*3+0] = col.Blue;
