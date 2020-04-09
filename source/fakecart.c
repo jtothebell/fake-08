@@ -34,6 +34,16 @@ void _draw() {
     rect((short)r2x1, (short)r2y1, (short)r2x0, (short)r2y0, r2c);
 
     pset(40, 10, 13);
+
+    line(120, 10, 120, 120, 14);
+
+    line(0, 0, 20, 20, 15);
+
+    line(0, 20, 20, 0, 15);
+
+    line(20, 30, 0, 20, 12);
+
+    line(0, 30, 20, 20, 12);
 }
 
 void _update() {

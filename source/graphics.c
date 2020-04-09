@@ -61,12 +61,6 @@ void swap(short *x, short *y) {
    return;
 }
 
-void sortcoords(short *expectedLower, short *expectedHigher){
-	if (*expectedHigher < *expectedLower) {
-		swap(expectedLower, expectedHigher);
-	}
-}
-
 bool isOnScreen(short *x, short* y) {
 	return *x >= 0 && *x < 127 && *y >= 0 && *y < 127;
 }
@@ -94,14 +88,45 @@ void color(uint16_t col){
 	_graphicsState.color = col;
 }
 
+void line (short x1, short y1, short x2, short y2, uint16_t col) {
+	if (x1 > x2) {
+		swap(&x1, &x2);
+		swap(&y1, &y2);
+	}
+
+	float run = x2 - x1;
+	float rise = y2 - y1;
+
+	//vertical line
+	if (run == 0) {
+		if (y1 > y2) {
+			swap(&y1, &y2);
+		}
+
+		for (short y = y1; y <= y2; y++){
+			pset(x1, y, col);
+		}
+	}
+	else {
+		float slope = rise / run;
+
+		for (short x = x1; x <= x2; x++){
+			short y = y1 + (short)ceil((float)x * slope);
+			pset(x, y, col);
+		}
+	}
+}
+
 void rect(short x1, short y1, short x2, short y2, uint16_t col) {
-	sortcoords(&x1, &x2);
-	sortcoords(&y1, &y2);
+	if (x1 > x2) {
+		swap(&x1, &x2);
+		swap(&y1, &y2);
+	}
 
 	for (short i = x1; i <= x2; i++) {
 		for (short j = y1; j <= y2; j++) {
-			if (isOnScreen(&i, &j) && (i == x1 || i == x2 || j == y1 || j == y2) ) {
-				_pico8_fb[(i * 128) + j] = col;
+			if ((i == x1 || i == x2 || j == y1 || j == y2) ) {
+				pset(i, j, col);
 			}
 		}
 	}
@@ -109,14 +134,14 @@ void rect(short x1, short y1, short x2, short y2, uint16_t col) {
 }
 
 void rectfill(short x1, short y1, short x2, short y2, uint16_t col) {
-	sortcoords(&x1, &x2);
-	sortcoords(&y1, &y2);
+	if (x1 > x2) {
+		swap(&x1, &x2);
+		swap(&y1, &y2);
+	}
 
 	for (short i = x1; i <= x2; i++) {
 		for (short j = y1; j <= y2; j++) {
-			if (isOnScreen(&i, &j)) {
-				_pico8_fb[(i * 128) + j] = col;
-			}
+			pset(i, j, col);
 		}
 	}
 }
