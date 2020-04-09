@@ -46,6 +46,8 @@ void _draw() {
     line(0, 30, 20, 20, 12);
 
     circ(90, 90, 30, 8);
+
+    circfill(100, 100, 15, 9);
 }
 
 void _update() {

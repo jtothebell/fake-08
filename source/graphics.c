@@ -160,6 +160,26 @@ void circ(short ox, short oy, short r, uint16_t col){
 }
 
 void circfill(short ox, short oy, short r, uint16_t col){
+	if (r == 0) {
+		pset(ox, oy, col);
+	}
+	else if (r == 1) {
+		pset(ox, oy - 1, col);
+		line(ox-1, oy, ox+1, oy, col);
+		pset(ox, oy + 1, col);
+	}
+	else if (r > 0) {
+		short x = -r, y = 0, err = 2 - 2 * r;
+		do {
+			line(ox - x, oy + y, ox + x, oy + y, col);
+			line(ox - x, oy - y, ox + x, oy - y, col);
+			r = err;
+			if (r > x)
+				err += ++x * 2 + 1;
+			if (r <= y)
+				err += ++y * 2 + 1;
+		} while (x < 0);
+	}
 	
 }
 
