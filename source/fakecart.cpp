@@ -1,4 +1,3 @@
-#include <3ds.h>
 
 #include "graphics.h"
 
@@ -25,7 +24,9 @@ void _draw() {
 
     cls();
 
-    rectfill(0, 0, 127, 127, 10);
+    rectfill(0, 0, 127, 127, 0);
+
+    print("abcdefghijklmnopqrstuvwxyz", 0, 0, 7);
 
     rectfill(50, -1, 60, 10, 11);
 
@@ -48,6 +49,8 @@ void _draw() {
     circ(90, 90, 30, 8);
 
     circfill(100, 100, 15, 9);
+
+    print("test str", 64, 64, 7);
 }
 
 void _update() {

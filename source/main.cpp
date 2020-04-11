@@ -1,7 +1,3 @@
-/*
-	Hello World example made by Aurelio Mannara for ctrulib
-	This code was modified for the last time on: 12/12/2014 21:00 UTC+1
-*/
 
 
 #include <3ds.h>
@@ -11,13 +7,14 @@
 
 #include "graphics.h"
 #include "fakecart.h"
+#include "picointernals.h"
 
-int main(int argc, char **argv)
+int main(int argc, char* argv[])
 {
 	int frames = 0; 
 	gfxInitDefault();
 
-	initPico8Graphics();
+	initPicoInternals();
 
 	consoleInit(GFX_BOTTOM, NULL);
 	
@@ -40,7 +37,7 @@ int main(int argc, char **argv)
 		
 		_update();
 		
-		u8* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
+		uint8_t* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
 		//clear whole framebuffer
 		memset(fb, 192, 240*400*3);
 

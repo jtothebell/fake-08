@@ -1,24 +1,11 @@
 #include <math.h>
-#include <3ds.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 
 #include "graphics.h"
-#include "fontdata.h"
 
-
-/*
-typedef struct Point{
-	char X;
-	char Y;
-};
-
-typedef struct Dimensions{
-	char Width;
-	char Height;
-};
-*/
 
 const Color BgGray = BG_GRAY_COLOR;
 
@@ -44,37 +31,65 @@ const Color PaletteColors[] = {
 
 uint8_t _pico8_fb[128*128]; 
 
-GraphicsState _graphicsState;
+static GraphicsState _graphicsState;
 
 SpriteSheet _fontSpriteSheet;
 
-void copy_data_to_sprites(SpriteSheet *sprites, const char* data, size_t datalength, bool bits8) {
+void copy_data_to_sprites(SpriteSheet *sprites, std::string data) {
 	uint16_t i = 0;
 
-	for (size_t n = 0; n < datalength; n++) {
+	for (size_t n = 0; n < data.length(); n++) {
 		char buf[3] = {0};
 
 		if (data[n] > ' ') {
 			buf[0] = data[n++];
 			buf[1] = data[n];
 			uint8_t val = (uint8_t)strtol(buf, NULL, 16);
-			if (bits8) {
-				sprites->sprite_data[i++] = val;
-			} else {
-				sprites->sprite_data[i++] = val >> 4;
-				sprites->sprite_data[i++] = val & 0x0f;
+
+			sprites->sprite_data[i++] = val >> 4;
+			sprites->sprite_data[i++] = val & 0x0f;
+		}
+	}
+}
+
+
+//call initialize to make sure defaults are correct
+void initPico8Graphics(std::string fontdata) {
+
+	copy_data_to_sprites(&_fontSpriteSheet, fontdata);
+}
+
+//based on tac08 implementation of blitter()
+void copySpriteToScreen(
+	uint8_t spritebuffer[],
+	short scr_x,
+	short scr_y,
+	short spr_x,
+	short spr_y,
+	short spr_w,
+	short spr_h,
+	bool flip_x = false,
+	bool flip_y = false) 
+{
+
+	//note: no clipping yet
+	short scr_w = spr_w;
+	short scr_h = spr_h;
+	
+	short dy = 1;
+
+	for (short y = 0; y < scr_h; y++) {
+		uint8_t* spr = spritebuffer + ((spr_y + y * dy) & 0x7f) * 128;
+
+		for (short x = 0; x < scr_w; x++) {
+			uint8_t c = spr[(spr_x + x) & 0x7f];
+			if (c != 0) { //if not transparent. Come back later to add palt() support by checking tranparency palette
+				pset(scr_x + x, scr_y + y, c); //set color on framebuffer. Come back later and add pal() by translating color
 			}
 		}
 	}
 }
 
-//call initialize to make sure defaults are correct
-void initPico8Graphics() {
-	_graphicsState.bgColor = 0;
-	_graphicsState.color = 7;
-
-	copy_data_to_sprites(&_fontSpriteSheet, FONT_SS_STR, sizeof(FONT_SS_STR), false);
-}
 
 //start helper methods
 void swap(short *x, short *y) {
@@ -125,6 +140,7 @@ uint8_t pget(short x, short y){
 
 	return 0;
 }
+
 
 void color(uint8_t col){
 	_graphicsState.color = col;
@@ -231,12 +247,34 @@ void rectfill(short x1, short y1, short x2, short y2, uint8_t col) {
 	}
 }
 
-void print(char* str, size_t strlength, short x, short y, uint8_t col){
+//tac08
+short print(std::string str, short x, short y, uint16_t c) {
+	_graphicsState.text_x = x;
 
+	for (size_t n = 0; n < str.length(); n++) {
+		uint8_t ch = str[n];
+		if (ch >= 0x10 && ch < 0x80) {
+			short index = ch - 0x10;
+			copySpriteToScreen(_fontSpriteSheet.sprite_data, x, y, (index % 16) * 8, (index / 16) * 8, 4, 5);
+			x += 4;
+		} else if (ch >= 0x80) {
+			short index = ch - 0x80;
+			copySpriteToScreen(_fontSpriteSheet.sprite_data, x, y, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5);
+			x += 8;
+		} else if (ch == '\n') {
+			x = _graphicsState.text_x;
+			y += 6;
+		}
+	}
+
+	_graphicsState.text_x = 0;
+	_graphicsState.text_y = y + 6;
+
+	return x;
 }
 
-void flipBuffer(u8* fb) {
-	int x, y;
+void flipBuffer(uint8_t* fb) {
+	short x, y;
     for(x = 0; x < 400; x++) {
     	for(y = 0; y < 240; y++) {
 			if (x < 128 && y < 128) {
@@ -250,5 +288,4 @@ void flipBuffer(u8* fb) {
     	}
     }
 }
-
 

@@ -1,4 +1,5 @@
 
+#include <string>
 
 #define COLOR_00 {  0,   0,   0, 255}
 #define COLOR_01 { 29,  43,  83, 255}
@@ -20,24 +21,27 @@
 #define BG_GRAY_COLOR {128, 128, 128, 255}
 
 
-typedef struct {
+struct Color {
 	char Red;
 	char Green;
 	char Blue;
 	char Alpha;
-} Color;
+};
 
-typedef struct {
-    uint8_t color;
-    uint8_t bgColor;
-} GraphicsState;
+struct GraphicsState{
+    uint8_t color = 7;
+    uint8_t bgColor = 0;
 
-typedef struct {
+    short text_x = 0;
+	short text_y = 0;
+};
+
+struct SpriteSheet{
 	uint8_t sprite_data[128 * 128];
 	uint8_t flags[256];
-} SpriteSheet;
+};
 
-void initPico8Graphics();
+void initPico8Graphics(std::string fontdata);
 
 void cls();
 
@@ -54,4 +58,6 @@ void circfill(short ox, short oy, short r, uint8_t col);
 void rect(short x1, short y1, short x2, short y2, uint8_t col);
 void rectfill(short x1, short y1, short x2, short y2, uint8_t col);
 
-void flipBuffer(u8* fb);
+short print(std::string str, short x, short y, uint16_t c);
+
+void flipBuffer(uint8_t* fb);
