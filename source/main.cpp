@@ -1,13 +1,18 @@
 
 
-#include <3ds.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <3ds.h>
+
+#include <string>
 
 #include "graphics.h"
 #include "fakecart.h"
 #include "picointernals.h"
+
+//this has the macro _TEST defined in it
+#include "tests/test_switch.h"
 
 int main(int argc, char* argv[])
 {
@@ -16,7 +21,20 @@ int main(int argc, char* argv[])
 
 	initPicoInternals();
 
+	//test or not both hardcoded to loading test cart as of now
+	#if _TEST
+	int bgcolor = 255;
 	consoleInit(GFX_BOTTOM, NULL);
+
+	printf("testing console printing\n");
+	printf("bgcolor %d\n", bgcolor);
+
+	loadcart("testcart.p8");
+
+	#else
+	loadcart("testcart.p8");
+	int bgcolor = 0;
+	#endif
 	
 	// Main loop
 	while (aptMainLoop())
@@ -38,8 +56,12 @@ int main(int argc, char* argv[])
 		_update();
 		
 		uint8_t* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
+		//clear whole top framebuffer
+		memset(fb, bgcolor, 240*400*3);
+
+		//uint8_t* fb_b = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
 		//clear whole framebuffer
-		memset(fb, 192, 240*400*3);
+		//memset(fb_b, bgcolor, 240*320*3);
 
 		//cart draw
 		_draw();
