@@ -11,13 +11,14 @@
 #include "tests/cart_test.h"
 #endif
 
-void LoadCart(std::string filename){
+Cart::Cart(std::string filename){
+    Filename = filename;
     auto cartStr = get_file_contents(filename.c_str());
+
+    fullCartText = cartStr;
 
     std::istringstream s(cartStr);
     std::string line;
-    std::string lua = "";
-    std::string spritesheet = "";
     std::string currSec = "";
     
     while (std::getline(s, line)) {
@@ -27,10 +28,22 @@ void LoadCart(std::string filename){
             currSec = line;
         }
         else if (currSec == "__lua__"){
-            lua += line + "\n";
+            LuaString += line + "\n";
         }
         else if (currSec == "__gfx__"){
-            spritesheet += line + "\n";
+            SpriteSheetString += line + "\n";
+        }
+        else if (currSec == "__gff__"){
+            SpriteFlagsString += line + "\n";
+        }
+        else if (currSec == "__map__"){
+            MapString += line + "\n";
+        }
+        else if (currSec == "__sfx__"){
+             //no sound support yet
+        }
+        else if (currSec == "__sfx__"){
+             //no sound support yet
         }
 	}
 
@@ -39,11 +52,7 @@ void LoadCart(std::string filename){
     //run tests to make sure cart is parsed correctly
     verifyFullCartText(cartStr);
 
-    verifyLuaText(lua);
-
-    verifySpriteSheetText(spritesheet);
+    verifyCart(this);
 
     #endif
-
-    //return cart;
 }

@@ -105,6 +105,13 @@ bool verifyFullCartText(std::string cartText){
     return assertStringsEqual(full_cart_text, cartText, "Full Cart Text");
 }
 
+bool verifyCart(Cart* cart){
+    bool valid = true;
+    valid &= verifyLuaText(cart->LuaString);
+    valid &= verifySpriteSheetText(cart->SpriteSheetString);
+    return valid;
+}
+
 const char* expected_lua_text = R"(local r1x0 = 10
 local r1y0 = 10
 local r1x1 = 50

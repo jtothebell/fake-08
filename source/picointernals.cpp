@@ -14,6 +14,6 @@ void initPicoInternals() {
 
 void loadcart(std::string filename){
     //auto cart = LoadCart(filename);
-    LoadCart(filename);
+    Cart cart (filename);
     
 }

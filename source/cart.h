@@ -5,23 +5,20 @@
 #include "graphics.h"
 
 
-struct PicoCart {
+class Cart {
+    std::string fullCartText;
+
+
+    public:
+    Cart (std::string filename);
+
     std::string Filename;
-
-    std::string FullCartString;
-
+    std::string LuaString;
     std::string SpriteSheetString;
-
     std::string SpriteFlagsString;
-
     std::string MapString;
-    
-    std::string LuaScript;
-
 
     //SpriteSheet CartSpriteSheet;
     //uint8_t map_data[128 * 128];
+
 };
-
-
-void LoadCart(std::string filename);
