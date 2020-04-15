@@ -12,7 +12,7 @@
 #include "picointernals.h"
 
 //this has the macro _TEST defined in it
-#include "tests/test_switch.h"
+#include "tests/test_base.h"
 
 int main(int argc, char* argv[])
 {
@@ -25,9 +25,6 @@ int main(int argc, char* argv[])
 	#if _TEST
 	int bgcolor = 255;
 	consoleInit(GFX_BOTTOM, NULL);
-
-	printf("testing console printing\n");
-	printf("bgcolor %d\n", bgcolor);
 
 	loadcart("testcart.p8");
 

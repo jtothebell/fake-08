@@ -1,8 +1,13 @@
-#include <stdio.h>
+
+#include "test_base.h"
+
+#if _TEST
 
 #include <string>
 
 #include "cart_test.h"
+
+
 
 const char* full_cart_text = R"(pico-8 cartridge // http://www.pico-8.com
 version 18
@@ -97,15 +102,7 @@ e0000000000000000000000007700770000770000000000000000000000660005000000500000000
 )";
 
 bool verifyFullCartText(std::string cartText){
-    bool equal = cartText == full_cart_text;
-    if (equal) {
-        printf("Full Cart Text: PASS;\n");
-    }
-    else {
-        printf("Full Cart Text: FAIL;\n");
-    }
-    
-    return equal;
+    return assertStringsEqual(full_cart_text, cartText, "Full Cart Text");
 }
 
 const char* expected_lua_text = R"(local r1x0 = 10
@@ -181,15 +178,7 @@ end
 )";
 
 bool verifyLuaText(std::string luaText){
-    bool equal = luaText == expected_lua_text;
-    if (equal) {
-        printf("Lua Text: PASS;\n");
-    }
-    else {
-        printf("Lua Text: FAIL;\n");
-    }
-    
-    return equal;
+    return assertStringsEqual(expected_lua_text, luaText, "Lua Text");
 }
 
 const char* expected_spritesheet_text = R"(e0000000000000000000000007700770000770000000000000000000000660005000000500000000000000000000000000000000000000000000000000000000
@@ -211,13 +200,7 @@ const char* expected_spritesheet_text = R"(e000000000000000000000000770077000077
 )";
 
 bool verifySpriteSheetText(std::string spritesheet) {
-    bool equal = spritesheet == expected_spritesheet_text;
-    if (equal) {
-        printf("Spritesheet Text: PASS;\n");
-    }
-    else {
-        printf("Spritesheet Text: FAIL;\n");
-    }
-    
-    return equal;
+    return assertStringsEqual(expected_spritesheet_text, spritesheet, "Spritesheet Text");
 }
+
+#endif
