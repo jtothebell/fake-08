@@ -9,7 +9,7 @@
 
 #include "graphics.h"
 #include "fakecart.h"
-#include "picointernals.h"
+#include "console.h"
 
 //this has the macro _TEST defined in it
 #include "tests/test_base.h"
@@ -19,14 +19,14 @@ int main(int argc, char* argv[])
 	int frames = 0; 
 	gfxInitDefault();
 
-	initPicoInternals();
+	Console console;
 
 	//test or not both hardcoded to loading test cart as of now
 	#if _TEST
 	int bgcolor = 255;
 	consoleInit(GFX_BOTTOM, NULL);
 
-	loadcart("testcart.p8");
+	console.LoadCart("testcart.p8");
 
 	#else
 	loadcart("testcart.p8");

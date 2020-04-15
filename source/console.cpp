@@ -1,19 +1,19 @@
 #include <string>
 
-#include "picointernals.h"
+#include "console.h"
 #include "graphics.h"
 #include "fontdata.h"
 #include "cart.h"
 
-void initPicoInternals() {
+Console::Console(){
     auto fontdata = get_font_data();
 
     initPico8Graphics(fontdata);
-    
 }
 
-void loadcart(std::string filename){
-    //auto cart = LoadCart(filename);
-    Cart cart (filename);
+void Console::LoadCart(std::string filename){
+    Cart cart = Cart(filename);
+
+    _loadedCart = &cart;
     
 }

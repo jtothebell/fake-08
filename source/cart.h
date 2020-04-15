@@ -8,7 +8,6 @@
 class Cart {
     std::string fullCartText;
 
-
     public:
     Cart (std::string filename);
 
