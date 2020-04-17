@@ -4,11 +4,17 @@
 #include "graphics.h"
 #include "fontdata.h"
 #include "cart.h"
+#include "picoglobalapi.h"
 
 Console::Console(){
     auto fontdata = get_font_data();
 
-    initPico8Graphics(fontdata);
+    Graphics* graphics = new Graphics(fontdata);
+
+    _graphics = graphics;
+
+    //this can probably go away when I'm loading actual carts and just have to expose api to lua
+    initGlobalApi(_graphics);
 }
 
 void Console::LoadCart(std::string filename){
@@ -16,4 +22,8 @@ void Console::LoadCart(std::string filename){
 
     _loadedCart = &cart;
     
+}
+
+void Console::FlipBuffer(uint8_t* fb){
+    _graphics->flipBuffer(fb);
 }

@@ -29,11 +29,6 @@ const Color PaletteColors[] = {
 };
 
 
-uint8_t _pico8_fb[128*128]; 
-
-static GraphicsState _graphicsState;
-
-SpriteSheet _fontSpriteSheet;
 
 void copy_data_to_sprites(SpriteSheet *sprites, std::string data) {
 	uint16_t i = 0;
@@ -54,13 +49,15 @@ void copy_data_to_sprites(SpriteSheet *sprites, std::string data) {
 
 
 //call initialize to make sure defaults are correct
-void initPico8Graphics(std::string fontdata) {
-
-	copy_data_to_sprites(&_fontSpriteSheet, fontdata);
+Graphics::Graphics(std::string fontdata) {
+	SpriteSheet spritesheet = {};
+	_fontSpriteSheet = & spritesheet;
+	copy_data_to_sprites(_fontSpriteSheet, fontdata);
 }
 
+//start helper methods
 //based on tac08 implementation of blitter()
-void copySpriteToScreen(
+void Graphics::copySpriteToScreen(
 	uint8_t spritebuffer[],
 	short scr_x,
 	short scr_y,
@@ -90,9 +87,7 @@ void copySpriteToScreen(
 	}
 }
 
-
-//start helper methods
-void swap(short *x, short *y) {
+void Graphics::swap(short *x, short *y) {
    short temp;
    temp = *x;
    *x = *y;
@@ -101,14 +96,14 @@ void swap(short *x, short *y) {
    return;
 }
 
-void sortPointsLtoR(short *x1, short *y1, short *x2, short *y2){
+void Graphics::sortPointsLtoR(short *x1, short *y1, short *x2, short *y2){
 	if (*x1 > *x2) {
 		swap(x1, x2);
 		swap(y1, y2);
 	}
 }
 
-void sortCoordsForRect(short *x1, short *y1, short *x2, short *y2){
+void Graphics::sortCoordsForRect(short *x1, short *y1, short *x2, short *y2){
 	if (*x1 > *x2) {
 		swap(x1, x2);
 	}
@@ -118,22 +113,22 @@ void sortCoordsForRect(short *x1, short *y1, short *x2, short *y2){
 	}
 }
 
-bool isOnScreen(short *x, short* y) {
+bool Graphics::isOnScreen(short *x, short* y) {
 	return *x >= 0 && *x < 127 && *y >= 0 && *y < 127;
 }
 //end helper methods
 
-void cls() {
-	memset(_pico8_fb, _graphicsState.bgColor, sizeof(_pico8_fb));
+void Graphics::cls() {
+	memset(_pico8_fb, _graphicsState->bgColor, sizeof(_pico8_fb));
 }
 
-void pset(short x, short y, uint8_t col){
+void Graphics::pset(short x, short y, uint8_t col){
 	if (isOnScreen(&x, &y)){
 		_pico8_fb[(x * 128) + y] = col;
 	}
 }
 
-uint8_t pget(short x, short y){
+uint8_t Graphics::pget(short x, short y){
 	if (isOnScreen(&x, &y)){
 		return _pico8_fb[(x * 128) + y];
 	}
@@ -141,12 +136,11 @@ uint8_t pget(short x, short y){
 	return 0;
 }
 
-
-void color(uint8_t col){
-	_graphicsState.color = col;
+void Graphics::color(uint8_t col){
+	_graphicsState->color = col;
 }
 
-void line (short x1, short y1, short x2, short y2, uint8_t col) {
+void Graphics::line (short x1, short y1, short x2, short y2, uint8_t col) {
 	sortPointsLtoR(&x1, &y1, &x2, &y2);
 
 	float run = x2 - x1;
@@ -172,7 +166,7 @@ void line (short x1, short y1, short x2, short y2, uint8_t col) {
 	}
 }
 
-void circ(short ox, short oy, short r, uint8_t col){
+void Graphics::circ(short ox, short oy, short r, uint8_t col){
 	short x = r;
 	short y = 0;
 	short decisionOver2 = 1-x;
@@ -200,7 +194,7 @@ void circ(short ox, short oy, short r, uint8_t col){
 
 }
 
-void circfill(short ox, short oy, short r, uint8_t col){
+void Graphics::circfill(short ox, short oy, short r, uint8_t col){
 	if (r == 0) {
 		pset(ox, oy, col);
 	}
@@ -224,7 +218,7 @@ void circfill(short ox, short oy, short r, uint8_t col){
 	
 }
 
-void rect(short x1, short y1, short x2, short y2, uint8_t col) {
+void Graphics::rect(short x1, short y1, short x2, short y2, uint8_t col) {
 	sortCoordsForRect(&x1, &y1, &x2, &y2);
 
 	for (short i = x1; i <= x2; i++) {
@@ -237,7 +231,7 @@ void rect(short x1, short y1, short x2, short y2, uint8_t col) {
 
 }
 
-void rectfill(short x1, short y1, short x2, short y2, uint8_t col) {
+void Graphics::rectfill(short x1, short y1, short x2, short y2, uint8_t col) {
 	sortCoordsForRect(&x1, &y1, &x2, &y2);
 
 	for (short i = x1; i <= x2; i++) {
@@ -248,32 +242,32 @@ void rectfill(short x1, short y1, short x2, short y2, uint8_t col) {
 }
 
 //tac08
-short print(std::string str, short x, short y, uint16_t c) {
-	_graphicsState.text_x = x;
+short Graphics::print(std::string str, short x, short y, uint16_t c) {
+	_graphicsState->text_x = x;
 
 	for (size_t n = 0; n < str.length(); n++) {
 		uint8_t ch = str[n];
 		if (ch >= 0x10 && ch < 0x80) {
 			short index = ch - 0x10;
-			copySpriteToScreen(_fontSpriteSheet.sprite_data, x, y, (index % 16) * 8, (index / 16) * 8, 4, 5);
+			copySpriteToScreen(_fontSpriteSheet->sprite_data, x, y, (index % 16) * 8, (index / 16) * 8, 4, 5);
 			x += 4;
 		} else if (ch >= 0x80) {
 			short index = ch - 0x80;
-			copySpriteToScreen(_fontSpriteSheet.sprite_data, x, y, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5);
+			copySpriteToScreen(_fontSpriteSheet->sprite_data, x, y, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5);
 			x += 8;
 		} else if (ch == '\n') {
-			x = _graphicsState.text_x;
+			x = _graphicsState->text_x;
 			y += 6;
 		}
 	}
 
-	_graphicsState.text_x = 0;
-	_graphicsState.text_y = y + 6;
+	_graphicsState->text_x = 0;
+	_graphicsState->text_y = y + 6;
 
 	return x;
 }
 
-void flipBuffer(uint8_t* fb) {
+void Graphics::flipBuffer(uint8_t* fb) {
 	short x, y;
     for(x = 0; x < 400; x++) {
     	for(y = 0; y < 240; y++) {

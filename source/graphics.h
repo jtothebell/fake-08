@@ -42,23 +42,50 @@ struct SpriteSheet{
 	uint8_t flags[256];
 };
 
-void initPico8Graphics(std::string fontdata);
+class Graphics {
+	uint8_t _pico8_fb[128*128]; 
+	GraphicsState* _graphicsState;
+	SpriteSheet* _fontSpriteSheet;
 
-void cls();
+	void copySpriteToScreen(
+		uint8_t spritebuffer[],
+		short scr_x,
+		short scr_y,
+		short spr_x,
+		short spr_y,
+		short spr_w,
+		short spr_h,
+		bool flip_x,
+		bool flip_y);
 
-void pset(short x, short y, uint8_t col);
-uint8_t pget(short x, short y);
+	void swap(short *x, short *y);
 
-void color(uint8_t c);
+	void sortPointsLtoR(short *x1, short *y1, short *x2, short *y2);
 
-void line (short x1, short y1, short x2, short y2, uint8_t col);
+	void sortCoordsForRect(short *x1, short *y1, short *x2, short *y2);
 
-void circ(short ox, short oy, short r, uint8_t col);
-void circfill(short ox, short oy, short r, uint8_t col);
+	bool isOnScreen(short *x, short* y);
 
-void rect(short x1, short y1, short x2, short y2, uint8_t col);
-void rectfill(short x1, short y1, short x2, short y2, uint8_t col);
+	public:
+	Graphics(std::string fontdata);
+	void cls();
 
-short print(std::string str, short x, short y, uint16_t c);
+	void pset(short x, short y, uint8_t col);
+	uint8_t pget(short x, short y);
 
-void flipBuffer(uint8_t* fb);
+	void color(uint8_t c);
+
+	void line (short x1, short y1, short x2, short y2, uint8_t col);
+
+	void circ(short ox, short oy, short r, uint8_t col);
+	void circfill(short ox, short oy, short r, uint8_t col);
+
+	void rect(short x1, short y1, short x2, short y2, uint8_t col);
+	void rectfill(short x1, short y1, short x2, short y2, uint8_t col);
+
+	short print(std::string str, short x, short y, uint16_t c);
+
+	void flipBuffer(uint8_t* fb);
+
+};
+

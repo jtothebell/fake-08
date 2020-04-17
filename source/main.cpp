@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 	console.LoadCart("testcart.p8");
 
 	#else
-	loadcart("testcart.p8");
+	console.LoadCart("testcart.p8");
 	int bgcolor = 0;
 	#endif
 	
@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 		_draw();
 
 		//send pico 8 screen to framebuffer
-		flipBuffer(fb);
+		console.FlipBuffer(fb);
 
     	frames++;
 	}
