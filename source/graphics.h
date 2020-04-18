@@ -29,19 +29,16 @@ struct Color {
 	char Alpha;
 };
 
-struct GraphicsState{
-    uint8_t color;
-    uint8_t bgColor;
-
-    short text_x;
-	short text_y;
-};
-
 class Graphics {
-	uint8_t _pico8_fb[128*128]; 
-	GraphicsState* _graphicsState;
+	uint8_t _pico8_fb[128*128];
 	uint8_t fontSpriteData[128 * 128];
 	uint8_t spriteSheetData[128 * 128];
+
+	uint8_t _gfxState_color;
+    uint8_t _gfxState_bgColor;
+
+    short _gfxState_text_x;
+	short _gfxState_text_y;
 
 	void copySpriteToScreen(
 		uint8_t spritebuffer[],

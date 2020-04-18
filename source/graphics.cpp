@@ -51,9 +51,7 @@ void copy_data_to_sprites(uint8_t sprite_data[128 * 128], std::string data) {
 
 //call initialize to make sure defaults are correct
 Graphics::Graphics(std::string fontdata) {
-	GraphicsState graphicsState = {};
-	graphicsState.color = 7;
-	_graphicsState = & graphicsState;
+	this->_gfxState_color = 7;
 
 	Logger::Write("Copying data to font spritesheet\n");
 	copy_data_to_sprites(fontSpriteData, fontdata);
@@ -123,12 +121,13 @@ void Graphics::sortCoordsForRect(short *x1, short *y1, short *x2, short *y2){
 }
 
 bool Graphics::isOnScreen(short *x, short* y) {
-	return *x >= 0 && *x < 127 && *y >= 0 && *y < 127;
+	return *x >= 0 && *x <= 127 && *y >= 0 && *y <= 127;
 }
 //end helper methods
 
 void Graphics::cls() {
-	memset(_pico8_fb, _graphicsState->bgColor, sizeof(_pico8_fb));
+	memset(_pico8_fb, this->_gfxState_bgColor, sizeof(_pico8_fb));
+
 }
 
 void Graphics::pset(short x, short y, uint8_t col){
@@ -146,7 +145,7 @@ uint8_t Graphics::pget(short x, short y){
 }
 
 void Graphics::color(uint8_t col){
-	_graphicsState->color = col;
+	this->_gfxState_color = col;
 }
 
 void Graphics::line (short x1, short y1, short x2, short y2, uint8_t col) {
@@ -252,7 +251,7 @@ void Graphics::rectfill(short x1, short y1, short x2, short y2, uint8_t col) {
 
 //tac08
 short Graphics::print(std::string str, short x, short y, uint16_t c) {
-	_graphicsState->text_x = x;
+	_gfxState_text_x = x;
 
 	for (size_t n = 0; n < str.length(); n++) {
 		uint8_t ch = str[n];
@@ -265,13 +264,13 @@ short Graphics::print(std::string str, short x, short y, uint16_t c) {
 			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5);
 			x += 8;
 		} else if (ch == '\n') {
-			x = _graphicsState->text_x;
+			x = _gfxState_text_x;
 			y += 6;
 		}
 	}
 
-	_graphicsState->text_x = 0;
-	_graphicsState->text_y = y + 6;
+	_gfxState_text_x = 0;
+	_gfxState_text_y = y + 6;
 
 	return x;
 }
