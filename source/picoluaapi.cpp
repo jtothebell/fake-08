@@ -3,6 +3,7 @@
 
 #include "picoluaapi.h"
 #include "graphics.h"
+#include "Input.h"
 
 extern "C" {
   #include <lua.h>
@@ -11,12 +12,15 @@ extern "C" {
 }
 
 Graphics* _graphicsForLuaApi;
+Input* _inputForLuaApi;
 
-void initPicoApi(Graphics* graphics){
+void initPicoApi(Graphics* graphics, Input* input){
     _graphicsForLuaApi = graphics;
+    _inputForLuaApi = input;
 }
 
 /*functions to expose to lua*/
+//Graphics
 int cls(lua_State *L){
     _graphicsForLuaApi->cls();
 
@@ -123,4 +127,26 @@ int spr(lua_State *L) {
     _graphicsForLuaApi->spr((short)n, (short)x, (short)y, (short)w, (short)h, flip_x, flip_y);
 
     return 0;
+}
+
+//Input
+
+//input api
+int btn(lua_State *L){
+    double i = lua_tonumber(L,1);
+
+    bool pressed = _inputForLuaApi->btn((short)i);
+
+    lua_pushboolean(L, pressed);
+
+    return 1;
+}
+int btnp(lua_State *L){
+    double i = lua_tonumber(L,1);
+
+    bool pressed = _inputForLuaApi->btnp((short)i);
+
+    lua_pushboolean(L, pressed);
+
+    return 1;
 }

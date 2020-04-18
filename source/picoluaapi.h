@@ -9,10 +9,12 @@ extern "C" {
 }
 
 #include "graphics.h"
+#include "Input.h"
 
 //this can probably go away when I'm loading actual carts and just have to expose api to lua
-void initPicoApi(Graphics* graphics);
+void initPicoApi(Graphics* graphics, Input* input);
 
+//graphics api
 int cls(lua_State *L);
 int pset(lua_State *L);
 int pget(lua_State *L);
@@ -25,3 +27,6 @@ int rectfill(lua_State *L);
 int print(lua_State *L);
 int spr(lua_State *L);
 
+//input api
+int btn(lua_State *L);
+int btnp(lua_State *L);

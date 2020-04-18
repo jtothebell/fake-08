@@ -4,9 +4,9 @@
 #include "graphics.h"
 #include "fontdata.h"
 #include "cart.h"
-#include "picoglobalapi.h"
 #include "picoluaapi.h"
 #include "logger.h"
+#include "Input.h"
 
 extern "C" {
   #include <lua.h>
@@ -20,14 +20,16 @@ Console::Console(){
 
     Logger::Write("Creating Graphics object\n");
     Graphics* graphics = new Graphics(fontdata);
-    Logger::Write("Created Graphics object\n");
-
     _graphics = graphics;
+
+    Logger::Write("Creating Input object\n");
+    Input* input = new Input();
+    _input = input;
 
     //this can probably go away when I'm loading actual carts and just have to expose api to lua
     Logger::Write("Initializing global api\n");
-    initPicoApi(_graphics);
-    initGlobalApi(_graphics);
+    initPicoApi(_graphics, _input);
+    //initGlobalApi(_graphics);
 }
 
 void Console::LoadCart(std::string filename){
@@ -55,11 +57,15 @@ void Console::LoadCart(std::string filename){
     lua_register(_luaState, "rectfill", rectfill);
     lua_register(_luaState, "print", print);
     lua_register(_luaState, "spr", spr);
+    lua_register(_luaState, "btn", btn);
+    lua_register(_luaState, "btnp", btnp);
 
     luaL_dostring(_luaState, _loadedCart->LuaString.c_str());
 }
 
-void Console::UpdateAndDraw(int frameCount){
+void Console::UpdateAndDraw(int frameCount, uint8_t kdown, uint8_t kheld){
+    _input->SetState(kdown, kheld);
+
     // Push the fib function on the top of the lua stack
     lua_getglobal(_luaState, "_update");
 

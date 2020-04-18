@@ -19,6 +19,11 @@ local r1dy = 2
 local r2dx = 2
 local r2dy = 2
 
+local sprx = 40;
+local spry = 40;
+
+local sprn = 7;
+
 function _draw()
 	cls()
 
@@ -50,10 +55,17 @@ function _draw()
 
     print("test str", 64, 64, 7)
 
-    spr(7, 40, 40, 1, 1, false, false)
+    spr(sprn, sprx, spry, 1, 1, false, false)
 end
 
 function _update()
+    if btn(0) then sprx = sprx - 2 end
+	if btn(1) then sprx = sprx + 2 end
+	if btn(2) then spry = spry - 2 end
+	if btn(3) then spry = spry + 2 end
+	--if btnp(4) then sprn +=1 end
+    --if btnp(5) then sprn -=1 end
+
     if (r1x0 < 0 or r1x1 > 127) then
         r1dx = -1 * r1dx;
     end
