@@ -1,7 +1,7 @@
 #pragma once
 
 //if this is set to 1, test cases will be run on the test cart
-#define _TEST 1
+#define _TEST 0
 
 //if this flag is set, only failures get printed to console
 #define _PRINT_SUCCESS 1

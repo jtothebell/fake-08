@@ -84,8 +84,6 @@ int main(int argc, char* argv[])
 
 	while (aptMainLoop())
 	{
-		gspWaitForVBlank();
-
 		//Scan all the inputs. This should be done once for each frame
 		hidScanInput();
 
@@ -101,10 +99,6 @@ int main(int argc, char* argv[])
 		uint8_t p8kDown = ConvertInputToP8(kDown);
 		uint8_t p8kHeld = ConvertInputToP8(kHeld);
 
-		// Flush and swap framebuffers
-		gfxFlushBuffers();
-		gfxSwapBuffers();
-		
 		//_update();
 		
 		uint8_t* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
@@ -122,6 +116,12 @@ int main(int argc, char* argv[])
 
 		//send pico 8 screen to framebuffer
 		console.FlipBuffer(fb);
+
+		// Flush and swap framebuffers
+		gfxFlushBuffers();
+		gfxSwapBuffers();
+
+		gspWaitForVBlank();
 
     	frames++;
 	}
