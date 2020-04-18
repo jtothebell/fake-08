@@ -31,7 +31,7 @@ const Color PaletteColors[] = {
 
 
 
-void copy_data_to_sprites(SpriteSheet *sprites, std::string data) {
+void copy_data_to_sprites(uint8_t sprite_data[128 * 128], std::string data) {
 	uint16_t i = 0;
 
 	for (size_t n = 0; n < data.length(); n++) {
@@ -42,8 +42,8 @@ void copy_data_to_sprites(SpriteSheet *sprites, std::string data) {
 			buf[1] = data[n];
 			uint8_t val = (uint8_t)strtol(buf, NULL, 16);
 
-			sprites->sprite_data[i++] = val >> 4;
-			sprites->sprite_data[i++] = val & 0x0f;
+			sprite_data[i++] = val >> 4;
+			sprite_data[i++] = val & 0x0f;
 		}
 	}
 }
@@ -51,11 +51,8 @@ void copy_data_to_sprites(SpriteSheet *sprites, std::string data) {
 
 //call initialize to make sure defaults are correct
 Graphics::Graphics(std::string fontdata) {
-	Logger::Write("Initializing spritesheet struct\n");
-	SpriteSheet spritesheet = {};
-	_fontSpriteSheet = & spritesheet;
 	Logger::Write("Copying data to spritesheet\n");
-	copy_data_to_sprites(_fontSpriteSheet, fontdata);
+	copy_data_to_sprites(fontSpriteData, fontdata);
 }
 
 //start helper methods
@@ -252,11 +249,11 @@ short Graphics::print(std::string str, short x, short y, uint16_t c) {
 		uint8_t ch = str[n];
 		if (ch >= 0x10 && ch < 0x80) {
 			short index = ch - 0x10;
-			copySpriteToScreen(_fontSpriteSheet->sprite_data, x, y, (index % 16) * 8, (index / 16) * 8, 4, 5);
+			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8, 4, 5);
 			x += 4;
 		} else if (ch >= 0x80) {
 			short index = ch - 0x80;
-			copySpriteToScreen(_fontSpriteSheet->sprite_data, x, y, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5);
+			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5);
 			x += 8;
 		} else if (ch == '\n') {
 			x = _graphicsState->text_x;

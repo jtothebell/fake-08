@@ -37,15 +37,10 @@ struct GraphicsState{
 	short text_y = 0;
 };
 
-struct SpriteSheet{
-	uint8_t sprite_data[128 * 128];
-	uint8_t flags[256];
-};
-
 class Graphics {
 	uint8_t _pico8_fb[128*128]; 
 	GraphicsState* _graphicsState;
-	SpriteSheet* _fontSpriteSheet;
+	uint8_t fontSpriteData[128 * 128];
 
 	void copySpriteToScreen(
 		uint8_t spritebuffer[],
