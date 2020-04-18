@@ -30,11 +30,11 @@ struct Color {
 };
 
 struct GraphicsState{
-    uint8_t color = 7;
-    uint8_t bgColor = 0;
+    uint8_t color;
+    uint8_t bgColor;
 
-    short text_x = 0;
-	short text_y = 0;
+    short text_x;
+	short text_y;
 };
 
 class Graphics {

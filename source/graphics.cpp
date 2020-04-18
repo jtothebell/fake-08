@@ -51,6 +51,10 @@ void copy_data_to_sprites(uint8_t sprite_data[128 * 128], std::string data) {
 
 //call initialize to make sure defaults are correct
 Graphics::Graphics(std::string fontdata) {
+	GraphicsState graphicsState = {};
+	graphicsState.color = 7;
+	_graphicsState = & graphicsState;
+
 	Logger::Write("Copying data to font spritesheet\n");
 	copy_data_to_sprites(fontSpriteData, fontdata);
 }
