@@ -10,6 +10,7 @@
 #include "graphics.h"
 #include "fakecart.h"
 #include "console.h"
+#include "logger.h"
 
 //this has the macro _TEST defined in it
 #include "tests/test_base.h"
@@ -17,6 +18,8 @@
 int main(int argc, char* argv[])
 {
 	int frames = 0; 
+	Logger::Initialize();
+	Logger::Write("created Logger\n");
 	gfxInitDefault();
 
 	Console console;
@@ -69,6 +72,9 @@ int main(int argc, char* argv[])
     	frames++;
 	}
 
+	Logger::Write("Exiting\n");
+
+	Logger::Exit();
 	gfxExit();
 	return 0;
 }
