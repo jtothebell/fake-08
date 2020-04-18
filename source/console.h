@@ -18,6 +18,8 @@ class Console {
 
     void LoadCart(std::string filename);
 
+    void UpdateAndDraw(int frameCount);
+
     void FlipBuffer(uint8_t* fb);
 
     void TurnOff();

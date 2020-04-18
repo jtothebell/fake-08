@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
 		gfxFlushBuffers();
 		gfxSwapBuffers();
 		
-		_update();
+		//_update();
 		
 		uint8_t* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
 		//clear whole top framebuffer
@@ -70,7 +70,9 @@ int main(int argc, char* argv[])
 		//memset(fb_b, bgcolor, 240*320*3);
 
 		//cart draw
-		_draw();
+		//_draw();
+
+		console.UpdateAndDraw(frames);
 
 		//send pico 8 screen to framebuffer
 		console.FlipBuffer(fb);

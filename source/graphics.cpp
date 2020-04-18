@@ -249,7 +249,7 @@ void Graphics::rectfill(short x1, short y1, short x2, short y2, uint8_t col) {
 	}
 }
 
-//tac08
+//based on tac08 impl
 short Graphics::print(std::string str, short x, short y, uint16_t c) {
 	_gfxState_text_x = x;
 
