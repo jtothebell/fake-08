@@ -51,6 +51,8 @@ void _draw() {
     circfill(100, 100, 15, 9);
 
     print("test str", 64, 64, 7);
+
+    spr(7, 40, 40, 1, 1, false, false);
 }
 
 void _update() {

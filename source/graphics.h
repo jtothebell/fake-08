@@ -41,6 +41,7 @@ class Graphics {
 	uint8_t _pico8_fb[128*128]; 
 	GraphicsState* _graphicsState;
 	uint8_t fontSpriteData[128 * 128];
+	uint8_t spriteSheetData[128 * 128];
 
 	void copySpriteToScreen(
 		uint8_t spritebuffer[],
@@ -63,6 +64,9 @@ class Graphics {
 
 	public:
 	Graphics(std::string fontdata);
+
+	void setSpriteSheet(std::string spritesheetstring);
+
 	void cls();
 
 	void pset(short x, short y, uint8_t col);
@@ -79,8 +83,10 @@ class Graphics {
 	void rectfill(short x1, short y1, short x2, short y2, uint8_t col);
 
 	short print(std::string str, short x, short y, uint16_t c);
+	void spr(int n, int x, int y, int w, int h, bool flip_x, bool flip_y);
 
 	void flipBuffer(uint8_t* fb);
+
 
 };
 

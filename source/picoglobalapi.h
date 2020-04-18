@@ -17,4 +17,5 @@ void circfill(short ox, short oy, short r, uint8_t col);
 void rect(short x1, short y1, short x2, short y2, uint8_t col);
 void rectfill(short x1, short y1, short x2, short y2, uint8_t col);
 short print(std::string str, short x, short y, uint16_t c);
+void spr(int n, int x, int y, int w, int h, bool flip_x, bool flip_y);
 

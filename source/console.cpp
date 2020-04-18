@@ -27,7 +27,8 @@ void Console::LoadCart(std::string filename){
     Cart cart = Cart(filename);
 
     _loadedCart = &cart;
-    
+
+    _graphics->setSpriteSheet(_loadedCart->SpriteSheetString);
 }
 
 void Console::FlipBuffer(uint8_t* fb){

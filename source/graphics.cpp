@@ -51,8 +51,13 @@ void copy_data_to_sprites(uint8_t sprite_data[128 * 128], std::string data) {
 
 //call initialize to make sure defaults are correct
 Graphics::Graphics(std::string fontdata) {
-	Logger::Write("Copying data to spritesheet\n");
+	Logger::Write("Copying data to font spritesheet\n");
 	copy_data_to_sprites(fontSpriteData, fontdata);
+}
+
+void Graphics::setSpriteSheet(std::string spritesheetstring){
+	Logger::Write("Copying data to spritesheet\n");
+	copy_data_to_sprites(spriteSheetData, spritesheetstring);
 }
 
 //start helper methods
@@ -265,6 +270,12 @@ short Graphics::print(std::string str, short x, short y, uint16_t c) {
 	_graphicsState->text_y = y + 6;
 
 	return x;
+}
+
+void Graphics::spr(int n, int x, int y, int w, int h, bool flip_x, bool flip_y) {
+	int spr_x = (n % 16) * 8;
+	int spr_y = (n / 16) * 8;
+	copySpriteToScreen(spriteSheetData, x, y, spr_x, spr_y, w * 8, h * 8, flip_x, flip_y);
 }
 
 void Graphics::flipBuffer(uint8_t* fb) {
