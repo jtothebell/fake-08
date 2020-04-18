@@ -2,9 +2,16 @@
 
 #include "cart.h"
 
+extern "C" {
+  #include <lua.h>
+  #include <lualib.h>
+  #include <lauxlib.h>
+}
+
 class Console {
     Cart* _loadedCart;
     Graphics* _graphics;
+    lua_State* _luaState;
 
     public:
     Console();
@@ -12,5 +19,7 @@ class Console {
     void LoadCart(std::string filename);
 
     void FlipBuffer(uint8_t* fb);
+
+    void TurnOff();
 };
 

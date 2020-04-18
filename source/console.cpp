@@ -7,6 +7,12 @@
 #include "picoglobalapi.h"
 #include "logger.h"
 
+extern "C" {
+  #include <lua.h>
+  #include <lualib.h>
+  #include <lauxlib.h>
+}
+
 Console::Console(){
     Logger::Write("getting font string\n");
     auto fontdata = get_font_data();
@@ -29,8 +35,20 @@ void Console::LoadCart(std::string filename){
     _loadedCart = &cart;
 
     _graphics->setSpriteSheet(_loadedCart->SpriteSheetString);
+
+    // initialize Lua interpreter
+    _luaState = luaL_newstate();
+
+    // load Lua base libraries (print / math / etc)
+    luaL_openlibs(_luaState);
+
+    luaL_dostring(_luaState, _loadedCart->LuaString.c_str());
 }
 
 void Console::FlipBuffer(uint8_t* fb){
     _graphics->flipBuffer(fb);
+}
+
+void Console::TurnOff() {
+    lua_close(_luaState);
 }

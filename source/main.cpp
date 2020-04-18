@@ -79,7 +79,8 @@ int main(int argc, char* argv[])
 	}
 
 
-	Logger::Write("Exiting\n");
+	Logger::Write("Turning off console and exiting logger\n");
+	console.TurnOff();
 	Logger::Exit();
 	gfxExit();
 	return 0;

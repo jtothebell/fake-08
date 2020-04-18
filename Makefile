@@ -33,9 +33,9 @@ include $(DEVKITARM)/3ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source source/tests
+SOURCES		:=	source source/tests libs/lua-5.3.2/src
 DATA		:=	data
-INCLUDES	:=	include
+INCLUDES	:=	include libs/lua-5.3.2/src
 GRAPHICS	:=	gfx
 GFXBUILD	:=	$(BUILD)
 #ROMFS		:=	romfs
