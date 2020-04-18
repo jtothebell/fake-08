@@ -21,15 +21,20 @@ int main(int argc, char* argv[])
 	Logger::Initialize();
 	Logger::Write("created Logger\n");
 	gfxInitDefault();
+	Logger::Write("gfxInitDefault()\n");
 
+	Logger::Write("initializing Console\n");
 	Console console;
+	Logger::Write("initialized console\n");
 
 	//test or not both hardcoded to loading test cart as of now
 	#if _TEST
 	int bgcolor = 255;
 	consoleInit(GFX_BOTTOM, NULL);
 
+	Logger::Write("Loading cart\n");
 	console.LoadCart("testcart.p8");
+	Logger::Write("Cart Loaded\n");
 
 	#else
 	console.LoadCart("testcart.p8");
@@ -37,6 +42,7 @@ int main(int argc, char* argv[])
 	#endif
 	
 	// Main loop
+	Logger::Write("Starting main loop\n");
 	while (aptMainLoop())
 	{
 		gspWaitForVBlank();
@@ -72,8 +78,8 @@ int main(int argc, char* argv[])
     	frames++;
 	}
 
-	Logger::Write("Exiting\n");
 
+	Logger::Write("Exiting\n");
 	Logger::Exit();
 	gfxExit();
 	return 0;

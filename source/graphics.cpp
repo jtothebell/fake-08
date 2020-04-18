@@ -6,6 +6,7 @@
 
 #include "graphics.h"
 
+#include "logger.h"
 
 const Color BgGray = BG_GRAY_COLOR;
 
@@ -50,8 +51,10 @@ void copy_data_to_sprites(SpriteSheet *sprites, std::string data) {
 
 //call initialize to make sure defaults are correct
 Graphics::Graphics(std::string fontdata) {
+	Logger::Write("Initializing spritesheet struct\n");
 	SpriteSheet spritesheet = {};
 	_fontSpriteSheet = & spritesheet;
+	Logger::Write("Copying data to spritesheet\n");
 	copy_data_to_sprites(_fontSpriteSheet, fontdata);
 }
 

@@ -6,14 +6,18 @@
 
 #include "utils.h"
 
+#include "logger.h"
+
 #include "tests/test_base.h"
 #if _TEST
 #include "tests/cart_test.h"
 #endif
 
 Cart::Cart(std::string filename){
-    Filename = filename;
+    Filename = filename;\
+    Logger::Write("getting file contents\n");
     auto cartStr = get_file_contents(filename.c_str());
+    Logger::Write("Got file contents... parsing cart\n");
 
     fullCartText = cartStr;
 
