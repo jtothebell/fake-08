@@ -8,6 +8,8 @@
 
 #include "logger.h"
 
+#include "cartPatcher.h"
+
 #include "tests/test_base.h"
 #if _TEST
 #include "tests/cart_test.h"
@@ -50,6 +52,10 @@ Cart::Cart(std::string filename){
              //no sound support yet
         }
 	}
+
+    const char * patched = getPatchedLua(LuaString.c_str());
+
+    LuaString = patched;
 
     
     #if _TEST

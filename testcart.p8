@@ -63,8 +63,8 @@ function _update()
 	if btn(1) then sprx = sprx + 2 end
 	if btn(2) then spry = spry - 2 end
 	if btn(3) then spry = spry + 2 end
-	--if btnp(4) then sprn +=1 end
-    --if btnp(5) then sprn -=1 end
+	if btnp(4) then sprn +=1 end
+    if btnp(5) then sprn -=1 end
 
     if (r1x0 < 0 or r1x1 > 127) then
         r1dx = -1 * r1dx;

@@ -6,9 +6,21 @@
 #include <string>
 #include <sstream>
 
+#include "../logger.h"
+
 bool assertStringsEqual(std::string expected, std::string actual, std::string testName){
     bool equal = expected == actual;
     printTestOuput(testName, equal);
+
+    if (!equal){
+        Logger::Write("start expected: \n");
+        Logger::Write(expected.c_str());
+        Logger::Write("end expected: \n");
+
+        Logger::Write("start actual: \n");
+        Logger::Write(actual.c_str());
+        Logger::Write("end actual: \n");
+    }
     
     return equal;
 }
