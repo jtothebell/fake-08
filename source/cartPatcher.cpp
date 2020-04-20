@@ -9,7 +9,7 @@ extern "C" {
 }
 
 //from LovePotion: https://github.com/gamax92/picolove/blob/master/cart.lua (zlib license)
-//it may be possible to do this kind of pattern matching with another library, or use z8Lua
+//it should be possible to do this kind of pattern matching with another library, or use z8Lua
 //but for now I have lua 5.3 working so I'm going with this since I know it works
 
 const char * patchLuaFunction = R"#(function patchLuaForP8(lua)
