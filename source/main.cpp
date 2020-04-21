@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
 	Logger::Write("gfxInitDefault()\n");
 
 	Logger::Write("initializing Console\n");
-	Console console;
+	Console *console = new Console();
 	Logger::Write("initialized console\n");
 
 	//test or not both hardcoded to loading test cart as of now
@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
 	consoleInit(GFX_BOTTOM, NULL);
 
 	Logger::Write("Loading cart\n");
-	console.LoadCart("testcart.p8");
+	console->LoadCart("testcart.p8");
 	Logger::Write("Cart Loaded\n");
 
 	#else
@@ -112,15 +112,15 @@ int main(int argc, char* argv[])
 		//cart draw
 		//_draw();
 
-		console.UpdateAndDraw(frames, p8kDown, p8kHeld);
+		console->UpdateAndDraw(frames, p8kDown, p8kHeld);
 
 		//send pico 8 screen to framebuffer
-		console.FlipBuffer(fb);
+		console->FlipBuffer(fb);
 
 		// Flush and swap framebuffers
+		//possibly pass this as a function to flip buffer to support more platforms?
 		gfxFlushBuffers();
 		gfxSwapBuffers();
-
 		gspWaitForVBlank();
 
     	frames++;
@@ -128,7 +128,8 @@ int main(int argc, char* argv[])
 
 
 	Logger::Write("Turning off console and exiting logger\n");
-	console.TurnOff();
+	console->TurnOff();
+	delete console;
 	Logger::Exit();
 	gfxExit();
 	return 0;

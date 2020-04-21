@@ -32,11 +32,20 @@ Console::Console(){
     //initGlobalApi(_graphics);
 }
 
+Console::~Console(){
+    delete _graphics;
+    delete _input;
+
+    if (_loadedCart){
+        delete _loadedCart;
+    }
+}
+
 void Console::LoadCart(std::string filename){
     Logger::Write("Calling Cart Constructor\n");
-    Cart cart = Cart(filename);
+    Cart *cart = new Cart(filename);
 
-    _loadedCart = &cart;
+    _loadedCart = cart;
 
     _graphics->setSpriteSheet(_loadedCart->SpriteSheetString);
 

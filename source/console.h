@@ -17,6 +17,7 @@ class Console {
 
     public:
     Console();
+    ~Console();
 
     void LoadCart(std::string filename);
 
