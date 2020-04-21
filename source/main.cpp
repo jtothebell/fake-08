@@ -53,6 +53,12 @@ uint8_t ConvertInputToP8(u32 input){
 	return result;
 }
 
+void postFlip3dsFunction() {
+	gfxFlushBuffers();
+	gfxSwapBuffers();
+	gspWaitForVBlank();
+}
+
 int main(int argc, char* argv[])
 {
 	int frames = 0; 
@@ -114,14 +120,9 @@ int main(int argc, char* argv[])
 
 		console->UpdateAndDraw(frames, p8kDown, p8kHeld);
 
-		//send pico 8 screen to framebuffer
-		console->FlipBuffer(fb);
-
-		// Flush and swap framebuffers
-		//possibly pass this as a function to flip buffer to support more platforms?
-		gfxFlushBuffers();
-		gfxSwapBuffers();
-		gspWaitForVBlank();
+		//send pico 8 screen to framebuffer, then call the function to flush and swap buffers, and wait for vblank
+		std::function<void()> postFlip = postFlip3dsFunction;
+		console->FlipBuffer(fb, postFlip);
 
     	frames++;
 	}

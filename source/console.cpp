@@ -1,4 +1,5 @@
 #include <string>
+#include <functional>
 
 #include "console.h"
 #include "graphics.h"
@@ -98,8 +99,12 @@ void Console::UpdateAndDraw(int frameCount, uint8_t kdown, uint8_t kheld){
 
 }
 
-void Console::FlipBuffer(uint8_t* fb){
+void Console::FlipBuffer(uint8_t* fb, std::function<void()> postFlipFunction){
     _graphics->flipBuffer(fb);
+
+    if (postFlipFunction) {
+        postFlipFunction();
+    }
 }
 
 void Console::TurnOff() {

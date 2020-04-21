@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 
 #include "cart.h"
 #include "Input.h"
@@ -23,7 +24,7 @@ class Console {
 
     void UpdateAndDraw(int frameCount, uint8_t kdown, uint8_t kheld);
 
-    void FlipBuffer(uint8_t* fb);
+    void FlipBuffer(uint8_t* fb, std::function<void()> postFlipFunction);
 
     void TurnOff();
 };
