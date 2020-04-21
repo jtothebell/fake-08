@@ -56,6 +56,8 @@ function _draw()
     print("test str", 64, 64, 7)
 
     spr(sprn, sprx, spry, 1, 1, false, false)
+	
+	sspr(64, 0, 8, 8, 72, 48, 12, 20, false, false)
 end
 
 function _update()

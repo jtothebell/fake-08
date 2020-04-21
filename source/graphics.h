@@ -51,6 +51,19 @@ class Graphics {
 		bool flip_x,
 		bool flip_y);
 
+	void copyStretchSpriteToScreen(
+		uint8_t spritebuffer[],
+		int spr_x,
+		int spr_y,
+		int spr_w,
+		int spr_h,
+		int scr_x,
+		int scr_y,
+		int scr_w,
+		int scr_h,
+		bool flip_x,
+		bool flip_y);
+
 	void swap(short *x, short *y);
 
 	void sortPointsLtoR(short *x1, short *y1, short *x2, short *y2);
@@ -80,7 +93,19 @@ class Graphics {
 	void rectfill(short x1, short y1, short x2, short y2, uint8_t col);
 
 	short print(std::string str, short x, short y, uint16_t c);
-	void spr(int n, int x, int y, int w, int h, bool flip_x, bool flip_y);
+	void spr(short n, short x, short y, short w, short h, bool flip_x, bool flip_y);
+
+	void sspr(
+        short sx,
+        short sy,
+        short sw,
+        short sh,
+        short dx,
+        short dy,
+        short dw,
+        short dh,
+        bool flip_x,
+        bool flip_y);
 
 	void flipBuffer(uint8_t* fb);
 

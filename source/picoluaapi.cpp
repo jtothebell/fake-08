@@ -129,6 +129,33 @@ int spr(lua_State *L) {
     return 0;
 }
 
+int sspr(lua_State *L) {
+    double sx = lua_tonumber(L,1);
+    double sy = lua_tonumber(L,2);
+    double sw = lua_tonumber(L,3);
+    double sh = lua_tonumber(L,4);
+    double dx = lua_tonumber(L,5);
+    double dy = lua_tonumber(L,6);
+    double dw = lua_tonumber(L,7);
+    double dh = lua_tonumber(L,8);
+    bool flip_x = lua_toboolean(L,9);
+    bool flip_y = lua_toboolean(L,10);
+
+    _graphicsForLuaApi->sspr(
+        (short)sx,
+        (short)sy,
+        (short)sw,
+        (short)sh,
+        (short)dx,
+        (short)dy,
+        (short)dw,
+        (short)dh,
+        flip_x,
+        flip_y);
+
+    return 0;
+}
+
 //Input
 
 //input api

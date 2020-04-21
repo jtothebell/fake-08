@@ -94,6 +94,62 @@ void Graphics::copySpriteToScreen(
 	}
 }
 
+//based on tac08 implementation of stretch_blitter()
+//uses ints so we can shift bits and do integer division instead of floating point
+void Graphics::copyStretchSpriteToScreen(
+	uint8_t spritebuffer[],
+	int spr_x,
+	int spr_y,
+	int spr_w,
+	int spr_h,
+	int scr_x,
+	int scr_y,
+	int scr_w,
+	int scr_h,
+	bool flip_x = false,
+	bool flip_y = false) 
+{
+	if (false || (spr_h == scr_h && spr_w == scr_w)) {
+		// use faster non stretch blitter if sprite is not stretched
+		copySpriteToScreen(spritebuffer, scr_x, scr_y, spr_x, spr_y, scr_w, scr_h, flip_x, flip_y);
+		return;
+	}
+
+	//shift bits to avoid floating point math
+	spr_x = spr_x << 16;
+	spr_y = spr_y << 16;
+	spr_w = spr_w << 16;
+	spr_h = spr_h << 16;
+
+	int dx = spr_w / scr_w;
+	int dy = spr_h / scr_h;
+
+	if (flip_y) {
+		spr_y += spr_h - 1 * dy;
+		dy = -dy;
+	}
+
+	for (int y = 0; y < scr_h; y++) {
+		uint8_t* spr = spritebuffer + (((spr_y + y * dy) >> 16) & 0x7f) * 128;
+
+		if (!flip_x) {
+			for (int x = 0; x < scr_w; x++) {
+				uint8_t c = spr[((spr_x + x * dx) >> 16) & 0x7f];
+				if (c != 0) {
+					pset(scr_x + x, scr_y + y, c);
+				}
+			}
+		} else {
+			for (int x = 0; x < scr_w; x++) {
+				uint8_t c = spr[((spr_x + spr_w - (x + 1) * dx) >> 16) & 0x7f];
+				if (c != 0) {
+					pset(scr_x + x, scr_y + y, c);
+				}
+			}
+		}
+	}
+}
+
 void Graphics::swap(short *x, short *y) {
    short temp;
    temp = *x;
@@ -275,10 +331,26 @@ short Graphics::print(std::string str, short x, short y, uint16_t c) {
 	return x;
 }
 
-void Graphics::spr(int n, int x, int y, int w, int h, bool flip_x, bool flip_y) {
-	int spr_x = (n % 16) * 8;
-	int spr_y = (n / 16) * 8;
+void Graphics::spr(short n, short x, short y, short w, short h, bool flip_x, bool flip_y) {
+	short spr_x = (n % 16) * 8;
+	short spr_y = (n / 16) * 8;
 	copySpriteToScreen(spriteSheetData, x, y, spr_x, spr_y, w * 8, h * 8, flip_x, flip_y);
+}
+
+void Graphics::sspr(
+        short sx,
+        short sy,
+        short sw,
+        short sh,
+        short dx,
+        short dy,
+        short dw,
+        short dh,
+        bool flip_x,
+        bool flip_y)
+{
+	copyStretchSpriteToScreen(spriteSheetData, sx, sy, sw, sh, dx, dy, dw, dh, flip_x, flip_y);
+
 }
 
 void Graphics::flipBuffer(uint8_t* fb) {

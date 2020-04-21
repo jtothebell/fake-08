@@ -67,6 +67,7 @@ void Console::LoadCart(std::string filename){
     lua_register(_luaState, "rectfill", rectfill);
     lua_register(_luaState, "print", print);
     lua_register(_luaState, "spr", spr);
+    lua_register(_luaState, "sspr", sspr);
     lua_register(_luaState, "btn", btn);
     lua_register(_luaState, "btnp", btnp);
 
