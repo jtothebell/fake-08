@@ -46,16 +46,19 @@ void Console::LoadCart(std::string filename){
     Logger::Write("Calling Cart Constructor\n");
     Cart *cart = new Cart(filename);
 
+    _graphics->setSpriteSheet(cart->SpriteSheetString);
+    _graphics->setSpriteFlags(cart->SpriteFlagsString);
+
     _loadedCart = cart;
 
-    _graphics->setSpriteSheet(_loadedCart->SpriteSheetString);
-
+    
     // initialize Lua interpreter
     _luaState = luaL_newstate();
 
     // load Lua base libraries (print / math / etc)
     luaL_openlibs(_luaState);
 
+    //graphics
     lua_register(_luaState, "cls", cls);
     lua_register(_luaState, "pset", pset);
     lua_register(_luaState, "pget", pget);
@@ -68,6 +71,10 @@ void Console::LoadCart(std::string filename){
     lua_register(_luaState, "print", print);
     lua_register(_luaState, "spr", spr);
     lua_register(_luaState, "sspr", sspr);
+    lua_register(_luaState, "fget", fget);
+    lua_register(_luaState, "fset", fset);
+
+    //input
     lua_register(_luaState, "btn", btn);
     lua_register(_luaState, "btnp", btnp);
 
@@ -85,7 +92,7 @@ void Console::UpdateAndDraw(int frameCount, uint8_t kdown, uint8_t kheld){
 
     // call the function with 0 argument, returning 0 resulta.  Note that the function actually
     // returns 2 results -- we just don't want them
-    lua_call(_luaState, 0, 0);
+    lua_pcall(_luaState, 0, 0, 0);
 
     // Get the result from the lua stack
     //int result = (int)lua_tointeger(_luaState, -1);
@@ -95,7 +102,7 @@ void Console::UpdateAndDraw(int frameCount, uint8_t kdown, uint8_t kheld){
 
 
     lua_getglobal(_luaState, "_draw");
-    lua_call(_luaState, 0, 0);
+    lua_pcall(_luaState, 0, 0, 0);
     lua_pop(_luaState, 0);
 
 }

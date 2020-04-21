@@ -60,9 +60,9 @@ Cart::Cart(std::string filename){
     
     #if _TEST
     //run tests to make sure cart is parsed correctly
-    verifyFullCartText(cartStr);
+    //verifyFullCartText(cartStr);
 
-    verifyCart(this);
+    //verifyCart(this);
 
     #endif
 }

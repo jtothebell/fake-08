@@ -48,18 +48,38 @@ void copy_data_to_sprites(uint8_t sprite_data[128 * 128], std::string data) {
 	}
 }
 
+void copy_data_to_sprite_flags(uint8_t sprite_flag_data[256], std::string data) {
+	uint16_t i = 0;
+
+	for (size_t n = 0; n < data.length(); n++) {
+		char buf[3] = {0};
+
+		if (data[n] > ' ') {
+			buf[0] = data[n++];
+			buf[1] = data[n];
+			uint8_t val = (uint8_t)strtol(buf, NULL, 16);
+
+			sprite_flag_data[i++] = val;
+		}
+	}
+}
+
 
 //call initialize to make sure defaults are correct
 Graphics::Graphics(std::string fontdata) {
 	this->_gfxState_color = 7;
 
-	Logger::Write("Copying data to font spritesheet\n");
 	copy_data_to_sprites(fontSpriteData, fontdata);
 }
 
 void Graphics::setSpriteSheet(std::string spritesheetstring){
 	Logger::Write("Copying data to spritesheet\n");
 	copy_data_to_sprites(spriteSheetData, spritesheetstring);
+}
+
+void Graphics::setSpriteFlags(std::string spriteFlagsstring){
+	Logger::Write("Copying data to sprite flags\n");
+	copy_data_to_sprite_flags(spriteFlags, spriteFlagsstring);
 }
 
 //start helper methods
@@ -350,7 +370,27 @@ void Graphics::sspr(
         bool flip_y)
 {
 	copyStretchSpriteToScreen(spriteSheetData, sx, sy, sw, sh, dx, dy, dw, dh, flip_x, flip_y);
+}
 
+bool Graphics::fget(uint8_t n, uint8_t f){
+	return (this->fget(n) >> f) & 1;
+}
+
+uint8_t Graphics::fget(uint8_t n){
+	return spriteFlags[n];
+}
+
+void Graphics::fset(uint8_t n, uint8_t f, bool v){
+	if (v) {
+		fset(n, fget(n) | (1 << f));
+	}
+	else {
+		fset(n, fget(n) & ~(1 << f));
+	}
+}
+
+void Graphics::fset(uint8_t n, uint8_t v){
+	spriteFlags[n] = v;
 }
 
 void Graphics::flipBuffer(uint8_t* fb) {

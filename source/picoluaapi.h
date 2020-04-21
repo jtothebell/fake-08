@@ -27,6 +27,8 @@ int rectfill(lua_State *L);
 int print(lua_State *L);
 int spr(lua_State *L);
 int sspr(lua_State *L);
+int fget(lua_State *L);
+int fset(lua_State *L);
 
 //input api
 int btn(lua_State *L);
@@ -35,7 +37,6 @@ int btnp(lua_State *L);
 
 //TODO:
 //graphics
-//api.sspr(sx, sy, sw, sh, dx, dy, dw, dh, flip_x, flip_y)
 
 //api.fget(n, f)
 

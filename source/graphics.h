@@ -33,6 +33,7 @@ class Graphics {
 	uint8_t _pico8_fb[128*128];
 	uint8_t fontSpriteData[128 * 128];
 	uint8_t spriteSheetData[128 * 128];
+	uint8_t spriteFlags[256];
 
 	uint8_t _gfxState_color;
     uint8_t _gfxState_bgColor;
@@ -75,7 +76,8 @@ class Graphics {
 	public:
 	Graphics(std::string fontdata);
 
-	void setSpriteSheet(std::string spritesheetstring);
+	void setSpriteSheet(std::string spriteSheetString);
+	void setSpriteFlags(std::string spriteFlagsString);
 
 	void cls();
 
@@ -106,6 +108,12 @@ class Graphics {
         short dh,
         bool flip_x,
         bool flip_y);
+
+	bool fget(uint8_t n, uint8_t f);
+	uint8_t fget(uint8_t n);
+	void fset(uint8_t n, uint8_t f, bool v);
+	void fset(uint8_t n, uint8_t v);
+
 
 	void flipBuffer(uint8_t* fb);
 

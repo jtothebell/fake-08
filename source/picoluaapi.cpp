@@ -106,7 +106,23 @@ int rectfill(lua_State *L){
     return 0;
 }
 int print(lua_State *L){
-    const char * str = lua_tostring(L, 1);
+    const char * str = "";
+
+    //todo: handle other cases, maybe move this somewhere else
+    //learned this from zepto8 https://github.com/samhocevar/zepto8/blob/27f83fe0626d4823fe2a33568d8310d8def84ae9/src/pico8/vm.cpp
+    if (lua_isnil(L, 1)){
+        str = "[nil]";
+    }
+    else if (lua_isstring(L, 1)){
+        str = lua_tolstring(L, 1, nullptr);
+    }
+    else if (lua_isnumber(L, 1)){
+        str = lua_tolstring(L, 1, nullptr);
+    }
+    else if (lua_isboolean(L, 1)){
+        str = lua_toboolean(L, 1) ? "true" : "false";
+    }
+
     double x = lua_tonumber(L,2);
     double y = lua_tonumber(L,3);
     double c = lua_tonumber(L,3);
@@ -152,6 +168,38 @@ int sspr(lua_State *L) {
         (short)dh,
         flip_x,
         flip_y);
+
+    return 0;
+}
+
+int fget(lua_State *L) {
+    double n = lua_tonumber(L,1);
+
+    if (lua_gettop(L) == 1) {
+        uint8_t result = _graphicsForLuaApi->fget((uint8_t)n);
+        lua_pushinteger(L, result);
+    }
+    else {
+        double f = lua_tonumber(L,2);
+        bool result = _graphicsForLuaApi->fget((uint8_t)n, (uint8_t)f);
+        lua_pushboolean(L, result);
+    }
+
+    return 1;
+}
+
+int fset(lua_State *L) {
+    double n = lua_tonumber(L,1);
+
+    if (lua_gettop(L) > 2) {
+        double f = lua_tonumber(L,2);
+        double v = lua_toboolean(L,3);
+        _graphicsForLuaApi->fset((uint8_t)n, (uint8_t)f, (bool)v);
+    }
+    else {
+        double v = lua_tonumber(L,2);
+        _graphicsForLuaApi->fset((uint8_t)n, (uint8_t)v);
+    }
 
     return 0;
 }
