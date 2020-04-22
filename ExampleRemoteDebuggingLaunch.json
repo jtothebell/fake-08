@@ -1,0 +1,19 @@
+{
+    // command line example: https://gist.github.com/LiquidFenrir/d110f3e7755ffbe82672eda49ae21af2
+    // https://marketplace.visualstudio.com/items?itemName=webfreak.debug
+    "version": "0.2.0",
+    "configurations": [   
+        {
+            "type": "gdb",
+            "request": "attach",
+            "name": "Attach to gdbserver",
+            "executable": "path-to-compiled-elf.elf",
+            "target": "[3ds-ip]:[port]",
+            "remote": true,
+            "cwd": "${workspaceRoot}",
+            "valuesFormatting": "parseText",
+            "gdbpath": "C:\\devkitPro\\devkitARM\\bin\\arm-none-eabi-gdb.exe"
+        }
+
+    ]
+}
