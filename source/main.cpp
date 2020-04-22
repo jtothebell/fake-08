@@ -16,6 +16,8 @@
 //this has the macro _TEST defined in it
 #include "tests/test_base.h"
 
+
+//3ds specific helper function
 uint8_t ConvertInputToP8(u32 input){
 	uint8_t result = 0;
 	if (input & KEY_LEFT){
@@ -53,6 +55,7 @@ uint8_t ConvertInputToP8(u32 input){
 	return result;
 }
 
+//3ds specific helper function
 void postFlip3dsFunction() {
 	gfxFlushBuffers();
 	gfxSwapBuffers();

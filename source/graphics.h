@@ -31,8 +31,10 @@ struct Color {
 
 class Graphics {
 	uint8_t _pico8_fb[128*128];
-	uint8_t fontSpriteData[128 * 128];
-	uint8_t spriteSheetData[128 * 128];
+	uint8_t fontSpriteData[128 * 64];
+
+	uint8_t spriteSheetData[128 * 64];
+	uint8_t mapData[128 * 64];
 	uint8_t spriteFlags[256];
 
 	uint8_t _gfxState_color;
@@ -116,7 +118,6 @@ class Graphics {
 
 
 	void flipBuffer(uint8_t* fb);
-
 
 };
 

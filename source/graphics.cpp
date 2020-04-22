@@ -6,6 +6,8 @@
 
 #include "graphics.h"
 
+#include "stringToDataHelpers.h"
+
 #include "logger.h"
 
 const Color BgGray = BG_GRAY_COLOR;
@@ -28,41 +30,6 @@ const Color PaletteColors[] = {
 	COLOR_14,
 	COLOR_15
 };
-
-
-
-void copy_data_to_sprites(uint8_t sprite_data[128 * 128], std::string data) {
-	uint16_t i = 0;
-
-	for (size_t n = 0; n < data.length(); n++) {
-		char buf[3] = {0};
-
-		if (data[n] > ' ') {
-			buf[0] = data[n++];
-			buf[1] = data[n];
-			uint8_t val = (uint8_t)strtol(buf, NULL, 16);
-
-			sprite_data[i++] = val >> 4;
-			sprite_data[i++] = val & 0x0f;
-		}
-	}
-}
-
-void copy_data_to_sprite_flags(uint8_t sprite_flag_data[256], std::string data) {
-	uint16_t i = 0;
-
-	for (size_t n = 0; n < data.length(); n++) {
-		char buf[3] = {0};
-
-		if (data[n] > ' ') {
-			buf[0] = data[n++];
-			buf[1] = data[n];
-			uint8_t val = (uint8_t)strtol(buf, NULL, 16);
-
-			sprite_flag_data[i++] = val;
-		}
-	}
-}
 
 
 //call initialize to make sure defaults are correct
@@ -103,10 +70,16 @@ void Graphics::copySpriteToScreen(
 	short dy = 1;
 
 	for (short y = 0; y < scr_h; y++) {
-		uint8_t* spr = spritebuffer + ((spr_y + y * dy) & 0x7f) * 128;
+		uint8_t* spr = spritebuffer + ((spr_y + y * dy) & 0x7f) * 64;
 
 		for (short x = 0; x < scr_w; x++) {
-			uint8_t c = spr[(spr_x + x) & 0x7f];
+			short combinedPixIdx = spr_x / 2 + x / 2;
+			uint8_t bothPix = spr[combinedPixIdx];
+
+			uint8_t c = x % 2 == 0 
+				? bothPix & 0x0f //just first 4 bits
+				: bothPix >> 4;  //just last 4 bits
+				
 			if (c != 0) { //if not transparent. Come back later to add palt() support by checking tranparency palette
 				pset(scr_x + x, scr_y + y, c); //set color on framebuffer. Come back later and add pal() by translating color
 			}
@@ -150,18 +123,30 @@ void Graphics::copyStretchSpriteToScreen(
 	}
 
 	for (int y = 0; y < scr_h; y++) {
-		uint8_t* spr = spritebuffer + (((spr_y + y * dy) >> 16) & 0x7f) * 128;
+		uint8_t* spr = spritebuffer + (((spr_y + y * dy) >> 16) & 0x7f) * 64;
 
 		if (!flip_x) {
 			for (int x = 0; x < scr_w; x++) {
-				uint8_t c = spr[((spr_x + x * dx) >> 16) & 0x7f];
+				int pixIndex = (spr_x + x * dx);
+				int combinedPixIdx = ((pixIndex / 2) >> 16) & 0x7f;
+				uint8_t bothPix = spr[combinedPixIdx];
+
+				uint8_t c = (pixIndex >> 16) % 2 == 0 
+					? bothPix & 0x0f //just first 4 bits
+					: bothPix >> 4;  //just last 4 bits
 				if (c != 0) {
 					pset(scr_x + x, scr_y + y, c);
 				}
 			}
 		} else {
 			for (int x = 0; x < scr_w; x++) {
-				uint8_t c = spr[((spr_x + spr_w - (x + 1) * dx) >> 16) & 0x7f];
+				int pixIndex = (spr_x + spr_w - (x + 1) * dx);
+				int combinedPixIdx = ((pixIndex / 2) >> 16) & 0x7f;
+				uint8_t bothPix = spr[combinedPixIdx];
+
+				uint8_t c = (pixIndex >> 16) % 2 == 0 
+					? bothPix & 0x0f //just first 4 bits
+					: bothPix >> 4;  //just last 4 bits
 				if (c != 0) {
 					pset(scr_x + x, scr_y + y, c);
 				}
