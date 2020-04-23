@@ -208,6 +208,9 @@ void Graphics::pset(short x, short y, uint8_t col){
 }
 
 void Graphics::_private_pset(short x, short y, uint8_t col) {
+	x = x - _gfxState_camera_x;
+	y = y - _gfxState_camera_y;
+
 	if (isOnScreen(x, y)){
 		_pico8_fb[(x * 128) + y] = col;
 	}
@@ -504,6 +507,15 @@ void Graphics::sset(uint8_t x, uint8_t y, uint8_t c){
 	}
 
 	this->spriteSheetData[combinedIdx] = (currentByte & ~mask) | (c & mask);
+}
+
+void Graphics::camera() {
+	this->camera(0, 0);
+}
+
+void Graphics::camera(short x, short y) {
+	_gfxState_camera_x = x;
+	_gfxState_camera_y = y;
 }
 
 void Graphics::flipBuffer(uint8_t* fb) {

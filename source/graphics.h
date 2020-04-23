@@ -43,6 +43,9 @@ class Graphics {
     short _gfxState_text_x;
 	short _gfxState_text_y;
 
+	short _gfxState_camera_x;
+	short _gfxState_camera_y;
+
 	//not actually part of graphics state memory?
 	short _gfxState_line_x;
 	short _gfxState_line_y;
@@ -149,6 +152,9 @@ class Graphics {
 
 	uint8_t sget(uint8_t x, uint8_t y);
 	void sset(uint8_t x, uint8_t y, uint8_t c);
+
+	void camera();
+	void camera(short x, short y);
 
 
 	void flipBuffer(uint8_t* fb);

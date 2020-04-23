@@ -366,6 +366,21 @@ int sset(lua_State *L) {
     return 0;
 }
 
+int camera(lua_State *L) {
+    short x = 0;
+    short y = 0;
+    if (lua_gettop(L) > 0) {
+        x = lua_tointeger(L,1);
+    }
+    if (lua_gettop(L) < 1) {
+        y = lua_tointeger(L,2);
+    }
+    
+    _graphicsForLuaApi->camera(x, y);
+
+    return 0;
+}
+
 //Input
 
 //input api
