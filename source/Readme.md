@@ -11,7 +11,7 @@ Latter goals include sound support and memory compatibility
 Basic Roadmap:
 -finish basic graphics api support
 (x) implement overloads of existing graphics API
-( ) Add camera() support
+(x) Add camera() support
 ( ) Add clip() support
 ( ) Add map(), mget(), mset() support
 ( ) Add pal() support
