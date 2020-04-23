@@ -195,6 +195,7 @@ int rectfill(lua_State *L){
 
     return 0;
 }
+
 int print(lua_State *L){
     if (lua_gettop(L) == 0){
         return 0;
@@ -237,16 +238,35 @@ int print(lua_State *L){
 
     return 0;
 }
-int spr(lua_State *L) {
-    double n = lua_tonumber(L,1);
-    double x = lua_tonumber(L,2);
-    double y = lua_tonumber(L,3);
-    double w = lua_tonumber(L,4);
-    double h = lua_tonumber(L,5);
-    bool flip_x = lua_toboolean(L,6);
-    bool flip_y = lua_toboolean(L,7);
 
-    _graphicsForLuaApi->spr((short)n, (short)x, (short)y, (short)w, (short)h, flip_x, flip_y);
+int spr(lua_State *L) {
+    if (lua_gettop(L) < 3) {
+        return 0;
+    }
+
+    short n = lua_tonumber(L,1);
+    short x = lua_tonumber(L,2);
+    short y = lua_tonumber(L,3);
+    double w = 1.0;
+    double h = 1.0;
+    bool flip_x = false;
+    bool flip_y = false;
+
+
+    if (lua_gettop(L) > 3){
+        w = lua_tonumber(L,4);
+    }
+    if (lua_gettop(L) > 4) {
+        h = lua_tonumber(L,5);
+    }
+    if (lua_gettop(L) > 5) {
+        flip_x = lua_toboolean(L,6);
+    }
+    if (lua_gettop(L) > 6) {
+        flip_y = lua_toboolean(L,7);
+    }
+
+    _graphicsForLuaApi->spr((short)n, (short)x, (short)y, w, h, flip_x, flip_y);
 
     return 0;
 }

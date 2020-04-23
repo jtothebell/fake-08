@@ -427,7 +427,15 @@ short Graphics::print(std::string str, short x, short y, uint16_t c) {
 	return x;
 }
 
-void Graphics::spr(short n, short x, short y, short w, short h, bool flip_x, bool flip_y) {
+void Graphics::spr(
+	short n,
+	short x,
+	short y,
+	double w,
+	double h,
+	bool flip_x,
+	bool flip_y) 
+{
 	short spr_x = (n % 16) * 8;
 	short spr_y = (n / 16) * 8;
 	copySpriteToScreen(spriteSheetData, x, y, spr_x, spr_y, w * 8, h * 8, flip_x, flip_y);

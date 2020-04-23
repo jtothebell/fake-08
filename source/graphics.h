@@ -121,7 +121,14 @@ class Graphics {
 	short print(std::string str, short x, short y);
 	short print(std::string str, short x, short y, uint16_t c);
 
-	void spr(short n, short x, short y, short w, short h, bool flip_x, bool flip_y);
+	void spr(
+		short n,
+		short x,
+		short y,
+		double w = 1.0,
+		double h = 1.0,
+		bool flip_x = false,
+		bool flip_y = false);
 
 	void sspr(
         short sx,
