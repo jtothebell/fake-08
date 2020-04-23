@@ -221,7 +221,40 @@ void Graphics::color(uint8_t col){
 	this->_gfxState_color = col;
 }
 
+void Graphics::line () {
+	//just invalidate line state
+	this->_gfxState_line_x = 0;
+	this->_gfxState_line_y = 0;
+	this->_gfxState_line_valid = false;
+}
+
+void Graphics::line (uint8_t col){
+	color(col);
+
+	this->line();
+}
+
+void Graphics::line (short x1, short y1){
+	if (this->_gfxState_line_valid){
+		this->line(_gfxState_line_x, _gfxState_line_y, x1, y1, this->_gfxState_color);
+	}
+}
+
+void Graphics::line (short x1, short y1, uint8_t col){
+	if (this->_gfxState_line_valid){
+		this->line(_gfxState_line_x, _gfxState_line_y, x1, y1, col);
+	}
+}
+
+void Graphics::line (short x1, short y1, short x2, short y2){
+	this->line(_gfxState_line_x, _gfxState_line_y, x1, y1, this->_gfxState_color);
+}
+
 void Graphics::line (short x1, short y1, short x2, short y2, uint8_t col) {
+	this->_gfxState_line_x = x2;
+	this->_gfxState_line_y = y2;
+	this->_gfxState_line_valid = true;
+
 	sortPointsLtoR(&x1, &y1, &x2, &y2);
 
 	float run = x2 - x1;

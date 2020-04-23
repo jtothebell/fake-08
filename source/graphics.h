@@ -43,6 +43,12 @@ class Graphics {
     short _gfxState_text_x;
 	short _gfxState_text_y;
 
+	//not actually part of graphics state memory?
+	short _gfxState_line_x;
+	short _gfxState_line_y;
+	bool _gfxState_line_valid;
+
+
 	void copySpriteToScreen(
 		uint8_t spritebuffer[],
 		short scr_x,
@@ -90,6 +96,11 @@ class Graphics {
 
 	void color(uint8_t c);
 
+	void line ();
+	void line (uint8_t col);
+	void line (short x1, short y1);
+	void line (short x1, short y1, uint8_t col);
+	void line (short x1, short y1, short x2, short y2);
 	void line (short x1, short y1, short x2, short y2, uint8_t col);
 
 	void circ(short ox, short oy, short r, uint8_t col);

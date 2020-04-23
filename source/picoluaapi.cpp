@@ -59,6 +59,7 @@ int pget(lua_State *L){
 
     return 1;
 }
+
 int color(lua_State *L){
     double c = lua_tonumber(L,1);
 
@@ -66,15 +67,47 @@ int color(lua_State *L){
 
     return 0;
 }
+
 int line (lua_State *L){
-    double x1 = lua_tonumber(L,1);
-    double y1 = lua_tonumber(L,2);
-    double x2 = lua_tonumber(L,3);
-    double y2 = lua_tonumber(L,4);
-    double c = lua_tonumber(L,5);
+    if (lua_gettop(L) == 0) {
+        _graphicsForLuaApi->line();
+    }
+    else if (lua_gettop(L) == 1) {
+        uint8_t c = lua_tointeger(L,1);
 
-    _graphicsForLuaApi->line((short)x1, (short)y1, (short)x2, (short)y2, (uint8_t)c);
+        _graphicsForLuaApi->line(c);
+    }
+    else if (lua_gettop(L) == 2) {
+        short x1 = lua_tointeger(L,1);
+        short y1 = lua_tointeger(L,2);
 
+        _graphicsForLuaApi->line(x1, y1);
+    }
+    else if (lua_gettop(L) == 3) {
+        short x1 = lua_tointeger(L,1);
+        short y1 = lua_tointeger(L,2);
+        uint8_t c = lua_tointeger(L,3);
+
+        _graphicsForLuaApi->line(x1, y1, c);
+    }
+    else if (lua_gettop(L) == 4) {
+        short x1 = lua_tointeger(L,1);
+        short y1 = lua_tointeger(L,2);
+        short x2 = lua_tointeger(L,3);
+        short y2 = lua_tointeger(L,4);
+
+        _graphicsForLuaApi->line(x1, y1, x2, y2);
+    }
+    else {
+        short x1 = lua_tointeger(L,1);
+        short y1 = lua_tointeger(L,2);
+        short x2 = lua_tointeger(L,3);
+        short y2 = lua_tointeger(L,4);
+        uint8_t c = lua_tointeger(L,5);
+
+        _graphicsForLuaApi->line(x1, y1, x2, y2, c);
+    }
+    
     return 0;
 }
 int circ(lua_State *L){
