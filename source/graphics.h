@@ -117,7 +117,10 @@ class Graphics {
 	void rectfill(short x1, short y1, short x2, short y2);
 	void rectfill(short x1, short y1, short x2, short y2, uint8_t col);
 
+	short print(std::string str);
+	short print(std::string str, short x, short y);
 	short print(std::string str, short x, short y, uint16_t c);
+
 	void spr(short n, short x, short y, short w, short h, bool flip_x, bool flip_y);
 
 	void sspr(

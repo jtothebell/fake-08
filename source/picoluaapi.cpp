@@ -196,6 +196,10 @@ int rectfill(lua_State *L){
     return 0;
 }
 int print(lua_State *L){
+    if (lua_gettop(L) == 0){
+        return 0;
+    }
+
     const char * str = "";
 
     //todo: handle other cases, maybe move this somewhere else
@@ -213,11 +217,23 @@ int print(lua_State *L){
         str = lua_toboolean(L, 1) ? "true" : "false";
     }
 
-    double x = lua_tonumber(L,2);
-    double y = lua_tonumber(L,3);
-    double c = lua_tonumber(L,3);
+    if (lua_gettop(L) < 3) {
+        _graphicsForLuaApi->print(str);
+    }
+    else if (lua_gettop(L) == 3) {
+        short x = lua_tonumber(L,2);
+        short y = lua_tonumber(L,3);
 
-    _graphicsForLuaApi->print(str, x, y, c);
+        _graphicsForLuaApi->print(str, x, y);
+    }
+    else {
+        short x = lua_tonumber(L,2);
+        short y = lua_tonumber(L,3);
+
+        uint8_t c = lua_tonumber(L,4);
+
+        _graphicsForLuaApi->print(str, x, y, c);
+    }
 
     return 0;
 }

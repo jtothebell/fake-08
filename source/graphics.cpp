@@ -389,8 +389,18 @@ void Graphics::rectfill(short x1, short y1, short x2, short y2, uint8_t col) {
 	}
 }
 
+short Graphics::print(std::string str) {
+	return this->print(str, _gfxState_text_x, _gfxState_text_y);
+}
+
+short Graphics::print(std::string str, short x, short y) {
+	return this->print(str, x, y, _gfxState_color);
+}
+
 //based on tac08 impl
 short Graphics::print(std::string str, short x, short y, uint16_t c) {
+	color(c);
+
 	_gfxState_text_x = x;
 
 	for (size_t n = 0; n < str.length(); n++) {
@@ -411,6 +421,8 @@ short Graphics::print(std::string str, short x, short y, uint16_t c) {
 
 	_gfxState_text_x = 0;
 	_gfxState_text_y = y + 6;
+
+	//todo: auto scrolling
 
 	return x;
 }
