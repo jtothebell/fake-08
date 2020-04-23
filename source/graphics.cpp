@@ -81,7 +81,7 @@ void Graphics::copySpriteToScreen(
 				: bothPix >> 4;  //just last 4 bits
 				
 			if (c != 0) { //if not transparent. Come back later to add palt() support by checking tranparency palette
-				pset(scr_x + x, scr_y + y, c); //set color on framebuffer. Come back later and add pal() by translating color
+				_private_pset(scr_x + x, scr_y + y, c); //set color on framebuffer. Come back later and add pal() by translating color
 			}
 		}
 	}
@@ -135,7 +135,7 @@ void Graphics::copyStretchSpriteToScreen(
 					? bothPix & 0x0f //just first 4 bits
 					: bothPix >> 4;  //just last 4 bits
 				if (c != 0) {
-					pset(scr_x + x, scr_y + y, c);
+					_private_pset(scr_x + x, scr_y + y, c);
 				}
 			}
 		} else {
@@ -148,7 +148,7 @@ void Graphics::copyStretchSpriteToScreen(
 					? bothPix & 0x0f //just first 4 bits
 					: bothPix >> 4;  //just last 4 bits
 				if (c != 0) {
-					pset(scr_x + x, scr_y + y, c);
+					_private_pset(scr_x + x, scr_y + y, c);
 				}
 			}
 		}
@@ -204,6 +204,10 @@ void Graphics::pset(short x, short y){
 void Graphics::pset(short x, short y, uint8_t col){
 	color(col);
 
+	_private_pset(x, y, col);
+}
+
+void Graphics::_private_pset(short x, short y, uint8_t col) {
 	if (isOnScreen(x, y)){
 		_pico8_fb[(x * 128) + y] = col;
 	}
@@ -267,7 +271,7 @@ void Graphics::line (short x1, short y1, short x2, short y2, uint8_t col) {
 		}
 
 		for (short y = y1; y <= y2; y++){
-			pset(x1, y, col);
+			_private_pset(x1, y, col);
 		}
 	}
 	else {
@@ -275,26 +279,35 @@ void Graphics::line (short x1, short y1, short x2, short y2, uint8_t col) {
 
 		for (short x = x1; x <= x2; x++){
 			short y = y1 + (short)ceil((float)x * slope);
-			pset(x, y, col);
+			_private_pset(x, y, col);
 		}
 	}
 }
 
+void Graphics::circ(short ox, short oy){
+	this->circ(ox, oy, 4);
+}
+
+void Graphics::circ(short ox, short oy, short r){
+	this->circ(ox, oy, r, this->_gfxState_color);
+}
+
 void Graphics::circ(short ox, short oy, short r, uint8_t col){
+	color(col);
 	short x = r;
 	short y = 0;
 	short decisionOver2 = 1-x;
 
 	while (y <= x) {
-		pset(ox + x, oy + y, col);
-		pset(ox + y, oy + x, col);
-		pset(ox - x, oy + y, col);
-		pset(ox - y, oy + x, col);
+		_private_pset(ox + x, oy + y, col);
+		_private_pset(ox + y, oy + x, col);
+		_private_pset(ox - x, oy + y, col);
+		_private_pset(ox - y, oy + x, col);
 
-		pset(ox - x, oy - y, col);
-		pset(ox - y, oy - x, col);
-		pset(ox + x, oy - y, col);
-		pset(ox + y, oy - x, col);
+		_private_pset(ox - x, oy - y, col);
+		_private_pset(ox - y, oy - x, col);
+		_private_pset(ox + x, oy - y, col);
+		_private_pset(ox + y, oy - x, col);
 
 		y += 1;
 		if (decisionOver2 < 0) {
@@ -308,14 +321,23 @@ void Graphics::circ(short ox, short oy, short r, uint8_t col){
 
 }
 
+void Graphics::circfill(short ox, short oy){
+	this->circfill(ox, oy, 4);
+}
+
+void Graphics::circfill(short ox, short oy, short r){
+	this->circfill(ox, oy, r, this->_gfxState_color);
+}
+
 void Graphics::circfill(short ox, short oy, short r, uint8_t col){
+	color(col);
 	if (r == 0) {
-		pset(ox, oy, col);
+		_private_pset(ox, oy, col);
 	}
 	else if (r == 1) {
-		pset(ox, oy - 1, col);
+		_private_pset(ox, oy - 1, col);
 		line(ox-1, oy, ox+1, oy, col);
-		pset(ox, oy + 1, col);
+		_private_pset(ox, oy + 1, col);
 	}
 	else if (r > 0) {
 		short x = -r, y = 0, err = 2 - 2 * r;
@@ -338,7 +360,7 @@ void Graphics::rect(short x1, short y1, short x2, short y2, uint8_t col) {
 	for (short i = x1; i <= x2; i++) {
 		for (short j = y1; j <= y2; j++) {
 			if ((i == x1 || i == x2 || j == y1 || j == y2) ) {
-				pset(i, j, col);
+				_private_pset(i, j, col);
 			}
 		}
 	}
@@ -350,7 +372,7 @@ void Graphics::rectfill(short x1, short y1, short x2, short y2, uint8_t col) {
 
 	for (short i = x1; i <= x2; i++) {
 		for (short j = y1; j <= y2; j++) {
-			pset(i, j, col);
+			_private_pset(i, j, col);
 		}
 	}
 }

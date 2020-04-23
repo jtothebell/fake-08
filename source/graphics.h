@@ -81,6 +81,8 @@ class Graphics {
 
 	bool isOnScreen(short x, short y);
 
+	void _private_pset(short x, short y, uint8_t col);
+
 	public:
 	Graphics(std::string fontdata);
 
@@ -103,7 +105,11 @@ class Graphics {
 	void line (short x1, short y1, short x2, short y2);
 	void line (short x1, short y1, short x2, short y2, uint8_t col);
 
+	void circ(short ox, short oy);
+	void circ(short ox, short oy, short r);
 	void circ(short ox, short oy, short r, uint8_t col);
+	void circfill(short ox, short oy);
+	void circfill(short ox, short oy, short r);
 	void circfill(short ox, short oy, short r, uint8_t col);
 
 	void rect(short x1, short y1, short x2, short y2, uint8_t col);
