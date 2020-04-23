@@ -22,6 +22,10 @@ Add support for other non-lua pico functions
 
 Add 30 and 60 fps support
 
+make flip() work for carts without update
+
+add switch, and possibly wii u support
+
 
 
 music() and sfx() support
