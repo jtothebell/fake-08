@@ -73,7 +73,7 @@ class Graphics {
 
 	void sortCoordsForRect(short *x1, short *y1, short *x2, short *y2);
 
-	bool isOnScreen(short *x, short* y);
+	bool isOnScreen(short x, short y);
 
 	public:
 	Graphics(std::string fontdata);
@@ -82,7 +82,9 @@ class Graphics {
 	void setSpriteFlags(std::string spriteFlagsString);
 
 	void cls();
+	void cls(uint8_t color);
 
+	void pset(short x, short y);
 	void pset(short x, short y, uint8_t col);
 	uint8_t pget(short x, short y);
 

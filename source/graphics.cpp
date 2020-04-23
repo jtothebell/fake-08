@@ -181,24 +181,36 @@ void Graphics::sortCoordsForRect(short *x1, short *y1, short *x2, short *y2){
 	}
 }
 
-bool Graphics::isOnScreen(short *x, short* y) {
-	return *x >= 0 && *x <= 127 && *y >= 0 && *y <= 127;
+bool Graphics::isOnScreen(short x, short y) {
+	return x >= 0 && x <= 127 && y >= 0 && y <= 127;
 }
 //end helper methods
 
 void Graphics::cls() {
-	memset(_pico8_fb, this->_gfxState_bgColor, sizeof(_pico8_fb));
+	this->cls(0);
+}
 
+void Graphics::cls(uint8_t color) {
+	memset(_pico8_fb, color, sizeof(_pico8_fb));
+
+	_gfxState_text_x = 0;
+	_gfxState_text_y = 0;
+}
+
+void Graphics::pset(short x, short y){
+	this->pset(x, y, _gfxState_color);
 }
 
 void Graphics::pset(short x, short y, uint8_t col){
-	if (isOnScreen(&x, &y)){
+	color(col);
+
+	if (isOnScreen(x, y)){
 		_pico8_fb[(x * 128) + y] = col;
 	}
 }
 
 uint8_t Graphics::pget(short x, short y){
-	if (isOnScreen(&x, &y)){
+	if (isOnScreen(x, y)){
 		return _pico8_fb[(x * 128) + y];
 	}
 
