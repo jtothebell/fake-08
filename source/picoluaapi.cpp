@@ -349,8 +349,8 @@ int fset(lua_State *L) {
 }
 
 int sget(lua_State *L) {
-    int x = lua_tointeger(L,1);
-    int y = lua_tointeger(L,2);
+    short x = lua_tonumber(L,1);
+    short y = lua_tonumber(L,2);
     uint8_t result = _graphicsForLuaApi->sget((uint8_t)x, (uint8_t)y);
     lua_pushinteger(L, result);
 
@@ -358,10 +358,10 @@ int sget(lua_State *L) {
 }
 
 int sset(lua_State *L) {
-    int x = lua_tointeger(L,1);
-    int y = lua_tointeger(L,2);
-    int c = lua_tointeger(L,3);
-    _graphicsForLuaApi->sset((uint8_t)x, (uint8_t)y, (uint8_t)c);
+    short x = lua_tonumber(L,1);
+    short y = lua_tonumber(L,2);
+    uint8_t c = lua_tonumber(L,3);
+    _graphicsForLuaApi->sset(x, y, c);
 
     return 0;
 }
@@ -370,13 +370,29 @@ int camera(lua_State *L) {
     short x = 0;
     short y = 0;
     if (lua_gettop(L) > 0) {
-        x = lua_tointeger(L,1);
+        x = lua_tonumber(L,1);
     }
     if (lua_gettop(L) > 1) {
-        y = lua_tointeger(L,2);
+        y = lua_tonumber(L,2);
     }
     
     _graphicsForLuaApi->camera(x, y);
+
+    return 0;
+}
+
+int clip(lua_State *L) {
+    if (lua_gettop(L) >= 4) {
+        short x = lua_tonumber(L,1);
+        short y = lua_tonumber(L,2);
+        short w = lua_tonumber(L,3);
+        short h = lua_tonumber(L,4);
+
+        _graphicsForLuaApi->clip(x, y, w, h);
+    }
+    else {
+        _graphicsForLuaApi->clip();
+    }
 
     return 0;
 }

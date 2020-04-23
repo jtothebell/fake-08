@@ -46,6 +46,11 @@ class Graphics {
 	short _gfxState_camera_x;
 	short _gfxState_camera_y;
 
+	short _gfxState_clip_x;
+	short _gfxState_clip_y;
+	short _gfxState_clip_w;
+	short _gfxState_clip_h;
+
 	//not actually part of graphics state memory?
 	short _gfxState_line_x;
 	short _gfxState_line_y;
@@ -82,7 +87,9 @@ class Graphics {
 
 	void sortCoordsForRect(short *x1, short *y1, short *x2, short *y2);
 
+	bool canDrawAtPoint(short x, short y);
 	bool isOnScreen(short x, short y);
+	bool isWithinClip(short x, short y);
 
 	void _private_pset(short x, short y, uint8_t col);
 
@@ -155,6 +162,9 @@ class Graphics {
 
 	void camera();
 	void camera(short x, short y);
+
+	void clip();
+	void clip(short x, short y, short w, short h);
 
 
 	void flipBuffer(uint8_t* fb);

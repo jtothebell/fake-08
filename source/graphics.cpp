@@ -36,6 +36,9 @@ const Color PaletteColors[] = {
 Graphics::Graphics(std::string fontdata) {
 	this->_gfxState_color = 7;
 
+	this->_gfxState_clip_w = 127;
+	this->_gfxState_clip_h = 127;
+
 	copy_data_to_sprites(fontSpriteData, fontdata);
 }
 
@@ -181,8 +184,29 @@ void Graphics::sortCoordsForRect(short *x1, short *y1, short *x2, short *y2){
 	}
 }
 
+bool Graphics::canDrawAtPoint(short x, short y) {
+	return this->isOnScreen(x, y) && this->isWithinClip(x, y);
+}
+
 bool Graphics::isOnScreen(short x, short y) {
 	return x >= 0 && x <= 127 && y >= 0 && y <= 127;
+}
+
+bool Graphics::isWithinClip(short x, short y) {
+	return 
+		x >= _gfxState_clip_x && 
+		x <= _gfxState_clip_x + _gfxState_clip_w && 
+		y >= _gfxState_clip_y && 
+		y <= _gfxState_clip_y + _gfxState_clip_h;
+}
+
+void Graphics::_private_pset(short x, short y, uint8_t col) {
+	x = x - _gfxState_camera_x;
+	y = y - _gfxState_camera_y;
+
+	if (canDrawAtPoint(x, y)){
+		_pico8_fb[(x * 128) + y] = col;
+	}
 }
 //end helper methods
 
@@ -205,15 +229,6 @@ void Graphics::pset(short x, short y, uint8_t col){
 	color(col);
 
 	_private_pset(x, y, col);
-}
-
-void Graphics::_private_pset(short x, short y, uint8_t col) {
-	x = x - _gfxState_camera_x;
-	y = y - _gfxState_camera_y;
-
-	if (isOnScreen(x, y)){
-		_pico8_fb[(x * 128) + y] = col;
-	}
 }
 
 uint8_t Graphics::pget(short x, short y){
@@ -516,6 +531,17 @@ void Graphics::camera() {
 void Graphics::camera(short x, short y) {
 	_gfxState_camera_x = x;
 	_gfxState_camera_y = y;
+}
+
+void Graphics::clip() {
+	this->clip(0, 0, 127, 127);
+}
+
+void Graphics::clip(short x, short y, short w, short h) {
+	_gfxState_clip_x = x;
+	_gfxState_clip_y = y;
+	_gfxState_clip_w = w;
+	_gfxState_clip_h = h;
 }
 
 void Graphics::flipBuffer(uint8_t* fb) {

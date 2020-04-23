@@ -12,7 +12,7 @@ Basic Roadmap:
 -finish basic graphics api support
 (x) implement overloads of existing graphics API
 (x) Add camera() support
-( ) Add clip() support
+(x) Add clip() support
 ( ) Add map(), mget(), mset() support
 ( ) Add pal() support
 ( ) Add palt() support
