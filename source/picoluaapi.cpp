@@ -272,26 +272,44 @@ int spr(lua_State *L) {
 }
 
 int sspr(lua_State *L) {
-    double sx = lua_tonumber(L,1);
-    double sy = lua_tonumber(L,2);
-    double sw = lua_tonumber(L,3);
-    double sh = lua_tonumber(L,4);
-    double dx = lua_tonumber(L,5);
-    double dy = lua_tonumber(L,6);
-    double dw = lua_tonumber(L,7);
-    double dh = lua_tonumber(L,8);
-    bool flip_x = lua_toboolean(L,9);
-    bool flip_y = lua_toboolean(L,10);
+    if (lua_gettop(L) < 6) {
+        return 0;
+    }
+
+    short sx = lua_tonumber(L,1);
+    short sy = lua_tonumber(L,2);
+    short sw = lua_tonumber(L,3);
+    short sh = lua_tonumber(L,4);
+    short dx = lua_tonumber(L,5);
+    short dy = lua_tonumber(L,6);
+
+    short dw = sw;
+    short dh = sh;
+    bool flip_x = false;
+    bool flip_y = false;
+
+    if (lua_gettop(L) > 6){
+        dw = lua_tonumber(L,7);
+    }
+    if (lua_gettop(L) > 7){
+        dh = lua_tonumber(L,8);
+    }
+    if (lua_gettop(L) > 8){
+        flip_x = lua_toboolean(L,9);
+    }
+    if (lua_gettop(L) > 9){
+        flip_y = lua_toboolean(L,10);
+    }
 
     _graphicsForLuaApi->sspr(
-        (short)sx,
-        (short)sy,
-        (short)sw,
-        (short)sh,
-        (short)dx,
-        (short)dy,
-        (short)dw,
-        (short)dh,
+        sx,
+        sy,
+        sw,
+        sh,
+        dx,
+        dy,
+        dw,
+        dh,
         flip_x,
         flip_y);
 

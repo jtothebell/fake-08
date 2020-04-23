@@ -139,8 +139,8 @@ class Graphics {
         short dy,
         short dw,
         short dh,
-        bool flip_x,
-        bool flip_y);
+        bool flip_x = false,
+        bool flip_y = false);
 
 	bool fget(uint8_t n, uint8_t f);
 	uint8_t fget(uint8_t n);
