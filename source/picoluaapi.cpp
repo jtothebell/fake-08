@@ -372,7 +372,7 @@ int camera(lua_State *L) {
     if (lua_gettop(L) > 0) {
         x = lua_tointeger(L,1);
     }
-    if (lua_gettop(L) < 1) {
+    if (lua_gettop(L) > 1) {
         y = lua_tointeger(L,2);
     }
     

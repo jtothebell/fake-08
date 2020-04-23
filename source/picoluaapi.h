@@ -31,6 +31,7 @@ int fget(lua_State *L);
 int fset(lua_State *L);
 int sget(lua_State *L);
 int sset(lua_State *L);
+int camera(lua_State *L);
 
 //input api
 int btn(lua_State *L);
