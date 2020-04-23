@@ -10,12 +10,12 @@ Latter goals include sound support and memory compatibility
 
 Basic Roadmap:
 -finish basic graphics api support
-implement overloads of existing graphics API
-Add clip() support
-Add camera() support
-Add map(), mget(), mset() support
-Add pal() support
-Add palt() support
+(x) implement overloads of existing graphics API
+( ) Add camera() support
+( ) Add clip() support
+( ) Add map(), mget(), mset() support
+( ) Add pal() support
+( ) Add palt() support
 
 
 Add support for other non-lua pico functions
