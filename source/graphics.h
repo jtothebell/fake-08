@@ -112,7 +112,9 @@ class Graphics {
 	void circfill(short ox, short oy, short r);
 	void circfill(short ox, short oy, short r, uint8_t col);
 
+	void rect(short x1, short y1, short x2, short y2);
 	void rect(short x1, short y1, short x2, short y2, uint8_t col);
+	void rectfill(short x1, short y1, short x2, short y2);
 	void rectfill(short x1, short y1, short x2, short y2, uint8_t col);
 
 	short print(std::string str, short x, short y, uint16_t c);

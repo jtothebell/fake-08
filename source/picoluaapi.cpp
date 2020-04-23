@@ -26,7 +26,7 @@ int cls(lua_State *L){
         _graphicsForLuaApi->cls();
     }
     else {
-        short c = lua_tointeger(L,1);
+        short c = lua_tonumber(L,1);
         _graphicsForLuaApi->cls(c);
     }
 
@@ -34,15 +34,15 @@ int cls(lua_State *L){
 }
 
 int pset(lua_State *L){
-    short x = lua_tointeger(L,1);
-    short y = lua_tointeger(L,2);
+    short x = lua_tonumber(L,1);
+    short y = lua_tonumber(L,2);
 
     if (lua_gettop(L) <= 2) {
         _graphicsForLuaApi->pset(x, y);
         return 0;
     }
 
-    short c = lua_tointeger(L,3);
+    short c = lua_tonumber(L,3);
 
     _graphicsForLuaApi->pset(x, y, (uint8_t)c);
 
@@ -73,102 +73,125 @@ int line (lua_State *L){
         _graphicsForLuaApi->line();
     }
     else if (lua_gettop(L) == 1) {
-        uint8_t c = lua_tointeger(L,1);
+        uint8_t c = lua_tonumber(L,1);
 
         _graphicsForLuaApi->line(c);
     }
     else if (lua_gettop(L) == 2) {
-        short x1 = lua_tointeger(L,1);
-        short y1 = lua_tointeger(L,2);
+        short x1 = lua_tonumber(L,1);
+        short y1 = lua_tonumber(L,2);
 
         _graphicsForLuaApi->line(x1, y1);
     }
     else if (lua_gettop(L) == 3) {
-        short x1 = lua_tointeger(L,1);
-        short y1 = lua_tointeger(L,2);
-        uint8_t c = lua_tointeger(L,3);
+        short x1 = lua_tonumber(L,1);
+        short y1 = lua_tonumber(L,2);
+        uint8_t c = lua_tonumber(L,3);
 
         _graphicsForLuaApi->line(x1, y1, c);
     }
     else if (lua_gettop(L) == 4) {
-        short x1 = lua_tointeger(L,1);
-        short y1 = lua_tointeger(L,2);
-        short x2 = lua_tointeger(L,3);
-        short y2 = lua_tointeger(L,4);
+        short x1 = lua_tonumber(L,1);
+        short y1 = lua_tonumber(L,2);
+        short x2 = lua_tonumber(L,3);
+        short y2 = lua_tonumber(L,4);
 
         _graphicsForLuaApi->line(x1, y1, x2, y2);
     }
     else {
-        short x1 = lua_tointeger(L,1);
-        short y1 = lua_tointeger(L,2);
-        short x2 = lua_tointeger(L,3);
-        short y2 = lua_tointeger(L,4);
-        uint8_t c = lua_tointeger(L,5);
+        short x1 = lua_tonumber(L,1);
+        short y1 = lua_tonumber(L,2);
+        short x2 = lua_tonumber(L,3);
+        short y2 = lua_tonumber(L,4);
+        uint8_t c = lua_tonumber(L,5);
 
         _graphicsForLuaApi->line(x1, y1, x2, y2, c);
     }
 
     return 0;
 }
+
 int circ(lua_State *L){
-    short ox = lua_tointeger(L,1);
-    short oy = lua_tointeger(L,2);
+    short ox = lua_tonumber(L,1);
+    short oy = lua_tonumber(L,2);
 
     if (lua_gettop(L) == 2) {
         _graphicsForLuaApi->circ(ox, oy);
     } 
     else if (lua_gettop(L) == 3){
-        short r = lua_tointeger(L,3);
+        short r = lua_tonumber(L,3);
         _graphicsForLuaApi->circ(ox, oy, r);
     }
     else if (lua_gettop(L) > 3){
-        short r = lua_tointeger(L,3);
-        uint8_t c = lua_tointeger(L,4);
+        short r = lua_tonumber(L,3);
+        uint8_t c = lua_tonumber(L,4);
 
         _graphicsForLuaApi->circ(ox, oy, r, c);
     }
 
     return 0;
 }
+
 int circfill(lua_State *L){
-    short ox = lua_tointeger(L,1);
-    short oy = lua_tointeger(L,2);
+    short ox = lua_tonumber(L,1);
+    short oy = lua_tonumber(L,2);
 
     if (lua_gettop(L) == 2) {
         _graphicsForLuaApi->circfill(ox, oy);
     } 
     else if (lua_gettop(L) == 3){
-        short r = lua_tointeger(L,3);
+        short r = lua_tonumber(L,3);
         _graphicsForLuaApi->circfill(ox, oy, r);
     }
     else if (lua_gettop(L) > 3){
-        short r = lua_tointeger(L,3);
-        uint8_t c = lua_tointeger(L,4);
+        short r = lua_tonumber(L,3);
+        uint8_t c = lua_tonumber(L,4);
 
         _graphicsForLuaApi->circfill(ox, oy, r, c);
     }
 
     return 0;
 }
-int rect(lua_State *L){
-    double x1 = lua_tonumber(L,1);
-    double y1 = lua_tonumber(L,2);
-    double x2 = lua_tonumber(L,3);
-    double y2 = lua_tonumber(L,4);
-    double c = lua_tonumber(L,5);
 
-    _graphicsForLuaApi->rect((short)x1, (short)y1, (short)x2, (short)y2, (uint8_t)c);
+int rect(lua_State *L){
+
+    if (lua_gettop(L) >= 4) {
+        short x1 = lua_tonumber(L,1);
+        short y1 = lua_tonumber(L,2);
+        short x2 = lua_tonumber(L,3);
+        short y2 = lua_tonumber(L,4);
+
+        if (lua_gettop(L) == 4){
+            _graphicsForLuaApi->rect(x1, y1, x2, y2);
+
+        }
+        else {
+            uint8_t c = lua_tonumber(L,5);
+
+            _graphicsForLuaApi->rect(x1, y1, x2, y2, c);
+        }
+    }
 
     return 0;
 }
-int rectfill(lua_State *L){
-    double x1 = lua_tonumber(L,1);
-    double y1 = lua_tonumber(L,2);
-    double x2 = lua_tonumber(L,3);
-    double y2 = lua_tonumber(L,4);
-    double c = lua_tonumber(L,5);
 
-    _graphicsForLuaApi->rectfill((short)x1, (short)y1, (short)x2, (short)y2, (uint8_t)c);
+int rectfill(lua_State *L){
+    if (lua_gettop(L) >= 4) {
+        short x1 = lua_tonumber(L,1);
+        short y1 = lua_tonumber(L,2);
+        short x2 = lua_tonumber(L,3);
+        short y2 = lua_tonumber(L,4);
+
+        if (lua_gettop(L) == 4){
+            _graphicsForLuaApi->rectfill(x1, y1, x2, y2);
+
+        }
+        else {
+            double c = lua_tonumber(L,5);
+
+            _graphicsForLuaApi->rectfill(x1, y1, x2, y2, c);
+        }
+    }
 
     return 0;
 }

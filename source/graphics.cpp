@@ -354,7 +354,13 @@ void Graphics::circfill(short ox, short oy, short r, uint8_t col){
 	
 }
 
+void Graphics::rect(short x1, short y1, short x2, short y2) {
+	this->rect(x1, y1, x2, y2, this->_gfxState_color);
+}
+
 void Graphics::rect(short x1, short y1, short x2, short y2, uint8_t col) {
+	color(col);
+
 	sortCoordsForRect(&x1, &y1, &x2, &y2);
 
 	for (short i = x1; i <= x2; i++) {
@@ -367,7 +373,13 @@ void Graphics::rect(short x1, short y1, short x2, short y2, uint8_t col) {
 
 }
 
+void Graphics::rectfill(short x1, short y1, short x2, short y2) {
+	this->rectfill(x1, y1, x2, y2, this->_gfxState_color);
+}
+
 void Graphics::rectfill(short x1, short y1, short x2, short y2, uint8_t col) {
+	color(col);
+
 	sortCoordsForRect(&x1, &y1, &x2, &y2);
 
 	for (short i = x1; i <= x2; i++) {
