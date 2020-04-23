@@ -22,17 +22,29 @@ void initPicoApi(Graphics* graphics, Input* input){
 /*functions to expose to lua*/
 //Graphics
 int cls(lua_State *L){
-    _graphicsForLuaApi->cls();
+    if (lua_gettop(L) == 0) {
+        _graphicsForLuaApi->cls();
+    }
+    else {
+        short c = lua_tointeger(L,1);
+        _graphicsForLuaApi->cls(c);
+    }
 
     return 0;
 }
 
 int pset(lua_State *L){
-    double x = lua_tonumber(L,1);
-    double y = lua_tonumber(L,2);
-    double c = lua_tonumber(L,3);
+    short x = lua_tointeger(L,1);
+    short y = lua_tointeger(L,2);
 
-    _graphicsForLuaApi->pset((short)x, (short)y, (uint8_t)c);
+    if (lua_gettop(L) <= 2) {
+        _graphicsForLuaApi->pset(x, y);
+        return 0;
+    }
+
+    short c = lua_tointeger(L,3);
+
+    _graphicsForLuaApi->pset(x, y, (uint8_t)c);
 
     return 0;
 }
