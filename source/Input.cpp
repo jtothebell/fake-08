@@ -9,6 +9,7 @@ bool Input::btn(uint8_t i){
     return BITMASK(i) & _currentKHeld;
 }
 
+//todo: repetition behavior to match pico 8
 bool Input::btnp(uint8_t i){
     return BITMASK(i) & _currentKDown;
 }

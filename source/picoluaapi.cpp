@@ -26,6 +26,7 @@ int cls(lua_State *L){
 
     return 0;
 }
+
 int pset(lua_State *L){
     double x = lua_tonumber(L,1);
     double y = lua_tonumber(L,2);
@@ -35,6 +36,7 @@ int pset(lua_State *L){
 
     return 0;
 }
+
 int pget(lua_State *L){
     double x = lua_tonumber(L,1);
     double y = lua_tonumber(L,2);

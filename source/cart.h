@@ -17,7 +17,4 @@ class Cart {
     std::string SpriteFlagsString;
     std::string MapString;
 
-    //SpriteSheet CartSpriteSheet;
-    //uint8_t map_data[128 * 128];
-
 };
