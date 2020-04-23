@@ -73,6 +73,8 @@ void Console::LoadCart(std::string filename){
     lua_register(_luaState, "sspr", sspr);
     lua_register(_luaState, "fget", fget);
     lua_register(_luaState, "fset", fset);
+    lua_register(_luaState, "sget", sget);
+    lua_register(_luaState, "sset", sset);
 
     //input
     lua_register(_luaState, "btn", btn);

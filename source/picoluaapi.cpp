@@ -204,6 +204,24 @@ int fset(lua_State *L) {
     return 0;
 }
 
+int sget(lua_State *L) {
+    int x = lua_tointeger(L,1);
+    int y = lua_tointeger(L,2);
+    uint8_t result = _graphicsForLuaApi->sget((uint8_t)x, (uint8_t)y);
+    lua_pushinteger(L, result);
+
+    return 1;
+}
+
+int sset(lua_State *L) {
+    int x = lua_tointeger(L,1);
+    int y = lua_tointeger(L,2);
+    int c = lua_tointeger(L,3);
+    _graphicsForLuaApi->sset((uint8_t)x, (uint8_t)y, (uint8_t)c);
+
+    return 0;
+}
+
 //Input
 
 //input api

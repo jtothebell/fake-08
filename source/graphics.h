@@ -116,6 +116,9 @@ class Graphics {
 	void fset(uint8_t n, uint8_t f, bool v);
 	void fset(uint8_t n, uint8_t v);
 
+	uint8_t sget(uint8_t x, uint8_t y);
+	void sset(uint8_t x, uint8_t y, uint8_t c);
+
 
 	void flipBuffer(uint8_t* fb);
 

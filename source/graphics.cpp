@@ -378,6 +378,35 @@ void Graphics::fset(uint8_t n, uint8_t v){
 	spriteFlags[n] = v;
 }
 
+uint8_t Graphics::sget(uint8_t x, uint8_t y){
+	short combinedIdx = y * 64 + (x / 2);
+
+	uint8_t combinedPix = this->spriteSheetData[combinedIdx];
+
+	uint8_t c = x % 2 == 0 
+		? combinedPix & 0x0f //just first 4 bits
+		: combinedPix >> 4;  //just last 4 bits
+	
+	return c;
+}
+
+void Graphics::sset(uint8_t x, uint8_t y, uint8_t c){
+	short combinedIdx = y * 64 + (x / 2);
+
+	uint8_t currentByte = this->spriteSheetData[combinedIdx];
+	uint8_t mask;
+	// set just 4 bits: https://stackoverflow.com/a/4439221
+	if (x % 2 == 0) {
+		mask = 0x0f;
+	}
+	else {
+		c = c << 4;
+		mask = 0xf0;
+	}
+
+	this->spriteSheetData[combinedIdx] = (currentByte & ~mask) | (c & mask);
+}
+
 void Graphics::flipBuffer(uint8_t* fb) {
 	short x, y;
     for(x = 0; x < 400; x++) {
