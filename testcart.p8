@@ -33,7 +33,6 @@ function _draw()
  mset(2, 4, 3)
  mset(2, 5, 3)
  map(0, 3, 0, 24, 3, 3)
- --map call from shared sprite sheet section
  map(126, 62, 0, 48, 2, 2)
  pset(1, 80, 10)
  pset(1.99, 80, 10)

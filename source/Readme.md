@@ -13,7 +13,7 @@ Basic Roadmap:
 (x) implement overloads of existing graphics API
 (x) Add camera() support
 (x) Add clip() support
-( ) Add map(), mget(), mset() support
+(x) Add map(), mget(), mset() support
 ( ) Add pal() support
 ( ) Add palt() support
 
@@ -21,6 +21,7 @@ Basic Roadmap:
 Add support for other non-lua pico functions
 
 Add 30 and 60 fps support
+make button press repeats match pico behavior
 make flip() work for carts without update
 
 test celeste? some other real world carts (demos?)? alpha release?
