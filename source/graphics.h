@@ -140,10 +140,10 @@ class Graphics {
 		short n,
 		short x,
 		short y,
-		double w = 1.0,
-		double h = 1.0,
-		bool flip_x = false,
-		bool flip_y = false);
+		double w,
+		double h,
+		bool flip_x,
+		bool flip_y);
 
 	void sspr(
         short sx,
@@ -154,8 +154,8 @@ class Graphics {
         short dy,
         short dw,
         short dh,
-        bool flip_x = false,
-        bool flip_y = false);
+        bool flip_x,
+        bool flip_y);
 
 	bool fget(uint8_t n, uint8_t f);
 	uint8_t fget(uint8_t n);

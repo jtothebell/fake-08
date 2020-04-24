@@ -16,7 +16,7 @@ Basic Roadmap:
 (x) Add map(), mget(), mset() support
 (x) Add pal() support
 (x) Add palt() support
-( ) add flip support to sprite drawing
+(x) add flip support to sprite drawing
 
 
 Add support for other non-lua pico functions

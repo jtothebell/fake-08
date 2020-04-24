@@ -266,7 +266,7 @@ int spr(lua_State *L) {
         flip_y = lua_toboolean(L,7);
     }
 
-    _graphicsForLuaApi->spr((short)n, (short)x, (short)y, w, h, flip_x, flip_y);
+    _graphicsForLuaApi->spr(n, x, y, w, h, flip_x, flip_y);
 
     return 0;
 }

@@ -70,8 +70,8 @@ void Graphics::copySpriteToScreen(
 	short spr_y,
 	short spr_w,
 	short spr_h,
-	bool flip_x = false,
-	bool flip_y = false) 
+	bool flip_x,
+	bool flip_y) 
 {
 
 	//note: no clipping yet
@@ -79,22 +79,42 @@ void Graphics::copySpriteToScreen(
 	short scr_h = spr_h;
 	
 	short dy = 1;
+	if (flip_y) {
+		spr_y += spr_h - 1;
+		dy = -dy;
+	}
 
 	//todo: honor x and y flipping
 
 	for (short y = 0; y < scr_h; y++) {
 		uint8_t* spr = spritebuffer + ((spr_y + y * dy) & 0x7f) * 64;
 
-		for (short x = 0; x < scr_w; x++) {
-			short combinedPixIdx = spr_x / 2 + x / 2;
-			uint8_t bothPix = spr[combinedPixIdx];
+		if (!flip_x) {
+			for (short x = 0; x < scr_w; x++) {
+				short combinedPixIdx = spr_x / 2 + x / 2;
+				uint8_t bothPix = spr[combinedPixIdx];
 
-			uint8_t c = x % 2 == 0 
-				? bothPix & 0x0f //just first 4 bits
-				: bothPix >> 4;  //just last 4 bits
-				
-			if (_gfxState_transparencyPalette[c] == false) { //if not transparent. Come back later to add palt() support by checking tranparency palette
-				_private_pset(scr_x + x, scr_y + y, c); //set color on framebuffer. Come back later and add pal() by translating color
+				uint8_t c = x % 2 == 0 
+					? bothPix & 0x0f //just first 4 bits
+					: bothPix >> 4;  //just last 4 bits
+					
+				if (_gfxState_transparencyPalette[c] == false) { //if not transparent. Come back later to add palt() support by checking tranparency palette
+					_private_pset(scr_x + x, scr_y + y, c); //set color on framebuffer. Come back later and add pal() by translating color
+				}
+			}
+		} else {
+			for (short x = 0; x < scr_w; x++) {
+				int pixIndex = spr_x + spr_w - (x + 1);
+				short combinedPixIdx = pixIndex / 2;
+				uint8_t bothPix = spr[combinedPixIdx];
+
+				uint8_t c = x % 2 == 0 
+					? bothPix & 0x0f //just first 4 bits
+					: bothPix >> 4;  //just last 4 bits
+					
+				if (_gfxState_transparencyPalette[c] == false) { //if not transparent. Come back later to add palt() support by checking tranparency palette
+					_private_pset(scr_x + x, scr_y + y, c); //set color on framebuffer. Come back later and add pal() by translating color
+				}
 			}
 		}
 	}
@@ -112,8 +132,8 @@ void Graphics::copyStretchSpriteToScreen(
 	int scr_y,
 	int scr_w,
 	int scr_h,
-	bool flip_x = false,
-	bool flip_y = false) 
+	bool flip_x,
+	bool flip_y) 
 {
 	if (false || (spr_h == scr_h && spr_w == scr_w)) {
 		// use faster non stretch blitter if sprite is not stretched
@@ -435,11 +455,11 @@ short Graphics::print(std::string str, short x, short y, uint16_t c) {
 		uint8_t ch = str[n];
 		if (ch >= 0x10 && ch < 0x80) {
 			short index = ch - 0x10;
-			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8, 4, 5);
+			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8, 4, 5, false, false);
 			x += 4;
 		} else if (ch >= 0x80) {
 			short index = ch - 0x80;
-			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5);
+			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5, false, false);
 			x += 8;
 		} else if (ch == '\n') {
 			x = _gfxState_text_x;
@@ -459,10 +479,10 @@ void Graphics::spr(
 	short n,
 	short x,
 	short y,
-	double w,
-	double h,
-	bool flip_x,
-	bool flip_y) 
+	double w = 1.0,
+	double h = 1.0,
+	bool flip_x = false,
+	bool flip_y = false) 
 {
 	short spr_x = (n % 16) * 8;
 	short spr_y = (n / 16) * 8;
@@ -478,8 +498,8 @@ void Graphics::sspr(
         short dy,
         short dw,
         short dh,
-        bool flip_x,
-        bool flip_y)
+        bool flip_x = false,
+        bool flip_y = false)
 {
 	copyStretchSpriteToScreen(spriteSheetData, sx, sy, sw, sh, dx, dy, dw, dh, flip_x, flip_y);
 }
