@@ -553,21 +553,22 @@ void Graphics::clip(short x, short y, short w, short h) {
 //map methods heavily based on tac08 implementation
 uint8_t Graphics::mget(short celx, short cely){
 	if (cely < 32) {
-
 		return this->mapData[cely * 128 + celx];
 	}
-
-	//todo: get this from the sprite sheet?
+	else if (cely < 64){
+		return this->spriteSheetData[cely* 128 + celx];
+	}
+	
 	return 0;
 }
 
 void Graphics::mset(short celx, short cely, uint8_t snum){
 	if (cely < 32) {
-		
 		this->mapData[cely * 128 + celx] = snum;
 	}
-
-	//todo: set on second half of sprite sheet
+	else if (cely < 64){
+		this->spriteSheetData[cely* 128 + celx] = snum;
+	}
 }
 
 void Graphics::map(int celx, int cely, int sx, int sy, int celw, int celh) {
