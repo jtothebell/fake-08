@@ -435,6 +435,27 @@ int map(lua_State *L) {
     return 0;
 }
 
+int pal(lua_State *L) {
+    if (lua_gettop(L) == 0) {
+        _graphicsForLuaApi->pal();
+        
+        return 0;
+    }
+
+
+    uint8_t c0 = lua_tonumber(L,1);
+    uint8_t c1 = lua_tonumber(L,2);
+    uint8_t p = 0;
+
+    if (lua_gettop(L) > 2){
+        p = lua_tonumber(L,3);
+    }
+
+    _graphicsForLuaApi->pal(c0, c1, p);
+
+    return 0;
+}
+
 //Input
 
 //input api

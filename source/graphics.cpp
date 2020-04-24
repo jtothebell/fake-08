@@ -40,6 +40,9 @@ Graphics::Graphics(std::string fontdata) {
 	this->_gfxState_clip_h = 127;
 
 	copy_string_to_sprite_memory(fontSpriteData, fontdata);
+
+	//make all colors default
+	this->pal();
 }
 
 void Graphics::setSpriteSheet(std::string spritesheetstring){
@@ -76,6 +79,8 @@ void Graphics::copySpriteToScreen(
 	short scr_h = spr_h;
 	
 	short dy = 1;
+
+	//todo: honor x and y flipping
 
 	for (short y = 0; y < scr_h; y++) {
 		uint8_t* spr = spritebuffer + ((spr_y + y * dy) & 0x7f) * 64;
@@ -210,7 +215,7 @@ void Graphics::_private_pset(short x, short y, uint8_t col) {
 	y = y - _gfxState_camera_y;
 
 	if (canDrawAtPoint(x, y)){
-		_pico8_fb[(x * 128) + y] = col;
+		_pico8_fb[(x * 128) + y] = _gfxState_drawPaletteMap[col];
 	}
 }
 //end helper methods
@@ -558,7 +563,7 @@ uint8_t Graphics::mget(short celx, short cely){
 	else if (cely < 64){
 		return this->spriteSheetData[cely* 128 + celx];
 	}
-	
+
 	return 0;
 }
 
@@ -586,13 +591,32 @@ void Graphics::map(int celx, int cely, int sx, int sy, int celw, int celh, uint8
 	}
 }
 
+void Graphics::pal() {
+	for (uint8_t c = 0; c < 16; c++) {
+		_gfxState_drawPaletteMap[c] = c;
+		_gfxState_screenPaletteMap[c] = c;
+		//todo: also clear transparency palette here once implemented
+	}
+
+}
+
+void Graphics::pal(uint8_t c0, uint8_t c1, uint8_t p){
+	if (c0 < 16 && c1 < 16) {
+		if (p == 0) {
+			_gfxState_drawPaletteMap[c0] = c1;
+		} else if (p == 1) {
+			_gfxState_screenPaletteMap[c0] = c1;
+		}
+	}
+}
+
 void Graphics::flipBuffer(uint8_t* fb) {
 	short x, y;
     for(x = 0; x < 400; x++) {
     	for(y = 0; y < 240; y++) {
 			if (x < 128 && y < 128) {
 				uint8_t c = _pico8_fb[x*128 + y];
-				Color col = PaletteColors[c];
+				Color col = PaletteColors[_gfxState_screenPaletteMap[c]];
 
 				fb[((x*240)+ (239 - y))*3+0] = col.Blue;
 				fb[((x*240)+ (239 - y))*3+1] = col.Green;

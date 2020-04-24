@@ -51,6 +51,9 @@ class Graphics {
 	short _gfxState_clip_w;
 	short _gfxState_clip_h;
 
+	uint8_t _gfxState_drawPaletteMap[16];
+	uint8_t _gfxState_screenPaletteMap[16];
+
 	//not actually part of graphics state memory?
 	short _gfxState_line_x;
 	short _gfxState_line_y;
@@ -172,6 +175,9 @@ class Graphics {
 
 	void map(int celx, int cely, int sx, int sy, int celw, int celh);
 	void map(int celx, int cely, int sx, int sy, int celw, int celh, uint8_t layer);
+
+	void pal();
+	void pal(uint8_t c0, uint8_t c1, uint8_t p);
 
 
 	void flipBuffer(uint8_t* fb);

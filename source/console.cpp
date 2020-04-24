@@ -79,6 +79,8 @@ void Console::LoadCart(std::string filename){
     lua_register(_luaState, "camera", camera);
     lua_register(_luaState, "clip", clip);
 
+    lua_register(_luaState, "pal", pal);
+
     lua_register(_luaState, "mget", mget);
     lua_register(_luaState, "mset", mset);
     lua_register(_luaState, "map", map);
