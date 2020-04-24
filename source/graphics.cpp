@@ -93,7 +93,7 @@ void Graphics::copySpriteToScreen(
 				? bothPix & 0x0f //just first 4 bits
 				: bothPix >> 4;  //just last 4 bits
 				
-			if (c != 0) { //if not transparent. Come back later to add palt() support by checking tranparency palette
+			if (_gfxState_transparencyPalette[c] == false) { //if not transparent. Come back later to add palt() support by checking tranparency palette
 				_private_pset(scr_x + x, scr_y + y, c); //set color on framebuffer. Come back later and add pal() by translating color
 			}
 		}
@@ -147,7 +147,7 @@ void Graphics::copyStretchSpriteToScreen(
 				uint8_t c = (pixIndex >> 16) % 2 == 0 
 					? bothPix & 0x0f //just first 4 bits
 					: bothPix >> 4;  //just last 4 bits
-				if (c != 0) {
+				if (_gfxState_transparencyPalette[c] == false) {
 					_private_pset(scr_x + x, scr_y + y, c);
 				}
 			}
@@ -160,7 +160,7 @@ void Graphics::copyStretchSpriteToScreen(
 				uint8_t c = (pixIndex >> 16) % 2 == 0 
 					? bothPix & 0x0f //just first 4 bits
 					: bothPix >> 4;  //just last 4 bits
-				if (c != 0) {
+				if (_gfxState_transparencyPalette[c] == false) {
 					_private_pset(scr_x + x, scr_y + y, c);
 				}
 			}
@@ -595,9 +595,9 @@ void Graphics::pal() {
 	for (uint8_t c = 0; c < 16; c++) {
 		_gfxState_drawPaletteMap[c] = c;
 		_gfxState_screenPaletteMap[c] = c;
-		//todo: also clear transparency palette here once implemented
 	}
 
+	this->palt();
 }
 
 void Graphics::pal(uint8_t c0, uint8_t c1, uint8_t p){
@@ -607,6 +607,18 @@ void Graphics::pal(uint8_t c0, uint8_t c1, uint8_t p){
 		} else if (p == 1) {
 			_gfxState_screenPaletteMap[c0] = c1;
 		}
+	}
+}
+
+void Graphics::palt() {
+	for (uint8_t c = 0; c < 16; c++) {
+		_gfxState_transparencyPalette[c] = c == 0 ? true : false;
+	}
+}
+
+void Graphics::palt(uint8_t c, bool t){
+	if (c < 16) {
+		_gfxState_transparencyPalette[c] = t;
 	}
 }
 

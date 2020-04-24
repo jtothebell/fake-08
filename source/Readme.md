@@ -14,8 +14,9 @@ Basic Roadmap:
 (x) Add camera() support
 (x) Add clip() support
 (x) Add map(), mget(), mset() support
-( ) Add pal() support
-( ) Add palt() support
+(x) Add pal() support
+(x) Add palt() support
+( ) add flip support to sprite drawing
 
 
 Add support for other non-lua pico functions

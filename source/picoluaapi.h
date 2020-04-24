@@ -37,6 +37,7 @@ int mget(lua_State *L);
 int mset(lua_State *L);
 int map(lua_State *L);
 int pal(lua_State *L);
+int palt(lua_State *L);
 
 //input api
 int btn(lua_State *L);

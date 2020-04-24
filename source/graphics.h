@@ -53,6 +53,7 @@ class Graphics {
 
 	uint8_t _gfxState_drawPaletteMap[16];
 	uint8_t _gfxState_screenPaletteMap[16];
+	bool _gfxState_transparencyPalette[16];
 
 	//not actually part of graphics state memory?
 	short _gfxState_line_x;
@@ -178,6 +179,8 @@ class Graphics {
 
 	void pal();
 	void pal(uint8_t c0, uint8_t c1, uint8_t p);
+	void palt();
+	void palt(uint8_t c0, bool t);
 
 
 	void flipBuffer(uint8_t* fb);

@@ -456,6 +456,21 @@ int pal(lua_State *L) {
     return 0;
 }
 
+int palt(lua_State *L) {
+    if (lua_gettop(L) == 0) {
+        _graphicsForLuaApi->palt();
+        
+        return 0;
+    }
+
+    uint8_t c = lua_tonumber(L,1);
+    bool t = lua_toboolean(L,2);
+
+    _graphicsForLuaApi->palt(c, t);
+
+    return 0;
+}
+
 //Input
 
 //input api

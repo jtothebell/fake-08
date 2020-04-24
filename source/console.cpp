@@ -80,6 +80,7 @@ void Console::LoadCart(std::string filename){
     lua_register(_luaState, "clip", clip);
 
     lua_register(_luaState, "pal", pal);
+    lua_register(_luaState, "palt", palt);
 
     lua_register(_luaState, "mget", mget);
     lua_register(_luaState, "mset", mset);
