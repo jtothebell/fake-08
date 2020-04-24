@@ -39,17 +39,22 @@ Graphics::Graphics(std::string fontdata) {
 	this->_gfxState_clip_w = 127;
 	this->_gfxState_clip_h = 127;
 
-	copy_data_to_sprites(fontSpriteData, fontdata);
+	copy_string_to_sprite_memory(fontSpriteData, fontdata);
 }
 
 void Graphics::setSpriteSheet(std::string spritesheetstring){
 	Logger::Write("Copying data to spritesheet\n");
-	copy_data_to_sprites(spriteSheetData, spritesheetstring);
+	copy_string_to_sprite_memory(spriteSheetData, spritesheetstring);
 }
 
 void Graphics::setSpriteFlags(std::string spriteFlagsstring){
 	Logger::Write("Copying data to sprite flags\n");
-	copy_data_to_sprite_flags(spriteFlags, spriteFlagsstring);
+	copy_string_to_memory(spriteFlags, spriteFlagsstring);
+}
+
+void Graphics::setMapData(std::string mapDataString){
+	Logger::Write("Copying data to sprite flags\n");
+	copy_string_to_memory(mapData, mapDataString);
 }
 
 //start helper methods
@@ -542,6 +547,42 @@ void Graphics::clip(short x, short y, short w, short h) {
 	_gfxState_clip_y = y;
 	_gfxState_clip_w = w;
 	_gfxState_clip_h = h;
+}
+
+
+//map methods heavily based on tac08 implementation
+uint8_t Graphics::mget(short celx, short cely){
+	if (cely < 32) {
+
+		return this->mapData[cely * 128 + celx];
+	}
+
+	//todo: get this from the sprite sheet?
+	return 0;
+}
+
+void Graphics::mset(short celx, short cely, uint8_t snum){
+	if (cely < 32) {
+		
+		this->mapData[cely * 128 + celx] = snum;
+	}
+
+	//todo: set on second half of sprite sheet
+}
+
+void Graphics::map(int celx, int cely, int sx, int sy, int celw, int celh) {
+	map(celx, cely, sx, sy, celw, celh, 0);
+}
+
+void Graphics::map(int celx, int cely, int sx, int sy, int celw, int celh, uint8_t layer) {
+	for (int y = 0; y < celh; y++) {
+		for (int x = 0; x < celw; x++) {
+			uint8_t cell = mget(celx + x, cely + y);
+			if (cell && ((layer == 0) || (fget(cell) & layer))) {
+				spr(cell, sx + x * 8, sy + y * 8);
+			}
+		}
+	}
 }
 
 void Graphics::flipBuffer(uint8_t* fb) {

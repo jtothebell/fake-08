@@ -397,6 +397,44 @@ int clip(lua_State *L) {
     return 0;
 }
 
+int mget(lua_State *L) {
+    short celx = lua_tonumber(L,1);
+    short cely = lua_tonumber(L,2);
+
+    uint8_t result = _graphicsForLuaApi->mget(celx, cely);
+    lua_pushnumber(L, result);
+
+    return 1;
+}
+
+int mset(lua_State *L) {
+    short celx = lua_tonumber(L,1);
+    short cely = lua_tonumber(L,2);
+    uint8_t snum = lua_tonumber(L, 3);
+
+    _graphicsForLuaApi->mset(celx, cely, snum);
+
+    return 0;
+}
+
+int map(lua_State *L) {
+    short celx = lua_tonumber(L,1);
+    short cely = lua_tonumber(L,2);
+    short sx = lua_tonumber(L,3);
+    short sy = lua_tonumber(L,4);
+    short celw = lua_tonumber(L,5);
+    short celh = lua_tonumber(L,6);
+    uint8_t layer = 0;
+
+    if (lua_gettop(L) > 6){
+        layer = lua_tonumber(L,7);
+    }
+
+    _graphicsForLuaApi->map(celx, cely, sx, sy, celw, celh, layer);
+
+    return 0;
+}
+
 //Input
 
 //input api

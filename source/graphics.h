@@ -98,6 +98,7 @@ class Graphics {
 
 	void setSpriteSheet(std::string spriteSheetString);
 	void setSpriteFlags(std::string spriteFlagsString);
+	void setMapData(std::string mapString);
 
 	void cls();
 	void cls(uint8_t color);
@@ -165,6 +166,12 @@ class Graphics {
 
 	void clip();
 	void clip(short x, short y, short w, short h);
+
+	uint8_t mget(short celx, short cely);
+	void mset(short celx, short cely, uint8_t snum);
+
+	void map(int celx, int cely, int sx, int sy, int celw, int celh);
+	void map(int celx, int cely, int sx, int sy, int celw, int celh, uint8_t layer);
 
 
 	void flipBuffer(uint8_t* fb);

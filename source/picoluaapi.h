@@ -33,6 +33,9 @@ int sget(lua_State *L);
 int sset(lua_State *L);
 int camera(lua_State *L);
 int clip(lua_State *L);
+int mget(lua_State *L);
+int mset(lua_State *L);
+int map(lua_State *L);
 
 //input api
 int btn(lua_State *L);

@@ -48,6 +48,7 @@ void Console::LoadCart(std::string filename){
 
     _graphics->setSpriteSheet(cart->SpriteSheetString);
     _graphics->setSpriteFlags(cart->SpriteFlagsString);
+    _graphics->setMapData(cart->MapString);
 
     _loadedCart = cart;
 
@@ -77,6 +78,10 @@ void Console::LoadCart(std::string filename){
     lua_register(_luaState, "sset", sset);
     lua_register(_luaState, "camera", camera);
     lua_register(_luaState, "clip", clip);
+
+    lua_register(_luaState, "mget", mget);
+    lua_register(_luaState, "mset", mset);
+    lua_register(_luaState, "map", map);
 
     //input
     lua_register(_luaState, "btn", btn);
