@@ -21,8 +21,11 @@ Basic Roadmap:
 Add support for other non-lua pico functions
 
 Add 30 and 60 fps support
-
 make flip() work for carts without update
+
+test celeste? some other real world carts (demos?)? alpha release?
+
+
 
 add switch, and possibly wii u support
 
