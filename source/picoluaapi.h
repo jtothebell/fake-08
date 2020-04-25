@@ -62,8 +62,9 @@ int btnp(lua_State *L);
 int music(lua_State *L);
 int sfx(lua_State *L);
 
-//time
+//system
 int time(lua_State *L);
+int stat(lua_State *L);
 
 //memory api
 int cstore(lua_State *L);

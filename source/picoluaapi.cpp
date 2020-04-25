@@ -27,6 +27,13 @@ int noop(const char * name) {
     return 0;
 }
 
+int noopreturns(lua_State *L, const char * name) {
+    //todo log name of unimplemented functions?
+    lua_pushnumber(L, 0);
+
+    return 1;
+}
+
 /*functions to expose to lua*/
 //Graphics
 int cls(lua_State *L){
@@ -522,7 +529,7 @@ int btnp(lua_State *L){
     return 1;
 }
 
-//Time
+//System
 int time(lua_State *L) {
     int frameCount = _consoleForLuaApi->GetFrameCount();
     int targetFps = _consoleForLuaApi->GetTargetFps();
@@ -532,6 +539,10 @@ int time(lua_State *L) {
     lua_pushnumber(L, seconds);
 
     return 1;
+}
+
+int stat(lua_State *L) {
+    return noopreturns(L, "stat");
 }
 
 //Audio
@@ -557,7 +568,7 @@ int memset(lua_State *L) {
 }
 
 int peek(lua_State *L) {
-    return noop("peek");
+    return noopreturns(L, "peek");
 }
 
 int poke(lua_State *L) {
@@ -574,7 +585,7 @@ int cartdata(lua_State *L) {
 }
 
 int dget(lua_State *L) {
-    return noop("dget");
+    return noopreturns(L, "dget");
 }
 
 int dset(lua_State *L) {
