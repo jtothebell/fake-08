@@ -31,6 +31,8 @@ Console::Console(){
     Logger::Write("Initializing global api\n");
     initPicoApi(_graphics, _input);
     //initGlobalApi(_graphics);
+
+    _targetFps = 30;
 }
 
 Console::~Console(){
@@ -45,6 +47,7 @@ Console::~Console(){
 void Console::LoadCart(std::string filename){
     Logger::Write("Calling Cart Constructor\n");
     Cart *cart = new Cart(filename);
+    _picoFrameCount = 0;
 
     _graphics->setSpriteSheet(cart->SpriteSheetString);
     _graphics->setSpriteFlags(cart->SpriteFlagsString);
@@ -91,32 +94,80 @@ void Console::LoadCart(std::string filename){
     lua_register(_luaState, "btnp", btnp);
 
     luaL_dostring(_luaState, _loadedCart->LuaString.c_str());
-}
 
-void Console::UpdateAndDraw(int frameCount, uint8_t kdown, uint8_t kheld){
-    _input->SetState(kdown, kheld);
 
-    // Push the fib function on the top of the lua stack
-    lua_getglobal(_luaState, "_update");
+    // Push the _init function on the top of the lua stack (or nil if it doesn't exist)
+    lua_getglobal(_luaState, "_init");
 
-    // Push any arguments (the number 13 in this case) on the stack 
-    //lua_pushnumber(_luaState, 13);
+    if (lua_isfunction(_luaState, -1)) {
+        lua_call(_luaState, 0, 0);
+    }
 
-    // call the function with 0 argument, returning 0 resulta.  Note that the function actually
-    // returns 2 results -- we just don't want them
-    lua_pcall(_luaState, 0, 0, 0);
-
-    // Get the result from the lua stack
-    //int result = (int)lua_tointeger(_luaState, -1);
-
-    // Clean up.  If we don't do this last step, we'll leak stack memory.
+    //pop the _init fuction off the stack now that we're done with it
     lua_pop(_luaState, 0);
 
+    //check for update, mark correct target fps
+    lua_getglobal(_luaState, "_update");
+    if (lua_isfunction(_luaState, -1)) {
+        _hasUpdate = true;
+        _targetFps = 30;
+    }
+    lua_pop(_luaState, 0);
+    if (!_hasUpdate){
+        lua_getglobal(_luaState, "_update60");
+        if (lua_isfunction(_luaState, -1)) {
+            _hasUpdate = true;
+            _targetFps = 60;
+        }
+        lua_pop(_luaState, 0);
+    }
 
     lua_getglobal(_luaState, "_draw");
-    lua_pcall(_luaState, 0, 0, 0);
+    if (lua_isfunction(_luaState, -1)) {
+        _hasDraw = true;
+    }
     lua_pop(_luaState, 0);
+}
 
+
+//how to call lua from c: https://www.cs.usfca.edu/~galles/cs420/lecture/LuaLectures/LuaAndC.html
+void Console::UpdateAndDraw(
+      uint64_t ticksSinceLastCall,
+      std::function<void()> clearFbFunction,
+      uint8_t kdown,
+      uint8_t kheld)
+{
+    if (clearFbFunction) {
+        clearFbFunction();
+    }
+
+    _input->SetState(kdown, kheld);
+
+    if (_hasUpdate){
+        // Push the _update function on the top of the lua stack
+        if (_targetFps == 60) {
+            lua_getglobal(_luaState, "_update60");
+        } else {
+            lua_getglobal(_luaState, "_update");
+        }
+
+        //we already checked that its a function, so we should be able to call it
+        lua_call(_luaState, 0, 0);
+
+        //pop the update fuction off the stack now that we're done with it
+        lua_pop(_luaState, 0);
+    }
+
+    if (_hasDraw) {
+        lua_getglobal(_luaState, "_draw");
+
+        lua_call(_luaState, 0, 0);
+        
+        //pop the update fuction off the stack now that we're done with it
+        lua_pop(_luaState, 0);
+    }
+
+    _picoFrameCount++;
 }
 
 void Console::FlipBuffer(uint8_t* fb, std::function<void()> postFlipFunction){
@@ -129,5 +180,9 @@ void Console::FlipBuffer(uint8_t* fb, std::function<void()> postFlipFunction){
 
 void Console::TurnOff() {
     lua_close(_luaState);
+}
+
+uint8_t Console::GetTargetFps() {
+    return _targetFps;
 }
 

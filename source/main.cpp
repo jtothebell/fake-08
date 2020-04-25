@@ -55,6 +55,18 @@ uint8_t ConvertInputToP8(u32 input){
 	return result;
 }
 
+void clear3dsFrameBuffer() {
+	#if _TEST
+	int bgcolor = 255;
+	#else
+	int bgcolor = 0;
+	#endif
+	uint8_t* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
+	//clear whole top framebuffer
+	memset(fb, bgcolor, 240*400*3);
+
+}
+
 //3ds specific helper function
 void postFlip3dsFunction() {
 	gfxFlushBuffers();
@@ -64,7 +76,8 @@ void postFlip3dsFunction() {
 
 int main(int argc, char* argv[])
 {
-	int frames = 0; 
+	u64 last_time = 0, now_time = 0, frame_time = 0;
+
 	Logger::Initialize();
 	Logger::Write("created Logger\n");
 	gfxInitDefault();
@@ -76,7 +89,6 @@ int main(int argc, char* argv[])
 
 	//test or not both hardcoded to loading test cart as of now
 	#if _TEST
-	int bgcolor = 255;
 	consoleInit(GFX_BOTTOM, NULL);
 
 	Logger::Write("Loading cart\n");
@@ -85,17 +97,51 @@ int main(int argc, char* argv[])
 
 	#else
 	console.LoadCart("testcart.p8");
-	int bgcolor = 0;
 	#endif
 	
 	// Main loop
 	Logger::Write("Starting main loop\n");
+
+	uint8_t targetFps = console->GetTargetFps();
+	double targetFrametimeMs = 1000.0 / (double)targetFps;
+
+	std::function<void()> clearFb = clear3dsFrameBuffer;
+	std::function<void()> postFlip = postFlip3dsFunction;
 
 	while (aptMainLoop())
 	{
 		//Scan all the inputs. This should be done once for each frame
 		hidScanInput();
 
+		now_time = svcGetSystemTick();
+     	frame_time = now_time - last_time;
+		last_time = now_time;
+
+		double frameTimeMs = frame_time / CPU_TICKS_PER_MSEC;
+
+		#if _TEST
+		consoleClear();
+		printf("svcGetSystemTick(): %lld \n", now_time);
+		printf("frame time (ticks): %lld \n", frame_time);
+		printf("frame time (ms): %f \n", frameTimeMs);
+		printf("target fps: %d \n", targetFps);
+		printf("target frame time (ms): %f \n", targetFrametimeMs);
+		#endif
+
+		//sleep for remainder of time
+		if (frameTimeMs < targetFrametimeMs) {
+			double msToSleep = targetFrametimeMs - frameTimeMs;
+			
+			#if _TEST
+			printf("sleeping for : %f ms\n", msToSleep);
+			#endif
+
+			svcSleepThread(msToSleep * 1000 * 1000);
+
+			last_time += CPU_TICKS_PER_MSEC * msToSleep;
+		}
+		
+		
 		//hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
 		u32 kDown = hidKeysDown();
 		u32 kHeld = hidKeysHeld();
@@ -110,9 +156,6 @@ int main(int argc, char* argv[])
 
 		//_update();
 		
-		uint8_t* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
-		//clear whole top framebuffer
-		memset(fb, bgcolor, 240*400*3);
 
 		//uint8_t* fb_b = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
 		//clear whole framebuffer
@@ -121,13 +164,14 @@ int main(int argc, char* argv[])
 		//cart draw
 		//_draw();
 
-		console->UpdateAndDraw(frames, p8kDown, p8kHeld);
+		console->UpdateAndDraw(frame_time, clear3dsFrameBuffer, p8kDown, p8kHeld);
 
 		//send pico 8 screen to framebuffer, then call the function to flush and swap buffers, and wait for vblank
-		std::function<void()> postFlip = postFlip3dsFunction;
+		
+		uint8_t* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
+
 		console->FlipBuffer(fb, postFlip);
 
-    	frames++;
 	}
 
 
