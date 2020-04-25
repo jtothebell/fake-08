@@ -29,7 +29,7 @@ Console::Console(){
 
     //this can probably go away when I'm loading actual carts and just have to expose api to lua
     Logger::Write("Initializing global api\n");
-    initPicoApi(_graphics, _input);
+    initPicoApi(_graphics, _input, this);
     //initGlobalApi(_graphics);
 
     _targetFps = 30;
@@ -89,9 +89,19 @@ void Console::LoadCart(std::string filename){
     lua_register(_luaState, "mset", mset);
     lua_register(_luaState, "map", map);
 
+    //stubbed in graphics:
+    lua_register(_luaState, "fillp", fillp);
+
     //input
     lua_register(_luaState, "btn", btn);
     lua_register(_luaState, "btnp", btnp);
+
+    lua_register(_luaState, "time", time);
+    lua_register(_luaState, "t", time);
+
+    //stubbed in audio:
+    lua_register(_luaState, "music", music);
+    lua_register(_luaState, "sfx", sfx);
 
     luaL_dostring(_luaState, _loadedCart->LuaString.c_str());
 
@@ -186,3 +196,6 @@ uint8_t Console::GetTargetFps() {
     return _targetFps;
 }
 
+int Console::GetFrameCount() {
+    return _picoFrameCount;
+}

@@ -4,6 +4,7 @@
 #include "picoluaapi.h"
 #include "graphics.h"
 #include "Input.h"
+#include "console.h"
 
 extern "C" {
   #include <lua.h>
@@ -13,10 +14,12 @@ extern "C" {
 
 Graphics* _graphicsForLuaApi;
 Input* _inputForLuaApi;
+Console* _consoleForLuaApi;
 
-void initPicoApi(Graphics* graphics, Input* input){
+void initPicoApi(Graphics* graphics, Input* input, Console* console){
     _graphicsForLuaApi = graphics;
     _inputForLuaApi = input;
+    _consoleForLuaApi = console;
 }
 
 int noop(const char * name) {
@@ -515,6 +518,29 @@ int btnp(lua_State *L){
     bool pressed = _inputForLuaApi->btnp((short)i);
 
     lua_pushboolean(L, pressed);
+
+    return 1;
+}
+
+
+//Audio
+
+int music(lua_State *L) {
+    return noop("music");
+}
+
+int sfx(lua_State *L) {
+    return noop("sfx");
+}
+
+//Time
+int time(lua_State *L) {
+    int frameCount = _consoleForLuaApi->GetFrameCount();
+    int targetFps = _consoleForLuaApi->GetTargetFps();
+
+    double seconds = (double)frameCount / (double)targetFps;
+
+    lua_pushnumber(L, seconds);
 
     return 1;
 }

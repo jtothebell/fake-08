@@ -18,7 +18,7 @@ class Console {
 
     uint8_t _targetFps;
 
-    uint16_t _picoFrameCount;
+    int _picoFrameCount;
     bool _hasUpdate;
     bool _hasDraw;
 
@@ -39,5 +39,7 @@ class Console {
     void TurnOff();
 
     uint8_t GetTargetFps();
+
+    int GetFrameCount();
 };
 

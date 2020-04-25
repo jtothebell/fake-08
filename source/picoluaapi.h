@@ -10,9 +10,10 @@ extern "C" {
 
 #include "graphics.h"
 #include "Input.h"
+#include "console.h"
 
 //this can probably go away when I'm loading actual carts and just have to expose api to lua
-void initPicoApi(Graphics* graphics, Input* input);
+void initPicoApi(Graphics* graphics, Input* input, Console* console);
 
 //graphics api
 int cls(lua_State *L);
@@ -43,23 +44,26 @@ int cursor(lua_State *L);
 int fillp(lua_State *L); 
 //end todo
 
+//tables functions, maybe implemented in lua? 
+//list from: https://pico-8.fandom.com/wiki/APIReference
+/*
+     add(t, v)
+    all(t)
+    del(t, v)
+    foreach(t, f)
+    pairs(t) 
+*/
+
 //input api
 int btn(lua_State *L);
 int btnp(lua_State *L);
 
+//audio api
+int music(lua_State *L);
+int sfx(lua_State *L);
 
-//TODO:
-//graphics
-//api.fillp(p)
-
-//map
-//api.map(cel_x, cel_y, sx, sy, cel_w, cel_h, bitmask)
-
-//api.mget(x, y)
-
-//api.mset(x, y, v)
-
-
+//time
+int time(lua_State *L);
 //system functions
 //api.time() and api.t()
 
