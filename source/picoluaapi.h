@@ -64,8 +64,21 @@ int sfx(lua_State *L);
 
 //time
 int time(lua_State *L);
+
+//memory api
+int cstore(lua_State *L);
+int memcpy(lua_State *L);
+int memset(lua_State *L);
+int peek(lua_State *L);
+int poke(lua_State *L);
+int reload(lua_State *L);
+
+//cart data
+int cartdata(lua_State *L);
+int dget(lua_State *L);
+int dset(lua_State *L);
+
 //system functions
-//api.time() and api.t()
 
 //api.tonum(val)
 

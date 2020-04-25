@@ -103,6 +103,19 @@ void Console::LoadCart(std::string filename){
     lua_register(_luaState, "music", music);
     lua_register(_luaState, "sfx", sfx);
 
+    //stubbed in memory
+    lua_register(_luaState, "cstore", cstore);
+    lua_register(_luaState, "memcpy", memcpy);
+    lua_register(_luaState, "memset", memset);
+    lua_register(_luaState, "peek", peek);
+    lua_register(_luaState, "poke", poke);
+    lua_register(_luaState, "reload", reload);
+
+    //stubbed in cart data
+    lua_register(_luaState, "cartdata", cartdata);
+    lua_register(_luaState, "dget", dget);
+    lua_register(_luaState, "dset", dset);
+
     luaL_dostring(_luaState, _loadedCart->LuaString.c_str());
 
 

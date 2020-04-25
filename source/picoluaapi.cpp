@@ -522,17 +522,6 @@ int btnp(lua_State *L){
     return 1;
 }
 
-
-//Audio
-
-int music(lua_State *L) {
-    return noop("music");
-}
-
-int sfx(lua_State *L) {
-    return noop("sfx");
-}
-
 //Time
 int time(lua_State *L) {
     int frameCount = _consoleForLuaApi->GetFrameCount();
@@ -543,4 +532,51 @@ int time(lua_State *L) {
     lua_pushnumber(L, seconds);
 
     return 1;
+}
+
+//Audio
+int music(lua_State *L) {
+    return noop("music");
+}
+
+int sfx(lua_State *L) {
+    return noop("sfx");
+}
+
+//Memory
+int cstore(lua_State *L) {
+    return noop("cstore");
+}
+
+int memcpy(lua_State *L) {
+    return noop("memcpy");
+}
+
+int memset(lua_State *L) {
+    return noop("memset");
+}
+
+int peek(lua_State *L) {
+    return noop("peek");
+}
+
+int poke(lua_State *L) {
+    return noop("poke");
+}
+
+int reload(lua_State *L) {
+    return noop("reload");
+}
+
+//cart data
+int cartdata(lua_State *L) {
+    return noop("cartdata");
+}
+
+int dget(lua_State *L) {
+    return noop("dget");
+}
+
+int dset(lua_State *L) {
+    return noop("dset");
 }
