@@ -438,7 +438,11 @@ void Graphics::rectfill(short x1, short y1, short x2, short y2, uint8_t col) {
 }
 
 short Graphics::print(std::string str) {
-	return this->print(str, _gfxState_text_x, _gfxState_text_y);
+	short result = this->print(str, _gfxState_text_x, _gfxState_text_y);
+
+	_gfxState_text_y += 6;
+
+	return result;
 }
 
 short Graphics::print(std::string str, short x, short y) {
@@ -450,6 +454,7 @@ short Graphics::print(std::string str, short x, short y, uint16_t c) {
 	color(c);
 
 	_gfxState_text_x = x;
+	_gfxState_text_y = y;
 
 	for (size_t n = 0; n < str.length(); n++) {
 		uint8_t ch = str[n];
@@ -466,9 +471,6 @@ short Graphics::print(std::string str, short x, short y, uint16_t c) {
 			y += 6;
 		}
 	}
-
-	_gfxState_text_x = 0;
-	_gfxState_text_y = y + 6;
 
 	//todo: auto scrolling
 
