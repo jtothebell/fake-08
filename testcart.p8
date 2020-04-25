@@ -68,7 +68,7 @@ function _draw()
 
  circfill(100, 100, 15, 9)
  
- print(fget(1), 64, 64, 7)
+ print("bitwise:1&3 " .. band(1,3), 64, 64, 7)
  print(fget(8, 3), 64, 72, 7)
  print(fget(255), 64, 80, 7)
  
@@ -96,8 +96,8 @@ function _draw()
  
  pal(6, 14, 1)
  
- t = {1, 3, 5}
- add(t, 7)
+ t = {1, 3}
+ add(t, 5)
  foreach(t, print)
 end
 
