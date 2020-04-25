@@ -8,6 +8,7 @@
 #include "picoluaapi.h"
 #include "logger.h"
 #include "Input.h"
+#include "p8GlobalLuaFunctions.h"
 
 extern "C" {
   #include <lua.h>
@@ -61,6 +62,9 @@ void Console::LoadCart(std::string filename){
 
     // load Lua base libraries (print / math / etc)
     luaL_openlibs(_luaState);
+
+    //load in global lua fuctions for pico 8
+    luaL_dostring(_luaState, p8GlobalLuaFunctions);
 
     //graphics
     lua_register(_luaState, "cls", cls);
