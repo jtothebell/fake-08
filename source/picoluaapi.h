@@ -38,6 +38,10 @@ int mset(lua_State *L);
 int map(lua_State *L);
 int pal(lua_State *L);
 int palt(lua_State *L);
+int cursor(lua_State *L);
+//todo:
+int fillp(lua_State *L); 
+//end todo
 
 //input api
 int btn(lua_State *L);
@@ -46,19 +50,6 @@ int btnp(lua_State *L);
 
 //TODO:
 //graphics
-
-//api.flip()
-//int flip(lua_State *L);
-//api.camera(x, y)
-//int camera(lua_State *L);
-//api.clip(x, y, w, h)
-//int clip(lua_State *L);
-//api.cursor(x, y)
-//int cursor(lua_State *L);
-//api.pal(c0, c1, p)
-
-//api.palt(c, t)
-
 //api.fillp(p)
 
 //map

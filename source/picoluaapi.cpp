@@ -19,6 +19,11 @@ void initPicoApi(Graphics* graphics, Input* input){
     _inputForLuaApi = input;
 }
 
+int noop(const char * name) {
+    //todo log name of unimplemented functions?
+    return 0;
+}
+
 /*functions to expose to lua*/
 //Graphics
 int cls(lua_State *L){
@@ -469,6 +474,27 @@ int palt(lua_State *L) {
     _graphicsForLuaApi->palt(c, t);
 
     return 0;
+}
+
+int cursor(lua_State *L) {
+    short x = lua_tonumber(L,1);
+    short y = lua_tonumber(L,2);
+
+    if (lua_gettop(L) <= 2) {
+        _graphicsForLuaApi->cursor(x, y);
+        return 0;
+    }
+
+    uint8_t c = lua_tonumber(L,3);
+
+    _graphicsForLuaApi->cursor(x, y, c);
+
+    return 0;
+
+}
+
+int fillp(lua_State *L) {
+    return noop("fillp");
 }
 
 //Input

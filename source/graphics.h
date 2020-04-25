@@ -182,6 +182,10 @@ class Graphics {
 	void palt();
 	void palt(uint8_t c0, bool t);
 
+	void cursor();
+	void cursor(short x, short y);
+	void cursor(short x, short y, uint8_t col);
+
 
 	void flipBuffer(uint8_t* fb);
 

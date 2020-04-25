@@ -658,3 +658,18 @@ void Graphics::flipBuffer(uint8_t* fb) {
     }
 }
 
+void Graphics::cursor() {
+	this->cursor(0, 0);
+}
+
+void Graphics::cursor(short x, short y) {
+	_gfxState_text_x = x;
+	_gfxState_text_y = y;
+}
+
+void Graphics::cursor(short x, short y, uint8_t col) {
+	color(col);
+
+	this->cursor(x, y);
+}
+
