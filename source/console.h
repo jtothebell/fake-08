@@ -34,7 +34,7 @@ class Console {
       uint8_t kdown,
       uint8_t kheld);
 
-    void FlipBuffer(uint8_t* fb, std::function<void()> postFlipFunction);
+    void FlipBuffer(uint8_t* fb, int width, int height, std::function<void()> postFlipFunction);
 
     void TurnOff();
 

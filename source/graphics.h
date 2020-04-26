@@ -187,7 +187,7 @@ class Graphics {
 	void cursor(short x, short y, uint8_t col);
 
 
-	void flipBuffer(uint8_t* fb);
+	void flipBuffer(uint8_t* fb, int width, int height);
 
 };
 

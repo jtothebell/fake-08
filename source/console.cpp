@@ -197,8 +197,8 @@ void Console::UpdateAndDraw(
     _picoFrameCount++;
 }
 
-void Console::FlipBuffer(uint8_t* fb, std::function<void()> postFlipFunction){
-    _graphics->flipBuffer(fb);
+void Console::FlipBuffer(uint8_t* fb, int width, int height, std::function<void()> postFlipFunction){
+    _graphics->flipBuffer(fb, width, height);
 
     if (postFlipFunction) {
         postFlipFunction();

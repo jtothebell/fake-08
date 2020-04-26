@@ -3,12 +3,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <string>
+#include <algorithm>
 
 #include "graphics.h"
 
 #include "stringToDataHelpers.h"
 
 #include "logger.h"
+
+const uint8_t PicoScreenWidth = 128;
+const uint8_t PicoScreenHeight = 128;
 
 const Color BgGray = BG_GRAY_COLOR;
 
@@ -30,16 +34,6 @@ const Color PaletteColors[] = {
 	COLOR_14,
 	COLOR_15
 };
-
-//not included in 3ds std? copied and pasted here for ease
-template<typename _Tp>
-    constexpr const _Tp&
-    clamp(const _Tp& __val, const _Tp& __lo, const _Tp& __hi)
-    {
-      __glibcxx_assert(!(__hi < __lo));
-      return (__val < __lo) ? __lo : (__hi < __val) ? __hi : __val;
-    }
-
 
 //call initialize to make sure defaults are correct
 Graphics::Graphics(std::string fontdata) {
@@ -583,11 +577,11 @@ void Graphics::clip() {
 void Graphics::clip(short x, short y, short w, short h) {
 	short xe = x + w;
 	short ye = y + h;
-	_gfxState_clip_xb = clamp(x, (short)0, (short)127);
-	_gfxState_clip_yb = clamp(y, (short)0, (short)127);
+	_gfxState_clip_xb = std::clamp(x, (short)0, (short)127);
+	_gfxState_clip_yb = std::clamp(y, (short)0, (short)127);
 	
-	_gfxState_clip_xe = clamp(xe, (short)0, (short)127);
-	_gfxState_clip_ye = clamp(ye, (short)0, (short)127);
+	_gfxState_clip_xe = std::clamp(xe, (short)0, (short)127);
+	_gfxState_clip_ye = std::clamp(ye, (short)0, (short)127);
 }
 
 
@@ -658,17 +652,22 @@ void Graphics::palt(uint8_t c, bool t){
 	}
 }
 
-void Graphics::flipBuffer(uint8_t* fb) {
+void Graphics::flipBuffer(uint8_t* fb, int width, int height) {
 	short x, y;
+
+	short xOffset = width / 2 - PicoScreenWidth / 2;
+	short yOffset = height / 2 - PicoScreenHeight / 2;
 	//todo: test if it is faster to convert colors to uint24_ts and write one instead of 3 (assuming these are )
     for(x = 0; x < 128; x++) {
     	for(y = 0; y < 128; y++) {
 			uint8_t c = _pico8_fb[x*128 + y];
 			Color col = PaletteColors[_gfxState_screenPaletteMap[c]];
 
-			fb[((x*240)+ (239 - y))*3+0] = col.Blue;
-			fb[((x*240)+ (239 - y))*3+1] = col.Green;
-			fb[((x*240)+ (239 - y))*3+2] = col.Red;
+			int pixIdx = (((x + xOffset)*240)+ (239 - (y + yOffset)))*3;
+
+			fb[pixIdx + 0] = col.Blue;
+			fb[pixIdx + 1] = col.Green;
+			fb[pixIdx + 2] = col.Red;
     	}
     }
 }
