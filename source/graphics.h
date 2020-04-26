@@ -94,8 +94,13 @@ class Graphics {
 
 	bool isOnScreen(short x, short y);
 	bool isWithinClip(short x, short y);
+	bool isXWithinClip(short x);
+	bool isYWithinClip(short y);
 
 	void _private_pset(short x, short y, uint8_t col);
+	void _private_safe_pset(short x, short y, uint8_t col);
+	void _private_h_line (short x1, short x2, short y, uint8_t col);
+	void _private_v_line (short y1, short y2, short x, uint8_t col);
 
 	public:
 	Graphics(std::string fontdata);

@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
 	consoleInit(GFX_BOTTOM, NULL);
 
 	Logger::Write("Loading cart\n");
-	console->LoadCart("testcart.p8");
+	console->LoadCart("lilking.p8");
 	Logger::Write("Cart Loaded\n");
 
 	#else

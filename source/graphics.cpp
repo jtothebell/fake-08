@@ -234,14 +234,35 @@ bool Graphics::isWithinClip(short x, short y) {
 		y <= _gfxState_clip_ye;
 }
 
-void Graphics::_private_pset(short x, short y, uint8_t col) {
-	applyCameraToPoint(&x, &y);
-	x = x & 127;
-	y = y & 127;
+bool Graphics::isXWithinClip(short x) {
+	return 
+		x >= _gfxState_clip_xb && 
+		x <= _gfxState_clip_xe;
+}
 
+bool Graphics::isYWithinClip(short y) {
+	return 
+		y >= _gfxState_clip_yb && 
+		y <= _gfxState_clip_ye;
+}
+
+
+short clampCoordToScreenDims(short val) {
+	return std::clamp(val, (short)0, (short)127);
+}
+
+
+void Graphics::_private_safe_pset(short x, short y, uint8_t col) {
 	if (isWithinClip(x, y)){
 		_pico8_fb[(x * 128) + y] = _gfxState_drawPaletteMap[col];
 	}
+}
+
+void Graphics::_private_pset(short x, short y, uint8_t col) {
+	x = x & 127;
+	y = y & 127;
+
+	_pico8_fb[(x * 128) + y] = _gfxState_drawPaletteMap[col];
 }
 //end helper methods
 
@@ -263,7 +284,11 @@ void Graphics::pset(short x, short y){
 void Graphics::pset(short x, short y, uint8_t col){
 	color(col);
 
-	_private_pset(x, y, col);
+	applyCameraToPoint(&x, &y);
+
+	if (isWithinClip(x, y)){
+		_private_pset(x, y, col);
+	}
 }
 
 uint8_t Graphics::pget(short x, short y){
@@ -307,6 +332,34 @@ void Graphics::line (short x1, short y1, short x2, short y2){
 	this->line(_gfxState_line_x, _gfxState_line_y, x1, y1, this->_gfxState_color);
 }
 
+void Graphics::_private_h_line (short x1, short x2, short y, uint8_t col){
+	if (!isYWithinClip(y)){
+		return;
+	}
+
+	short maxx = clampCoordToScreenDims(std::max(x1, x2));
+	short minx = clampCoordToScreenDims(std::min(x1, x2));
+
+	//possible todo: check if memset is any better here?
+	for (short x = minx; x <= maxx; x++){
+		_private_pset(x, y, col);
+	}
+}
+
+void Graphics::_private_v_line (short y1, short y2, short x, uint8_t col){
+	//save draw calls if its out
+	if (!isXWithinClip(x)){
+		return;
+	}
+
+	short maxy = clampCoordToScreenDims(std::max(y1, y2));
+	short miny = clampCoordToScreenDims(std::min(y1, y2));
+
+	for (short y = miny; y <= maxy; y++){
+		_private_pset(x, y, col);
+	}
+}
+
 void Graphics::line (short x1, short y1, short x2, short y2, uint8_t col) {
 	this->_gfxState_line_x = x2;
 	this->_gfxState_line_y = y2;
@@ -314,20 +367,23 @@ void Graphics::line (short x1, short y1, short x2, short y2, uint8_t col) {
 
 	sortPointsLtoR(&x1, &y1, &x2, &y2);
 
+	//y = mx + b
+
 	float run = x2 - x1;
 	float rise = y2 - y1;
 
 	//vertical line
 	if (run == 0) {
-		if (y1 > y2) {
-			swap(&y1, &y2);
-		}
-
-		for (short y = y1; y <= y2; y++){
-			_private_pset(x1, y, col);
-		}
+		_private_v_line(y1, y2, x1, col);
+	} 
+	else if (rise == 0) {
+		_private_h_line(x1, x2, y1, col);
 	}
 	else {
+		//todo: this is broken for steep lines
+		applyCameraToPoint(&x1, &y1);
+		applyCameraToPoint(&x2, &y2);
+
 		float slope = rise / run;
 
 		for (short x = x1; x <= x2; x++){
@@ -347,20 +403,23 @@ void Graphics::circ(short ox, short oy, short r){
 
 void Graphics::circ(short ox, short oy, short r, uint8_t col){
 	color(col);
+
+	applyCameraToPoint(&ox, &oy);
+
 	short x = r;
 	short y = 0;
 	short decisionOver2 = 1-x;
 
 	while (y <= x) {
-		_private_pset(ox + x, oy + y, col);
-		_private_pset(ox + y, oy + x, col);
-		_private_pset(ox - x, oy + y, col);
-		_private_pset(ox - y, oy + x, col);
+		_private_safe_pset(ox + x, oy + y, col);
+		_private_safe_pset(ox + y, oy + x, col);
+		_private_safe_pset(ox - x, oy + y, col);
+		_private_safe_pset(ox - y, oy + x, col);
 
-		_private_pset(ox - x, oy - y, col);
-		_private_pset(ox - y, oy - x, col);
-		_private_pset(ox + x, oy - y, col);
-		_private_pset(ox + y, oy - x, col);
+		_private_safe_pset(ox - x, oy - y, col);
+		_private_safe_pset(ox - y, oy - x, col);
+		_private_safe_pset(ox + x, oy - y, col);
+		_private_safe_pset(ox + y, oy - x, col);
 
 		y += 1;
 		if (decisionOver2 < 0) {
@@ -384,19 +443,22 @@ void Graphics::circfill(short ox, short oy, short r){
 
 void Graphics::circfill(short ox, short oy, short r, uint8_t col){
 	color(col);
+
+	applyCameraToPoint(&ox, &oy);
+
 	if (r == 0) {
-		_private_pset(ox, oy, col);
+		_private_safe_pset(ox, oy, col);
 	}
 	else if (r == 1) {
-		_private_pset(ox, oy - 1, col);
-		line(ox-1, oy, ox+1, oy, col);
-		_private_pset(ox, oy + 1, col);
+		_private_safe_pset(ox, oy - 1, col);
+		_private_h_line(ox-1, ox+1, oy, col);
+		_private_safe_pset(ox, oy + 1, col);
 	}
 	else if (r > 0) {
 		short x = -r, y = 0, err = 2 - 2 * r;
 		do {
-			line(ox - x, oy + y, ox + x, oy + y, col);
-			line(ox - x, oy - y, ox + x, oy - y, col);
+			_private_h_line(ox - x, ox + x, oy + y, col);
+			_private_h_line(ox - x, ox + x, oy - y, col);
 			r = err;
 			if (r > x)
 				err += ++x * 2 + 1;
@@ -414,16 +476,16 @@ void Graphics::rect(short x1, short y1, short x2, short y2) {
 void Graphics::rect(short x1, short y1, short x2, short y2, uint8_t col) {
 	color(col);
 
+	applyCameraToPoint(&x1, &y1);
+	applyCameraToPoint(&x2, &y2);
+
 	sortCoordsForRect(&x1, &y1, &x2, &y2);
 
-	for (short i = x1; i <= x2; i++) {
-		for (short j = y1; j <= y2; j++) {
-			if ((i == x1 || i == x2 || j == y1 || j == y2) ) {
-				_private_pset(i, j, col);
-			}
-		}
-	}
+	_private_h_line(x1, x2, y1, col);
+	_private_h_line(x1, x2, y2, col);
 
+	_private_v_line(y1, y2, x1, col);
+	_private_v_line(y1, y2, x2, col);
 }
 
 void Graphics::rectfill(short x1, short y1, short x2, short y2) {
@@ -435,10 +497,8 @@ void Graphics::rectfill(short x1, short y1, short x2, short y2, uint8_t col) {
 
 	sortCoordsForRect(&x1, &y1, &x2, &y2);
 
-	for (short i = x1; i <= x2; i++) {
-		for (short j = y1; j <= y2; j++) {
-			_private_pset(i, j, col);
-		}
+	for (short y = y1; y <= y2; y++) {
+		_private_h_line(x1, x2, y, col);
 	}
 }
 
@@ -577,11 +637,10 @@ void Graphics::clip() {
 void Graphics::clip(short x, short y, short w, short h) {
 	short xe = x + w;
 	short ye = y + h;
-	_gfxState_clip_xb = std::clamp(x, (short)0, (short)127);
-	_gfxState_clip_yb = std::clamp(y, (short)0, (short)127);
-	
-	_gfxState_clip_xe = std::clamp(xe, (short)0, (short)127);
-	_gfxState_clip_ye = std::clamp(ye, (short)0, (short)127);
+	_gfxState_clip_xb = clampCoordToScreenDims(x);
+	_gfxState_clip_yb = clampCoordToScreenDims(y);
+	_gfxState_clip_xe = clampCoordToScreenDims(xe);
+	_gfxState_clip_ye = clampCoordToScreenDims(ye);
 }
 
 
