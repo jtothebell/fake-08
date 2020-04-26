@@ -646,16 +646,14 @@ void Graphics::palt(uint8_t c, bool t){
 
 void Graphics::flipBuffer(uint8_t* fb) {
 	short x, y;
-    for(x = 0; x < 400; x++) {
-    	for(y = 0; y < 240; y++) {
-			if (x < 128 && y < 128) {
-				uint8_t c = _pico8_fb[x*128 + y];
-				Color col = PaletteColors[_gfxState_screenPaletteMap[c]];
+    for(x = 0; x < 128; x++) {
+    	for(y = 0; y < 128; y++) {
+			uint8_t c = _pico8_fb[x*128 + y];
+			Color col = PaletteColors[_gfxState_screenPaletteMap[c]];
 
-				fb[((x*240)+ (239 - y))*3+0] = col.Blue;
-				fb[((x*240)+ (239 - y))*3+1] = col.Green;
-				fb[((x*240)+ (239 - y))*3+2] = col.Red;
-			}
+			fb[((x*240)+ (239 - y))*3+0] = col.Blue;
+			fb[((x*240)+ (239 - y))*3+1] = col.Green;
+			fb[((x*240)+ (239 - y))*3+2] = col.Red;
     	}
     }
 }
