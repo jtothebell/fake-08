@@ -31,17 +31,24 @@ const Color PaletteColors[] = {
 	COLOR_15
 };
 
+//not included in 3ds std? copied and pasted here for ease
+template<typename _Tp>
+    constexpr const _Tp&
+    clamp(const _Tp& __val, const _Tp& __lo, const _Tp& __hi)
+    {
+      __glibcxx_assert(!(__hi < __lo));
+      return (__val < __lo) ? __lo : (__hi < __val) ? __hi : __val;
+    }
+
 
 //call initialize to make sure defaults are correct
 Graphics::Graphics(std::string fontdata) {
 	this->_gfxState_color = 7;
 
-	this->_gfxState_clip_w = 127;
-	this->_gfxState_clip_h = 127;
-
 	copy_string_to_sprite_memory(fontSpriteData, fontdata);
 
 	//make all colors default
+	this->clip();
 	this->pal();
 }
 
@@ -189,12 +196,15 @@ void Graphics::copyStretchSpriteToScreen(
 }
 
 void Graphics::swap(short *x, short *y) {
-   short temp;
-   temp = *x;
-   *x = *y;
-   *y = temp;
-  
-   return;
+	short temp;
+	temp = *x;
+	*x = *y;
+	*y = temp;
+}
+
+void Graphics::applyCameraToPoint(short *x, short *y) {
+	*x -= _gfxState_camera_x;
+	*y -= _gfxState_camera_y;
 }
 
 void Graphics::sortPointsLtoR(short *x1, short *y1, short *x2, short *y2){
@@ -214,27 +224,28 @@ void Graphics::sortCoordsForRect(short *x1, short *y1, short *x2, short *y2){
 	}
 }
 
-bool Graphics::canDrawAtPoint(short x, short y) {
-	return this->isOnScreen(x, y) && this->isWithinClip(x, y);
-}
-
 bool Graphics::isOnScreen(short x, short y) {
-	return x >= 0 && x <= 127 && y >= 0 && y <= 127;
+	return 
+		x >= 0 && 
+		x <= 127 && 
+		y >= 0 && 
+		y <= 127;
 }
 
 bool Graphics::isWithinClip(short x, short y) {
 	return 
-		x >= _gfxState_clip_x && 
-		x <= _gfxState_clip_x + _gfxState_clip_w && 
-		y >= _gfxState_clip_y && 
-		y <= _gfxState_clip_y + _gfxState_clip_h;
+		x >= _gfxState_clip_xb && 
+		x <= _gfxState_clip_xe && 
+		y >= _gfxState_clip_yb && 
+		y <= _gfxState_clip_ye;
 }
 
 void Graphics::_private_pset(short x, short y, uint8_t col) {
-	x = x - _gfxState_camera_x;
-	y = y - _gfxState_camera_y;
+	applyCameraToPoint(&x, &y);
+	x = x & 127;
+	y = y & 127;
 
-	if (canDrawAtPoint(x, y)){
+	if (isWithinClip(x, y)){
 		_pico8_fb[(x * 128) + y] = _gfxState_drawPaletteMap[col];
 	}
 }
@@ -570,10 +581,13 @@ void Graphics::clip() {
 }
 
 void Graphics::clip(short x, short y, short w, short h) {
-	_gfxState_clip_x = x;
-	_gfxState_clip_y = y;
-	_gfxState_clip_w = w;
-	_gfxState_clip_h = h;
+	short xe = x + w;
+	short ye = y + h;
+	_gfxState_clip_xb = clamp(x, (short)0, (short)127);
+	_gfxState_clip_yb = clamp(y, (short)0, (short)127);
+	
+	_gfxState_clip_xe = clamp(xe, (short)0, (short)127);
+	_gfxState_clip_ye = clamp(ye, (short)0, (short)127);
 }
 
 
@@ -646,6 +660,7 @@ void Graphics::palt(uint8_t c, bool t){
 
 void Graphics::flipBuffer(uint8_t* fb) {
 	short x, y;
+	//todo: test if it is faster to convert colors to uint24_ts and write one instead of 3 (assuming these are )
     for(x = 0; x < 128; x++) {
     	for(y = 0; y < 128; y++) {
 			uint8_t c = _pico8_fb[x*128 + y];

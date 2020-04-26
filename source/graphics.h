@@ -46,10 +46,10 @@ class Graphics {
 	short _gfxState_camera_x;
 	short _gfxState_camera_y;
 
-	short _gfxState_clip_x;
-	short _gfxState_clip_y;
-	short _gfxState_clip_w;
-	short _gfxState_clip_h;
+	short _gfxState_clip_xb;
+	short _gfxState_clip_yb;
+	short _gfxState_clip_xe;
+	short _gfxState_clip_ye;
 
 	uint8_t _gfxState_drawPaletteMap[16];
 	uint8_t _gfxState_screenPaletteMap[16];
@@ -86,12 +86,12 @@ class Graphics {
 		bool flip_y);
 
 	void swap(short *x, short *y);
+	void applyCameraToPoint(short *x, short *y);
 
 	void sortPointsLtoR(short *x1, short *y1, short *x2, short *y2);
 
 	void sortCoordsForRect(short *x1, short *y1, short *x2, short *y2);
 
-	bool canDrawAtPoint(short x, short y);
 	bool isOnScreen(short x, short y);
 	bool isWithinClip(short x, short y);
 
