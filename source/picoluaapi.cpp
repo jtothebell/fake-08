@@ -507,6 +507,10 @@ int fillp(lua_State *L) {
     return noop("fillp");
 }
 
+int flip(lua_State *L) {
+    return noop("flip");
+}
+
 //Input
 
 //input api

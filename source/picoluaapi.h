@@ -42,6 +42,7 @@ int palt(lua_State *L);
 int cursor(lua_State *L);
 //todo:
 int fillp(lua_State *L); 
+int flip(lua_State *L);
 //end todo
 
 //tables functions, maybe implemented in lua? 

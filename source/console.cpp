@@ -95,6 +95,7 @@ void Console::LoadCart(std::string filename){
 
     //stubbed in graphics:
     lua_register(_luaState, "fillp", fillp);
+    lua_register(_luaState, "flip", flip);
 
     //input
     lua_register(_luaState, "btn", btn);
