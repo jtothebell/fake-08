@@ -826,7 +826,7 @@ void Graphics::flipBuffer(uint8_t* fb, int width, int height) {
 			uint8_t c = _pico8_fb[x*128 + y];
 			Color col = PaletteColors[_gfxState_screenPaletteMap[c]];
 
-			int pixIdx = (((x + xOffset)*240)+ (239 - (y + yOffset)))*3;
+			int pixIdx = (((x + xOffset)*height)+ ((height - 1) - (y + yOffset)))*3;
 
 			fb[pixIdx + 0] = col.Blue;
 			fb[pixIdx + 1] = col.Green;
