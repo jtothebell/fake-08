@@ -148,8 +148,8 @@ void Graphics::copySpriteToScreen(
 				uint8_t bothPix = spr[combinedPixIdx];
 
 				uint8_t c = x % 2 == 0 
-					? bothPix & 0x0f //just first 4 bits
-					: bothPix >> 4;  //just last 4 bits
+					? bothPix >> 4 //just first 4 bits
+					: bothPix & 0x0f;  //just last 4 bits
 					
 				if (_gfxState_transparencyPalette[c] == false) { //if not transparent. Come back later to add palt() support by checking tranparency palette
 					_private_pset(scr_x + x, scr_y + y, c); //set color on framebuffer. Come back later and add pal() by translating color
@@ -255,8 +255,8 @@ void Graphics::copyStretchSpriteToScreen(
 				uint8_t bothPix = spr[combinedPixIdx];
 
 				uint8_t c = (pixIndex >> 16) % 2 == 0 
-					? bothPix & 0x0f //just first 4 bits
-					: bothPix >> 4;  //just last 4 bits
+					? bothPix >> 4 //just first 4 bits
+					: bothPix & 0x0f;  //just last 4 bits
 				if (_gfxState_transparencyPalette[c] == false) {
 					_private_pset(scr_x + x, scr_y + y, c);
 				}
