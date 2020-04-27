@@ -16,7 +16,7 @@ namespace Logger
 
     void LogOutput(const char * func, size_t line, const char * format, ...);
 
-    void Write(const char * msg);
+    void Write(const char * format, ...);
 
     inline FILE * m_file = nullptr;
     inline bool m_enabled = false;
