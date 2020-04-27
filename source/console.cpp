@@ -64,7 +64,15 @@ void Console::LoadCart(std::string filename){
     luaL_openlibs(_luaState);
 
     //load in global lua fuctions for pico 8
-    luaL_dostring(_luaState, p8GlobalLuaFunctions);
+    int loadedGlobals = luaL_dostring(_luaState, p8GlobalLuaFunctions);
+
+    if (loadedGlobals != LUA_OK) {
+        Logger::Write("ERROR loading pico 8 lua globals\n");
+        Logger::Write("Error: %s\n", lua_tostring(_luaState, -1));
+        lua_pop(_luaState, 1);
+
+        return;
+    }
 
     //graphics
     lua_register(_luaState, "cls", cls);
@@ -121,7 +129,15 @@ void Console::LoadCart(std::string filename){
     lua_register(_luaState, "dget", dget);
     lua_register(_luaState, "dset", dset);
 
-    luaL_dostring(_luaState, _loadedCart->LuaString.c_str());
+    int loadedCart = luaL_dostring(_luaState, _loadedCart->LuaString.c_str());
+
+    if (loadedCart != LUA_OK) {
+        Logger::Write("ERROR loading cart\n");
+        Logger::Write("Error: %s\n", lua_tostring(_luaState, -1));
+        lua_pop(_luaState, 1);
+
+        return;
+    }
 
 
     // Push the _init function on the top of the lua stack (or nil if it doesn't exist)
