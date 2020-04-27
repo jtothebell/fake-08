@@ -87,6 +87,7 @@ class Graphics {
 
 	void swap(short *x, short *y);
 	void applyCameraToPoint(short *x, short *y);
+	void applyCameraToPoint(int *x, int *y);
 
 	void sortPointsLtoR(short *x1, short *y1, short *x2, short *y2);
 

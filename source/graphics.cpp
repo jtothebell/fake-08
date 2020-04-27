@@ -78,6 +78,44 @@ void Graphics::copySpriteToScreen(
 	//note: no clipping yet
 	short scr_w = spr_w;
 	short scr_h = spr_h;
+
+	applyCameraToPoint(&scr_x, &scr_y);
+
+	// left clip
+	if (scr_x < _gfxState_clip_xb) {
+		int nclip = _gfxState_clip_xb - scr_x;
+		scr_x = _gfxState_clip_xb;
+		scr_w -= nclip;
+		if (!flip_x) {
+			spr_x += nclip;
+		} else {
+			spr_w -= nclip;
+		}
+	}
+
+	// right clip
+	if (scr_x + scr_w > _gfxState_clip_xe) {
+		int nclip = (scr_x + scr_w) - _gfxState_clip_xe;
+		scr_w -= nclip;
+	}
+
+	// top clip
+	if (scr_y < _gfxState_clip_yb) {
+		int nclip = _gfxState_clip_yb - scr_y;
+		scr_y = _gfxState_clip_yb;
+		scr_h -= nclip;
+		if (!flip_y) {
+			spr_y += nclip;
+		} else {
+			spr_h -= nclip;
+		}
+	}
+
+	// bottom clip
+	if (scr_y + scr_h > _gfxState_clip_ye) {
+		int nclip = (scr_y + scr_h) - _gfxState_clip_ye;
+		scr_h -= nclip;
+	}
 	
 	short dy = 1;
 	if (flip_y) {
@@ -142,6 +180,8 @@ void Graphics::copyStretchSpriteToScreen(
 		return;
 	}
 
+	applyCameraToPoint(&scr_x, &scr_y);
+
 	//shift bits to avoid floating point math
 	spr_x = spr_x << 16;
 	spr_y = spr_y << 16;
@@ -150,6 +190,42 @@ void Graphics::copyStretchSpriteToScreen(
 
 	int dx = spr_w / scr_w;
 	int dy = spr_h / scr_h;
+
+	// left clip
+	if (scr_x < _gfxState_clip_xb) {
+		int nclip = _gfxState_clip_xb - scr_x;
+		scr_x = _gfxState_clip_xb;
+		scr_w -= nclip;
+		if (!flip_x) {
+			spr_x += nclip * dx;
+		} else {
+			spr_w -= nclip * dx;
+		}
+	}
+
+	// right clip
+	if (scr_x + scr_w > _gfxState_clip_xe) {
+		int nclip = (scr_x + scr_w) - _gfxState_clip_xe;
+		scr_w -= nclip;
+	}
+
+	// top clip
+	if (scr_y < _gfxState_clip_yb) {
+		int nclip = _gfxState_clip_yb - scr_y;
+		scr_y = _gfxState_clip_yb;
+		scr_h -= nclip;
+		if (!flip_y) {
+			spr_y += nclip * dy;
+		} else {
+			spr_h -= nclip * dy;
+		}
+	}
+
+	// bottom clip
+	if (scr_y + scr_h > _gfxState_clip_ye) {
+		int nclip = (scr_y + scr_h) - _gfxState_clip_ye;
+		scr_h -= nclip;
+	}
 
 	if (flip_y) {
 		spr_y += spr_h - 1 * dy;
@@ -197,6 +273,11 @@ void Graphics::swap(short *x, short *y) {
 }
 
 void Graphics::applyCameraToPoint(short *x, short *y) {
+	*x -= _gfxState_camera_x;
+	*y -= _gfxState_camera_y;
+}
+
+void Graphics::applyCameraToPoint(int *x, int *y) {
 	*x -= _gfxState_camera_x;
 	*y -= _gfxState_camera_y;
 }
@@ -340,7 +421,10 @@ void Graphics::_private_h_line (short x1, short x2, short y, uint8_t col){
 	short maxx = clampCoordToScreenDims(std::max(x1, x2));
 	short minx = clampCoordToScreenDims(std::min(x1, x2));
 
-	//possible todo: check if memset is any better here?
+	
+	//possible todo: check if memset is any better here? this seems to be wrong
+	//uint8_t* fb_line = _pico8_fb + y * PicoScreenWidth;
+	//memset(fb_line + minx, col, maxx - minx);
 	for (short x = minx; x <= maxx; x++){
 		_private_pset(x, y, col);
 	}
@@ -360,35 +444,43 @@ void Graphics::_private_v_line (short y1, short y2, short x, uint8_t col){
 	}
 }
 
-void Graphics::line (short x1, short y1, short x2, short y2, uint8_t col) {
-	this->_gfxState_line_x = x2;
-	this->_gfxState_line_y = y2;
+void Graphics::line(short x0, short y0, short x1, short y1, uint8_t col) {
+	this->_gfxState_line_x = x1;
+	this->_gfxState_line_y = y1;
 	this->_gfxState_line_valid = true;
 
-	sortPointsLtoR(&x1, &y1, &x2, &y2);
+	applyCameraToPoint(&x0, &y0);
+	applyCameraToPoint(&x1, &y1);
 
-	//y = mx + b
-
-	float run = x2 - x1;
-	float rise = y2 - y1;
+	color(col);
 
 	//vertical line
-	if (run == 0) {
-		_private_v_line(y1, y2, x1, col);
+	if (x0 == x1) {
+		_private_v_line(y0, y1, x0, col);
 	} 
-	else if (rise == 0) {
-		_private_h_line(x1, x2, y1, col);
+	else if (y0 == y1) {
+		_private_h_line(x0, x1, y0, col);
 	}
 	else {
-		//todo: this is broken for steep lines
-		applyCameraToPoint(&x1, &y1);
-		applyCameraToPoint(&x2, &y2);
+		//tac08 line impl for diagonals (this should work for horizontal and vertical as well,
+		//but it has more branching)
+		int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+		int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+		int err = dx + dy, e2; /* error value e_xy */
 
-		float slope = rise / run;
-
-		for (short x = x1; x <= x2; x++){
-			short y = y1 + (short)ceil((float)x * slope);
-			_private_pset(x, y, col);
+		for (;;) { /* loop */
+			_private_safe_pset(x0, y0, col);
+			if (x0 == x1 && y0 == y1)
+				break;
+			e2 = 2 * err;
+			if (e2 >= dy) {
+				err += dy;
+				x0 += sx;
+			} /* e_xy+e_x > 0 */
+			if (e2 <= dx) {
+				err += dx;
+				y0 += sy;
+			} /* e_xy+e_y < 0 */
 		}
 	}
 }
