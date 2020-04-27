@@ -22,7 +22,18 @@ Basic Roadmap:
 Add support for other non-lua pico functions
 
 Add 30 and 60 fps support
+
+Bugs:
+(from jelpi)
+button press glyphs are not parsed correctly.
+%= operator doesn't get replaced. Need to escape somehow?
+while (ta < a-.5) ta += 1 shorthand doesn't get fixed
+// comments should get switched to -- comments
+
+(known from docs)
 make button press repeats match pico behavior
+
+
 make flip() work for carts without update
 
 test celeste? some other real world carts (demos?)? alpha release?
