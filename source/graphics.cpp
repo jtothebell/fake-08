@@ -613,6 +613,15 @@ short Graphics::print(std::string str, short x, short y, uint16_t c) {
 	_gfxState_text_x = x;
 	_gfxState_text_y = y;
 
+	//font sprite sheet has text as color 7, with 0 as transparent. We need to override
+	//these values and restore them after
+	uint8_t prevCol7Map = _gfxState_drawPaletteMap[7];
+	bool prevCol0Transp = _gfxState_transparencyPalette[0];
+
+	_gfxState_drawPaletteMap[7] = c;
+	_gfxState_transparencyPalette[0] = true;
+
+
 	for (size_t n = 0; n < str.length(); n++) {
 		uint8_t ch = str[n];
 		if (ch >= 0x10 && ch < 0x80) {
@@ -628,6 +637,9 @@ short Graphics::print(std::string str, short x, short y, uint16_t c) {
 			y += 6;
 		}
 	}
+
+	_gfxState_drawPaletteMap[7] = prevCol7Map;
+	_gfxState_transparencyPalette[0] = prevCol0Transp;
 
 	//todo: auto scrolling
 
