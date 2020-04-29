@@ -901,7 +901,7 @@ void Graphics::flipBuffer_SAO(
 			uint8_t c = _pico8_fb[picoX*128 + picoY];
 			Color col = PaletteColors[_gfxState_screenPaletteMap[c]];
 
-			int pixIdx = (((x + xOffset)*height)+ ((height - 1) - (y + yOffset)))*3;
+			int pixIdx = (((x + xOffset)*height)+ ((height_o - 1) - (y + yOffset)))*3;
 
 			fb_o[pixIdx + 0] = col.Blue;
 			fb_o[pixIdx + 1] = col.Green;

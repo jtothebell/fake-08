@@ -87,7 +87,7 @@ void clear3dsFrameBuffer() {
 
 	//clear top 16 pixels of bottom buffer in case overflow rendering is being used
 	uint8_t* fbb = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
-	memset(fbb, bgcolor, 16*BottomScreenWidth*3);
+	memset(fbb, bgcolor, BottomScreenHeight*BottomScreenWidth*3);
 
 }
 
@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
 	consoleInit(GFX_BOTTOM, NULL);
 
 	Logger::Write("Loading cart\n");
-	console->LoadCart("lilking.p8");
+	console->LoadCart("testcart.p8");
 	Logger::Write("Cart Loaded\n");
 
 	#else

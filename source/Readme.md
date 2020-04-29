@@ -39,6 +39,7 @@ while (ta < a-.5) ta += 1 shorthand doesn't get fixed (might be a problem with %
 (known from docs)
 make button press repeats match pico behavior
 
+(sort of done. stretch and overflow doesn't work with debug console on bottom screen)
 add stretching options (pixel perfect [current], stretch to fit, stretch and overflow (use bottom screen?))
 
 make flip() work for carts without update
