@@ -21,18 +21,22 @@ Basic Roadmap:
 
 Add support for other non-lua pico functions
 
-Add 30 and 60 fps support
+(x)Add 30 and 60 fps support
 
 Bugs:
 (from jelpi)
 button press glyphs are not parsed correctly.
-%= operator doesn't get replaced. Need to escape somehow?
-while (ta < a-.5) ta += 1 shorthand doesn't get fixed
-// comments should get switched to -- comments
+// comments should get switched to -- comments (maybe?)
+menuitem call should at least be stubbed (done)
+
+thought these were problems, but doesn't appear to be
+%= operator doesn't get replaced. Need to escape somehow? -- this appears to just be an artifact of logging using a format method
+while (ta < a-.5) ta += 1 shorthand doesn't get fixed (might be a problem with %=)
 
 (known from docs)
 make button press repeats match pico behavior
 
+add stretching options (pixel perfect [current], stretch to fit, stretch and overflow (use bottom screen?))
 
 make flip() work for carts without update
 
