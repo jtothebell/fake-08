@@ -234,7 +234,7 @@ void Console::FlipBuffer_SAO(
     uint8_t* fb, int width, int height, 
     uint8_t* fb_o, int width_o, int height_o, 
     std::function<void()> postFlipFunction){
-    _graphics->flipBuffer(fb, width, height);
+    _graphics->flipBuffer_SAO(fb, width, height, fb_o, width_o, height_o);
 
     if (postFlipFunction) {
         postFlipFunction();

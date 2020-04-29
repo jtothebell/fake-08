@@ -20,6 +20,9 @@
 const int ScreenWidth = 400;
 const int ScreenHeight = 240;
 
+const int BottomScreenWidth = 320;
+const int BottomScreenHeight = 240;
+
 StretchOption stretch = PixelPerfect;
 
 void ChangeStretch() {
@@ -27,6 +30,9 @@ void ChangeStretch() {
 		stretch = StretchToFit;
 	}
 	else if (stretch == StretchToFit) {
+		stretch = StretchAndOverflow;
+	}
+	else if (stretch == StretchAndOverflow) {
 		stretch = PixelPerfect;
 	}
 }
@@ -78,6 +84,10 @@ void clear3dsFrameBuffer() {
 	uint8_t* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
 	//clear whole top framebuffer
 	memset(fb, bgcolor, ScreenHeight*ScreenWidth*3);
+
+	//clear top 16 pixels of bottom buffer in case overflow rendering is being used
+	uint8_t* fbb = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
+	memset(fbb, bgcolor, 16*BottomScreenWidth*3);
 
 }
 
@@ -137,6 +147,7 @@ int main(int argc, char* argv[])
 
 		#if _TEST
 		consoleClear();
+		printf("\n"); //make space for overflow if needed
 		printf("svcGetSystemTick(): %lld \n", now_time);
 		printf("frame time (ticks): %lld \n", frame_time);
 		printf("frame time (ms): %f \n", frameTimeMs);
@@ -201,6 +212,14 @@ int main(int argc, char* argv[])
 		}
 		else if (stretch == StretchToFit) {
 			console->FlipBuffer_STF(fb, ScreenWidth, ScreenHeight, postFlip);
+		}
+		else if (stretch == StretchAndOverflow) {
+			uint8_t* fbb = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
+
+			console->FlipBuffer_SAO(
+				fb, ScreenWidth, ScreenHeight,
+				fbb, BottomScreenWidth, BottomScreenHeight,
+				postFlip);
 		}
 
 	}
