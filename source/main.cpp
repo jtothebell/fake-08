@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
 	Logger::Write("Cart Loaded\n");
 
 	#else
-	console.LoadCart("testcart.p8");
+	console->LoadCart("testcart.p8");
 	#endif
 	
 	// Main loop
