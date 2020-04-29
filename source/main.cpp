@@ -20,6 +20,17 @@
 const int ScreenWidth = 400;
 const int ScreenHeight = 240;
 
+StretchOption stretch = PixelPerfect;
+
+void ChangeStretch() {
+	if (stretch == PixelPerfect) {
+		stretch = StretchToFit;
+	}
+	else if (stretch == StretchToFit) {
+		stretch = PixelPerfect;
+	}
+}
+
 //3ds specific helper function
 uint8_t ConvertInputToP8(u32 input){
 	uint8_t result = 0;
@@ -111,6 +122,8 @@ int main(int argc, char* argv[])
 	std::function<void()> clearFb = clear3dsFrameBuffer;
 	std::function<void()> postFlip = postFlip3dsFunction;
 
+	bool rWasDown = false;
+
 	while (aptMainLoop())
 	{
 		//Scan all the inputs. This should be done once for each frame
@@ -154,6 +167,16 @@ int main(int argc, char* argv[])
 
 		if (lpressed && rpressed) break; // break in order to return to hbmenu
 
+		if (rWasDown && !rpressed) {
+			ChangeStretch();
+		}
+
+		if (rpressed) {
+			rWasDown = true;
+		} else {
+			rWasDown = false;
+		}
+
 		uint8_t p8kDown = ConvertInputToP8(kDown);
 		uint8_t p8kHeld = ConvertInputToP8(kHeld);
 
@@ -173,7 +196,12 @@ int main(int argc, char* argv[])
 		
 		uint8_t* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
 
-		console->FlipBuffer(fb, ScreenWidth, ScreenHeight, postFlip);
+		if (stretch == PixelPerfect) {
+			console->FlipBuffer_PP(fb, ScreenWidth, ScreenHeight, postFlip);
+		}
+		else if (stretch == StretchToFit) {
+			console->FlipBuffer_STF(fb, ScreenWidth, ScreenHeight, postFlip);
+		}
 
 	}
 

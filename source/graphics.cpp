@@ -835,6 +835,32 @@ void Graphics::flipBuffer(uint8_t* fb, int width, int height) {
     }
 }
 
+void Graphics::flipBuffer_STF(uint8_t* fb, int width, int height) {
+	short x, y;
+
+	//assume landscape
+	double ratio = (double)height / (double)PicoScreenHeight;
+	int stretchedWidth = PicoScreenWidth * ratio;
+
+	short xOffset = width / 2 - stretchedWidth / 2;
+	short yOffset = 0;
+	
+    for(x = 0; x < stretchedWidth; x++) {
+    	for(y = 0; y < height; y++) {
+			int picoX = (int)(x / ratio);
+			int picoY = (int)(y / ratio);
+			uint8_t c = _pico8_fb[picoX*128 + picoY];
+			Color col = PaletteColors[_gfxState_screenPaletteMap[c]];
+
+			int pixIdx = (((x + xOffset)*height)+ ((height - 1) - (y + yOffset)))*3;
+
+			fb[pixIdx + 0] = col.Blue;
+			fb[pixIdx + 1] = col.Green;
+			fb[pixIdx + 2] = col.Red;
+    	}
+    }
+}
+
 void Graphics::cursor() {
 	this->cursor(0, 0);
 }

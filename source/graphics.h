@@ -195,5 +195,7 @@ class Graphics {
 
 	void flipBuffer(uint8_t* fb, int width, int height);
 
+	void flipBuffer_STF(uint8_t* fb, int width, int height);
+
 };
 

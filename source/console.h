@@ -10,6 +10,12 @@ extern "C" {
   #include <lauxlib.h>
 }
 
+enum StretchOption {
+  PixelPerfect,
+  StretchToFit,
+  StretchAndOverflow
+};
+
 class Console {
     Cart* _loadedCart;
     Graphics* _graphics;
@@ -34,7 +40,15 @@ class Console {
       uint8_t kdown,
       uint8_t kheld);
 
-    void FlipBuffer(uint8_t* fb, int width, int height, std::function<void()> postFlipFunction);
+    void FlipBuffer_PP(uint8_t* fb, int width, int height, std::function<void()> postFlipFunction);
+
+    void FlipBuffer_STF(uint8_t* fb, int width, int height, std::function<void()> postFlipFunction);
+
+    void FlipBuffer_SAO(
+      uint8_t* fb, int width, int height, 
+      uint8_t* fb_o, int width_o, int height_o, 
+      std::function<void()> postFlipFunction);
+
 
     void TurnOff();
 
