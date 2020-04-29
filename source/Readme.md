@@ -25,11 +25,14 @@ Add support for other non-lua pico functions
 
 Bugs:
 (from jelpi)
-button press glyphs are not parsed correctly.
+button press glyphs are not parsed correctly. (fixed)
 // comments should get switched to -- comments (maybe?)
 menuitem call should at least be stubbed (done)
 
-thought these were problems, but doesn't appear to be
+from low knight:
+0xffff.fffe - hex numbers not converted to numbers properly
+
+thought these were problems, but doesn't appear to be:
 %= operator doesn't get replaced. Need to escape somehow? -- this appears to just be an artifact of logging using a format method
 while (ta < a-.5) ta += 1 shorthand doesn't get fixed (might be a problem with %=)
 
