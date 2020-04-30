@@ -18,8 +18,6 @@
 #endif
 
 
-
-
 std::map<char32_t, uint8_t> emoji = {
     {0x025ae, 0x10}, {0x025a0, 0x11}, {0x025a1, 0x12}, {0x02059, 0x13}, {0x02058, 0x14},
     {0x02016, 0x15}, {0x025c0, 0x16}, {0x025b6, 0x17}, {0x0300c, 0x18}, {0x0300d, 0x19},
@@ -119,10 +117,10 @@ Cart::Cart(std::string filename){
             MapString += line + "\n";
         }
         else if (currSec == "__sfx__"){
-             //no sound support yet
+             SfxString += line + "\n";
         }
-        else if (currSec == "__sfx__"){
-             //no sound support yet
+        else if (currSec == "__music__"){
+             MusicString += line + "\n";
         }
 	}
 

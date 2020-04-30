@@ -16,5 +16,7 @@ class Cart {
     std::string SpriteSheetString;
     std::string SpriteFlagsString;
     std::string MapString;
+    std::string SfxString;
+    std::string MusicString;
 
 };
