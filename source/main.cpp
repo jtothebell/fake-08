@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <3ds.h>
+#include <math.h>
 
 #include <string>
 
@@ -15,6 +16,10 @@
 
 //this has the macro _TEST defined in it
 #include "tests/test_base.h"
+
+#define SAMPLERATE 22050
+#define SAMPLESPERBUF (SAMPLERATE / 30)
+#define BYTESPERSAMPLE 4
 
 
 const int ScreenWidth = 400;
@@ -98,9 +103,70 @@ void postFlip3dsFunction() {
 	gspWaitForVBlank();
 }
 
+//----------------------------------------------------------------------------
+void fill_buffer(void *audioBuffer,size_t offset, size_t size, int frequency ) {
+//----------------------------------------------------------------------------
+
+	u32 *dest = (u32*)audioBuffer;
+
+	for (size_t i=0; i<size; i++) {
+
+		s16 sample = INT16_MAX * sin(frequency*(2*M_PI)*(offset+i)/SAMPLERATE);
+
+		dest[i] = (sample<<16) | (sample & 0xffff);
+	}
+
+	DSP_FlushDataCache(audioBuffer,size);
+
+}
+
+u32 *audioBuffer;
+ndspWaveBuf waveBuf[2];
+bool fillBlock = false;
+
+void audioSetup() {
+
+	//audio setup
+	
+	audioBuffer = (u32*)linearAlloc(SAMPLESPERBUF*BYTESPERSAMPLE*2);
+
+	ndspInit();
+
+	ndspSetOutputMode(NDSP_OUTPUT_STEREO);
+
+	ndspChnSetInterp(0, NDSP_INTERP_LINEAR);
+	ndspChnSetRate(0, SAMPLERATE);
+	ndspChnSetFormat(0, NDSP_FORMAT_STEREO_PCM16);
+
+	float mix[12];
+	memset(mix, 0, sizeof(mix));
+	mix[0] = 1.0;
+	mix[1] = 1.0;
+	ndspChnSetMix(0, mix);
+
+	memset(waveBuf,0,sizeof(waveBuf));
+	waveBuf[0].data_vaddr = &audioBuffer[0];
+	waveBuf[0].nsamples = SAMPLESPERBUF;
+	waveBuf[1].data_vaddr = &audioBuffer[SAMPLESPERBUF];
+	waveBuf[1].nsamples = SAMPLESPERBUF;
+
+
+	size_t stream_offset = 0;
+
+	fill_buffer(audioBuffer,stream_offset, SAMPLESPERBUF * 2, 0);
+
+	stream_offset += SAMPLESPERBUF;
+
+	ndspChnWaveBufAdd(0, &waveBuf[0]);
+	ndspChnWaveBufAdd(0, &waveBuf[1]);
+
+}
+
 int main(int argc, char* argv[])
 {
 	u64 last_time = 0, now_time = 0, frame_time = 0;
+
+	audioSetup();
 
 	Logger::Initialize();
 	Logger::Write("created Logger\n");
@@ -133,6 +199,11 @@ int main(int argc, char* argv[])
 	std::function<void()> postFlip = postFlip3dsFunction;
 
 	bool rWasDown = false;
+
+	size_t stream_offset = 0;
+
+	bool fillBlock = false;
+	
 
 	while (aptMainLoop())
 	{
@@ -191,6 +262,21 @@ int main(int argc, char* argv[])
 		uint8_t p8kDown = ConvertInputToP8(kDown);
 		uint8_t p8kHeld = ConvertInputToP8(kHeld);
 
+		int freq = 0;
+		if (lpressed){
+			freq = 440;
+		}
+
+		if (waveBuf[fillBlock].status == NDSP_WBUF_DONE) {
+
+			fill_buffer(waveBuf[fillBlock].data_pcm16, stream_offset, waveBuf[fillBlock].nsamples,freq);
+
+			ndspChnWaveBufAdd(0, &waveBuf[fillBlock]);
+			stream_offset += waveBuf[fillBlock].nsamples;
+
+			fillBlock = !fillBlock;
+		}
+
 		//_update();
 		
 
@@ -229,7 +315,11 @@ int main(int argc, char* argv[])
 	console->TurnOff();
 	delete console;
 	Logger::Exit();
+
+	ndspExit();
+	linearFree(audioBuffer);
 	gfxExit();
+
 	return 0;
 }
 
