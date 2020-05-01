@@ -28,6 +28,9 @@ Console::Console(){
     Input* input = new Input();
     _input = input;
 
+    Audio* audio = new Audio();
+    _audio = audio;
+
     //this can probably go away when I'm loading actual carts and just have to expose api to lua
     Logger::Write("Initializing global api\n");
     initPicoApi(_graphics, _input, this);
@@ -39,6 +42,7 @@ Console::Console(){
 Console::~Console(){
     delete _graphics;
     delete _input;
+    delete _audio;
 
     if (_loadedCart){
         delete _loadedCart;
@@ -53,6 +57,9 @@ void Console::LoadCart(std::string filename){
     _graphics->setSpriteSheet(cart->SpriteSheetString);
     _graphics->setSpriteFlags(cart->SpriteFlagsString);
     _graphics->setMapData(cart->MapString);
+
+    _audio->setSfx(cart->SfxString);
+    _audio->setMusic(cart->MusicString);
 
     _loadedCart = cart;
 

@@ -3,6 +3,7 @@
 
 #include "cart.h"
 #include "Input.h"
+#include "Audio.h"
 
 extern "C" {
   #include <lua.h>
@@ -19,6 +20,7 @@ enum StretchOption {
 class Console {
     Cart* _loadedCart;
     Graphics* _graphics;
+    Audio* _audio;
     lua_State* _luaState;
     Input* _input;
 
