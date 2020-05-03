@@ -15,11 +15,13 @@ extern "C" {
 Graphics* _graphicsForLuaApi;
 Input* _inputForLuaApi;
 Console* _consoleForLuaApi;
+Audio* _audioForLuaApi;
 
-void initPicoApi(Graphics* graphics, Input* input, Console* console){
+void initPicoApi(Graphics* graphics, Input* input, Console* console, Audio* audio){
     _graphicsForLuaApi = graphics;
     _inputForLuaApi = input;
     _consoleForLuaApi = console;
+    _audioForLuaApi = audio;
 }
 
 int noop(const char * name) {
@@ -555,7 +557,18 @@ int music(lua_State *L) {
 }
 
 int sfx(lua_State *L) {
-    return noop("sfx");
+    double n = lua_tonumber(L,1);
+    short channel = -1;
+    if (lua_gettop(L) > 1) {
+        channel = (short)lua_tonumber(L, 2);
+    }
+    short offset = 0;
+    if (lua_gettop(L) > 2) {
+        offset = (short)lua_tonumber(L, 3);
+    }
+
+    _audioForLuaApi->api_sfx((short)n, channel, offset);
+    return 0;
 }
 
 //Memory

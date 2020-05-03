@@ -206,7 +206,7 @@ int main(int argc, char* argv[])
 	Logger::Write("Cart Loaded\n");
 
 	#else
-	console->LoadCart("testcart.p8");
+	console->LoadCart("twosfx.p8");
 	#endif
 	
 	// Main loop

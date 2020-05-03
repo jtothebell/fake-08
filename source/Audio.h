@@ -127,13 +127,18 @@ class Audio {
 
     musicChannel _musicChannel;
     sfxChannel _sfxChannels[4];
+
+    int16_t getSampleForChannel(int channel);
     
     public:
+    Audio();
 
     void setSfx(std::string sfxString);
     void setMusic(std::string musicString);
 
     void api_sfx(uint8_t sfx, int channel, int offset);
     void api_music(uint8_t pattern, int16_t fade_len, int16_t mask);
+
+    void FillAudioBuffer(void *audioBuffer,size_t offset, size_t size);
 };
 

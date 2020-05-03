@@ -34,7 +34,7 @@ Console::Console(){
 
     //this can probably go away when I'm loading actual carts and just have to expose api to lua
     Logger::Write("Initializing global api\n");
-    initPicoApi(_graphics, _input, this);
+    initPicoApi(_graphics, _input, this, _audio);
     //initGlobalApi(_graphics);
 
     _targetFps = 30;
@@ -249,29 +249,9 @@ void Console::FlipBuffer_SAO(
     }
 }
 
-//todo: figure out where to store this
-#define SAMPLERATE 22050
-//----------------------------------------------------------------------------
-void fill_buffer(void *audioBuffer,size_t offset, size_t size, int frequency ) {
-//----------------------------------------------------------------------------
 
-	uint32_t *dest = (uint32_t*)audioBuffer;
-
-	for (size_t i=0; i<size; i++) {
-
-		int16_t sample = INT16_MAX * sin(frequency*(2*M_PI)*(offset+i)/SAMPLERATE);
-
-		dest[i] = (sample<<16) | (sample & 0xffff);
-	}
-}
-
-void Console::FillAudioBuffer(void *audioBuffer,size_t offset, size_t size){
-    int frequency = 0;
-    if (_input->btn(4)) {
-        frequency = 440;
-    }
-
-    fill_buffer(audioBuffer, offset, size, frequency);
+void Console::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
+   _audio->FillAudioBuffer(audioBuffer, offset, size);
 }
 
 
