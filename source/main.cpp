@@ -19,7 +19,7 @@
 
 #define SAMPLERATE 22050
 #define SAMPLESPERBUF (SAMPLERATE / 30)
-#define BYTESPERSAMPLE 4
+#define NUM_BUFFERS 2
 
 
 const int ScreenWidth = 400;
@@ -120,17 +120,36 @@ void fill_buffer(void *audioBuffer,size_t offset, size_t size, int frequency ) {
 
 }
 
+bool audioInitialized = false;
 u32 *audioBuffer;
 ndspWaveBuf waveBuf[2];
 bool fillBlock = false;
+u32 currPos;
+
+void audioCleanup() {
+    audioInitialized = false;
+
+    ndspExit();
+
+    if(audioBuffer != nullptr) {
+        linearFree(audioBuffer);
+        audioBuffer = nullptr;
+    }
+}
 
 void audioSetup() {
+	if(R_FAILED(ndspInit())) {
+        return;
+    }
 
 	//audio setup
+	u32 bufSize = SAMPLESPERBUF * NUM_BUFFERS * sizeof(u32);
+	audioBuffer = (u32*)linearAlloc(bufSize);
+	if(audioBuffer == nullptr) {
+        audioCleanup();
+        return;
+    }
 	
-	audioBuffer = (u32*)linearAlloc(SAMPLESPERBUF*BYTESPERSAMPLE*2);
-
-	ndspInit();
 
 	ndspSetOutputMode(NDSP_OUTPUT_STEREO);
 
@@ -160,7 +179,42 @@ void audioSetup() {
 	ndspChnWaveBufAdd(0, &waveBuf[0]);
 	ndspChnWaveBufAdd(0, &waveBuf[1]);
 
+	audioInitialized = true;
 }
+
+void audioPlay(u32* buffer, long samples) {
+    if(!audioInitialized) {
+        return;
+    }
+
+    long remaining = samples;
+    while(remaining > 0) {
+        ndspWaveBuf* buf = &waveBuf[fillBlock];
+
+        if(buf->status == NDSP_WBUF_DONE || buf->status == NDSP_WBUF_FREE) {
+            long currSamples = remaining;
+            if((u32) currSamples > buf->nsamples - currPos) {
+                currSamples = buf->nsamples - currPos;
+            }
+
+            memcpy(&((u32*) buf->data_vaddr)[currPos], &buffer[samples - remaining], (size_t) currSamples * sizeof(u32));
+
+            currPos += currSamples;
+            remaining -= currSamples;
+
+            if(currPos >= buf->nsamples) {
+                DSP_FlushDataCache(buf->data_vaddr, buf->nsamples * sizeof(u32));
+                ndspChnWaveBufAdd(0, buf);
+
+                currPos -= buf->nsamples;
+                fillBlock = !fillBlock;
+            }
+        } else {
+            break;
+        }
+    }
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -262,20 +316,7 @@ int main(int argc, char* argv[])
 		uint8_t p8kDown = ConvertInputToP8(kDown);
 		uint8_t p8kHeld = ConvertInputToP8(kHeld);
 
-		int freq = 0;
-		if (lpressed){
-			freq = 440;
-		}
-
-		if (waveBuf[fillBlock].status == NDSP_WBUF_DONE) {
-
-			fill_buffer(waveBuf[fillBlock].data_pcm16, stream_offset, waveBuf[fillBlock].nsamples,freq);
-
-			ndspChnWaveBufAdd(0, &waveBuf[fillBlock]);
-			stream_offset += waveBuf[fillBlock].nsamples;
-
-			fillBlock = !fillBlock;
-		}
+		
 
 		//_update();
 		
@@ -308,6 +349,21 @@ int main(int argc, char* argv[])
 				postFlip);
 		}
 
+		int freq = 0;
+		if (lpressed){
+			freq = 440;
+		}
+
+		if (waveBuf[fillBlock].status == NDSP_WBUF_DONE) {
+
+			fill_buffer(waveBuf[fillBlock].data_pcm16, stream_offset, waveBuf[fillBlock].nsamples,freq);
+
+			ndspChnWaveBufAdd(0, &waveBuf[fillBlock]);
+			stream_offset += waveBuf[fillBlock].nsamples;
+
+			fillBlock = !fillBlock;
+		}
+
 	}
 
 
@@ -316,8 +372,7 @@ int main(int argc, char* argv[])
 	delete console;
 	Logger::Exit();
 
-	ndspExit();
-	linearFree(audioBuffer);
+	audioCleanup();
 	gfxExit();
 
 	return 0;
