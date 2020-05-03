@@ -18,6 +18,8 @@ namespace Logger
 
     void Write(const char * format, ...);
 
+    void WriteUnformatted(const char * message);
+
     inline FILE * m_file = nullptr;
     inline bool m_enabled = false;
 }

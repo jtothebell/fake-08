@@ -44,6 +44,16 @@ void Logger::Write(const char * format, ...)
     fflush(m_file);
 }
 
+void Logger::WriteUnformatted(const char * message)
+{
+    if (!m_enabled || !m_file)
+        return;
+        
+    fprintf(m_file, message);
+
+    fflush(m_file);
+}
+
 void Logger::Exit()
 {
     if (!m_enabled || !m_file)
