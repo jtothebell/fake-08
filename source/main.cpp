@@ -181,42 +181,6 @@ void audioSetup() {
 	audioInitialized = true;
 }
 
-/*
-//based on gameyob
-void audioPlay(u32* buffer, long samples) {
-    if(!audioInitialized) {
-        return;
-    }
-
-    long remaining = samples;
-    while(remaining > 0) {
-        ndspWaveBuf* buf = &waveBuf[fillBlock];
-
-        if(buf->status == NDSP_WBUF_DONE || buf->status == NDSP_WBUF_FREE) {
-            long currSamples = remaining;
-            if((u32) currSamples > buf->nsamples - currPos) {
-                currSamples = buf->nsamples - currPos;
-            }
-
-            memcpy(&((u32*) buf->data_vaddr)[currPos], &buffer[samples - remaining], (size_t) currSamples * sizeof(u32));
-
-            currPos += currSamples;
-            remaining -= currSamples;
-
-            if(currPos >= buf->nsamples) {
-                DSP_FlushDataCache(buf->data_vaddr, buf->nsamples * sizeof(u32));
-                ndspChnWaveBufAdd(0, buf);
-
-                currPos -= buf->nsamples;
-                fillBlock = !fillBlock;
-            }
-        } else {
-            break;
-        }
-    }
-}
-*/
-
 
 int main(int argc, char* argv[])
 {
@@ -356,8 +320,6 @@ int main(int argc, char* argv[])
 			console->FillAudioBuffer(waveBuf[fillBlock].data_pcm16, stream_offset, waveBuf[fillBlock].nsamples);
 			
 			DSP_FlushDataCache(waveBuf[fillBlock].data_pcm16, waveBuf[fillBlock].nsamples);
-
-			//fill_buffer(waveBuf[fillBlock].data_pcm16, stream_offset, waveBuf[fillBlock].nsamples,freq);
 
 			ndspChnWaveBufAdd(0, &waveBuf[fillBlock]);
 			stream_offset += waveBuf[fillBlock].nsamples;
