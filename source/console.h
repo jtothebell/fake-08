@@ -51,6 +51,7 @@ class Console {
       uint8_t* fb_o, int width_o, int height_o, 
       std::function<void()> postFlipFunction);
 
+    void FillAudioBuffer(void *audioBuffer,size_t offset, size_t size);
 
     void TurnOff();
 

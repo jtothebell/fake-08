@@ -104,16 +104,13 @@ void postFlip3dsFunction() {
 }
 
 //----------------------------------------------------------------------------
-void fill_buffer(void *audioBuffer,size_t offset, size_t size, int frequency ) {
+void init_fill_buffer(void *audioBuffer,size_t offset, size_t size) {
 //----------------------------------------------------------------------------
 
 	u32 *dest = (u32*)audioBuffer;
 
 	for (size_t i=0; i<size; i++) {
-
-		s16 sample = INT16_MAX * sin(frequency*(2*M_PI)*(offset+i)/SAMPLERATE);
-
-		dest[i] = (sample<<16) | (sample & 0xffff);
+		dest[i] = 0;
 	}
 
 	DSP_FlushDataCache(audioBuffer,size);
@@ -122,6 +119,7 @@ void fill_buffer(void *audioBuffer,size_t offset, size_t size, int frequency ) {
 
 bool audioInitialized = false;
 u32 *audioBuffer;
+u32 audioBufferSize;
 ndspWaveBuf waveBuf[2];
 bool fillBlock = false;
 u32 currPos;
@@ -143,8 +141,8 @@ void audioSetup() {
     }
 
 	//audio setup
-	u32 bufSize = SAMPLESPERBUF * NUM_BUFFERS * sizeof(u32);
-	audioBuffer = (u32*)linearAlloc(bufSize);
+	audioBufferSize = SAMPLESPERBUF * NUM_BUFFERS * sizeof(u32);
+	audioBuffer = (u32*)linearAlloc(audioBufferSize);
 	if(audioBuffer == nullptr) {
         audioCleanup();
         return;
@@ -172,7 +170,8 @@ void audioSetup() {
 
 	size_t stream_offset = 0;
 
-	fill_buffer(audioBuffer,stream_offset, SAMPLESPERBUF * 2, 0);
+	//not sure if this is necessary? if it is, memset might be better?
+	init_fill_buffer(audioBuffer,stream_offset, SAMPLESPERBUF * 2);
 
 	stream_offset += SAMPLESPERBUF;
 
@@ -182,6 +181,8 @@ void audioSetup() {
 	audioInitialized = true;
 }
 
+/*
+//based on gameyob
 void audioPlay(u32* buffer, long samples) {
     if(!audioInitialized) {
         return;
@@ -214,6 +215,7 @@ void audioPlay(u32* buffer, long samples) {
         }
     }
 }
+*/
 
 
 int main(int argc, char* argv[])
@@ -349,14 +351,13 @@ int main(int argc, char* argv[])
 				postFlip);
 		}
 
-		int freq = 0;
-		if (lpressed){
-			freq = 440;
-		}
-
 		if (waveBuf[fillBlock].status == NDSP_WBUF_DONE) {
 
-			fill_buffer(waveBuf[fillBlock].data_pcm16, stream_offset, waveBuf[fillBlock].nsamples,freq);
+			console->FillAudioBuffer(waveBuf[fillBlock].data_pcm16, stream_offset, waveBuf[fillBlock].nsamples);
+			
+			DSP_FlushDataCache(waveBuf[fillBlock].data_pcm16, waveBuf[fillBlock].nsamples);
+
+			//fill_buffer(waveBuf[fillBlock].data_pcm16, stream_offset, waveBuf[fillBlock].nsamples,freq);
 
 			ndspChnWaveBufAdd(0, &waveBuf[fillBlock]);
 			stream_offset += waveBuf[fillBlock].nsamples;
