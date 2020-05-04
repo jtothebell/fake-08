@@ -218,13 +218,6 @@ int main(int argc, char* argv[])
 	std::function<void()> clearFb = clear3dsFrameBuffer;
 	std::function<void()> postFlip = postFlip3dsFunction;
 
-	bool rWasDown = false;
-
-	size_t stream_offset = 0;
-
-	bool fillBlock = false;
-	
-
 	while (aptMainLoop())
 	{
 		//Scan all the inputs. This should be done once for each frame
@@ -269,20 +262,15 @@ int main(int argc, char* argv[])
 
 		if (lpressed && rpressed) break; // break in order to return to hbmenu
 
-		if (rWasDown && !rpressed) {
+		if (kDown & KEY_R) {
 			ChangeStretch();
-		}
-
-		if (rpressed) {
-			rWasDown = true;
-		} else {
-			rWasDown = false;
 		}
 
 		uint8_t p8kDown = ConvertInputToP8(kDown);
 		uint8_t p8kHeld = ConvertInputToP8(kHeld);
 
-		
+
+		size_t stream_offset = 0;
 
 		//_update();
 		
