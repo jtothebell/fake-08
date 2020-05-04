@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
 	Logger::Write("Cart Loaded\n");
 
 	#else
-	console->LoadCart("testcart.p8");
+	console->LoadCart("inputtest.p8");
 	#endif
 	
 	// Main loop
@@ -131,8 +131,6 @@ int main(int argc, char* argv[])
 
 	std::function<void()> clearFb = clear3dsFrameBuffer;
 	std::function<void()> postFlip = postFlip3dsFunction;
-
-	bool rWasDown = false;
 
 	while (aptMainLoop())
 	{
@@ -178,14 +176,8 @@ int main(int argc, char* argv[])
 
 		if (lpressed && rpressed) break; // break in order to return to hbmenu
 
-		if (rWasDown && !rpressed) {
+		if (kDown & KEY_R) {
 			ChangeStretch();
-		}
-
-		if (rpressed) {
-			rWasDown = true;
-		} else {
-			rWasDown = false;
 		}
 
 		uint8_t p8kDown = ConvertInputToP8(kDown);
