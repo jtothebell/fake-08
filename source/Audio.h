@@ -79,7 +79,7 @@ struct music {
 };
 
 struct note {
-    uint8_t pitch;
+    uint8_t key;
     uint8_t waveform;
     uint8_t volume;
     uint8_t effect;
