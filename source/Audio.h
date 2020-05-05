@@ -68,6 +68,10 @@ note is encoded in 16 bits, LSB first, like so:
 */
 //todo: make these memory compatible later, but for now, this representation
 //is easier for me to wrap my mind araound
+
+//this is also defined in audio? should probably consolidate
+#define BITMASK(n) (1U<<(n))
+
 struct song {
     uint8_t loop;
  
@@ -129,6 +133,8 @@ class Audio {
     sfxChannel _sfxChannels[4];
 
     int16_t getSampleForChannel(int channel);
+
+    void set_music_pattern(int pattern);
     
     public:
     Audio();

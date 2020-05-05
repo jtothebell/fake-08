@@ -184,7 +184,7 @@ void Audio::api_sfx(uint8_t sfx, int channel, int offset){
 }
 
 void Audio::api_music(uint8_t pattern, int16_t fade_len, int16_t mask){
-    if (pattern < 0 || pattern > 63) {
+    if (pattern < -1 || pattern > 63) {
         return;
     }
 
@@ -207,11 +207,14 @@ void Audio::api_music(uint8_t pattern, int16_t fade_len, int16_t mask){
         _musicChannel.volume_step = 1000.f / fade_len;
     }
 
+    set_music_pattern(pattern);
+}
+
+void Audio::set_music_pattern(int pattern) {
     _musicChannel.pattern = pattern;
     _musicChannel.offset = 0;
 
-    // Find music speed; it’s the speed of the fastest sfx
-    _musicChannel.master = _musicChannel.speed = -1;
+    //array to access song's channels. may be better to have this part of the struct?
     uint8_t channels[] = {
         _songs[pattern].channel1,
         _songs[pattern].channel2,
@@ -219,10 +222,14 @@ void Audio::api_music(uint8_t pattern, int16_t fade_len, int16_t mask){
         _songs[pattern].channel4,
     };
 
+    // Find music speed; it’s the speed of the fastest sfx
+    _musicChannel.master = _musicChannel.speed = -1;
     for (int i = 0; i < 4; ++i)
     {
-        //last bit is a flag not used here
-        uint8_t n = channels[i] & 0x0F;
+        uint8_t n = channels[i];
+
+        if (n & 0x40)
+            continue;
 
         auto &sfx = _sfx[n & 0x3f];
         if (_musicChannel.master == -1 || _musicChannel.speed > sfx.speed)
@@ -238,8 +245,9 @@ void Audio::api_music(uint8_t pattern, int16_t fade_len, int16_t mask){
         if (((1 << i) & _musicChannel.mask) == 0)
             continue;
 
-        //last bit is a flag not used here
-        uint8_t n = channels[i] & 0x0F;;
+        uint8_t n = channels[i];
+        if (n & 0x40)
+            continue;
 
         _sfxChannels[i].sfxId = n;
         _sfxChannels[i].offset = 0.f;
@@ -282,6 +290,45 @@ int16_t Audio::getSampleForChannel(int channel){
     int16_t sample = 0;
 
     const int index = _sfxChannels[channel].sfxId;
+ 
+    // Advance music using the master channel
+    if (channel == _musicChannel.master && _musicChannel.pattern != -1)
+    {
+        float const offset_per_second = 22050.f / (183.f * _musicChannel.speed);
+        float const offset_per_sample = offset_per_second / samples_per_second;
+        _musicChannel.offset += offset_per_sample;
+        _musicChannel.volume += _musicChannel.volume_step / samples_per_second;
+        _musicChannel.volume = std::clamp(_musicChannel.volume, 0.f, 1.f);
+
+        if (_musicChannel.volume_step < 0 && _musicChannel.volume <= 0)
+        {
+            // Fade out is finished, stop playing the current song
+            for (int i = 0; i < 4; ++i) {
+                if (_sfxChannels[i].is_music) {
+                    _sfxChannels[i].sfxId = -1;
+                }
+            }
+            _musicChannel.pattern = -1;
+        }
+        else if (_musicChannel.offset >= 32.f)
+        {
+            int16_t next_pattern = _musicChannel.pattern + 1;
+            int16_t next_count = _musicChannel.count + 1;
+            //todo: pull out these flags, get memory storage correct as well
+            if (BITMASK(2) & _songs[_musicChannel.pattern].loop) //stop part of the loop flag
+            {
+                next_pattern = -1;
+                next_count = _musicChannel.count;
+            }
+            else if (BITMASK(1) &_songs[_musicChannel.pattern].loop){
+                while (--next_pattern > 0 && !(BITMASK(0) &_songs[next_pattern].loop))
+                    ;
+            }
+
+            _musicChannel.count = next_count;
+            set_music_pattern(next_pattern);
+        }
+    }
 
     if (index < 0 || index > 63) {
         //no (valid) sfx here. return silence
@@ -340,8 +387,8 @@ int16_t Audio::getSampleForChannel(int channel){
 
     // Apply master music volume from fade in/out
     // FIXME: check whether this should be done after distortion
-    //if (m_state.channels[chan].is_music) {
-    //    volume *= m_state.music.volume;
+    //if (_sfxChannels[chan].is_music) {
+    //    volume *= _musicChannel.volume;
     //}
 
     sample = (int16_t)(32767.99f * volume * waveform);
