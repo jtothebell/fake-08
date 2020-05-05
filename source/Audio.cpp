@@ -5,8 +5,6 @@
 #include <sstream>
 #include <cmath>
 
-#include "logger.h"
-
 //playback implemenation based on zetpo 8's
 //https://github.com/samhocevar/zepto8/blob/master/src/pico8/sfx.cpp
 
@@ -182,28 +180,19 @@ int16_t Audio::getSampleForChannel(int channel){
         return 0;
     }
 
-    //Logger::Write("have sfx id: %d \n", index);
-
-    //printf("sfx index: %d\n", index);
     struct sfx const &sfx = _sfx[index];
 
     // Speed must be 1—255 otherwise the SFX is invalid
     int const speed = max(1, (int)sfx.speed);
 
-    //Logger::Write("sfx speed: %d \n", speed);
-
-    //Logger::Write("channel offset: %f \n", _sfxChannels[channel].offset);
     float const offset = _sfxChannels[channel].offset;
-    //Logger::Write("const offset: %f \n", offset);
     float const phi = _sfxChannels[channel].phi;
-    //Logger::Write("channel phi: %f \n", phi);
 
     // PICO-8 exports instruments as 22050 Hz WAV files with 183 samples
     // per speed unit per note, so this is how much we should advance
     float const offset_per_second = 22050.f / (183.f * speed);
     float const offset_per_sample = offset_per_second / samples_per_second;
     float next_offset = offset + offset_per_sample;
-    //Logger::Write("next_offset: %f \n", next_offset);
 
     // Handle SFX loops. From the documentation: “Looping is turned
     // off when the start index >= end index”.
@@ -211,33 +200,23 @@ int16_t Audio::getSampleForChannel(int channel){
     if (loop_range > 0.f && next_offset >= sfx.loopRangeStart && _sfxChannels[channel].can_loop) {
         next_offset = fmod(next_offset - sfx.loopRangeStart, loop_range)
                     + sfx.loopRangeStart;
-        //Logger::Write("looped next_offset: %f \n", next_offset);
     }
 
     int const note_idx = (int)floor(offset);
-    //Logger::Write("note_id: %d \n", note_idx);
     int const next_note_idx = (int)floor(next_offset);
-    //Logger::Write("next_note_id: %d \n", next_note_idx);
 
     uint8_t key = sfx.notes[note_idx].key;
-    //Logger::Write("key: %d \n", key);
     float volume = sfx.notes[note_idx].volume / 7.f;
-    //Logger::Write("volume: %f \n", volume);
     float freq = key_to_freq(key);
-    //Logger::Write("freq: %f \n", freq);
-
-    //printf("Note: %d, %d, %f, %f\n", note_idx, key, volume, freq);
 
     if (volume == 0.f){
         //volume all the way off. return silence, but make sure to set stuff
         _sfxChannels[channel].offset = next_offset;
 
         if (next_offset >= 32.f){
-            Logger::Write("DONE PLAYING SFX\n");
             _sfxChannels[channel].sfxId = -1;
         }
         else if (next_note_idx != note_idx){
-            Logger::Write("Moving on to next note: %d\n", next_note_idx);
             _sfxChannels[channel].prev_key = sfx.notes[note_idx].key;
             _sfxChannels[channel].prev_vol = sfx.notes[note_idx].volume / 7.f;
         }
@@ -253,7 +232,6 @@ int16_t Audio::getSampleForChannel(int channel){
     // Play note
 
     float waveform = z8::synth::waveform(sfx.notes[note_idx].waveform, phi);
-    //printf("waveform: %f\n", waveform);
 
     // Apply master music volume from fade in/out
     // FIXME: check whether this should be done after distortion
@@ -262,7 +240,6 @@ int16_t Audio::getSampleForChannel(int channel){
     //}
 
     sample = (int16_t)(32767.99f * volume * waveform);
-    //printf("sample: %d\n", sample);
 
     // TODO: Apply hardware effects
     //if (m_ram.hw_state.distort & (1 << chan)) {
@@ -271,16 +248,12 @@ int16_t Audio::getSampleForChannel(int channel){
 
     _sfxChannels[channel].phi = phi + freq / samples_per_second;
 
-    //Logger::Write("next_offset before setting: %f \n", next_offset);
     _sfxChannels[channel].offset = next_offset;
-    //Logger::Write("channel offset afterward: %f \n", _sfxChannels[channel].offset);
 
     if (next_offset >= 32.f){
-        Logger::Write("DONE PLAYING SFX\n");
         _sfxChannels[channel].sfxId = -1;
     }
     else if (next_note_idx != note_idx){
-        Logger::Write("Moving on to next note: %d\n", next_note_idx);
         _sfxChannels[channel].prev_key = sfx.notes[note_idx].key;
         _sfxChannels[channel].prev_vol = sfx.notes[note_idx].volume / 7.f;
     }

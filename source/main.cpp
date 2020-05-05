@@ -206,6 +206,8 @@ int main(int argc, char* argv[])
 	Logger::Write("Cart Loaded\n");
 
 	#else
+	consoleInit(GFX_BOTTOM, NULL);
+
 	console->LoadCart("twosfx.p8");
 	#endif
 	
@@ -229,8 +231,9 @@ int main(int argc, char* argv[])
 
 		double frameTimeMs = frame_time / CPU_TICKS_PER_MSEC;
 
-		#if _TEST
 		consoleClear();
+		#if _TEST
+
 		printf("\n"); //make space for overflow if needed
 		printf("svcGetSystemTick(): %lld \n", now_time);
 		printf("frame time (ticks): %lld \n", frame_time);
