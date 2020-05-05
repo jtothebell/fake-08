@@ -206,9 +206,7 @@ int main(int argc, char* argv[])
 	Logger::Write("Cart Loaded\n");
 
 	#else
-	consoleInit(GFX_BOTTOM, NULL);
-
-	console->LoadCart("twosfx.p8");
+	console->LoadCart("lilking.p8");
 	#endif
 	
 	// Main loop

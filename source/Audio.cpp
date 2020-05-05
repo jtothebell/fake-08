@@ -3,7 +3,9 @@
 
 #include <string>
 #include <sstream>
+#include <algorithm> // std::max
 #include <cmath>
+#include <float.h> // std::max
 
 //playback implemenation based on zetpo 8's
 //https://github.com/samhocevar/zepto8/blob/master/src/pico8/sfx.cpp
@@ -41,7 +43,7 @@ void Audio::setMusic(std::string musicString){
         buf[1] = line[10];
         uint8_t channel4byte = (uint8_t)strtol(buf, NULL, 16);
 
-        _music[musicIdx++] = {
+        _songs[musicIdx++] = {
             flagByte,
             channel1byte,
             channel2byte,
@@ -113,19 +115,72 @@ void Audio::setSfx(std::string sfxString) {
 
 void Audio::api_sfx(uint8_t sfx, int channel, int offset){
 
-    if (channel < 0 ||channel > 3) {
-        //todo: handle these options later
+    if (sfx < -2 || sfx > 63 || channel < -1 || channel > 3 || offset > 31) {
         return;
     }
 
-    this->_sfxChannels[channel].sfxId = sfx;
-    this->_sfxChannels[channel].offset = std::max(0.f, (float)offset);
-    this->_sfxChannels[channel].phi = 0.f;
-    this->_sfxChannels[channel].can_loop = true;
-    this->_sfxChannels[channel].is_music = false;
-    this->_sfxChannels[channel].prev_key = 24;
-    this->_sfxChannels[channel].prev_vol = 0.f;
-        
+    if (sfx == -1)
+    {
+        // Stop playing the current channel
+        if (channel != -1) {
+            _sfxChannels[channel].sfxId = -1;
+        }
+    }
+    else if (sfx == -2)
+    {
+        // Stop looping the current channel
+        if (channel != -1) {
+            _sfxChannels[channel].can_loop = false;
+        }
+    }
+    else
+    {
+        // Find the first available channel: either a channel that plays
+        // nothing, or a channel that is already playing this sample (in
+        // this case PICO-8 decides to forcibly reuse that channel, which
+        // is reasonable)
+        if (channel == -1)
+        {
+            for (int i = 0; i < 4; ++i)
+                if (_sfxChannels[i].sfxId == -1 ||
+                    _sfxChannels[i].sfxId == sfx)
+                {
+                    channel = i;
+                    break;
+                }
+        }
+
+        // If still no channel found, the PICO-8 strategy seems to be to
+        // stop the sample with the lowest ID currently playing
+        if (channel == -1)
+        {
+            for (int i = 0; i < 4; ++i) {
+               if (channel == -1 || _sfxChannels[i].sfxId < _sfxChannels[channel].sfxId) {
+                   channel = i;
+               }
+            }
+        }
+
+        // Stop any channel playing the same sfx
+        for (int i = 0; i < 4; ++i) {
+            if (_sfxChannels[i].sfxId == sfx) {
+                _sfxChannels[i].sfxId = -1;
+            }
+        }
+
+        // Play this sound!
+        _sfxChannels[channel].sfxId = sfx;
+        _sfxChannels[channel].offset = std::max(0.f, (float)offset);
+        _sfxChannels[channel].phi = 0.f;
+        _sfxChannels[channel].can_loop = true;
+        _sfxChannels[channel].is_music = false;
+        // Playing an instrument starting with the note C-2 and the
+        // slide effect causes no noticeable pitch variation in PICO-8,
+        // so I assume this is the default value for “previous key”.
+        _sfxChannels[channel].prev_key = 24;
+        // There is no default value for “previous volume”.
+        _sfxChannels[channel].prev_vol = 0.f;
+    }      
 }
 
 void Audio::api_music(uint8_t pattern, int16_t fade_len, int16_t mask){
@@ -133,14 +188,67 @@ void Audio::api_music(uint8_t pattern, int16_t fade_len, int16_t mask){
         return;
     }
 
-    this->_musicChannel.count = 0;
-    
-    //todo: come back to this after sfx working
+    if (pattern == -1)
+    {
+        // Music will stop when fade out is finished
+        _musicChannel.volume_step = fade_len <= 0 ? -FLT_MAX
+                                  : -_musicChannel.volume * (1000.f / fade_len);
+        return;
+    }
 
-    this->_musicChannel.pattern = pattern;
-    this->_musicChannel.offset = 0;
+    _musicChannel.count = 0;
+    _musicChannel.mask = mask ? mask & 0xf : 0xf;
 
-    
+    _musicChannel.volume = 1.f;
+    _musicChannel.volume_step = 0.f;
+    if (fade_len > 0)
+    {
+        _musicChannel.volume = 0.f;
+        _musicChannel.volume_step = 1000.f / fade_len;
+    }
+
+    _musicChannel.pattern = pattern;
+    _musicChannel.offset = 0;
+
+    // Find music speed; it’s the speed of the fastest sfx
+    _musicChannel.master = _musicChannel.speed = -1;
+    uint8_t channels[] = {
+        _songs[pattern].channel1,
+        _songs[pattern].channel2,
+        _songs[pattern].channel3,
+        _songs[pattern].channel4,
+    };
+
+    for (int i = 0; i < 4; ++i)
+    {
+        //last bit is a flag not used here
+        uint8_t n = channels[i] & 0x0F;
+
+        auto &sfx = _sfx[n & 0x3f];
+        if (_musicChannel.master == -1 || _musicChannel.speed > sfx.speed)
+        {
+            _musicChannel.master = i;
+            _musicChannel.speed = std::max(1, (int)sfx.speed);
+        }
+    }
+
+    // Play music sfx on active channels
+    for (int i = 0; i < 4; ++i)
+    {
+        if (((1 << i) & _musicChannel.mask) == 0)
+            continue;
+
+        //last bit is a flag not used here
+        uint8_t n = channels[i] & 0x0F;;
+
+        _sfxChannels[i].sfxId = n;
+        _sfxChannels[i].offset = 0.f;
+        _sfxChannels[i].phi = 0.f;
+        _sfxChannels[i].can_loop = false;
+        _sfxChannels[i].is_music = true;
+        _sfxChannels[i].prev_key = 24;
+        _sfxChannels[i].prev_vol = 0.f;
+    }
 }
 
 void Audio::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
@@ -227,10 +335,7 @@ int16_t Audio::getSampleForChannel(int channel){
     //TODO: apply effects
     //int const fx = sfx.notes[note_id].effect;
 
-    
-
     // Play note
-
     float waveform = z8::synth::waveform(sfx.notes[note_idx].waveform, phi);
 
     // Apply master music volume from fade in/out

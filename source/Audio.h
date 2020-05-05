@@ -68,7 +68,7 @@ note is encoded in 16 bits, LSB first, like so:
 */
 //todo: make these memory compatible later, but for now, this representation
 //is easier for me to wrap my mind araound
-struct music {
+struct song {
     uint8_t loop;
  
     uint8_t channel1;
@@ -120,7 +120,7 @@ struct sfxChannel {
 
 class Audio {
     //uint8_t _musicRam[64 * 4];
-    music _music[64];
+    song _songs[64];
 
     //uint8_t _sfxRam[64 * 68];
     sfx _sfx[64];
