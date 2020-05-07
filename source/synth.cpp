@@ -64,6 +64,8 @@ float synth::waveform(int instrument, float advance)
             //for (float m = 1.75f, d = 1.f; m <= 128; m *= 2.25f, d *= 0.75f)
             //    ret += d * noise.eval(lol::vec_t<float, 1>(m * advance));
 
+            ret = ((float)rand() / (float)RAND_MAX);
+
             return ret * 0.4f;
         }
         case INST_PHASER:
