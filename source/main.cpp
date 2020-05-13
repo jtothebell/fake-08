@@ -193,6 +193,9 @@ int main(int argc, char* argv[])
 	gfxInitDefault();
 	Logger::Write("gfxInitDefault()\n");
 
+	//use new 3ds cpu if we can
+	osSetSpeedupEnable(true);	
+
 	Logger::Write("initializing Console\n");
 	Console *console = new Console();
 	Logger::Write("initialized console\n");
