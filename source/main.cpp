@@ -14,27 +14,22 @@
 
 int main(int argc, char* argv[])
 {
-	Host *host = new Host();
+	Logger::Initialize();
 
+	Host *host = new Host();
 	host->oneTimeSetup();
 
-	Logger::Initialize();
-	Logger::Write("created Logger\n");
-
-
-	Logger::Write("initializing Vm\n");
 	Vm *vm = new Vm();
-	Logger::Write("initialized Vm\n");
+	Logger::Write("initialized Vm and host\n");
 
 	Logger::Write("Loading cart\n");
-	vm->LoadCart("lilking.p8");
+	vm->LoadCart("testcart.p8");
 	Logger::Write("Cart Loaded\n");
 	
 	// Main loop
 	Logger::Write("Starting main loop\n");
 
 	uint8_t targetFps = vm->GetTargetFps();
-
 	host->setTargetFps(targetFps);
 	
 
@@ -57,10 +52,7 @@ int main(int argc, char* argv[])
 		uint8_t* screenPaletteMap = vm->GetScreenPaletteMap();
 		Color* paletteColors = vm->GetPaletteColors();
 
-		//send pico 8 screen to framebuffer, then call the function to flush and swap buffers, and wait for vblank
-		
 		host->drawFrame(picoFb, screenPaletteMap, paletteColors);
-		host->postFlipFunction();
 
 		if (host->shouldFillAudioBuff()) {
 			vm->FillAudioBuffer(host->getAudioBufferPointer(), 0, host->getAudioBufferSize());

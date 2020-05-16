@@ -22,6 +22,10 @@ const int __3ds_BottomScreenWidth = SCREEN_2_WIDTH;
 const int __3ds_BottomScreenHeight = SCREEN_2_HEIGHT;
 
 
+const int PicoScreenWidth = 128;
+const int PicoScreenHeight = 128;
+
+
 StretchOption stretch;
 u64 last_time;
 u64 now_time;
@@ -30,54 +34,6 @@ double targetFrameTimeMs;
 
 u32 currKDown;
 u32 currKHeld;
-
-Host::Host() { }
-
-
-int Host::getScreenWidth() {
-    return __3ds_TopScreenWidth;
-}
-
-int Host::getScreenHeight(){
-    return __3ds_TopScreenHeight;
-}
-
-int Host::getSecondScreenWidth(){
-    return __3ds_BottomScreenWidth;
-}
-int Host::getSecondScreenHeight(){
-    return __3ds_BottomScreenHeight;
-}
-
-void Host::oneTimeSetup(){
-    osSetSpeedupEnable(true);
-
-    Host::audioSetup();
-    Host::gfxSetup();
-    
-    last_time = 0;
-    now_time = 0;
-    frame_time = 0;
-    targetFrameTimeMs = 0;
-}
-
-void Host::setTargetFps(uint8_t targetFps){
-    targetFrameTimeMs = 1000.0 / (double)targetFps;
-}
-
-void Host::changeStretch(){
-    if (currKDown & KEY_R) {
-        if (stretch == PixelPerfect) {
-            stretch = StretchToFit;
-        }
-        else if (stretch == StretchToFit) {
-            stretch = StretchAndOverflow;
-        }
-        else if (stretch == StretchAndOverflow) {
-            stretch = PixelPerfect;
-        }
-    }
-}
 
 uint8_t ConvertInputToP8(u32 input){
 	uint8_t result = 0;
@@ -116,47 +72,14 @@ uint8_t ConvertInputToP8(u32 input){
 	return result;
 }
 
-void Host::scanInput(){
-    hidScanInput();
-
-    currKDown = hidKeysDown();
-    currKHeld = hidKeysHeld();
-}
-
-uint8_t Host::getKeysDown(){
-    return ConvertInputToP8(currKDown);
-}
-
-uint8_t Host::getKeysHeld(){
-    return ConvertInputToP8(currKHeld);
-}
-
-
-bool Host::shouldQuit() {
-    bool lpressed = currKHeld & KEY_L;
-	bool rpressed = currKDown & KEY_R;
-
-	return lpressed && rpressed;
-}
-
-void Host::gfxSetup(){
-    gfxInitDefault();
-}
-
-void Host::postFlipFunction(){
+void postFlipFunction(){
     gfxFlushBuffers();
 	gfxSwapBuffers();
 	gspWaitForVBlank();
 }
 
 
-void Host::gfxCleanup(){
-    gfxExit();
-}
-
-//----------------------------------------------------------------------------
 void init_fill_buffer(void *audioBuffer,size_t offset, size_t size) {
-//----------------------------------------------------------------------------
 
 	u32 *dest = (u32*)audioBuffer;
 
@@ -175,7 +98,19 @@ ndspWaveBuf waveBuf[2];
 bool fillBlock = false;
 u32 currPos;
 
-void Host::audioSetup(){
+
+void audioCleanup(){
+    audioInitialized = false;
+
+    ndspExit();
+
+    if(audioBuffer != nullptr) {
+        linearFree(audioBuffer);
+        audioBuffer = nullptr;
+    }
+}
+
+void audioSetup(){
     if(R_FAILED(ndspInit())) {
         return;
     }
@@ -184,7 +119,7 @@ void Host::audioSetup(){
 	audioBufferSize = SAMPLESPERBUF * NUM_BUFFERS * sizeof(u32);
 	audioBuffer = (u32*)linearAlloc(audioBufferSize);
 	if(audioBuffer == nullptr) {
-        Host::audioCleanup();
+        audioCleanup();
         return;
     }
 	
@@ -221,25 +156,71 @@ void Host::audioSetup(){
 	audioInitialized = true;
 }
 
-void Host::audioCleanup(){
-    audioInitialized = false;
 
-    ndspExit();
 
-    if(audioBuffer != nullptr) {
-        linearFree(audioBuffer);
-        audioBuffer = nullptr;
+Host::Host() { }
+
+
+void Host::oneTimeSetup(){
+    osSetSpeedupEnable(true);
+
+    audioSetup();
+
+    gfxInitDefault();
+    
+    last_time = 0;
+    now_time = 0;
+    frame_time = 0;
+    targetFrameTimeMs = 0;
+}
+
+void Host::oneTimeCleanup(){
+    audioCleanup();
+
+	gfxExit();
+}
+
+void Host::setTargetFps(uint8_t targetFps){
+    targetFrameTimeMs = 1000.0 / (double)targetFps;
+}
+
+void Host::changeStretch(){
+    if (currKDown & KEY_R) {
+        if (stretch == PixelPerfect) {
+            stretch = StretchToFit;
+        }
+        else if (stretch == StretchToFit) {
+            stretch = StretchAndOverflow;
+        }
+        else if (stretch == StretchAndOverflow) {
+            stretch = PixelPerfect;
+        }
     }
 }
 
+void Host::scanInput(){
+    hidScanInput();
 
-
-
-void Host::oneTimeCleanup(){
-    Host::audioCleanup();
-
-	Host::gfxCleanup();
+    currKDown = hidKeysDown();
+    currKHeld = hidKeysHeld();
 }
+
+uint8_t Host::getKeysDown(){
+    return ConvertInputToP8(currKDown);
+}
+
+uint8_t Host::getKeysHeld(){
+    return ConvertInputToP8(currKHeld);
+}
+
+
+bool Host::shouldQuit() {
+    bool lpressed = currKHeld & KEY_L;
+	bool rpressed = currKDown & KEY_R;
+
+	return lpressed && rpressed;
+}
+
 
 void Host::waitForTargetFps(){
     now_time = svcGetSystemTick();
@@ -258,8 +239,6 @@ void Host::waitForTargetFps(){
 	}
 }
 
-const int PicoScreenWidth = 128;
-const int PicoScreenHeight = 128;
 
 void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, Color* paletteColors){
     int bgcolor = 0;
@@ -267,12 +246,13 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, Color* paletteC
 	//clear whole top framebuffer
 	memset(fb, bgcolor, __3ds_TopScreenWidth*__3ds_TopScreenHeight*3);
 
-	//clear top 16 pixels of bottom buffer in case overflow rendering is being used
+	//clear bottom buffer in case overflow rendering is being used
 	uint8_t* fbb = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
 	memset(fbb, bgcolor, __3ds_BottomScreenWidth*__3ds_BottomScreenHeight*3);
 
     short x, y;
 
+    //these could be combined to shorten this method
 	if (stretch == PixelPerfect) {
 		short xOffset = __3ds_TopScreenWidth / 2 - PicoScreenWidth / 2;
         short yOffset = __3ds_TopScreenHeight / 2 - PicoScreenHeight / 2;
@@ -356,6 +336,8 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, Color* paletteC
             }
         }
 	}
+
+    postFlipFunction();
 }
 
 bool Host::shouldFillAudioBuff(){

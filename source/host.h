@@ -12,17 +12,12 @@ enum StretchOption {
 class Host {
     public:
     Host();
-    
-    int getScreenWidth();
-    int getScreenHeight();
 
-    int getSecondScreenWidth();
-    int getSecondScreenHeight();
+    void oneTimeSetup();
 
     void setTargetFps(uint8_t targetFps);
 
-    StretchOption getDefaultStretch();
-    void changeStretch();
+     bool mainLoop();
 
     void scanInput();
     uint8_t getKeysDown();
@@ -30,25 +25,20 @@ class Host {
 
     bool shouldQuit();
 
-    void gfxSetup();
-    void postFlipFunction();
-    void gfxCleanup();
+    void changeStretch();
+    
+    void waitForTargetFps();
 
-    void audioSetup();
-    void audioCleanup();
+    void drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, Color* paletteColors);
+
     bool shouldFillAudioBuff();
     void* getAudioBufferPointer();
     size_t getAudioBufferSize();
     void playFilledAudioBuffer();
 
-    void drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, Color* paletteColors);
-
-
-    void oneTimeSetup();
-
     void oneTimeCleanup();
 
-    void waitForTargetFps();
+    
 
-    bool mainLoop();
+   
 };
