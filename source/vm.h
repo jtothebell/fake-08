@@ -1,4 +1,5 @@
 #pragma once
+
 #include <functional>
 
 #include "cart.h"
@@ -17,7 +18,7 @@ enum StretchOption {
   StretchAndOverflow
 };
 
-class Console {
+class Vm {
     Cart* _loadedCart;
     Graphics* _graphics;
     Audio* _audio;
@@ -31,8 +32,8 @@ class Console {
     bool _hasDraw;
 
     public:
-    Console();
-    ~Console();
+    Vm();
+    ~Vm();
 
     void LoadCart(std::string filename);
 

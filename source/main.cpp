@@ -9,7 +9,7 @@
 #include <string>
 
 #include "graphics.h"
-#include "console.h"
+#include "vm.h"
 #include "logger.h"
 
 #include "input.h"
@@ -196,26 +196,26 @@ int main(int argc, char* argv[])
 	//use new 3ds cpu if we can
 	osSetSpeedupEnable(true);	
 
-	Logger::Write("initializing Console\n");
-	Console *console = new Console();
-	Logger::Write("initialized console\n");
+	Logger::Write("initializing Vm\n");
+	Vm *vm = new Vm();
+	Logger::Write("initialized Vm\n");
 
 	//test or not both hardcoded to loading test cart as of now
 	#if _TEST
 	consoleInit(GFX_BOTTOM, NULL);
 
 	Logger::Write("Loading cart\n");
-	console->LoadCart("testcart.p8");
+	vm->LoadCart("testcart.p8");
 	Logger::Write("Cart Loaded\n");
 
 	#else
-	console->LoadCart("lilking.p8");
+	vm->LoadCart("lilking.p8");
 	#endif
 	
 	// Main loop
 	Logger::Write("Starting main loop\n");
 
-	uint8_t targetFps = console->GetTargetFps();
+	uint8_t targetFps = vm->GetTargetFps();
 	double targetFrametimeMs = 1000.0 / (double)targetFps;
 
 	std::function<void()> clearFb = clear3dsFrameBuffer;
@@ -286,22 +286,22 @@ int main(int argc, char* argv[])
 		//cart draw
 		//_draw();
 
-		console->UpdateAndDraw(frame_time, clear3dsFrameBuffer, p8kDown, p8kHeld);
+		vm->UpdateAndDraw(frame_time, clear3dsFrameBuffer, p8kDown, p8kHeld);
 
 		//send pico 8 screen to framebuffer, then call the function to flush and swap buffers, and wait for vblank
 		
 		uint8_t* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
 
 		if (stretch == PixelPerfect) {
-			console->FlipBuffer_PP(fb, ScreenWidth, ScreenHeight, postFlip);
+			vm->FlipBuffer_PP(fb, ScreenWidth, ScreenHeight, postFlip);
 		}
 		else if (stretch == StretchToFit) {
-			console->FlipBuffer_STF(fb, ScreenWidth, ScreenHeight, postFlip);
+			vm->FlipBuffer_STF(fb, ScreenWidth, ScreenHeight, postFlip);
 		}
 		else if (stretch == StretchAndOverflow) {
 			uint8_t* fbb = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
 
-			console->FlipBuffer_SAO(
+			vm->FlipBuffer_SAO(
 				fb, ScreenWidth, ScreenHeight,
 				fbb, BottomScreenWidth, BottomScreenHeight,
 				postFlip);
@@ -309,7 +309,7 @@ int main(int argc, char* argv[])
 
 		if (waveBuf[fillBlock].status == NDSP_WBUF_DONE) {
 
-			console->FillAudioBuffer(waveBuf[fillBlock].data_pcm16, stream_offset, waveBuf[fillBlock].nsamples);
+			vm->FillAudioBuffer(waveBuf[fillBlock].data_pcm16, stream_offset, waveBuf[fillBlock].nsamples);
 			
 			DSP_FlushDataCache(waveBuf[fillBlock].data_pcm16, waveBuf[fillBlock].nsamples);
 
@@ -322,9 +322,9 @@ int main(int argc, char* argv[])
 	}
 
 
-	Logger::Write("Turning off console and exiting logger\n");
-	console->TurnOff();
-	delete console;
+	Logger::Write("Turning off vm and exiting logger\n");
+	vm->TurnOff();
+	delete vm;
 	Logger::Exit();
 
 	audioCleanup();

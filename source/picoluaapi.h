@@ -10,10 +10,10 @@ extern "C" {
 
 #include "graphics.h"
 #include "Input.h"
-#include "console.h"
+#include "vm.h"
 
 //this can probably go away when I'm loading actual carts and just have to expose api to lua
-void initPicoApi(Graphics* graphics, Input* input, Console* console, Audio* audio);
+void initPicoApi(Graphics* graphics, Input* input, Vm* vm, Audio* audio);
 
 //graphics api
 int cls(lua_State *L);

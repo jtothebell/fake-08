@@ -2,7 +2,7 @@
 #include <functional>
 #include <math.h>
 
-#include "console.h"
+#include "vm.h"
 #include "graphics.h"
 #include "fontdata.h"
 #include "cart.h"
@@ -17,7 +17,7 @@ extern "C" {
   #include <lauxlib.h>
 }
 
-Console::Console(){
+Vm::Vm(){
     Logger::Write("getting font string\n");
     auto fontdata = get_font_data();
 
@@ -40,7 +40,7 @@ Console::Console(){
     _targetFps = 30;
 }
 
-Console::~Console(){
+Vm::~Vm(){
     delete _graphics;
     delete _input;
     delete _audio;
@@ -50,7 +50,7 @@ Console::~Console(){
     }
 }
 
-void Console::LoadCart(std::string filename){
+void Vm::LoadCart(std::string filename){
     Logger::Write("Calling Cart Constructor\n");
     Cart *cart = new Cart(filename);
     _picoFrameCount = 0;
@@ -183,7 +183,7 @@ void Console::LoadCart(std::string filename){
 
 
 //how to call lua from c: https://www.cs.usfca.edu/~galles/cs420/lecture/LuaLectures/LuaAndC.html
-void Console::UpdateAndDraw(
+void Vm::UpdateAndDraw(
       uint64_t ticksSinceLastCall,
       std::function<void()> clearFbFunction,
       uint8_t kdown,
@@ -222,7 +222,7 @@ void Console::UpdateAndDraw(
     _picoFrameCount++;
 }
 
-void Console::FlipBuffer_PP(uint8_t* fb, int width, int height, std::function<void()> postFlipFunction){
+void Vm::FlipBuffer_PP(uint8_t* fb, int width, int height, std::function<void()> postFlipFunction){
     _graphics->flipBuffer(fb, width, height);
 
     if (postFlipFunction) {
@@ -230,7 +230,7 @@ void Console::FlipBuffer_PP(uint8_t* fb, int width, int height, std::function<vo
     }
 }
 
-void Console::FlipBuffer_STF(uint8_t* fb, int width, int height, std::function<void()> postFlipFunction){
+void Vm::FlipBuffer_STF(uint8_t* fb, int width, int height, std::function<void()> postFlipFunction){
     _graphics->flipBuffer_STF(fb, width, height);
 
     if (postFlipFunction) {
@@ -238,7 +238,7 @@ void Console::FlipBuffer_STF(uint8_t* fb, int width, int height, std::function<v
     }
 }
 
-void Console::FlipBuffer_SAO(
+void Vm::FlipBuffer_SAO(
     uint8_t* fb, int width, int height, 
     uint8_t* fb_o, int width_o, int height_o, 
     std::function<void()> postFlipFunction){
@@ -250,20 +250,20 @@ void Console::FlipBuffer_SAO(
 }
 
 
-void Console::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
+void Vm::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
    _audio->FillAudioBuffer(audioBuffer, offset, size);
 }
 
 
 
-void Console::TurnOff() {
+void Vm::TurnOff() {
     lua_close(_luaState);
 }
 
-uint8_t Console::GetTargetFps() {
+uint8_t Vm::GetTargetFps() {
     return _targetFps;
 }
 
-int Console::GetFrameCount() {
+int Vm::GetFrameCount() {
     return _picoFrameCount;
 }

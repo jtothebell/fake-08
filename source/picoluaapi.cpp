@@ -4,7 +4,7 @@
 #include "picoluaapi.h"
 #include "graphics.h"
 #include "Input.h"
-#include "console.h"
+#include "vm.h"
 
 extern "C" {
   #include <lua.h>
@@ -14,13 +14,13 @@ extern "C" {
 
 Graphics* _graphicsForLuaApi;
 Input* _inputForLuaApi;
-Console* _consoleForLuaApi;
+Vm* _vmForLuaApi;
 Audio* _audioForLuaApi;
 
-void initPicoApi(Graphics* graphics, Input* input, Console* console, Audio* audio){
+void initPicoApi(Graphics* graphics, Input* input, Vm* vm, Audio* audio){
     _graphicsForLuaApi = graphics;
     _inputForLuaApi = input;
-    _consoleForLuaApi = console;
+    _vmForLuaApi = vm;
     _audioForLuaApi = audio;
 }
 
@@ -537,8 +537,8 @@ int btnp(lua_State *L){
 
 //System
 int time(lua_State *L) {
-    int frameCount = _consoleForLuaApi->GetFrameCount();
-    int targetFps = _consoleForLuaApi->GetTargetFps();
+    int frameCount = _vmForLuaApi->GetFrameCount();
+    int targetFps = _vmForLuaApi->GetTargetFps();
 
     double seconds = (double)frameCount / (double)targetFps;
 
