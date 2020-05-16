@@ -10,6 +10,7 @@
 #include "logger.h"
 #include "Input.h"
 #include "p8GlobalLuaFunctions.h"
+#include "hostVmShared.h"
 
 extern "C" {
   #include <lua.h>
@@ -184,15 +185,9 @@ void Vm::LoadCart(std::string filename){
 
 //how to call lua from c: https://www.cs.usfca.edu/~galles/cs420/lecture/LuaLectures/LuaAndC.html
 void Vm::UpdateAndDraw(
-      uint64_t ticksSinceLastCall,
-      std::function<void()> clearFbFunction,
       uint8_t kdown,
       uint8_t kheld)
 {
-    if (clearFbFunction) {
-        clearFbFunction();
-    }
-
     _input->SetState(kdown, kheld);
 
     if (_hasUpdate){
@@ -222,39 +217,22 @@ void Vm::UpdateAndDraw(
     _picoFrameCount++;
 }
 
-void Vm::FlipBuffer_PP(uint8_t* fb, int width, int height, std::function<void()> postFlipFunction){
-    _graphics->flipBuffer(fb, width, height);
-
-    if (postFlipFunction) {
-        postFlipFunction();
-    }
+uint8_t* Vm::GetPicoInteralFb(){
+    return _graphics->GetP8FrameBuffer();
 }
 
-void Vm::FlipBuffer_STF(uint8_t* fb, int width, int height, std::function<void()> postFlipFunction){
-    _graphics->flipBuffer_STF(fb, width, height);
-
-    if (postFlipFunction) {
-        postFlipFunction();
-    }
+uint8_t* Vm::GetScreenPaletteMap(){
+    return _graphics->GetScreenPaletteMap();
 }
 
-void Vm::FlipBuffer_SAO(
-    uint8_t* fb, int width, int height, 
-    uint8_t* fb_o, int width_o, int height_o, 
-    std::function<void()> postFlipFunction){
-    _graphics->flipBuffer_SAO(fb, width, height, fb_o, width_o, height_o);
-
-    if (postFlipFunction) {
-        postFlipFunction();
-    }
+Color* Vm::GetPaletteColors(){
+    return _graphics->GetPaletteColors();
 }
 
 
 void Vm::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
    _audio->FillAudioBuffer(audioBuffer, offset, size);
 }
-
-
 
 void Vm::TurnOff() {
     lua_close(_luaState);

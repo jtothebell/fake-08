@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include "hostVmShared.h"
 
 #define COLOR_00 {  0,   0,   0, 255}
 #define COLOR_01 { 29,  43,  83, 255}
@@ -22,13 +23,6 @@
 #define BG_GRAY_COLOR {128, 128, 128, 255}
 
 
-struct Color {
-	char Red;
-	char Green;
-	char Blue;
-	char Alpha;
-};
-
 class Graphics {
 	uint8_t _pico8_fb[128*128];
 	uint8_t fontSpriteData[128 * 64];
@@ -36,6 +30,8 @@ class Graphics {
 	uint8_t spriteSheetData[128 * 64];
 	uint8_t mapData[128 * 64];
 	uint8_t spriteFlags[256];
+
+	Color _paletteColors[16];
 
 	uint8_t _gfxState_color;
     uint8_t _gfxState_bgColor;
@@ -109,6 +105,10 @@ class Graphics {
 	void setSpriteSheet(std::string spriteSheetString);
 	void setSpriteFlags(std::string spriteFlagsString);
 	void setMapData(std::string mapString);
+
+	uint8_t* GetP8FrameBuffer();
+	uint8_t* GetScreenPaletteMap();
+	Color* GetPaletteColors();
 
 	void cls();
 	void cls(uint8_t color);
@@ -191,12 +191,6 @@ class Graphics {
 	void cursor();
 	void cursor(short x, short y);
 	void cursor(short x, short y, uint8_t col);
-
-
-	void flipBuffer(uint8_t* fb, int width, int height);
-
-	void flipBuffer_STF(uint8_t* fb, int width, int height);
-	void flipBuffer_SAO(uint8_t* fb, int width, int height, uint8_t* fb_o, int width_o, int height_o);
 
 };
 

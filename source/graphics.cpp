@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #include "graphics.h"
+#include "hostVmShared.h"
 
 #include "stringToDataHelpers.h"
 
@@ -16,24 +17,6 @@ const uint8_t PicoScreenHeight = 128;
 
 const Color BgGray = BG_GRAY_COLOR;
 
-const Color PaletteColors[] = {
-	COLOR_00,
-	COLOR_01,
-	COLOR_02,
-	COLOR_03,
-	COLOR_04,
-	COLOR_05,
-	COLOR_06,
-	COLOR_07,
-	COLOR_08,
-	COLOR_09,
-	COLOR_10,
-	COLOR_11,
-	COLOR_12,
-	COLOR_13,
-	COLOR_14,
-	COLOR_15
-};
 
 //call initialize to make sure defaults are correct
 Graphics::Graphics(std::string fontdata) {
@@ -44,6 +27,23 @@ Graphics::Graphics(std::string fontdata) {
 	//make all colors default
 	this->clip();
 	this->pal();
+
+	_paletteColors[0] = COLOR_00;
+	_paletteColors[1] = COLOR_01;
+	_paletteColors[2] = COLOR_02;
+	_paletteColors[3] = COLOR_03;
+	_paletteColors[4] = COLOR_04;
+	_paletteColors[5] = COLOR_05;
+	_paletteColors[6] = COLOR_06;
+	_paletteColors[7] = COLOR_07;
+	_paletteColors[8] = COLOR_08;
+	_paletteColors[9] = COLOR_09;
+	_paletteColors[10] = COLOR_10;
+	_paletteColors[11] = COLOR_11;
+	_paletteColors[12] = COLOR_12;
+	_paletteColors[13] = COLOR_13;
+	_paletteColors[14] = COLOR_14;
+	_paletteColors[15] = COLOR_15;
 }
 
 void Graphics::setSpriteSheet(std::string spritesheetstring){
@@ -59,6 +59,18 @@ void Graphics::setSpriteFlags(std::string spriteFlagsstring){
 void Graphics::setMapData(std::string mapDataString){
 	Logger::Write("Copying data to sprite flags\n");
 	copy_string_to_memory(mapData, mapDataString);
+}
+
+uint8_t* Graphics::GetP8FrameBuffer(){
+	return this->_pico8_fb;
+}
+
+uint8_t* Graphics::GetScreenPaletteMap(){
+	return this->_gfxState_screenPaletteMap;
+}
+
+Color* Graphics::GetPaletteColors(){
+	return this->_paletteColors;
 }
 
 //start helper methods
@@ -815,100 +827,6 @@ void Graphics::palt(uint8_t c, bool t){
 	}
 }
 
-void Graphics::flipBuffer(uint8_t* fb, int width, int height) {
-	short x, y;
-
-	short xOffset = width / 2 - PicoScreenWidth / 2;
-	short yOffset = height / 2 - PicoScreenHeight / 2;
-	//todo: test if it is faster to convert colors to uint24_ts and write one instead of 3 (assuming these are )
-    for(x = 0; x < 128; x++) {
-    	for(y = 0; y < 128; y++) {
-			uint8_t c = _pico8_fb[x*128 + y];
-			Color col = PaletteColors[_gfxState_screenPaletteMap[c]];
-
-			int pixIdx = (((x + xOffset)*height)+ ((height - 1) - (y + yOffset)))*3;
-
-			fb[pixIdx + 0] = col.Blue;
-			fb[pixIdx + 1] = col.Green;
-			fb[pixIdx + 2] = col.Red;
-    	}
-    }
-}
-
-void Graphics::flipBuffer_STF(uint8_t* fb, int width, int height) {
-	short x, y;
-
-	//assume landscape
-	double ratio = (double)height / (double)PicoScreenHeight;
-	int stretchedWidth = PicoScreenWidth * ratio;
-
-	short xOffset = width / 2 - stretchedWidth / 2;
-	short yOffset = 0;
-	
-    for(x = 0; x < stretchedWidth; x++) {
-    	for(y = 0; y < height; y++) {
-			int picoX = (int)(x / ratio);
-			int picoY = (int)(y / ratio);
-			uint8_t c = _pico8_fb[picoX*128 + picoY];
-			Color col = PaletteColors[_gfxState_screenPaletteMap[c]];
-
-			int pixIdx = (((x + xOffset)*height)+ ((height - 1) - (y + yOffset)))*3;
-
-			fb[pixIdx + 0] = col.Blue;
-			fb[pixIdx + 1] = col.Green;
-			fb[pixIdx + 2] = col.Red;
-    	}
-    }
-}
-
-void Graphics::flipBuffer_SAO(
-	uint8_t* fb, int width, int height,
-	uint8_t* fb_o, int width_o, int height_o) {
-	short x, y;
-
-	//assume landscape, hardcoded double for now (3ds)
-	int ratio = 2;
-	int stretchedWidth = PicoScreenWidth * ratio;
-	int stretchedHeight = PicoScreenHeight * ratio;
-
-	short xOffset = width / 2 - stretchedWidth / 2;
-	short yOffset = 0;
-
-    for(x = 0; x < stretchedWidth; x++) {
-    	for(y = 0; y < height; y++) {
-			int picoX = (int)(x / ratio);
-			int picoY = (int)(y / ratio);
-			uint8_t c = _pico8_fb[picoX*128 + picoY];
-			Color col = PaletteColors[_gfxState_screenPaletteMap[c]];
-
-			int pixIdx = (((x + xOffset)*height)+ ((height - 1) - (y + yOffset)))*3;
-
-			fb[pixIdx + 0] = col.Blue;
-			fb[pixIdx + 1] = col.Green;
-			fb[pixIdx + 2] = col.Red;
-    	}
-    }
-
-	int overflowHeight = stretchedHeight - height;
-
-	xOffset = width_o / 2 - stretchedWidth / 2;
-	yOffset = 0;
-
-	for(x = 0; x < stretchedWidth; x++) {
-    	for(y = 0; y < overflowHeight; y++) {
-			int picoX = (int)(x / ratio);
-			int picoY = (int)((y + height) / ratio);
-			uint8_t c = _pico8_fb[picoX*128 + picoY];
-			Color col = PaletteColors[_gfxState_screenPaletteMap[c]];
-
-			int pixIdx = (((x + xOffset)*height)+ ((height_o - 1) - (y + yOffset)))*3;
-
-			fb_o[pixIdx + 0] = col.Blue;
-			fb_o[pixIdx + 1] = col.Green;
-			fb_o[pixIdx + 2] = col.Red;
-    	}
-    }
-}
 
 void Graphics::cursor() {
 	this->cursor(0, 0);

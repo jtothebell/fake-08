@@ -33,7 +33,7 @@ include $(DEVKITARM)/3ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source source/tests libs/lua-5.3.2/src libs/utf8-util
+SOURCES		:=	source source/Platform/3ds libs/lua-5.3.2/src libs/utf8-util
 DATA		:=	data
 INCLUDES	:=	include libs/lua-5.3.2/src libs/utf8-util
 GRAPHICS	:=	gfx

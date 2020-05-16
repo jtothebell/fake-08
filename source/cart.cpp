@@ -12,10 +12,10 @@
 #include "cartPatcher.h"
 #include "utf8-util.h"
 
-#include "tests/test_base.h"
-#if _TEST
-#include "tests/cart_test.h"
-#endif
+//#include "tests/test_base.h"
+//#if _TEST
+//#include "tests/cart_test.h"
+//#endif
 
 
 std::map<char32_t, uint8_t> emoji = {
