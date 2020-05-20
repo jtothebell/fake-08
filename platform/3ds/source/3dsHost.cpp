@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../../host.h"
-#include "../../hostVmShared.h"
+#include "../../../source/host.h"
+#include "../../../source/hostVmShared.h"
 
 #define SCREEN_WIDTH 400;
 #define SCREEN_HEIGHT 240;

@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 	Logger::Write("initialized Vm and host\n");
 
 	Logger::Write("Loading cart\n");
-	vm->LoadCart("testcart.p8");
+	vm->LoadCart("cart.p8");
 	Logger::Write("Cart Loaded\n");
 	
 	// Main loop
