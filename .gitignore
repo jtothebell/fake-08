@@ -1,6 +1,13 @@
 *.3dsx
 *.elf
 *.smdh
+
+*.nacp
+*.nro
+*.nso
+*.pfs0
+
 bin/
 .vscode/
 build/
+

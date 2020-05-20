@@ -5,6 +5,7 @@
 
 enum StretchOption {
   PixelPerfect,
+  PixelPerfectStretch,
   StretchToFit,
   StretchAndOverflow
 };
