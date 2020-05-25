@@ -260,6 +260,9 @@ void Audio::set_music_pattern(int pattern) {
 }
 
 void Audio::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
+    if (audioBuffer == nullptr) {
+        return;
+    }
 
     uint32_t *buffer = (uint32_t *)audioBuffer;
 
