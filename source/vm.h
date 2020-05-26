@@ -23,9 +23,13 @@ class Vm {
     bool _hasUpdate;
     bool _hasDraw;
 
+    bool loadCart(Cart* cart);
+
     public:
     Vm();
     ~Vm();
+
+    void LoadBiosCart();
 
     void LoadCart(std::string filename);
 
@@ -39,7 +43,7 @@ class Vm {
 
     void FillAudioBuffer(void *audioBuffer, size_t offset, size_t size);
 
-    void TurnOff();
+    void CloseCart();
 
     uint8_t GetTargetFps();
 

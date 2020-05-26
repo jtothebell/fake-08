@@ -42,18 +42,14 @@ Vm::Vm(){
 }
 
 Vm::~Vm(){
+    CloseCart();
+
     delete _graphics;
     delete _input;
     delete _audio;
-
-    if (_loadedCart){
-        delete _loadedCart;
-    }
 }
 
-void Vm::LoadCart(std::string filename){
-    Logger::Write("Calling Cart Constructor\n");
-    Cart *cart = new Cart(filename);
+bool Vm::loadCart(Cart* cart) {
     _picoFrameCount = 0;
 
     _graphics->setSpriteSheet(cart->SpriteSheetString);
@@ -62,9 +58,6 @@ void Vm::LoadCart(std::string filename){
 
     _audio->setSfx(cart->SfxString);
     _audio->setMusic(cart->MusicString);
-
-    _loadedCart = cart;
-
     
     // initialize Lua interpreter
     _luaState = luaL_newstate();
@@ -80,7 +73,7 @@ void Vm::LoadCart(std::string filename){
         Logger::Write("Error: %s\n", lua_tostring(_luaState, -1));
         lua_pop(_luaState, 1);
 
-        return;
+        return false;
     }
 
     //graphics
@@ -94,6 +87,7 @@ void Vm::LoadCart(std::string filename){
     lua_register(_luaState, "rect", rect);
     lua_register(_luaState, "rectfill", rectfill);
     lua_register(_luaState, "print", print);
+    lua_register(_luaState, "cursor", cursor);
     lua_register(_luaState, "spr", spr);
     lua_register(_luaState, "sspr", sspr);
     lua_register(_luaState, "fget", fget);
@@ -138,14 +132,20 @@ void Vm::LoadCart(std::string filename){
     lua_register(_luaState, "dget", dget);
     lua_register(_luaState, "dset", dset);
 
-    int loadedCart = luaL_dostring(_luaState, _loadedCart->LuaString.c_str());
+    //file system
+    /*
+    lua_register(_luaState, "__loadcart", loadcart);
+    lua_register(_luaState, "__loadbioscart", loadbioscart);
+    */
+
+    int loadedCart = luaL_dostring(_luaState, cart->LuaString.c_str());
 
     if (loadedCart != LUA_OK) {
         Logger::Write("ERROR loading cart\n");
         Logger::Write("Error: %s\n", lua_tostring(_luaState, -1));
         lua_pop(_luaState, 1);
 
-        return;
+        return false;
     }
 
 
@@ -180,6 +180,35 @@ void Vm::LoadCart(std::string filename){
         _hasDraw = true;
     }
     lua_pop(_luaState, 0);
+
+    _loadedCart = cart;
+
+    return true;
+}
+
+void Vm::LoadBiosCart(){
+    CloseCart();
+
+    Cart *cart = new Cart("fake08-nocart.p8");
+
+    bool success = loadCart(cart);
+
+    if (!success) {
+        CloseCart();
+    }
+}
+
+void Vm::LoadCart(std::string filename){
+    CloseCart();
+
+    Logger::Write("Calling Cart Constructor\n");
+    Cart *cart = new Cart(filename);
+
+    bool success = loadCart(cart);
+
+    if (!success) {
+        CloseCart();
+    }
 }
 
 
@@ -234,8 +263,16 @@ void Vm::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
    _audio->FillAudioBuffer(audioBuffer, offset, size);
 }
 
-void Vm::TurnOff() {
-    lua_close(_luaState);
+void Vm::CloseCart() {
+    if (_loadedCart){
+        delete _loadedCart;
+        _loadedCart = nullptr;
+    }
+    
+    if (_luaState) {
+        lua_close(_luaState);
+        _luaState = nullptr;
+    }
 }
 
 uint8_t Vm::GetTargetFps() {

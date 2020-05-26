@@ -22,9 +22,9 @@ int main(int argc, char* argv[])
 	Vm *vm = new Vm();
 	Logger::Write("initialized Vm and host\n");
 
-	Logger::Write("Loading cart\n");
-	vm->LoadCart("cart.p8");
-	Logger::Write("Cart Loaded\n");
+	Logger::Write("Loading Bios cart\n");
+	vm->LoadBiosCart();
+	Logger::Write("Bios Cart Loaded\n");
 	
 	// Main loop
 	Logger::Write("Starting main loop\n");
@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
 
 
 	Logger::Write("Turning off vm and exiting logger\n");
-	vm->TurnOff();
+	vm->CloseCart();
 	delete vm;
 	
 	Logger::Exit();

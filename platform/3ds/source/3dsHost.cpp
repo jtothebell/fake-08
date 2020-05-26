@@ -26,7 +26,7 @@ const int PicoScreenWidth = 128;
 const int PicoScreenHeight = 128;
 
 
-StretchOption stretch;
+StretchOption stretch = StretchAndOverflow;
 u64 last_time;
 u64 now_time;
 u64 frame_time;
