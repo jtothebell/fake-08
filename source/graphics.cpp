@@ -57,7 +57,7 @@ void Graphics::setSpriteFlags(std::string spriteFlagsstring){
 }
 
 void Graphics::setMapData(std::string mapDataString){
-	Logger::Write("Copying data to sprite flags\n");
+	Logger::Write("Copying data to map data\n");
 	copy_string_to_memory(mapData, mapDataString);
 }
 

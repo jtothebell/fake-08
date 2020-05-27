@@ -23,6 +23,9 @@ class Vm {
     bool _hasUpdate;
     bool _hasDraw;
 
+    bool _cartChangeQueued;
+    std::string _nextCartKey;
+
     bool loadCart(Cart* cart);
 
     public:
@@ -44,6 +47,8 @@ class Vm {
     void FillAudioBuffer(void *audioBuffer, size_t offset, size_t size);
 
     void CloseCart();
+
+    void QueueCartChange(std::string newcart);
 
     uint8_t GetTargetFps();
 

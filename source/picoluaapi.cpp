@@ -622,20 +622,18 @@ int dset(lua_State *L) {
     return noop("dset");
 }
 
-/*
 int loadcart(lua_State *L) {
     if (lua_isstring(L, 1)){
         const char * str = "";
         str = lua_tolstring(L, 1, nullptr);
-        _vmForLuaApi->LoadCart(str);
+        _vmForLuaApi->QueueCartChange(str);
     }
 
     return 0;
 }
 
 int loadbioscart(lua_State *L) {
-    _vmForLuaApi->LoadBiosCart();
+    //_vmForLuaApi->LoadBiosCart();
 
     return 0;
 }
-*/

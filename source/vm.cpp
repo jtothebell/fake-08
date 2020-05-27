@@ -133,10 +133,8 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "dset", dset);
 
     //file system
-    /*
     lua_register(_luaState, "__loadcart", loadcart);
     lua_register(_luaState, "__loadbioscart", loadbioscart);
-    */
 
     int loadedCart = luaL_dostring(_luaState, cart->LuaString.c_str());
 
@@ -199,10 +197,17 @@ void Vm::LoadBiosCart(){
 }
 
 void Vm::LoadCart(std::string filename){
+    Logger::Write("Loading cart %s\n", filename);
     CloseCart();
 
     Logger::Write("Calling Cart Constructor\n");
-    Cart *cart = new Cart(filename);
+    Cart *cart;
+    if (filename == "__FAKE08-BIOS.p8"){
+        cart = new Cart("fake08-nocart.p8");
+    }
+    else{
+        cart = new Cart(filename);
+    } 
 
     bool success = loadCart(cart);
 
@@ -244,6 +249,17 @@ void Vm::UpdateAndDraw(
     }
 
     _picoFrameCount++;
+
+    //todo: pause menu here, but for now just load bios
+    if (kdown & P8_KEY_PAUSE) {
+        QueueCartChange("__FAKE08-BIOS.p8");
+    }
+
+    if (_cartChangeQueued) {
+        LoadCart(_nextCartKey);
+
+        _cartChangeQueued = false;
+    }
 }
 
 uint8_t* Vm::GetPicoInteralFb(){
@@ -264,6 +280,7 @@ void Vm::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
 }
 
 void Vm::CloseCart() {
+    Logger::Write("deleting cart and closing lua state\n");
     if (_loadedCart){
         delete _loadedCart;
         _loadedCart = nullptr;
@@ -273,6 +290,17 @@ void Vm::CloseCart() {
         lua_close(_luaState);
         _luaState = nullptr;
     }
+
+    Logger::Write("resetting state\n");
+    _hasUpdate = false;
+    _hasDraw = false;
+    _targetFps = 30;
+    _picoFrameCount = 0;
+}
+
+void Vm::QueueCartChange(std::string filename){
+    _nextCartKey = filename;
+    _cartChangeQueued = true;
 }
 
 uint8_t Vm::GetTargetFps() {
