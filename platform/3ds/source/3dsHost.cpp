@@ -250,12 +250,12 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, Color* paletteC
 	uint8_t* fbb = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
 	memset(fbb, bgcolor, __3ds_BottomScreenWidth*__3ds_BottomScreenHeight*3);
 
-    short x, y;
+    int x, y;
 
     //these could be combined to shorten this method
 	if (stretch == PixelPerfect) {
-		short xOffset = __3ds_TopScreenWidth / 2 - PicoScreenWidth / 2;
-        short yOffset = __3ds_TopScreenHeight / 2 - PicoScreenHeight / 2;
+		int xOffset = __3ds_TopScreenWidth / 2 - PicoScreenWidth / 2;
+        int yOffset = __3ds_TopScreenHeight / 2 - PicoScreenHeight / 2;
         //todo: test if it is faster to convert colors to uint24_ts and write one instead of 3 (assuming these are )
         for(x = 0; x < 128; x++) {
             for(y = 0; y < 128; y++) {
@@ -274,8 +274,8 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, Color* paletteC
 		double ratio = (double)__3ds_TopScreenHeight / (double)PicoScreenHeight;
         int stretchedWidth = PicoScreenWidth * ratio;
 
-        short xOffset = __3ds_TopScreenWidth / 2 - stretchedWidth / 2;
-        short yOffset = 0;
+        int xOffset = __3ds_TopScreenWidth / 2 - stretchedWidth / 2;
+        int yOffset = 0;
         
         for(x = 0; x < stretchedWidth; x++) {
             for(y = 0; y < __3ds_TopScreenHeight; y++) {
@@ -298,8 +298,8 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, Color* paletteC
         int stretchedWidth = PicoScreenWidth * ratio;
         int stretchedHeight = PicoScreenHeight * ratio;
 
-        short xOffset = __3ds_TopScreenWidth / 2 - stretchedWidth / 2;
-        short yOffset = 0;
+        int xOffset = __3ds_TopScreenWidth / 2 - stretchedWidth / 2;
+        int yOffset = 0;
 
         for(x = 0; x < stretchedWidth; x++) {
             for(y = 0; y < __3ds_TopScreenHeight; y++) {
