@@ -1,5 +1,7 @@
 #pragma once
 
+#include "PicoRam.h"
+
 #include <string>
 
 #define MAX_SFX = 64
@@ -70,74 +72,17 @@ note is encoded in 16 bits, LSB first, like so:
 //is easier for me to wrap my mind araound
 
 //this is also defined in audio? should probably consolidate
-#define BITMASK(n) (1U<<(n))
-
-struct song {
-    uint8_t loop;
- 
-    uint8_t channel1;
-    uint8_t channel2;
-    uint8_t channel3;
-    uint8_t channel4;
-
-};
-
-struct note {
-    uint8_t key;
-    uint8_t waveform;
-    uint8_t volume;
-    uint8_t effect;
-};
-
-struct sfx {
-    note notes[32];
-
-    uint8_t editorMode;
-    uint8_t speed;
-    uint8_t loopRangeStart;
-    uint8_t loopRangeEnd;
-};
-
-struct musicChannel {
-    int16_t count = 0;
-    int16_t pattern = -1;
-    int8_t master = -1;
-    uint8_t mask = 0xf;
-    uint8_t speed = 0;
-    float volume = 0.f;
-    float volume_step = 0.f;
-    float offset = 0.f;
-
-};
-
-struct sfxChannel {
-    int16_t sfxId = -1;
-    float offset = 0;
-    float phi = 0;
-    bool can_loop = true;
-    bool is_music = false;
-    int8_t prev_key = 0;
-    float prev_vol = 0;
-};
-
 
 
 class Audio {
-    //uint8_t _musicRam[64 * 4];
-    song _songs[64];
-
-    //uint8_t _sfxRam[64 * 68];
-    sfx _sfx[64];
-
-    musicChannel _musicChannel;
-    sfxChannel _sfxChannels[4];
+    PicoRam* _memory;
 
     int16_t getSampleForChannel(int channel);
 
     void set_music_pattern(int pattern);
     
     public:
-    Audio();
+    Audio(PicoRam* memory);
 
     void setSfx(std::string sfxString);
     void setMusic(std::string musicString);

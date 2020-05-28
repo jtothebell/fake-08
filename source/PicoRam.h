@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 
 /*
@@ -15,11 +17,69 @@
 0x6000 	0x7fff 	Screen data (8k) 
 */
 
+struct song {
+    uint8_t loop;
+ 
+    uint8_t channel1;
+    uint8_t channel2;
+    uint8_t channel3;
+    uint8_t channel4;
+
+};
+
+struct note {
+    uint8_t key;
+    uint8_t waveform;
+    uint8_t volume;
+    uint8_t effect;
+};
+
+struct sfx {
+    note notes[32];
+
+    uint8_t editorMode;
+    uint8_t speed;
+    uint8_t loopRangeStart;
+    uint8_t loopRangeEnd;
+};
+
+struct musicChannel {
+    int16_t count = 0;
+    int16_t pattern = -1;
+    int8_t master = -1;
+    uint8_t mask = 0xf;
+    uint8_t speed = 0;
+    float volume = 0.f;
+    float volume_step = 0.f;
+    float offset = 0.f;
+};
+
+struct sfxChannel {
+    int16_t sfxId = -1;
+    float offset = 0;
+    float phi = 0;
+    bool can_loop = true;
+    bool is_music = false;
+    int8_t prev_key = 0;
+    float prev_vol = 0;
+};
+
+
 struct PicoRam
 {
     uint8_t spriteSheetData[128 * 64];
 	uint8_t mapData[128 * 32];
 	uint8_t spriteFlags[256];
+
+	//uint8_t _musicRam[64 * 4];
+    song _songs[64];
+
+    //uint8_t _sfxRam[64 * 68];
+    sfx _sfx[64];
+
+    musicChannel _musicChannel;
+    sfxChannel _sfxChannels[4];
+	
 
 	uint8_t _gfxState_color;
     uint8_t _gfxState_bgColor;

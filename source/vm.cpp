@@ -37,7 +37,7 @@ Vm::Vm(){
     Input* input = new Input();
     _input = input;
 
-    Audio* audio = new Audio();
+    Audio* audio = new Audio(&_memory);
     _audio = audio;
 
     //this can probably go away when I'm loading actual carts and just have to expose api to lua
@@ -58,11 +58,19 @@ Vm::~Vm(){
 
 bool Vm::loadCart(Cart* cart) {
     _picoFrameCount = 0;
-    
+
+    //reset memory (may have to be more selective about zeroing out to be accurate?)
     _memory = {0};
+    //set graphics state
     _memory._gfxState_color = 7;
     _graphics->clip();
     _graphics->pal();
+
+    //reset audio
+    for(int i = 0; i < 4; i++) {
+        _memory._sfxChannels[i].sfxId = -1;
+    }
+    _memory._musicChannel.pattern = -1;
 
 
     _graphics->setSpriteSheet(cart->SpriteSheetString);
