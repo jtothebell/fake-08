@@ -16,9 +16,9 @@ class Host {
 
     void oneTimeSetup();
 
-    void setTargetFps(uint8_t targetFps);
+    void setTargetFps(int targetFps);
 
-     bool mainLoop();
+    bool mainLoop();
 
     void scanInput();
     uint8_t getKeysDown();
@@ -39,7 +39,6 @@ class Host {
 
     void oneTimeCleanup();
 
-    
-
+    double deltaTMs();
    
 };

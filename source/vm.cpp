@@ -303,7 +303,7 @@ void Vm::QueueCartChange(std::string filename){
     _cartChangeQueued = true;
 }
 
-uint8_t Vm::GetTargetFps() {
+int Vm::GetTargetFps() {
     return _targetFps;
 }
 

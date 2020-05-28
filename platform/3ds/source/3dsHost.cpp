@@ -180,7 +180,7 @@ void Host::oneTimeCleanup(){
 	gfxExit();
 }
 
-void Host::setTargetFps(uint8_t targetFps){
+void Host::setTargetFps(int targetFps){
     targetFrameTimeMs = 1000.0 / (double)targetFps;
 }
 

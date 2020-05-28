@@ -179,7 +179,7 @@ void Host::oneTimeCleanup(){
 	framebufferClose(&fb);
 }
 
-void Host::setTargetFps(uint8_t targetFps){
+void Host::setTargetFps(int targetFps){
     targetFrameTimeMs = 1000.0 / (double)targetFps;
 }
 
@@ -217,25 +217,25 @@ bool Host::shouldQuit() {
 	return lpressed && rpressed;
 }
 
+const double NANOSECONDS_TO_MILLISECONDS = 1.0 / 1000000.0;
 
 void Host::waitForTargetFps(){
-    now_time = svcGetSystemTick();
+    now_time = armGetSystemTick();
     frame_time = now_time - last_time;
 	last_time = now_time;
 
-    //not sure how to do this on switch?
-    /*
-	double frameTimeMs = frame_time / CPU_TICKS_PER_MSEC;
+    u64 frameTimeNs = armTicksToNs(frame_time);
+	double frameTimeMs = frameTimeNs * NANOSECONDS_TO_MILLISECONDS;
 
 	//sleep for remainder of time
 	if (frameTimeMs < targetFrameTimeMs) {
 		double msToSleep = targetFrameTimeMs - frameTimeMs;
+        u64 nsToSleep = msToSleep * 1000 * 1000;
 
-		svcSleepThread(msToSleep * 1000 * 1000);
+		svcSleepThread(nsToSleep);
 
-		last_time += CPU_TICKS_PER_MSEC * msToSleep;
+		last_time += armNsToTicks(nsToSleep);
 	}
-    */
 }
 
 

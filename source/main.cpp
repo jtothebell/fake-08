@@ -29,12 +29,11 @@ int main(int argc, char* argv[])
 	// Main loop
 	Logger::Write("Starting main loop\n");
 
-	uint8_t targetFps = vm->GetTargetFps();
-	host->setTargetFps(targetFps);
-	
-
 	while (host->mainLoop())
 	{
+		int targetFps = vm->GetTargetFps();
+		host->setTargetFps(targetFps);
+
 		host->waitForTargetFps();
 
 		host->scanInput();

@@ -17,7 +17,7 @@ class Vm {
     lua_State* _luaState;
     Input* _input;
 
-    uint8_t _targetFps;
+    int _targetFps;
 
     int _picoFrameCount;
     bool _hasUpdate;
@@ -50,7 +50,7 @@ class Vm {
 
     void QueueCartChange(std::string newcart);
 
-    uint8_t GetTargetFps();
+    int GetTargetFps();
 
     int GetFrameCount();
 };
