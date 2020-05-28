@@ -589,11 +589,11 @@ int cstore(lua_State *L) {
     return noop("cstore");
 }
 
-int memcpy(lua_State *L) {
+int api_memcpy(lua_State *L) {
     return noop("memcpy");
 }
 
-int memset(lua_State *L) {
+int api_memset(lua_State *L) {
     return noop("memset");
 }
 

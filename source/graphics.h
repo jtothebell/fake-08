@@ -2,6 +2,7 @@
 
 #include <string>
 #include "hostVmShared.h"
+#include "PicoRam.h"
 
 #define COLOR_00 {  0,   0,   0, 255}
 #define COLOR_01 { 29,  43,  83, 255}
@@ -27,35 +28,9 @@ class Graphics {
 	uint8_t _pico8_fb[128*128];
 	uint8_t fontSpriteData[128 * 64];
 
-	uint8_t spriteSheetData[128 * 64];
-	uint8_t mapData[128 * 64];
-	uint8_t spriteFlags[256];
-
 	Color _paletteColors[16];
 
-	uint8_t _gfxState_color;
-    uint8_t _gfxState_bgColor;
-
-    int _gfxState_text_x;
-	int _gfxState_text_y;
-
-	int _gfxState_camera_x;
-	int _gfxState_camera_y;
-
-	int _gfxState_clip_xb;
-	int _gfxState_clip_yb;
-	int _gfxState_clip_xe;
-	int _gfxState_clip_ye;
-
-	uint8_t _gfxState_drawPaletteMap[16];
-	uint8_t _gfxState_screenPaletteMap[16];
-	bool _gfxState_transparencyPalette[16];
-
-	//not actually part of graphics state memory?
-	int _gfxState_line_x;
-	int _gfxState_line_y;
-	bool _gfxState_line_valid;
-
+	PicoRam* _memory;
 
 	void copySpriteToScreen(
 		uint8_t spritebuffer[],
@@ -99,7 +74,7 @@ class Graphics {
 	void _private_v_line (int y1, int y2, int x, uint8_t col);
 
 	public:
-	Graphics(std::string fontdata);
+	Graphics(std::string fontdata, PicoRam* memory);
 
 	void setSpriteSheet(std::string spriteSheetString);
 	void setSpriteFlags(std::string spriteFlagsString);

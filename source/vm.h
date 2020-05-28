@@ -11,6 +11,8 @@ extern "C" {
 }
 
 class Vm {
+    PicoRam _memory;
+
     Cart* _loadedCart;
     Graphics* _graphics;
     Audio* _audio;
@@ -31,7 +33,7 @@ class Vm {
     public:
     Vm();
     ~Vm();
-
+    
     void LoadBiosCart();
 
     void LoadCart(std::string filename);

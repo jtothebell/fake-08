@@ -69,8 +69,8 @@ int stat(lua_State *L);
 
 //memory api
 int cstore(lua_State *L);
-int memcpy(lua_State *L);
-int memset(lua_State *L);
+int api_memcpy(lua_State *L);
+int api_memset(lua_State *L);
 int peek(lua_State *L);
 int poke(lua_State *L);
 int reload(lua_State *L);

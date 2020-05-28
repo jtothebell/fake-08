@@ -22,9 +22,16 @@ Vm::Vm(){
     Logger::Write("getting font string\n");
     auto fontdata = get_font_data();
 
+    _memory = {0};
+    
+
     Logger::Write("Creating Graphics object\n");
-    Graphics* graphics = new Graphics(fontdata);
+    Graphics* graphics = new Graphics(fontdata, &_memory);
     _graphics = graphics;
+
+    _memory._gfxState_color = 7;
+    _graphics->clip();
+    _graphics->pal();
 
     Logger::Write("Creating Input object\n");
     Input* input = new Input();
@@ -51,6 +58,12 @@ Vm::~Vm(){
 
 bool Vm::loadCart(Cart* cart) {
     _picoFrameCount = 0;
+    
+    _memory = {0};
+    _memory._gfxState_color = 7;
+    _graphics->clip();
+    _graphics->pal();
+
 
     _graphics->setSpriteSheet(cart->SpriteSheetString);
     _graphics->setSpriteFlags(cart->SpriteFlagsString);
@@ -121,8 +134,8 @@ bool Vm::loadCart(Cart* cart) {
 
     //stubbed in memory
     lua_register(_luaState, "cstore", cstore);
-    lua_register(_luaState, "memcpy", memcpy);
-    lua_register(_luaState, "memset", memset);
+    lua_register(_luaState, "memcpy", api_memcpy);
+    lua_register(_luaState, "memset", api_memset);
     lua_register(_luaState, "peek", peek);
     lua_register(_luaState, "poke", poke);
     lua_register(_luaState, "reload", reload);
