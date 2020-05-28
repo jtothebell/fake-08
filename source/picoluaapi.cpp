@@ -43,7 +43,7 @@ int cls(lua_State *L){
         _graphicsForLuaApi->cls();
     }
     else {
-        short c = lua_tonumber(L,1);
+        int c = lua_tonumber(L,1);
         _graphicsForLuaApi->cls(c);
     }
 
@@ -51,15 +51,15 @@ int cls(lua_State *L){
 }
 
 int pset(lua_State *L){
-    short x = lua_tonumber(L,1);
-    short y = lua_tonumber(L,2);
+    int x = lua_tonumber(L,1);
+    int y = lua_tonumber(L,2);
 
     if (lua_gettop(L) <= 2) {
         _graphicsForLuaApi->pset(x, y);
         return 0;
     }
 
-    short c = lua_tonumber(L,3);
+    int c = lua_tonumber(L,3);
 
     _graphicsForLuaApi->pset(x, y, (uint8_t)c);
 
@@ -70,7 +70,7 @@ int pget(lua_State *L){
     double x = lua_tonumber(L,1);
     double y = lua_tonumber(L,2);
 
-    uint8_t color = _graphicsForLuaApi->pget((short)x, (short)y);
+    uint8_t color = _graphicsForLuaApi->pget((int)x, (int)y);
 
     lua_pushinteger(L, color);
 
@@ -95,31 +95,31 @@ int line (lua_State *L){
         _graphicsForLuaApi->line(c);
     }
     else if (lua_gettop(L) == 2) {
-        short x1 = lua_tonumber(L,1);
-        short y1 = lua_tonumber(L,2);
+        int x1 = lua_tonumber(L,1);
+        int y1 = lua_tonumber(L,2);
 
         _graphicsForLuaApi->line(x1, y1);
     }
     else if (lua_gettop(L) == 3) {
-        short x1 = lua_tonumber(L,1);
-        short y1 = lua_tonumber(L,2);
+        int x1 = lua_tonumber(L,1);
+        int y1 = lua_tonumber(L,2);
         uint8_t c = lua_tonumber(L,3);
 
         _graphicsForLuaApi->line(x1, y1, c);
     }
     else if (lua_gettop(L) == 4) {
-        short x1 = lua_tonumber(L,1);
-        short y1 = lua_tonumber(L,2);
-        short x2 = lua_tonumber(L,3);
-        short y2 = lua_tonumber(L,4);
+        int x1 = lua_tonumber(L,1);
+        int y1 = lua_tonumber(L,2);
+        int x2 = lua_tonumber(L,3);
+        int y2 = lua_tonumber(L,4);
 
         _graphicsForLuaApi->line(x1, y1, x2, y2);
     }
     else {
-        short x1 = lua_tonumber(L,1);
-        short y1 = lua_tonumber(L,2);
-        short x2 = lua_tonumber(L,3);
-        short y2 = lua_tonumber(L,4);
+        int x1 = lua_tonumber(L,1);
+        int y1 = lua_tonumber(L,2);
+        int x2 = lua_tonumber(L,3);
+        int y2 = lua_tonumber(L,4);
         uint8_t c = lua_tonumber(L,5);
 
         _graphicsForLuaApi->line(x1, y1, x2, y2, c);
@@ -129,18 +129,18 @@ int line (lua_State *L){
 }
 
 int circ(lua_State *L){
-    short ox = lua_tonumber(L,1);
-    short oy = lua_tonumber(L,2);
+    int ox = lua_tonumber(L,1);
+    int oy = lua_tonumber(L,2);
 
     if (lua_gettop(L) == 2) {
         _graphicsForLuaApi->circ(ox, oy);
     } 
     else if (lua_gettop(L) == 3){
-        short r = lua_tonumber(L,3);
+        int r = lua_tonumber(L,3);
         _graphicsForLuaApi->circ(ox, oy, r);
     }
     else if (lua_gettop(L) > 3){
-        short r = lua_tonumber(L,3);
+        int r = lua_tonumber(L,3);
         uint8_t c = lua_tonumber(L,4);
 
         _graphicsForLuaApi->circ(ox, oy, r, c);
@@ -150,18 +150,18 @@ int circ(lua_State *L){
 }
 
 int circfill(lua_State *L){
-    short ox = lua_tonumber(L,1);
-    short oy = lua_tonumber(L,2);
+    int ox = lua_tonumber(L,1);
+    int oy = lua_tonumber(L,2);
 
     if (lua_gettop(L) == 2) {
         _graphicsForLuaApi->circfill(ox, oy);
     } 
     else if (lua_gettop(L) == 3){
-        short r = lua_tonumber(L,3);
+        int r = lua_tonumber(L,3);
         _graphicsForLuaApi->circfill(ox, oy, r);
     }
     else if (lua_gettop(L) > 3){
-        short r = lua_tonumber(L,3);
+        int r = lua_tonumber(L,3);
         uint8_t c = lua_tonumber(L,4);
 
         _graphicsForLuaApi->circfill(ox, oy, r, c);
@@ -173,10 +173,10 @@ int circfill(lua_State *L){
 int rect(lua_State *L){
 
     if (lua_gettop(L) >= 4) {
-        short x1 = lua_tonumber(L,1);
-        short y1 = lua_tonumber(L,2);
-        short x2 = lua_tonumber(L,3);
-        short y2 = lua_tonumber(L,4);
+        int x1 = lua_tonumber(L,1);
+        int y1 = lua_tonumber(L,2);
+        int x2 = lua_tonumber(L,3);
+        int y2 = lua_tonumber(L,4);
 
         if (lua_gettop(L) == 4){
             _graphicsForLuaApi->rect(x1, y1, x2, y2);
@@ -194,10 +194,10 @@ int rect(lua_State *L){
 
 int rectfill(lua_State *L){
     if (lua_gettop(L) >= 4) {
-        short x1 = lua_tonumber(L,1);
-        short y1 = lua_tonumber(L,2);
-        short x2 = lua_tonumber(L,3);
-        short y2 = lua_tonumber(L,4);
+        int x1 = lua_tonumber(L,1);
+        int y1 = lua_tonumber(L,2);
+        int x2 = lua_tonumber(L,3);
+        int y2 = lua_tonumber(L,4);
 
         if (lua_gettop(L) == 4){
             _graphicsForLuaApi->rectfill(x1, y1, x2, y2);
@@ -239,14 +239,14 @@ int print(lua_State *L){
         _graphicsForLuaApi->print(str);
     }
     else if (lua_gettop(L) == 3) {
-        short x = lua_tonumber(L,2);
-        short y = lua_tonumber(L,3);
+        int x = lua_tonumber(L,2);
+        int y = lua_tonumber(L,3);
 
         _graphicsForLuaApi->print(str, x, y);
     }
     else {
-        short x = lua_tonumber(L,2);
-        short y = lua_tonumber(L,3);
+        int x = lua_tonumber(L,2);
+        int y = lua_tonumber(L,3);
 
         uint8_t c = lua_tonumber(L,4);
 
@@ -261,9 +261,9 @@ int spr(lua_State *L) {
         return 0;
     }
 
-    short n = lua_tonumber(L,1);
-    short x = lua_tonumber(L,2);
-    short y = lua_tonumber(L,3);
+    int n = lua_tonumber(L,1);
+    int x = lua_tonumber(L,2);
+    int y = lua_tonumber(L,3);
     double w = 1.0;
     double h = 1.0;
     bool flip_x = false;
@@ -293,15 +293,15 @@ int sspr(lua_State *L) {
         return 0;
     }
 
-    short sx = lua_tonumber(L,1);
-    short sy = lua_tonumber(L,2);
-    short sw = lua_tonumber(L,3);
-    short sh = lua_tonumber(L,4);
-    short dx = lua_tonumber(L,5);
-    short dy = lua_tonumber(L,6);
+    int sx = lua_tonumber(L,1);
+    int sy = lua_tonumber(L,2);
+    int sw = lua_tonumber(L,3);
+    int sh = lua_tonumber(L,4);
+    int dx = lua_tonumber(L,5);
+    int dy = lua_tonumber(L,6);
 
-    short dw = sw;
-    short dh = sh;
+    int dw = sw;
+    int dh = sh;
     bool flip_x = false;
     bool flip_y = false;
 
@@ -366,8 +366,8 @@ int fset(lua_State *L) {
 }
 
 int sget(lua_State *L) {
-    short x = lua_tonumber(L,1);
-    short y = lua_tonumber(L,2);
+    int x = lua_tonumber(L,1);
+    int y = lua_tonumber(L,2);
     uint8_t result = _graphicsForLuaApi->sget((uint8_t)x, (uint8_t)y);
     lua_pushinteger(L, result);
 
@@ -375,8 +375,8 @@ int sget(lua_State *L) {
 }
 
 int sset(lua_State *L) {
-    short x = lua_tonumber(L,1);
-    short y = lua_tonumber(L,2);
+    int x = lua_tonumber(L,1);
+    int y = lua_tonumber(L,2);
     uint8_t c = lua_tonumber(L,3);
     _graphicsForLuaApi->sset(x, y, c);
 
@@ -384,8 +384,8 @@ int sset(lua_State *L) {
 }
 
 int camera(lua_State *L) {
-    short x = 0;
-    short y = 0;
+    int x = 0;
+    int y = 0;
     if (lua_gettop(L) > 0) {
         x = lua_tonumber(L,1);
     }
@@ -400,10 +400,10 @@ int camera(lua_State *L) {
 
 int clip(lua_State *L) {
     if (lua_gettop(L) >= 4) {
-        short x = lua_tonumber(L,1);
-        short y = lua_tonumber(L,2);
-        short w = lua_tonumber(L,3);
-        short h = lua_tonumber(L,4);
+        int x = lua_tonumber(L,1);
+        int y = lua_tonumber(L,2);
+        int w = lua_tonumber(L,3);
+        int h = lua_tonumber(L,4);
 
         _graphicsForLuaApi->clip(x, y, w, h);
     }
@@ -415,8 +415,8 @@ int clip(lua_State *L) {
 }
 
 int mget(lua_State *L) {
-    short celx = lua_tonumber(L,1);
-    short cely = lua_tonumber(L,2);
+    int celx = lua_tonumber(L,1);
+    int cely = lua_tonumber(L,2);
 
     uint8_t result = _graphicsForLuaApi->mget(celx, cely);
     lua_pushnumber(L, result);
@@ -425,8 +425,8 @@ int mget(lua_State *L) {
 }
 
 int mset(lua_State *L) {
-    short celx = lua_tonumber(L,1);
-    short cely = lua_tonumber(L,2);
+    int celx = lua_tonumber(L,1);
+    int cely = lua_tonumber(L,2);
     uint8_t snum = lua_tonumber(L, 3);
 
     _graphicsForLuaApi->mset(celx, cely, snum);
@@ -435,12 +435,12 @@ int mset(lua_State *L) {
 }
 
 int map(lua_State *L) {
-    short celx = lua_tonumber(L,1);
-    short cely = lua_tonumber(L,2);
-    short sx = lua_tonumber(L,3);
-    short sy = lua_tonumber(L,4);
-    short celw = lua_tonumber(L,5);
-    short celh = lua_tonumber(L,6);
+    int celx = lua_tonumber(L,1);
+    int cely = lua_tonumber(L,2);
+    int sx = lua_tonumber(L,3);
+    int sy = lua_tonumber(L,4);
+    int celw = lua_tonumber(L,5);
+    int celh = lua_tonumber(L,6);
     uint8_t layer = 0;
 
     if (lua_gettop(L) > 6){
@@ -489,8 +489,8 @@ int palt(lua_State *L) {
 }
 
 int cursor(lua_State *L) {
-    short x = lua_tonumber(L,1);
-    short y = lua_tonumber(L,2);
+    int x = lua_tonumber(L,1);
+    int y = lua_tonumber(L,2);
 
     if (lua_gettop(L) <= 2) {
         _graphicsForLuaApi->cursor(x, y);
@@ -519,7 +519,7 @@ int flip(lua_State *L) {
 int btn(lua_State *L){
     double i = lua_tonumber(L,1);
 
-    bool pressed = _inputForLuaApi->btn((short)i);
+    bool pressed = _inputForLuaApi->btn((int)i);
 
     lua_pushboolean(L, pressed);
 
@@ -528,7 +528,7 @@ int btn(lua_State *L){
 int btnp(lua_State *L){
     double i = lua_tonumber(L,1);
 
-    bool pressed = _inputForLuaApi->btnp((short)i);
+    bool pressed = _inputForLuaApi->btnp((int)i);
 
     lua_pushboolean(L, pressed);
 
@@ -554,13 +554,13 @@ int stat(lua_State *L) {
 //Audio
 int music(lua_State *L) {
     double n = lua_tonumber(L,1);
-    short fadems = 0;
+    int fadems = 0;
     if (lua_gettop(L) > 1) {
-        fadems = (short)lua_tonumber(L, 2);
+        fadems = (int)lua_tonumber(L, 2);
     }
-    short channelmask = 0;
+    int channelmask = 0;
     if (lua_gettop(L) > 2) {
-        channelmask = (short)lua_tonumber(L, 3);
+        channelmask = (int)lua_tonumber(L, 3);
     }
 
     _audioForLuaApi->api_music((uint8_t)n, fadems, channelmask);
@@ -570,16 +570,16 @@ int music(lua_State *L) {
 
 int sfx(lua_State *L) {
     double n = lua_tonumber(L,1);
-    short channel = -1;
+    int channel = -1;
     if (lua_gettop(L) > 1) {
-        channel = (short)lua_tonumber(L, 2);
+        channel = (int)lua_tonumber(L, 2);
     }
-    short offset = 0;
+    int offset = 0;
     if (lua_gettop(L) > 2) {
-        offset = (short)lua_tonumber(L, 3);
+        offset = (int)lua_tonumber(L, 3);
     }
 
-    _audioForLuaApi->api_sfx((short)n, channel, offset);
+    _audioForLuaApi->api_sfx((int)n, channel, offset);
     
     return 0;
 }

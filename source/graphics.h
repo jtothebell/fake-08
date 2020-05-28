@@ -36,35 +36,35 @@ class Graphics {
 	uint8_t _gfxState_color;
     uint8_t _gfxState_bgColor;
 
-    short _gfxState_text_x;
-	short _gfxState_text_y;
+    int _gfxState_text_x;
+	int _gfxState_text_y;
 
-	short _gfxState_camera_x;
-	short _gfxState_camera_y;
+	int _gfxState_camera_x;
+	int _gfxState_camera_y;
 
-	short _gfxState_clip_xb;
-	short _gfxState_clip_yb;
-	short _gfxState_clip_xe;
-	short _gfxState_clip_ye;
+	int _gfxState_clip_xb;
+	int _gfxState_clip_yb;
+	int _gfxState_clip_xe;
+	int _gfxState_clip_ye;
 
 	uint8_t _gfxState_drawPaletteMap[16];
 	uint8_t _gfxState_screenPaletteMap[16];
 	bool _gfxState_transparencyPalette[16];
 
 	//not actually part of graphics state memory?
-	short _gfxState_line_x;
-	short _gfxState_line_y;
+	int _gfxState_line_x;
+	int _gfxState_line_y;
 	bool _gfxState_line_valid;
 
 
 	void copySpriteToScreen(
 		uint8_t spritebuffer[],
-		short scr_x,
-		short scr_y,
-		short spr_x,
-		short spr_y,
-		short spr_w,
-		short spr_h,
+		int scr_x,
+		int scr_y,
+		int spr_x,
+		int spr_y,
+		int spr_w,
+		int spr_h,
 		bool flip_x,
 		bool flip_y);
 
@@ -81,23 +81,22 @@ class Graphics {
 		bool flip_x,
 		bool flip_y);
 
-	void swap(short *x, short *y);
-	void applyCameraToPoint(short *x, short *y);
+	void swap(int *x, int *y);
 	void applyCameraToPoint(int *x, int *y);
 
-	void sortPointsLtoR(short *x1, short *y1, short *x2, short *y2);
+	void sortPointsLtoR(int *x1, int *y1, int *x2, int *y2);
 
-	void sortCoordsForRect(short *x1, short *y1, short *x2, short *y2);
+	void sortCoordsForRect(int *x1, int *y1, int *x2, int *y2);
 
-	bool isOnScreen(short x, short y);
-	bool isWithinClip(short x, short y);
-	bool isXWithinClip(short x);
-	bool isYWithinClip(short y);
+	bool isOnScreen(int x, int y);
+	bool isWithinClip(int x, int y);
+	bool isXWithinClip(int x);
+	bool isYWithinClip(int y);
 
-	void _private_pset(short x, short y, uint8_t col);
-	void _private_safe_pset(short x, short y, uint8_t col);
-	void _private_h_line (short x1, short x2, short y, uint8_t col);
-	void _private_v_line (short y1, short y2, short x, uint8_t col);
+	void _private_pset(int x, int y, uint8_t col);
+	void _private_safe_pset(int x, int y, uint8_t col);
+	void _private_h_line (int x1, int x2, int y, uint8_t col);
+	void _private_v_line (int y1, int y2, int x, uint8_t col);
 
 	public:
 	Graphics(std::string fontdata);
@@ -113,53 +112,53 @@ class Graphics {
 	void cls();
 	void cls(uint8_t color);
 
-	void pset(short x, short y);
-	void pset(short x, short y, uint8_t col);
-	uint8_t pget(short x, short y);
+	void pset(int x, int y);
+	void pset(int x, int y, uint8_t col);
+	uint8_t pget(int x, int y);
 
 	void color(uint8_t c);
 
 	void line ();
 	void line (uint8_t col);
-	void line (short x1, short y1);
-	void line (short x1, short y1, uint8_t col);
-	void line (short x1, short y1, short x2, short y2);
-	void line (short x1, short y1, short x2, short y2, uint8_t col);
+	void line (int x1, int y1);
+	void line (int x1, int y1, uint8_t col);
+	void line (int x1, int y1, int x2, int y2);
+	void line (int x1, int y1, int x2, int y2, uint8_t col);
 
-	void circ(short ox, short oy);
-	void circ(short ox, short oy, short r);
-	void circ(short ox, short oy, short r, uint8_t col);
-	void circfill(short ox, short oy);
-	void circfill(short ox, short oy, short r);
-	void circfill(short ox, short oy, short r, uint8_t col);
+	void circ(int ox, int oy);
+	void circ(int ox, int oy, int r);
+	void circ(int ox, int oy, int r, uint8_t col);
+	void circfill(int ox, int oy);
+	void circfill(int ox, int oy, int r);
+	void circfill(int ox, int oy, int r, uint8_t col);
 
-	void rect(short x1, short y1, short x2, short y2);
-	void rect(short x1, short y1, short x2, short y2, uint8_t col);
-	void rectfill(short x1, short y1, short x2, short y2);
-	void rectfill(short x1, short y1, short x2, short y2, uint8_t col);
+	void rect(int x1, int y1, int x2, int y2);
+	void rect(int x1, int y1, int x2, int y2, uint8_t col);
+	void rectfill(int x1, int y1, int x2, int y2);
+	void rectfill(int x1, int y1, int x2, int y2, uint8_t col);
 
-	short print(std::string str);
-	short print(std::string str, short x, short y);
-	short print(std::string str, short x, short y, uint16_t c);
+	int print(std::string str);
+	int print(std::string str, int x, int y);
+	int print(std::string str, int x, int y, uint16_t c);
 
 	void spr(
-		short n,
-		short x,
-		short y,
+		int n,
+		int x,
+		int y,
 		double w,
 		double h,
 		bool flip_x,
 		bool flip_y);
 
 	void sspr(
-        short sx,
-        short sy,
-        short sw,
-        short sh,
-        short dx,
-        short dy,
-        short dw,
-        short dh,
+        int sx,
+        int sy,
+        int sw,
+        int sh,
+        int dx,
+        int dy,
+        int dw,
+        int dh,
         bool flip_x,
         bool flip_y);
 
@@ -172,13 +171,13 @@ class Graphics {
 	void sset(uint8_t x, uint8_t y, uint8_t c);
 
 	void camera();
-	void camera(short x, short y);
+	void camera(int x, int y);
 
 	void clip();
-	void clip(short x, short y, short w, short h);
+	void clip(int x, int y, int w, int h);
 
-	uint8_t mget(short celx, short cely);
-	void mset(short celx, short cely, uint8_t snum);
+	uint8_t mget(int celx, int cely);
+	void mset(int celx, int cely, uint8_t snum);
 
 	void map(int celx, int cely, int sx, int sy, int celw, int celh);
 	void map(int celx, int cely, int sx, int sy, int celw, int celh, uint8_t layer);
@@ -189,8 +188,8 @@ class Graphics {
 	void palt(uint8_t c0, bool t);
 
 	void cursor();
-	void cursor(short x, short y);
-	void cursor(short x, short y, uint8_t col);
+	void cursor(int x, int y);
+	void cursor(int x, int y, uint8_t col);
 
 };
 

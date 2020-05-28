@@ -77,19 +77,19 @@ Color* Graphics::GetPaletteColors(){
 //based on tac08 implementation of blitter()
 void Graphics::copySpriteToScreen(
 	uint8_t spritebuffer[],
-	short scr_x,
-	short scr_y,
-	short spr_x,
-	short spr_y,
-	short spr_w,
-	short spr_h,
+	int scr_x,
+	int scr_y,
+	int spr_x,
+	int spr_y,
+	int spr_w,
+	int spr_h,
 	bool flip_x,
 	bool flip_y) 
 {
 
 	//note: no clipping yet
-	short scr_w = spr_w;
-	short scr_h = spr_h;
+	int scr_w = spr_w;
+	int scr_h = spr_h;
 
 	applyCameraToPoint(&scr_x, &scr_y);
 
@@ -129,7 +129,7 @@ void Graphics::copySpriteToScreen(
 		scr_h -= nclip;
 	}
 	
-	short dy = 1;
+	int dy = 1;
 	if (flip_y) {
 		spr_y += spr_h - 1;
 		dy = -dy;
@@ -137,12 +137,12 @@ void Graphics::copySpriteToScreen(
 
 	//todo: honor x and y flipping
 
-	for (short y = 0; y < scr_h; y++) {
+	for (int y = 0; y < scr_h; y++) {
 		uint8_t* spr = spritebuffer + ((spr_y + y * dy) & 0x7f) * 64;
 
 		if (!flip_x) {
-			for (short x = 0; x < scr_w; x++) {
-				short combinedPixIdx = spr_x / 2 + x / 2;
+			for (int x = 0; x < scr_w; x++) {
+				int combinedPixIdx = spr_x / 2 + x / 2;
 				uint8_t bothPix = spr[combinedPixIdx];
 
 				uint8_t c = x % 2 == 0 
@@ -154,9 +154,9 @@ void Graphics::copySpriteToScreen(
 				}
 			}
 		} else {
-			for (short x = 0; x < scr_w; x++) {
+			for (int x = 0; x < scr_w; x++) {
 				int pixIndex = spr_x + spr_w - (x + 1);
-				short combinedPixIdx = pixIndex / 2;
+				int combinedPixIdx = pixIndex / 2;
 				uint8_t bothPix = spr[combinedPixIdx];
 
 				uint8_t c = x % 2 == 0 
@@ -277,16 +277,11 @@ void Graphics::copyStretchSpriteToScreen(
 	}
 }
 
-void Graphics::swap(short *x, short *y) {
-	short temp;
+void Graphics::swap(int *x, int *y) {
+	int temp;
 	temp = *x;
 	*x = *y;
 	*y = temp;
-}
-
-void Graphics::applyCameraToPoint(short *x, short *y) {
-	*x -= _gfxState_camera_x;
-	*y -= _gfxState_camera_y;
 }
 
 void Graphics::applyCameraToPoint(int *x, int *y) {
@@ -294,14 +289,14 @@ void Graphics::applyCameraToPoint(int *x, int *y) {
 	*y -= _gfxState_camera_y;
 }
 
-void Graphics::sortPointsLtoR(short *x1, short *y1, short *x2, short *y2){
+void Graphics::sortPointsLtoR(int *x1, int *y1, int *x2, int *y2){
 	if (*x1 > *x2) {
 		swap(x1, x2);
 		swap(y1, y2);
 	}
 }
 
-void Graphics::sortCoordsForRect(short *x1, short *y1, short *x2, short *y2){
+void Graphics::sortCoordsForRect(int *x1, int *y1, int *x2, int *y2){
 	if (*x1 > *x2) {
 		swap(x1, x2);
 	}
@@ -311,7 +306,7 @@ void Graphics::sortCoordsForRect(short *x1, short *y1, short *x2, short *y2){
 	}
 }
 
-bool Graphics::isOnScreen(short x, short y) {
+bool Graphics::isOnScreen(int x, int y) {
 	return 
 		x >= 0 && 
 		x <= 127 && 
@@ -319,7 +314,7 @@ bool Graphics::isOnScreen(short x, short y) {
 		y <= 127;
 }
 
-bool Graphics::isWithinClip(short x, short y) {
+bool Graphics::isWithinClip(int x, int y) {
 	return 
 		x >= _gfxState_clip_xb && 
 		x <= _gfxState_clip_xe && 
@@ -327,31 +322,31 @@ bool Graphics::isWithinClip(short x, short y) {
 		y <= _gfxState_clip_ye;
 }
 
-bool Graphics::isXWithinClip(short x) {
+bool Graphics::isXWithinClip(int x) {
 	return 
 		x >= _gfxState_clip_xb && 
 		x <= _gfxState_clip_xe;
 }
 
-bool Graphics::isYWithinClip(short y) {
+bool Graphics::isYWithinClip(int y) {
 	return 
 		y >= _gfxState_clip_yb && 
 		y <= _gfxState_clip_ye;
 }
 
 
-short clampCoordToScreenDims(short val) {
-	return std::clamp(val, (short)0, (short)127);
+int clampCoordToScreenDims(int val) {
+	return std::clamp(val, (int)0, (int)127);
 }
 
 
-void Graphics::_private_safe_pset(short x, short y, uint8_t col) {
+void Graphics::_private_safe_pset(int x, int y, uint8_t col) {
 	if (isWithinClip(x, y)){
 		_pico8_fb[(x * 128) + y] = _gfxState_drawPaletteMap[col];
 	}
 }
 
-void Graphics::_private_pset(short x, short y, uint8_t col) {
+void Graphics::_private_pset(int x, int y, uint8_t col) {
 	x = x & 127;
 	y = y & 127;
 
@@ -370,11 +365,11 @@ void Graphics::cls(uint8_t color) {
 	_gfxState_text_y = 0;
 }
 
-void Graphics::pset(short x, short y){
+void Graphics::pset(int x, int y){
 	this->pset(x, y, _gfxState_color);
 }
 
-void Graphics::pset(short x, short y, uint8_t col){
+void Graphics::pset(int x, int y, uint8_t col){
 	color(col);
 
 	applyCameraToPoint(&x, &y);
@@ -384,7 +379,7 @@ void Graphics::pset(short x, short y, uint8_t col){
 	}
 }
 
-uint8_t Graphics::pget(short x, short y){
+uint8_t Graphics::pget(int x, int y){
 	if (isOnScreen(x, y)){
 		return _pico8_fb[(x * 128) + y];
 	}
@@ -409,54 +404,54 @@ void Graphics::line (uint8_t col){
 	this->line();
 }
 
-void Graphics::line (short x1, short y1){
+void Graphics::line (int x1, int y1){
 	if (this->_gfxState_line_valid){
 		this->line(_gfxState_line_x, _gfxState_line_y, x1, y1, this->_gfxState_color);
 	}
 }
 
-void Graphics::line (short x1, short y1, uint8_t col){
+void Graphics::line (int x1, int y1, uint8_t col){
 	if (this->_gfxState_line_valid){
 		this->line(_gfxState_line_x, _gfxState_line_y, x1, y1, col);
 	}
 }
 
-void Graphics::line (short x1, short y1, short x2, short y2){
+void Graphics::line (int x1, int y1, int x2, int y2){
 	this->line(_gfxState_line_x, _gfxState_line_y, x1, y1, this->_gfxState_color);
 }
 
-void Graphics::_private_h_line (short x1, short x2, short y, uint8_t col){
+void Graphics::_private_h_line (int x1, int x2, int y, uint8_t col){
 	if (!isYWithinClip(y)){
 		return;
 	}
 
-	short maxx = clampCoordToScreenDims(std::max(x1, x2));
-	short minx = clampCoordToScreenDims(std::min(x1, x2));
+	int maxx = clampCoordToScreenDims(std::max(x1, x2));
+	int minx = clampCoordToScreenDims(std::min(x1, x2));
 
 	
 	//possible todo: check if memset is any better here? this seems to be wrong
 	//uint8_t* fb_line = _pico8_fb + y * PicoScreenWidth;
 	//memset(fb_line + minx, col, maxx - minx);
-	for (short x = minx; x <= maxx; x++){
+	for (int x = minx; x <= maxx; x++){
 		_private_pset(x, y, col);
 	}
 }
 
-void Graphics::_private_v_line (short y1, short y2, short x, uint8_t col){
+void Graphics::_private_v_line (int y1, int y2, int x, uint8_t col){
 	//save draw calls if its out
 	if (!isXWithinClip(x)){
 		return;
 	}
 
-	short maxy = clampCoordToScreenDims(std::max(y1, y2));
-	short miny = clampCoordToScreenDims(std::min(y1, y2));
+	int maxy = clampCoordToScreenDims(std::max(y1, y2));
+	int miny = clampCoordToScreenDims(std::min(y1, y2));
 
-	for (short y = miny; y <= maxy; y++){
+	for (int y = miny; y <= maxy; y++){
 		_private_pset(x, y, col);
 	}
 }
 
-void Graphics::line(short x0, short y0, short x1, short y1, uint8_t col) {
+void Graphics::line(int x0, int y0, int x1, int y1, uint8_t col) {
 	this->_gfxState_line_x = x1;
 	this->_gfxState_line_y = y1;
 	this->_gfxState_line_valid = true;
@@ -497,22 +492,22 @@ void Graphics::line(short x0, short y0, short x1, short y1, uint8_t col) {
 	}
 }
 
-void Graphics::circ(short ox, short oy){
+void Graphics::circ(int ox, int oy){
 	this->circ(ox, oy, 4);
 }
 
-void Graphics::circ(short ox, short oy, short r){
+void Graphics::circ(int ox, int oy, int r){
 	this->circ(ox, oy, r, this->_gfxState_color);
 }
 
-void Graphics::circ(short ox, short oy, short r, uint8_t col){
+void Graphics::circ(int ox, int oy, int r, uint8_t col){
 	color(col);
 
 	applyCameraToPoint(&ox, &oy);
 
-	short x = r;
-	short y = 0;
-	short decisionOver2 = 1-x;
+	int x = r;
+	int y = 0;
+	int decisionOver2 = 1-x;
 
 	while (y <= x) {
 		_private_safe_pset(ox + x, oy + y, col);
@@ -537,15 +532,15 @@ void Graphics::circ(short ox, short oy, short r, uint8_t col){
 
 }
 
-void Graphics::circfill(short ox, short oy){
+void Graphics::circfill(int ox, int oy){
 	this->circfill(ox, oy, 4);
 }
 
-void Graphics::circfill(short ox, short oy, short r){
+void Graphics::circfill(int ox, int oy, int r){
 	this->circfill(ox, oy, r, this->_gfxState_color);
 }
 
-void Graphics::circfill(short ox, short oy, short r, uint8_t col){
+void Graphics::circfill(int ox, int oy, int r, uint8_t col){
 	color(col);
 
 	applyCameraToPoint(&ox, &oy);
@@ -559,7 +554,7 @@ void Graphics::circfill(short ox, short oy, short r, uint8_t col){
 		_private_safe_pset(ox, oy + 1, col);
 	}
 	else if (r > 0) {
-		short x = -r, y = 0, err = 2 - 2 * r;
+		int x = -r, y = 0, err = 2 - 2 * r;
 		do {
 			_private_h_line(ox - x, ox + x, oy + y, col);
 			_private_h_line(ox - x, ox + x, oy - y, col);
@@ -573,11 +568,11 @@ void Graphics::circfill(short ox, short oy, short r, uint8_t col){
 	
 }
 
-void Graphics::rect(short x1, short y1, short x2, short y2) {
+void Graphics::rect(int x1, int y1, int x2, int y2) {
 	this->rect(x1, y1, x2, y2, this->_gfxState_color);
 }
 
-void Graphics::rect(short x1, short y1, short x2, short y2, uint8_t col) {
+void Graphics::rect(int x1, int y1, int x2, int y2, uint8_t col) {
 	color(col);
 
 	applyCameraToPoint(&x1, &y1);
@@ -592,34 +587,34 @@ void Graphics::rect(short x1, short y1, short x2, short y2, uint8_t col) {
 	_private_v_line(y1, y2, x2, col);
 }
 
-void Graphics::rectfill(short x1, short y1, short x2, short y2) {
+void Graphics::rectfill(int x1, int y1, int x2, int y2) {
 	this->rectfill(x1, y1, x2, y2, this->_gfxState_color);
 }
 
-void Graphics::rectfill(short x1, short y1, short x2, short y2, uint8_t col) {
+void Graphics::rectfill(int x1, int y1, int x2, int y2, uint8_t col) {
 	color(col);
 
 	sortCoordsForRect(&x1, &y1, &x2, &y2);
 
-	for (short y = y1; y <= y2; y++) {
+	for (int y = y1; y <= y2; y++) {
 		_private_h_line(x1, x2, y, col);
 	}
 }
 
-short Graphics::print(std::string str) {
-	short result = this->print(str, _gfxState_text_x, _gfxState_text_y);
+int Graphics::print(std::string str) {
+	int result = this->print(str, _gfxState_text_x, _gfxState_text_y);
 
 	_gfxState_text_y += 6;
 
 	return result;
 }
 
-short Graphics::print(std::string str, short x, short y) {
+int Graphics::print(std::string str, int x, int y) {
 	return this->print(str, x, y, _gfxState_color);
 }
 
 //based on tac08 impl
-short Graphics::print(std::string str, short x, short y, uint16_t c) {
+int Graphics::print(std::string str, int x, int y, uint16_t c) {
 	color(c);
 
 	_gfxState_text_x = x;
@@ -637,11 +632,11 @@ short Graphics::print(std::string str, short x, short y, uint16_t c) {
 	for (size_t n = 0; n < str.length(); n++) {
 		uint8_t ch = str[n];
 		if (ch >= 0x10 && ch < 0x80) {
-			short index = ch - 0x10;
+			int index = ch - 0x10;
 			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8, 4, 5, false, false);
 			x += 4;
 		} else if (ch >= 0x80) {
-			short index = ch - 0x80;
+			int index = ch - 0x80;
 			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5, false, false);
 			x += 8;
 		} else if (ch == '\n') {
@@ -659,28 +654,28 @@ short Graphics::print(std::string str, short x, short y, uint16_t c) {
 }
 
 void Graphics::spr(
-	short n,
-	short x,
-	short y,
+	int n,
+	int x,
+	int y,
 	double w = 1.0,
 	double h = 1.0,
 	bool flip_x = false,
 	bool flip_y = false) 
 {
-	short spr_x = (n % 16) * 8;
-	short spr_y = (n / 16) * 8;
+	int spr_x = (n % 16) * 8;
+	int spr_y = (n / 16) * 8;
 	copySpriteToScreen(spriteSheetData, x, y, spr_x, spr_y, w * 8, h * 8, flip_x, flip_y);
 }
 
 void Graphics::sspr(
-        short sx,
-        short sy,
-        short sw,
-        short sh,
-        short dx,
-        short dy,
-        short dw,
-        short dh,
+        int sx,
+        int sy,
+        int sw,
+        int sh,
+        int dx,
+        int dy,
+        int dw,
+        int dh,
         bool flip_x = false,
         bool flip_y = false)
 {
@@ -709,7 +704,7 @@ void Graphics::fset(uint8_t n, uint8_t v){
 }
 
 uint8_t Graphics::sget(uint8_t x, uint8_t y){
-	short combinedIdx = y * 64 + (x / 2);
+	int combinedIdx = y * 64 + (x / 2);
 
 	uint8_t combinedPix = this->spriteSheetData[combinedIdx];
 
@@ -721,7 +716,7 @@ uint8_t Graphics::sget(uint8_t x, uint8_t y){
 }
 
 void Graphics::sset(uint8_t x, uint8_t y, uint8_t c){
-	short combinedIdx = y * 64 + (x / 2);
+	int combinedIdx = y * 64 + (x / 2);
 
 	uint8_t currentByte = this->spriteSheetData[combinedIdx];
 	uint8_t mask;
@@ -741,7 +736,7 @@ void Graphics::camera() {
 	this->camera(0, 0);
 }
 
-void Graphics::camera(short x, short y) {
+void Graphics::camera(int x, int y) {
 	_gfxState_camera_x = x;
 	_gfxState_camera_y = y;
 }
@@ -750,9 +745,9 @@ void Graphics::clip() {
 	this->clip(0, 0, 127, 127);
 }
 
-void Graphics::clip(short x, short y, short w, short h) {
-	short xe = x + w;
-	short ye = y + h;
+void Graphics::clip(int x, int y, int w, int h) {
+	int xe = x + w;
+	int ye = y + h;
 	_gfxState_clip_xb = clampCoordToScreenDims(x);
 	_gfxState_clip_yb = clampCoordToScreenDims(y);
 	_gfxState_clip_xe = clampCoordToScreenDims(xe);
@@ -761,7 +756,7 @@ void Graphics::clip(short x, short y, short w, short h) {
 
 
 //map methods heavily based on tac08 implementation
-uint8_t Graphics::mget(short celx, short cely){
+uint8_t Graphics::mget(int celx, int cely){
 	if (cely < 32) {
 		return this->mapData[cely * 128 + celx];
 	}
@@ -772,7 +767,7 @@ uint8_t Graphics::mget(short celx, short cely){
 	return 0;
 }
 
-void Graphics::mset(short celx, short cely, uint8_t snum){
+void Graphics::mset(int celx, int cely, uint8_t snum){
 	if (cely < 32) {
 		this->mapData[cely * 128 + celx] = snum;
 	}
@@ -832,12 +827,12 @@ void Graphics::cursor() {
 	this->cursor(0, 0);
 }
 
-void Graphics::cursor(short x, short y) {
+void Graphics::cursor(int x, int y) {
 	_gfxState_text_x = x;
 	_gfxState_text_y = y;
 }
 
-void Graphics::cursor(short x, short y, uint8_t col) {
+void Graphics::cursor(int x, int y, uint8_t col) {
 	color(col);
 
 	this->cursor(x, y);
