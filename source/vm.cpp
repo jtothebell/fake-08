@@ -153,7 +153,8 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "dget", dget);
     lua_register(_luaState, "dset", dset);
 
-    //file system
+    //system
+    lua_register(_luaState, "__listcarts", listcarts);
     lua_register(_luaState, "__loadcart", loadcart);
     lua_register(_luaState, "__loadbioscart", loadbioscart);
 
@@ -330,4 +331,12 @@ int Vm::GetTargetFps() {
 
 int Vm::GetFrameCount() {
     return _picoFrameCount;
+}
+
+void Vm::SetCartList(vector<string> cartList){
+    _cartList = cartList;
+}
+
+vector<string> Vm::GetCartList(){
+    return _cartList;
 }

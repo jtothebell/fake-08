@@ -1,10 +1,13 @@
 
 #include <string>
+#include <vector>
+using namespace std;
 
 #include "picoluaapi.h"
 #include "graphics.h"
 #include "Input.h"
 #include "vm.h"
+#include "logger.h"
 
 extern "C" {
   #include <lua.h>
@@ -620,6 +623,24 @@ int dget(lua_State *L) {
 
 int dset(lua_State *L) {
     return noop("dset");
+}
+
+int listcarts(lua_State *L) {
+    //get cart list from VM (who should get it from host)
+    vector<string> carts = _vmForLuaApi->GetCartList();
+
+    lua_createtable(L, carts.size(), 0);
+    int newTable = lua_gettop(L);
+    int index = 1;
+
+    for(size_t i = 0; i < carts.size(); i++){
+        lua_pushstring(L, carts[i].c_str());
+        lua_rawseti(L, newTable, index);
+        
+        ++index;
+    }
+
+    return 1;
 }
 
 int loadcart(lua_State *L) {

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <stdio.h>
+#include <vector>
+#include <string>
 #include "hostVmShared.h"
 
 enum StretchOption {
@@ -40,5 +42,7 @@ class Host {
     void oneTimeCleanup();
 
     double deltaTMs();
+
+    std::vector<std::string> listcarts();
    
 };

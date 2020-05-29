@@ -22,10 +22,13 @@ int main(int argc, char* argv[])
 	Vm *vm = new Vm();
 	Logger::Write("initialized Vm and host\n");
 
+	Logger::Write("Setting cart list on vm\n");
+	vm->SetCartList(host->listcarts());
+
 	Logger::Write("Loading Bios cart\n");
 	vm->LoadBiosCart();
 	Logger::Write("Bios Cart Loaded\n");
-	
+
 	// Main loop
 	Logger::Write("Starting main loop\n");
 

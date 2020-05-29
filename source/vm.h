@@ -1,5 +1,9 @@
 #pragma once
 
+#include <vector>
+#include <string>
+using namespace std;
+
 #include "cart.h"
 #include "Input.h"
 #include "Audio.h"
@@ -26,17 +30,19 @@ class Vm {
     bool _hasDraw;
 
     bool _cartChangeQueued;
-    std::string _nextCartKey;
+    string _nextCartKey;
+
+    vector<string> _cartList;
 
     bool loadCart(Cart* cart);
 
     public:
     Vm();
     ~Vm();
-    
+
     void LoadBiosCart();
 
-    void LoadCart(std::string filename);
+    void LoadCart(string filename);
 
     void UpdateAndDraw(
       uint8_t kdown,
@@ -50,10 +56,13 @@ class Vm {
 
     void CloseCart();
 
-    void QueueCartChange(std::string newcart);
+    void QueueCartChange(string newcart);
 
     int GetTargetFps();
 
     int GetFrameCount();
+
+    void SetCartList(vector<string> cartList);
+    vector<string> GetCartList();
 };
 

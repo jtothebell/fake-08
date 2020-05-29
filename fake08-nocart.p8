@@ -2,8 +2,8 @@ pico-8 cartridge // http://www.pico-8.com
 version 27
 __lua__
 --carts hardcoded for now
-local carts={"cart.p8", "lilking.p8", "celeste.p8"}
-local numcarts = 3
+local carts={}
+local numcarts = 0
 
 local cidx=0
 local carttoload = ""
@@ -15,6 +15,10 @@ local runcmd=false
 
 
 function _init()
+	if __listcarts then
+		carts = __listcarts()
+		numcarts = #carts
+	end
 	cls(bgcolor)
 	spr(0, 1, 5, 6, 1)
 	color(6)

@@ -81,7 +81,7 @@ int dget(lua_State *L);
 int dset(lua_State *L);
 
 //file system/vm functions
-//int ls(lua_State *L);
+int listcarts(lua_State *L);
 int loadcart(lua_State *L);
 int loadbioscart(lua_State *L);
 
