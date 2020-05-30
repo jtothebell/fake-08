@@ -12,6 +12,8 @@
 #include "cartPatcher.h"
 #include "utf8-util.h"
 
+#include "FakoBios.h"
+
 //#include "tests/test_base.h"
 //#if _TEST
 //#include "tests/cart_test.h"
@@ -88,7 +90,15 @@ std::string convert_emojis(const std::string& lua) {
 Cart::Cart(std::string filename){
     Filename = filename;\
     Logger::Write("getting file contents\n");
-    auto cartStr = get_file_contents(filename.c_str());
+
+    std::string cartStr;
+
+    if (filename == "__FAKE08-BIOS.p8") {
+        cartStr = fake08BiosP8;
+    }
+    else {
+        cartStr = get_file_contents(filename.c_str());
+    }
     Logger::Write("Got file contents... parsing cart\n");
 
     fullCartText = cartStr;

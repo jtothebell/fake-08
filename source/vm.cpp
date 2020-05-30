@@ -209,7 +209,7 @@ bool Vm::loadCart(Cart* cart) {
 void Vm::LoadBiosCart(){
     CloseCart();
 
-    Cart *cart = new Cart("fake08-nocart.p8");
+    Cart *cart = new Cart("__FAKE08-BIOS.p8");
 
     bool success = loadCart(cart);
 
@@ -223,13 +223,7 @@ void Vm::LoadCart(std::string filename){
     CloseCart();
 
     Logger::Write("Calling Cart Constructor\n");
-    Cart *cart;
-    if (filename == "__FAKE08-BIOS.p8"){
-        cart = new Cart("fake08-nocart.p8");
-    }
-    else{
-        cart = new Cart(filename);
-    } 
+    Cart *cart = new Cart(filename);
 
     bool success = loadCart(cart);
 

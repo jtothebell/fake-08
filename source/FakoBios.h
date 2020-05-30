@@ -1,3 +1,11 @@
+#pragma once
+
+#include <string>
+
+
+//from PicoLove api.lua
+
+const char * fake08BiosP8 = R"#(
 pico-8 cartridge // http://www.pico-8.com
 version 27
 __lua__
@@ -28,9 +36,13 @@ function _init()
 	print("currently in pre-alpha")
 	print("")
 	print("place p8 carts in sdmc:/p8carts/")
-	print("⬅️➡️ to navigate carts")
-	print("🅾️ (a) to load selected cart")
-	print("start to close current cart")
+	if numcarts < 1 then
+		print("--no carts found--")
+	else
+		print("⬅️➡️ to navigate carts")
+		print("🅾️ (a) to load selected cart")
+		print("start to close current cart")
+	end
 	print("r to cycle screen sizes")
 	print("l + r to exit")
 	print("")
@@ -95,3 +107,5 @@ __gfx__
 77777077777077770077770077777077077077777000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 77000077077077077077000000000077077077077000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 77000077077077007077777000000077770077770000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+)#";
