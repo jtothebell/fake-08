@@ -317,10 +317,10 @@ bool Host::mainLoop(){
 vector<string> Host::listcarts(){
     vector<string> carts;
 
-    DIR* dir = opendir("p8carts");
+    DIR* dir = opendir("/p8carts");
 
     if (dir) {
-        for(auto& p: fs::directory_iterator("p8carts")){
+        for(auto& p: fs::directory_iterator("/p8carts")){
             auto ext = p.path().extension().string();
             if (ext == ".p8"){
                 carts.push_back(p.path().string());
