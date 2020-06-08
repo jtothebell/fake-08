@@ -273,7 +273,8 @@ void Audio::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
         int16_t sample = 0;
 
         for (int c = 0; c < 4; ++c) {
-            sample += this->getSampleForChannel(c);
+            //bit shifted 3 places to lower volume and avoid clipping
+            sample += this->getSampleForChannel(c) >> 3;
         }
 
         //buffer is stereo, so just send the mono sample to both channels
