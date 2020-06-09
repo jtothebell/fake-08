@@ -13,12 +13,12 @@ Install devkitpro tool chains for 3ds and switch (see https://devkitpro.org/wiki
 Building tested on windows using devkitpro's msys2 and Ubuntu WSL. Should work on other plaforms as well.
 
 ## Acknowledgements
-Zep/Lexaloffle software for making pico 8. Buy a copy if you can. You won't regret it. https://www.lexaloffle.com/pico-8.php
-Nintendo Homebrew Community, including but not limited to Smea, SciresM, yellows8, fincs, WinterMute, etc for making it possible for hobbyists like myself to make software for Nintendo's hardware
-PicoLove (https://github.com/gamax92/picolove)- basis for my previous project - PicoLovePotion - and where I first learned the basics of Pico 8's API
-tac08 (https://github.com/0xcafed00d/tac08) - a Pico 8 emulator that I leared a lot from. FAKE-08's sprite rendering and cart parsing is heavily based on tac08, and it uses 0xcafed00d's utf8-util to handle special characters in pico 8 carts
-zepto8 (https://github.com/samhocevar/zepto8) - Probably the best Pico 8 emulator, without which I probably still wouldn't have sound support in FAKE-08. 
-LovePotion (https://github.com/TurtleP/LovePotion) - an implementation of Love2d for 3ds and switch that served as the runtime for PicoLovePotion, and a great way to make homebrew games for the 3ds and switch. I also use their static Logger implementation
+ * Zep/Lexaloffle software for making pico 8. Buy a copy if you can. You won't regret it. https://www.lexaloffle.com/pico-8.php
+ * Nintendo Homebrew Community, including but not limited to Smea, SciresM, yellows8, fincs, WinterMute, etc for making it possible for hobbyists like myself to make software for Nintendo's hardware
+ * PicoLove (https://github.com/gamax92/picolove)- basis for my previous project - PicoLovePotion - and where I first learned the basics of Pico 8's API
+ * tac08 (https://github.com/0xcafed00d/tac08) - a Pico 8 emulator that I leared a lot from. FAKE-08's sprite rendering and cart parsing is heavily based on tac08, and it uses 0xcafed00d's utf8-util to handle special characters in pico 8 carts
+ * zepto8 (https://github.com/samhocevar/zepto8) - Probably the best Pico 8 emulator, without which I probably still wouldn't have sound support in FAKE-08. 
+ * LovePotion (https://github.com/TurtleP/LovePotion) - an implementation of Love2d for 3ds and switch that served as the runtime for PicoLovePotion, and a great way to make homebrew games for the 3ds and switch. I also use their static Logger implementation
 
 See LICENSE.MD for FAKE-08 license (MIT) as well as licenses of all other software used
 
