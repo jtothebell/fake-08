@@ -40,9 +40,9 @@ Games with lots of draw calls will have slowdowns on old 3ds consoles (possibly 
 
 ## Carts
 
-You browse and download carts by using the `SPLORE()` function in Pico 8 (again, if you have $15 to spend, and you are interested in game dev, it is well worth your money) or by browsing the BBS website. If using Pico 8, once you have loaded a cart that you want to try on FAKE-08, type `save {{cartname}}.p8` to save the cart as a text file, then copy that file to your device's SD card.
+You browse and download carts by using the `SPLORE()` function in Pico 8 (again, if you have $15 to spend, and you are interested in game dev, it is well worth your money). Once you have loaded a cart that you want to try on FAKE-08, type `save {{cartname}}.p8` to save the cart as a text file, then copy that file to your device's SD card.
 
-If using the Pico 8 website, there is an expandable drop down link under the cart player called "Code". Hit that link, then copy and paste the code into a text file, and save it as `{{cartname}}.p8`. It can then be copied to your device's SD card.
+You can also browse carts on the Pico-8 BBS website, but can only download complete carts in png format. Fake-08 doesn't directly support png carts yet, but you can use picotool (https://github.com/dansanderson/picotool) to convert downloaded pngs to text carts with the `writep8` command assuming the cart's license allows it (most carts on the BBS use a Creative Commons License that allows for such use).
 
 I make no specific claims of compatibility at the present time. I think many carts _should_ work, but this is still a project in the very early stages, and it is my first real foray into C or C++ development and low level game dev in general.
 
