@@ -2,6 +2,8 @@
 #include <functional>
 #include <math.h>
 
+#include <string.h>
+
 #include "vm.h"
 #include "graphics.h"
 #include "fontdata.h"
@@ -72,13 +74,24 @@ bool Vm::loadCart(Cart* cart) {
     }
     _memory._musicChannel.pattern = -1;
 
+    //copy data from cart rom to ram
+    for(size_t i = 0; i < sizeof(_memory.spriteSheetData); i++) {
+        _memory.spriteSheetData[i] = cart->SpriteSheetData[i];
+    }
+    for(size_t i = 0; i < sizeof(_memory.spriteFlags); i++) {
+        _memory.spriteFlags[i] = cart->SpriteFlagsData[i];
+    }
+    for(size_t i = 0; i < sizeof(_memory.mapData); i++) {
+        _memory.mapData[i] = cart->MapData[i];
+    }
 
-    _graphics->setSpriteSheet(cart->SpriteSheetString);
-    _graphics->setSpriteFlags(cart->SpriteFlagsString);
-    _graphics->setMapData(cart->MapString);
+    for(size_t i = 0; i < 64; i++) {
+        _memory._sfx[i] = cart->SfxData[i];
+    }
 
-    _audio->setSfx(cart->SfxString);
-    _audio->setMusic(cart->MusicString);
+    for(size_t i = 0; i < 64; i++) {
+        _memory._songs[i] = cart->SongData[i];
+    }
     
     // initialize Lua interpreter
     _luaState = luaL_newstate();

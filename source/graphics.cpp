@@ -43,20 +43,7 @@ Graphics::Graphics(std::string fontdata, PicoRam* memory) {
 	_paletteColors[15] = COLOR_15;
 }
 
-void Graphics::setSpriteSheet(std::string spritesheetstring){
-	Logger::Write("Copying data to spritesheet\n");
-	copy_string_to_sprite_memory(_memory->spriteSheetData, spritesheetstring);
-}
 
-void Graphics::setSpriteFlags(std::string spriteFlagsstring){
-	Logger::Write("Copying data to sprite flags\n");
-	copy_string_to_memory(_memory->spriteFlags, spriteFlagsstring);
-}
-
-void Graphics::setMapData(std::string mapDataString){
-	Logger::Write("Copying data to map data\n");
-	copy_string_to_memory(_memory->mapData, mapDataString);
-}
 
 uint8_t* Graphics::GetP8FrameBuffer(){
 	return this->_pico8_fb;

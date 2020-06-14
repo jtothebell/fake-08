@@ -5,6 +5,8 @@
 #include "cart.h"
 #include "filehelpers.h"
 
+#include "stringToDataHelpers.h"
+
 #include "utils.h"
 
 #include "logger.h"
@@ -86,53 +88,96 @@ std::string convert_emojis(const std::string& lua) {
 	return res;
 }
 
+bool hasEnding (std::string const &fullString, std::string const &ending) {
+    if (fullString.length() >= ending.length()) {
+        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+    } else {
+        return false;
+    }
+}
+
 //tac08 based cart parsing and stripping of emoji
 Cart::Cart(std::string filename){
     Filename = filename;\
     Logger::Write("getting file contents\n");
+    
+    if (hasEnding(filename, ".p8")){
+        std::string cartStr; 
 
-    std::string cartStr;
+        if (filename == "__FAKE08-BIOS.p8") {
+            cartStr = fake08BiosP8;
+        }
+        else {
+            cartStr = get_file_contents(filename.c_str());
+        }
+        Logger::Write("Got file contents... parsing cart\n");
 
-    if (filename == "__FAKE08-BIOS.p8") {
-        cartStr = fake08BiosP8;
+        fullCartText = cartStr;
+
+        std::istringstream s(cartStr);
+        std::string line;
+        std::string currSec = "";
+        
+        while (std::getline(s, line)) {
+            line = utils::trimright(line, " \n\r");
+            line = convert_emojis(line);
+
+            if (line.length() > 2 && line[0] == '_' && line[1] == '_') {
+                currSec = line;
+            }
+            else if (currSec == "__lua__"){
+                LuaString += line + "\n";
+            }
+            else if (currSec == "__gfx__"){
+                SpriteSheetString += line + "\n";
+            }
+            else if (currSec == "__gff__"){
+                SpriteFlagsString += line + "\n";
+            }
+            else if (currSec == "__map__"){
+                MapString += line + "\n";
+            }
+            else if (currSec == "__sfx__"){
+                SfxString += line + "\n";
+            }
+            else if (currSec == "__music__"){
+                MusicString += line + "\n";
+            }
+        }
+
+        //I don't think this should be necessary, but things seem to be lingering between cart loads
+        //even after destruction and construction of a new cart
+        for(size_t i = 0; i < sizeof(SpriteSheetData); i++) {
+            SpriteSheetData[i] = 0;
+        }
+        for(size_t i = 0; i < sizeof(SpriteFlagsData); i++) {
+            SpriteFlagsData[i] = 0;
+        }
+        for(size_t i = 0; i < sizeof(MapData); i++) {
+            MapData[i] = 0;
+        }
+        for(size_t i = 0; i < 64; i++) {
+            SfxData[i] = {0};
+        }
+        for(size_t i = 0; i < 64; i++) {
+            SongData[i] = {0};
+        }
+
+        Logger::Write("Setting cart graphics rom data from strings\n");
+        setSpriteSheet(SpriteSheetString);
+        setSpriteFlags(SpriteFlagsString);
+        setMapData(MapString);
+
+        Logger::Write("Setting cart audio rom data from strings\n");
+        setSfx(SfxString);
+        setMusic(MusicString);
+    }
+    else if (hasEnding(filename, ".p8.png")) {
+        //parse png cart
     }
     else {
-        cartStr = get_file_contents(filename.c_str());
+        return;
     }
-    Logger::Write("Got file contents... parsing cart\n");
-
-    fullCartText = cartStr;
-
-    std::istringstream s(cartStr);
-    std::string line;
-    std::string currSec = "";
-    
-    while (std::getline(s, line)) {
-		line = utils::trimright(line, " \n\r");
-        line = convert_emojis(line);
-
-        if (line.length() > 2 && line[0] == '_' && line[1] == '_') {
-            currSec = line;
-        }
-        else if (currSec == "__lua__"){
-            LuaString += line + "\n";
-        }
-        else if (currSec == "__gfx__"){
-            SpriteSheetString += line + "\n";
-        }
-        else if (currSec == "__gff__"){
-            SpriteFlagsString += line + "\n";
-        }
-        else if (currSec == "__map__"){
-            MapString += line + "\n";
-        }
-        else if (currSec == "__sfx__"){
-             SfxString += line + "\n";
-        }
-        else if (currSec == "__music__"){
-             MusicString += line + "\n";
-        }
-	}
 
     const char * patched = getPatchedLua(LuaString.c_str());
 
@@ -146,4 +191,120 @@ Cart::Cart(std::string filename){
     //verifyCart(this);
 
     #endif
+}
+
+Cart::~Cart(){
+
+}
+
+void Cart::setSpriteSheet(std::string spritesheetstring){
+	Logger::Write("Copying data to spritesheet\n");
+	copy_string_to_sprite_memory(SpriteSheetData, spritesheetstring);
+}
+
+void Cart::setSpriteFlags(std::string spriteFlagsstring){
+	Logger::Write("Copying data to sprite flags\n");
+	copy_string_to_memory(SpriteFlagsData, spriteFlagsstring);
+}
+
+void Cart::setMapData(std::string mapDataString){
+	Logger::Write("Copying data to map data\n");
+	copy_string_to_memory(MapData, mapDataString);
+}
+
+void Cart::setMusic(std::string musicString){
+    std::istringstream s(musicString);
+    std::string line;
+    char buf[3] = {0};
+    int musicIdx = 0;
+    
+    while (std::getline(s, line)) {
+        buf[0] = line[0];
+        buf[1] = line[1];
+        uint8_t flagByte = (uint8_t)strtol(buf, NULL, 16);
+
+        buf[0] = line[3];
+        buf[1] = line[4];
+        uint8_t channel1byte = (uint8_t)strtol(buf, NULL, 16);
+
+        buf[0] = line[5];
+        buf[1] = line[6];
+        uint8_t channel2byte = (uint8_t)strtol(buf, NULL, 16);
+
+        buf[0] = line[7];
+        buf[1] = line[8];
+        uint8_t channel3byte = (uint8_t)strtol(buf, NULL, 16);
+
+        buf[0] = line[9];
+        buf[1] = line[10];
+        uint8_t channel4byte = (uint8_t)strtol(buf, NULL, 16);
+
+        SongData[musicIdx++] = {
+            flagByte,
+            channel1byte,
+            channel2byte,
+            channel3byte,
+            channel4byte
+        };
+    }
+
+}
+
+void Cart::setSfx(std::string sfxString) {
+    std::istringstream s(sfxString);
+    std::string line;
+    char buf[3] = {0};
+    int sfxIdx = 0;
+    
+    while (std::getline(s, line)) {
+        buf[0] = line[0];
+        buf[1] = line[1];
+        uint8_t editorMode = (uint8_t)strtol(buf, NULL, 16);
+
+        buf[0] = line[2];
+        buf[1] = line[3];
+        uint8_t noteDuration = (uint8_t)strtol(buf, NULL, 16);
+
+        buf[0] = line[4];
+        buf[1] = line[5];
+        uint8_t loopRangeStart = (uint8_t)strtol(buf, NULL, 16);
+
+        buf[0] = line[6];
+        buf[1] = line[7];
+        uint8_t loopRangeEnd = (uint8_t)strtol(buf, NULL, 16);
+
+        SfxData[sfxIdx].editorMode = editorMode;
+        SfxData[sfxIdx].speed = noteDuration;
+        SfxData[sfxIdx].loopRangeStart = loopRangeStart;
+        SfxData[sfxIdx].loopRangeEnd = loopRangeEnd;
+
+        //32 notes, 5 chars each
+        int noteIdx = 0;
+        for (int i = 8; i < 168; i+=5) {
+            buf[0] = line[i];
+            buf[1] = line[i + 1];
+            uint8_t key = (uint8_t)strtol(buf, NULL, 16);
+
+            buf[0] = '0';
+            buf[1] = line[i + 2];
+            uint8_t waveform = (uint8_t)strtol(buf, NULL, 16);
+
+            buf[0] = '0';
+            buf[1] = line[i + 3];
+            uint8_t volume = (uint8_t)strtol(buf, NULL, 16);
+
+            buf[0] = '0';
+            buf[1] = line[i + 4];
+            uint8_t effect = (uint8_t)strtol(buf, NULL, 16);
+
+            SfxData[sfxIdx].notes[noteIdx++] = {
+                key,
+                waveform,
+                volume,
+                effect
+            };
+        }
+
+        sfxIdx++;
+    } 
 }
