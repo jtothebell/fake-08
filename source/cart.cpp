@@ -1,6 +1,8 @@
 #include <string>
 #include <sstream>
 #include <map>
+//make sure 3ds and switch libpng are installed from devkitpro pacman
+#include <png.h>
 
 #include "cart.h"
 #include "filehelpers.h"
@@ -96,6 +98,107 @@ bool hasEnding (std::string const &fullString, std::string const &ending) {
     }
 }
 
+#define HEADERLEN 8
+
+//reference: http://jeromebelleman.gitlab.io/posts/devops/libpng/#changing-the-io-method
+//and: http://www.libpng.org/pub/png/libpng-manual.txt
+bool load_cart_from_png(std::string filename){
+    FILE *fp = fopen(filename.c_str(), "rb");
+    if (!fp) {
+        return false;
+    }
+
+    char header[HEADERLEN];
+    fread(header, 1, HEADERLEN, fp);
+
+    bool is_png = !png_sig_cmp((png_const_bytep)header, 0, HEADERLEN);
+    if (!is_png) {
+        fclose(fp);
+        return false;
+    }
+    fseek(fp, 0, SEEK_SET);
+
+    png_structp pngptr =
+        png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    png_infop pnginfo = png_create_info_struct(pngptr);
+
+    //this is essentially a catch statement for if anything goes wrong loading the png
+    if(setjmp(png_jmpbuf(pngptr)))
+    {
+        Logger::Write("Png error encountered. closing file and png struct\n");
+        fclose(fp);
+        png_destroy_read_struct(&pngptr, &pnginfo, NULL);
+        return false;
+    }
+
+    png_init_io(pngptr, fp);
+    png_read_info(pngptr, pnginfo);
+
+    int width = png_get_image_width(pngptr, pnginfo);
+    int height = png_get_image_height(pngptr, pnginfo);
+
+    //pico 8 carts must match these dimensions
+    if (width != 160 || height != 205) {
+        Logger::Write("invalid dimensions\n");
+        fclose(fp);
+        png_destroy_read_struct(&pngptr, &pnginfo, NULL);
+        return false;
+    }
+
+    png_byte color_type = png_get_color_type(pngptr, pnginfo);
+    png_byte bit_depth  = png_get_bit_depth(pngptr, pnginfo);
+
+    // Read any color_type into 8bit depth, ABGR format.
+    // See http://www.libpng.org/pub/png/libpng-manual.txt
+
+    if(bit_depth == 16)
+        png_set_strip_16(pngptr);
+
+    if(color_type == PNG_COLOR_TYPE_PALETTE)
+        png_set_palette_to_rgb(pngptr);
+
+    // PNG_COLOR_TYPE_GRAY_ALPHA is always 8 or 16bit depth.
+    if(color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
+        png_set_expand_gray_1_2_4_to_8(pngptr);
+
+    if(png_get_valid(pngptr, pnginfo, PNG_INFO_tRNS))
+        png_set_tRNS_to_alpha(pngptr);
+
+    // These color_type don't have an alpha channel then fill it with 0xff.
+    if(color_type == PNG_COLOR_TYPE_RGB ||
+       color_type == PNG_COLOR_TYPE_GRAY ||
+       color_type == PNG_COLOR_TYPE_PALETTE)
+        png_set_filler(pngptr, 0xFF, PNG_FILLER_AFTER);
+
+    if(color_type == PNG_COLOR_TYPE_GRAY ||
+       color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+        png_set_gray_to_rgb(pngptr);
+
+    //output ABGR
+    png_set_bgr(pngptr);
+    png_set_swap_alpha(pngptr);
+
+    png_bytepp rows;
+    Logger::Write("reading png\n");
+    png_read_png(pngptr, pnginfo, PNG_TRANSFORM_IDENTITY, NULL);
+    Logger::Write("getting pixel rows\n");
+    rows = png_get_rows(pngptr, pnginfo);
+
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width * 4; j += 4) {
+            printf("%d %d %d %d", rows[i][j], rows[i][j + 1], rows[i][j + 2], rows[i][j + 3]);
+        }   
+        printf("\n");
+    }
+
+    Logger::Write("got rows. closing\n");
+    fclose(fp);
+    png_destroy_read_struct(&pngptr, &pnginfo, NULL);
+
+    return true;
+
+}
+
 //tac08 based cart parsing and stripping of emoji
 Cart::Cart(std::string filename){
     Filename = filename;
@@ -158,7 +261,13 @@ Cart::Cart(std::string filename){
         setMusic(MusicString);
     }
     else if (hasEnding(filename, ".p8.png")) {
-        //parse png cart
+        bool success = load_cart_from_png(filename);
+
+        if (!success){
+            return;
+        }
+
+        Logger::Write("got valid png cart\n");
     }
     else {
         return;

@@ -68,6 +68,12 @@ bool Vm::loadCart(Cart* cart) {
     _graphics->clip();
     _graphics->pal();
 
+    if (cart->LuaString == "") {
+        Logger::Write("No Lua to load. Aborting cart load\n");
+
+        return false;
+    }
+
     //reset audio
     for(int i = 0; i < 4; i++) {
         _memory._sfxChannels[i].sfxId = -1;
@@ -92,7 +98,7 @@ bool Vm::loadCart(Cart* cart) {
     for(size_t i = 0; i < 64; i++) {
         _memory._songs[i] = cart->SongData[i];
     }
-    
+
     // initialize Lua interpreter
     _luaState = luaL_newstate();
 
@@ -232,7 +238,7 @@ void Vm::LoadBiosCart(){
 }
 
 void Vm::LoadCart(std::string filename){
-    Logger::Write("Loading cart %s\n", filename);
+    Logger::Write("Loading cart %s\n", filename.c_str());
     CloseCart();
 
     Logger::Write("Calling Cart Constructor\n");
@@ -242,6 +248,8 @@ void Vm::LoadCart(std::string filename){
 
     if (!success) {
         CloseCart();
+        //todo: show an error message on the bios?
+        LoadBiosCart();
     }
 }
 
