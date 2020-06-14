@@ -8,6 +8,8 @@
 class Cart {
     std::string fullCartText;
 
+    void initCartRom();
+
     void setSpriteSheet(std::string spriteSheetString);
 	void setSpriteFlags(std::string spriteFlagsString);
 	void setMapData(std::string mapString);

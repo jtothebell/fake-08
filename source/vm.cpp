@@ -309,13 +309,14 @@ void Vm::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
 }
 
 void Vm::CloseCart() {
-    Logger::Write("deleting cart and closing lua state\n");
     if (_loadedCart){
+        Logger::Write("deleting cart\n");
         delete _loadedCart;
         _loadedCart = nullptr;
     }
     
     if (_luaState) {
+        Logger::Write("closing lua state\n");
         lua_close(_luaState);
         _luaState = nullptr;
     }

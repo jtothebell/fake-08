@@ -98,7 +98,10 @@ bool hasEnding (std::string const &fullString, std::string const &ending) {
 
 //tac08 based cart parsing and stripping of emoji
 Cart::Cart(std::string filename){
-    Filename = filename;\
+    Filename = filename;
+    //zero out cart rom so no garbage is left over
+    initCartRom();
+
     Logger::Write("getting file contents\n");
     
     if (hasEnding(filename, ".p8")){
@@ -145,24 +148,6 @@ Cart::Cart(std::string filename){
             }
         }
 
-        //I don't think this should be necessary, but things seem to be lingering between cart loads
-        //even after destruction and construction of a new cart
-        for(size_t i = 0; i < sizeof(SpriteSheetData); i++) {
-            SpriteSheetData[i] = 0;
-        }
-        for(size_t i = 0; i < sizeof(SpriteFlagsData); i++) {
-            SpriteFlagsData[i] = 0;
-        }
-        for(size_t i = 0; i < sizeof(MapData); i++) {
-            MapData[i] = 0;
-        }
-        for(size_t i = 0; i < 64; i++) {
-            SfxData[i] = {0};
-        }
-        for(size_t i = 0; i < 64; i++) {
-            SongData[i] = {0};
-        }
-
         Logger::Write("Setting cart graphics rom data from strings\n");
         setSpriteSheet(SpriteSheetString);
         setSpriteFlags(SpriteFlagsString);
@@ -194,7 +179,26 @@ Cart::Cart(std::string filename){
 }
 
 Cart::~Cart(){
+    
+}
 
+void Cart::initCartRom(){
+    //zero out cart rom so no garbage is left over
+    for(size_t i = 0; i < sizeof(SpriteSheetData); i++) {
+        SpriteSheetData[i] = 0;
+    }
+    for(size_t i = 0; i < sizeof(SpriteFlagsData); i++) {
+        SpriteFlagsData[i] = 0;
+    }
+    for(size_t i = 0; i < sizeof(MapData); i++) {
+        MapData[i] = 0;
+    }
+    for(size_t i = 0; i < 64; i++) {
+        SfxData[i] = {0};
+    }
+    for(size_t i = 0; i < 64; i++) {
+        SongData[i] = {0};
+    }
 }
 
 void Cart::setSpriteSheet(std::string spritesheetstring){
