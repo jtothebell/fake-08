@@ -2,7 +2,8 @@
 #include <sstream>
 #include <map>
 //make sure 3ds and switch libpng are installed from devkitpro pacman
-#include <png.h>
+//#include <png.h>
+#include "lodepng.h"
 
 #include "cart.h"
 #include "filehelpers.h"
@@ -100,9 +101,38 @@ bool hasEnding (std::string const &fullString, std::string const &ending) {
 
 #define HEADERLEN 8
 
-//reference: http://jeromebelleman.gitlab.io/posts/devops/libpng/#changing-the-io-method
-//and: http://www.libpng.org/pub/png/libpng-manual.txt
-bool load_cart_from_png(std::string filename){
+
+bool Cart::loadCartFromPng(std::string filename){
+
+    std::vector<unsigned char> image; //the raw pixels
+    unsigned width, height;
+
+    //decode
+    unsigned error = lodepng::decode(image, width, height, filename);
+    //the pixels are now in the vector "image", 4 bytes per pixel, ordered RGBARGBA..., use it as texture, draw it,
+
+    //if there's an error, display it
+    if(error) {
+        LoadError = "png decoder error " + std::string(lodepng_error_text(error));
+        Logger::Write("%s%s", LoadError.c_str(), "\n");
+        return false;
+    }
+
+    if (width != 160 || height != 205) {
+        LoadError = "Invalid png dimensions";
+        Logger::Write("invalid dimensions\n");
+        return false;
+    }
+
+    
+
+
+    return true;
+    
+    //libpng from devkitpro appears to have a bug? leaving this here for reference for now
+    //reference: http://jeromebelleman.gitlab.io/posts/devops/libpng/#changing-the-io-method
+    //and: http://www.libpng.org/pub/png/libpng-manual.txt
+    /*
     FILE *fp = fopen(filename.c_str(), "rb");
     if (!fp) {
         return false;
@@ -125,6 +155,7 @@ bool load_cart_from_png(std::string filename){
     //this is essentially a catch statement for if anything goes wrong loading the png
     if(setjmp(png_jmpbuf(pngptr)))
     {
+        LoadError = "Error Loading png";
         Logger::Write("Png error encountered. closing file and png struct\n");
         fclose(fp);
         png_destroy_read_struct(&pngptr, &pnginfo, NULL);
@@ -139,11 +170,14 @@ bool load_cart_from_png(std::string filename){
 
     //pico 8 carts must match these dimensions
     if (width != 160 || height != 205) {
+        LoadError = "Invalid png dimensions";
         Logger::Write("invalid dimensions\n");
         fclose(fp);
         png_destroy_read_struct(&pngptr, &pnginfo, NULL);
         return false;
     }
+
+    png_set_keep_unknown_chunks(pngptr, PNG_HANDLE_CHUNK_NEVER, (png_const_bytep)-1, -1);
 
     png_byte color_type = png_get_color_type(pngptr, pnginfo);
     png_byte bit_depth  = png_get_bit_depth(pngptr, pnginfo);
@@ -196,7 +230,7 @@ bool load_cart_from_png(std::string filename){
     png_destroy_read_struct(&pngptr, &pnginfo, NULL);
 
     return true;
-
+    */
 }
 
 //tac08 based cart parsing and stripping of emoji
@@ -261,12 +295,13 @@ Cart::Cart(std::string filename){
         setMusic(MusicString);
     }
     else if (hasEnding(filename, ".p8.png")) {
-        bool success = load_cart_from_png(filename);
+        bool success = loadCartFromPng(filename);
 
         if (!success){
             return;
         }
 
+        LoadError = "";
         Logger::Write("got valid png cart\n");
     }
     else {

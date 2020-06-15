@@ -69,7 +69,10 @@ bool Vm::loadCart(Cart* cart) {
     _graphics->pal();
 
     if (cart->LuaString == "") {
-        Logger::Write("No Lua to load. Aborting cart load\n");
+        if (_cartLoadError == "") {
+            _cartLoadError = "No Lua to load. Aborting cart load";
+        }
+        Logger::Write("%s\n", _cartLoadError.c_str());
 
         return false;
     }
@@ -109,6 +112,7 @@ bool Vm::loadCart(Cart* cart) {
     int loadedGlobals = luaL_dostring(_luaState, p8GlobalLuaFunctions);
 
     if (loadedGlobals != LUA_OK) {
+        _cartLoadError = "ERROR loading pico 8 lua globals";
         Logger::Write("ERROR loading pico 8 lua globals\n");
         Logger::Write("Error: %s\n", lua_tostring(_luaState, -1));
         lua_pop(_luaState, 1);
@@ -175,11 +179,13 @@ bool Vm::loadCart(Cart* cart) {
     //system
     lua_register(_luaState, "__listcarts", listcarts);
     lua_register(_luaState, "__loadcart", loadcart);
+    lua_register(_luaState, "__getbioserror", getbioserror);
     lua_register(_luaState, "__loadbioscart", loadbioscart);
 
     int loadedCart = luaL_dostring(_luaState, cart->LuaString.c_str());
 
     if (loadedCart != LUA_OK) {
+        _cartLoadError = "Error loading cart lua";
         Logger::Write("ERROR loading cart\n");
         Logger::Write("Error: %s\n", lua_tostring(_luaState, -1));
         lua_pop(_luaState, 1);
@@ -222,6 +228,8 @@ bool Vm::loadCart(Cart* cart) {
 
     _loadedCart = cart;
 
+    _cartLoadError = "";
+
     return true;
 }
 
@@ -243,6 +251,8 @@ void Vm::LoadCart(std::string filename){
 
     Logger::Write("Calling Cart Constructor\n");
     Cart *cart = new Cart(filename);
+
+    _cartLoadError = cart->LoadError;
 
     bool success = loadCart(cart);
 
@@ -355,4 +365,8 @@ void Vm::SetCartList(vector<string> cartList){
 
 vector<string> Vm::GetCartList(){
     return _cartList;
+}
+
+string Vm::GetBiosError() {
+    return _cartLoadError;
 }

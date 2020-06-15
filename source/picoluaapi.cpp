@@ -653,6 +653,14 @@ int loadcart(lua_State *L) {
     return 0;
 }
 
+int getbioserror(lua_State *L) {
+    string error = _vmForLuaApi->GetBiosError();
+
+    lua_pushstring(L, error.c_str());
+
+    return 1;
+}
+
 int loadbioscart(lua_State *L) {
     //_vmForLuaApi->LoadBiosCart();
 

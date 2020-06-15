@@ -17,6 +17,8 @@ class Cart {
     void setSfx(std::string sfxString);
     void setMusic(std::string musicString);
 
+    bool loadCartFromPng(std::string filename);
+
     public:
     Cart (std::string filename);
     ~Cart();
@@ -24,6 +26,8 @@ class Cart {
     std::string Filename;
 
     std::string LuaString;
+
+    std::string LoadError;
 
     std::string SpriteSheetString;
     uint8_t SpriteSheetData[128 * 64];

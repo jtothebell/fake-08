@@ -3,6 +3,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include <fstream>
 #include <iostream>
@@ -375,6 +376,9 @@ bool Host::mainLoop(){
 
 vector<string> Host::listcarts(){
     vector<string> carts;
+
+    //force to SD card root
+    chdir("sdmc:/");
 
     DIR* dir = opendir("/p8carts");
 
