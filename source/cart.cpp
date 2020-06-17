@@ -25,6 +25,7 @@
 //#include "tests/cart_test.h"
 //#endif
 
+static char const *legacyCompressionLut = "\n 0123456789abcdefghijklmnopqrstuvwxyz!#%(){}[]<>+=/*:;.,~_";
 
 std::map<char32_t, uint8_t> emoji = {
     {0x025ae, 0x10}, {0x025a0, 0x11}, {0x025a1, 0x12}, {0x02059, 0x13}, {0x02058, 0x14},
@@ -134,34 +135,21 @@ bool Cart::loadCartFromPng(std::string filename){
     uint8_t version = 0;
 
     for(size_t i = 0; i < imageBytes; i += 4) {
+        //get argb values
         uint8_t r = image[i];
         uint8_t g = image[i + 1];
         uint8_t b = image[i + 2];
         uint8_t a = image[i + 3];
 
-        //Logger::Write("idx: %d -> %d %d %d %d\n", (i / 4), r, g, b, a);
-
+        //get lower bits where pico data is encoded
         a = a & 0x0003;
         r = r & 0x0003;
 		g = g & 0x0003;
 		b = b & 0x0003;
 
-        //Logger::Write("low: %d -> %d %d %d %d\n", (i / 4), a, r, g, b);
-
-        /*
-        a = a << 6;
-        r = r << 4;
-		g = g << 2;
-		b = b;
-
-        Logger::Write("shft: %d -> %d %d %d %d\n", (i / 4), a, r, g, b);
-        */
-
         uint8_t extractedByte = (a << 6) + (r << 4) + (g << 2) + b;
 
-        //Logger::Write("byte: %d -> %d \n", (i / 4), extractedByte);
-
-        //picoDataBytes[i / 4] = extractedByte;
+        //store extracted byte in correct place
         size_t picoDataIdx = i / 4;
         if (picoDataIdx < 0x2000) {
             SpriteSheetData[picoDataIdx] = extractedByte;
@@ -209,6 +197,44 @@ bool Cart::loadCartFromPng(std::string filename){
         LuaString = std::string((char const *)CartLuaData, length);
     }
     else if (compression == 1){
+        //from pico 8 wiki: https://pico-8.fandom.com/wiki/P8PNGFileFormat
+        //The first four bytes (0x4300-0x4303) are :c:\x00.
+        //The next two bytes (0x4304-0x4305) are the length of the decompressed code, stored MSB first.
+        //The next two bytes (0x4306-0x4307) are always zero. 
+        size_t length = CartLuaData[4] * 256 + CartLuaData[5];
+
+        LuaString.resize(0);
+
+        for (size_t i = 8; i < sizeof(CartLuaData) && LuaString.length() < length; ++i){
+            //0x00: Copy the next byte directly to the output stream. 
+            if(CartLuaData[i] == 0x00){
+                LuaString += CartLuaData[++i];
+            }
+            //0x01-0x3b: Emit a character from a lookup table
+            else if (CartLuaData[i] < 0x3c){
+                LuaString += legacyCompressionLut[CartLuaData[i] - 1];
+            }
+            //0x3c-0xff: Calculate an offset and length from this byte and the next byte, 
+            //then copy those bytes from what has already been emitted. In other words, 
+            //go back "offset" characters in the output stream, copy "length" characters, 
+            //then paste them to the end of the output stream. Offset and length are 
+            //calculated as: 
+            //   offset = (current_byte - 0x3c) * 16 + (next_byte & 0xf)
+            //   length = (next_byte >> 4) + 2
+            else {
+                size_t offset = (CartLuaData[i] - 0x3c) * 16 + (CartLuaData[i + 1] & 0xf);
+                size_t length = (CartLuaData[i + 1] >> 4) + 2;
+
+                int startIndex = LuaString.length() - offset;
+                if (startIndex > -1) {
+                    for(size_t j = 0; j < length; ++j) {
+                        LuaString += LuaString[startIndex + j];
+                    }
+                }
+
+                ++i;
+            }
+        }
 
     }
     else if (compression == 2){
