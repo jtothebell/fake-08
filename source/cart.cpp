@@ -1,6 +1,7 @@
 #include <string>
 #include <sstream>
 #include <map>
+#include <cstring>
 //make sure 3ds and switch libpng are installed from devkitpro pacman
 //#include <png.h>
 #include "lodepng.h"
@@ -103,7 +104,6 @@ bool hasEnding (std::string const &fullString, std::string const &ending) {
 
 
 bool Cart::loadCartFromPng(std::string filename){
-
     std::vector<unsigned char> image; //the raw pixels
     unsigned width, height;
 
@@ -124,113 +124,100 @@ bool Cart::loadCartFromPng(std::string filename){
         return false;
     }
 
+    //160x205 == 32800 == 0x8020
+    //0x8000 is actual used data size
+    size_t imageBytes = image.size();
+    size_t totalPix = width * height;
+
+    Logger::Write("Image size: %d toalPix: %d\n", imageBytes, totalPix);
+
+    uint8_t version = 0;
+
+    for(size_t i = 0; i < imageBytes; i += 4) {
+        uint8_t r = image[i];
+        uint8_t g = image[i + 1];
+        uint8_t b = image[i + 2];
+        uint8_t a = image[i + 3];
+
+        //Logger::Write("idx: %d -> %d %d %d %d\n", (i / 4), r, g, b, a);
+
+        a = a & 0x0003;
+        r = r & 0x0003;
+		g = g & 0x0003;
+		b = b & 0x0003;
+
+        //Logger::Write("low: %d -> %d %d %d %d\n", (i / 4), a, r, g, b);
+
+        /*
+        a = a << 6;
+        r = r << 4;
+		g = g << 2;
+		b = b;
+
+        Logger::Write("shft: %d -> %d %d %d %d\n", (i / 4), a, r, g, b);
+        */
+
+        uint8_t extractedByte = (a << 6) + (r << 4) + (g << 2) + b;
+
+        //Logger::Write("byte: %d -> %d \n", (i / 4), extractedByte);
+
+        //picoDataBytes[i / 4] = extractedByte;
+        size_t picoDataIdx = i / 4;
+        if (picoDataIdx < 0x2000) {
+            SpriteSheetData[picoDataIdx] = extractedByte;
+        }
+        else if (picoDataIdx < 0x3000) {
+            MapData[picoDataIdx - 0x2000] = extractedByte;
+        }
+        else if (picoDataIdx < 0x3100) {
+            SpriteFlagsData[picoDataIdx - 0x3000] = extractedByte;
+        }
+        else if (picoDataIdx < 0x4300) {
+            //skipping audio for now
+        }
+        else if (picoDataIdx < 0x8000) {
+            CartLuaData[picoDataIdx - 0x4300] = extractedByte;
+        }
+        else if (picoDataIdx == 0x8000) {
+            version = extractedByte;
+        }
+    }
+
+    uint8_t compression = 0;
+
+    if (CartLuaData[0] == '\0' && CartLuaData[1] == 'p' && CartLuaData[2] == 'x' && CartLuaData[3] == 'a'){
+        compression = 2;
+    }
+
+    if (CartLuaData[0] == ':' && CartLuaData[1] == 'c' && CartLuaData[2] == ':' && CartLuaData[3] == '\0'){
+        compression = 1;
+    }
+
+    Logger::Write("Version: %d Compression %d", version, compression);
+
+    if (compression == 0) {
+        auto codeBlockLength = 0x8000 - 0x4300;
+        auto length = codeBlockLength;
+
+        auto endOfCodePtr = (uint8_t const *)std::memchr(CartLuaData, '\0', codeBlockLength);
+        if (endOfCodePtr) {
+            length = endOfCodePtr - CartLuaData;
+        }
+
+        Logger::Write("Lua Length: %d\n", length);
+
+        LuaString = std::string((char const *)CartLuaData, length);
+    }
+    else if (compression == 1){
+
+    }
+    else if (compression == 2){
+
+    }    
     
 
-
     return true;
-    
-    //libpng from devkitpro appears to have a bug? leaving this here for reference for now
-    //reference: http://jeromebelleman.gitlab.io/posts/devops/libpng/#changing-the-io-method
-    //and: http://www.libpng.org/pub/png/libpng-manual.txt
-    /*
-    FILE *fp = fopen(filename.c_str(), "rb");
-    if (!fp) {
-        return false;
-    }
 
-    char header[HEADERLEN];
-    fread(header, 1, HEADERLEN, fp);
-
-    bool is_png = !png_sig_cmp((png_const_bytep)header, 0, HEADERLEN);
-    if (!is_png) {
-        fclose(fp);
-        return false;
-    }
-    fseek(fp, 0, SEEK_SET);
-
-    png_structp pngptr =
-        png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-    png_infop pnginfo = png_create_info_struct(pngptr);
-
-    //this is essentially a catch statement for if anything goes wrong loading the png
-    if(setjmp(png_jmpbuf(pngptr)))
-    {
-        LoadError = "Error Loading png";
-        Logger::Write("Png error encountered. closing file and png struct\n");
-        fclose(fp);
-        png_destroy_read_struct(&pngptr, &pnginfo, NULL);
-        return false;
-    }
-
-    png_init_io(pngptr, fp);
-    png_read_info(pngptr, pnginfo);
-
-    int width = png_get_image_width(pngptr, pnginfo);
-    int height = png_get_image_height(pngptr, pnginfo);
-
-    //pico 8 carts must match these dimensions
-    if (width != 160 || height != 205) {
-        LoadError = "Invalid png dimensions";
-        Logger::Write("invalid dimensions\n");
-        fclose(fp);
-        png_destroy_read_struct(&pngptr, &pnginfo, NULL);
-        return false;
-    }
-
-    png_set_keep_unknown_chunks(pngptr, PNG_HANDLE_CHUNK_NEVER, (png_const_bytep)-1, -1);
-
-    png_byte color_type = png_get_color_type(pngptr, pnginfo);
-    png_byte bit_depth  = png_get_bit_depth(pngptr, pnginfo);
-
-    // Read any color_type into 8bit depth, ABGR format.
-    // See http://www.libpng.org/pub/png/libpng-manual.txt
-
-    if(bit_depth == 16)
-        png_set_strip_16(pngptr);
-
-    if(color_type == PNG_COLOR_TYPE_PALETTE)
-        png_set_palette_to_rgb(pngptr);
-
-    // PNG_COLOR_TYPE_GRAY_ALPHA is always 8 or 16bit depth.
-    if(color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
-        png_set_expand_gray_1_2_4_to_8(pngptr);
-
-    if(png_get_valid(pngptr, pnginfo, PNG_INFO_tRNS))
-        png_set_tRNS_to_alpha(pngptr);
-
-    // These color_type don't have an alpha channel then fill it with 0xff.
-    if(color_type == PNG_COLOR_TYPE_RGB ||
-       color_type == PNG_COLOR_TYPE_GRAY ||
-       color_type == PNG_COLOR_TYPE_PALETTE)
-        png_set_filler(pngptr, 0xFF, PNG_FILLER_AFTER);
-
-    if(color_type == PNG_COLOR_TYPE_GRAY ||
-       color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
-        png_set_gray_to_rgb(pngptr);
-
-    //output ABGR
-    png_set_bgr(pngptr);
-    png_set_swap_alpha(pngptr);
-
-    png_bytepp rows;
-    Logger::Write("reading png\n");
-    png_read_png(pngptr, pnginfo, PNG_TRANSFORM_IDENTITY, NULL);
-    Logger::Write("getting pixel rows\n");
-    rows = png_get_rows(pngptr, pnginfo);
-
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width * 4; j += 4) {
-            printf("%d %d %d %d", rows[i][j], rows[i][j + 1], rows[i][j + 2], rows[i][j + 3]);
-        }   
-        printf("\n");
-    }
-
-    Logger::Write("got rows. closing\n");
-    fclose(fp);
-    png_destroy_read_struct(&pngptr, &pnginfo, NULL);
-
-    return true;
-    */
 }
 
 //tac08 based cart parsing and stripping of emoji

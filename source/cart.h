@@ -44,4 +44,6 @@ class Cart {
     std::string MusicString;
     song SongData[64];
 
+    uint8_t CartLuaData[15616];
+
 };
