@@ -2,6 +2,11 @@
 #include <sstream>
 #include <map>
 #include <cstring>
+#include <vector>
+#include <stack>
+#include <array>
+#include <algorithm>
+
 //make sure 3ds and switch libpng are installed from devkitpro pacman
 //#include <png.h>
 #include "lodepng.h"
@@ -93,6 +98,57 @@ std::string convert_emojis(const std::string& lua) {
 	return res;
 }
 
+//https://github.com/samhocevar/zepto8/blob/b1a13516945c49e47495c739e6a43a241ad99291/src/pico8/code.cpp
+// Move to front structure
+struct move_to_front
+{
+    move_to_front()
+    {
+        reset();
+    }
+
+    void reset()
+    {
+        for (int n = 0; n < 256; ++n)
+            state[n] = uint8_t(n);
+    }
+
+    // Get the nth byte and move it to front
+    uint8_t get(int n)
+    {
+        std::rotate(state.begin(), state.begin() + n, state.begin() + n + 1);
+        return state.front();
+    }
+
+    // Find index of a given character
+    int find(uint8_t ch)
+    {
+        auto val = std::find(state.begin(), state.end(), ch);
+        return int(std::distance(state.begin(), val));
+    }
+
+    // Push a character and return its previous index, allowing the caller to compute the cost
+    // of the operation. This operation can be undone by pop_op().
+    int push_op(uint8_t ch)
+    {
+        int n = find(ch);
+        get(n);
+        ops.push(uint8_t(n));
+        return n;
+    }
+
+    // Undo an push_op() operation
+    void pop_op()
+    {
+        std::rotate(state.begin(), state.begin() + 1, state.begin() + ops.top() + 1);
+        ops.pop();
+    }
+
+private:
+    std::array<uint8_t, 256> state;
+    std::stack<uint8_t> ops;
+};
+
 bool hasEnding (std::string const &fullString, std::string const &ending) {
     if (fullString.length() >= ending.length()) {
         return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
@@ -129,8 +185,6 @@ bool Cart::loadCartFromPng(std::string filename){
     //0x8000 is actual used data size
     size_t imageBytes = image.size();
     size_t totalPix = width * height;
-
-    Logger::Write("Image size: %d toalPix: %d\n", imageBytes, totalPix);
 
     uint8_t version = 0;
 
@@ -192,8 +246,6 @@ bool Cart::loadCartFromPng(std::string filename){
             length = endOfCodePtr - CartLuaData;
         }
 
-        Logger::Write("Lua Length: %d\n", length);
-
         LuaString = std::string((char const *)CartLuaData, length);
     }
     else if (compression == 1){
@@ -238,9 +290,57 @@ bool Cart::loadCartFromPng(std::string filename){
 
     }
     else if (compression == 2){
+        //implementation from zepto8 code.cpp, pxa_decompress
+        //https://github.com/samhocevar/zepto8/blob/b1a13516945c49e47495c739e6a43a241ad99291/src/pico8/code.cpp
+        size_t length = CartLuaData[4] * 256 + CartLuaData[5];
+        size_t compressed = CartLuaData[6] * 256 + CartLuaData[7];
+
+        size_t pos = size_t(8) * 8; // stream position in bits
+        auto get_bits = [&](size_t count) -> uint32_t
+        {
+            uint32_t n = 0;
+            for (size_t i = 0; i < count; ++i, ++pos)
+                n |= ((CartLuaData[pos >> 3] >> (pos & 0x7)) & 0x1) << i;
+            return n;
+        };
+
+        move_to_front mtf;
+
+        //Logger::Write("# Size: %d (%04x)\n", int(compressed), int(compressed));
+
+        while (LuaString.size() < length && pos < compressed * 8)
+        {
+            auto oldpos = pos; (void)oldpos;
+
+            if (get_bits(1))
+            {
+                int nbits = 4;
+                while (get_bits(1))
+                    ++nbits;
+                int n = get_bits(nbits) + (1 << nbits) - 16;
+                uint8_t ch = mtf.get(n);
+                if (!ch)
+                    break;
+                //Logger::Write("%04x [%d] $%d\n", int(LuaString.size()), int(pos-oldpos), ch);
+                LuaString.push_back(char(ch));
+            }
+            else
+            {
+                int nbits = get_bits(1) ? get_bits(1) ? 5 : 10 : 15;
+                int offset = get_bits(nbits) + 1;
+
+                int n, len = 3;
+                do
+                    len += (n = get_bits(3));
+                while (n == 7);
+
+                //Logger::Write("%04x [%d] %d@-%d\n", int(LuaString.size()), int(pos-oldpos), len, offset);
+                for (int i = 0; i < len; ++i)
+                    LuaString.push_back(LuaString[LuaString.size() - offset]);
+            }
+        }
 
     }    
-    
 
     return true;
 
