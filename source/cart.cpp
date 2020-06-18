@@ -184,7 +184,6 @@ bool Cart::loadCartFromPng(std::string filename){
     //160x205 == 32800 == 0x8020
     //0x8000 is actual used data size
     size_t imageBytes = image.size();
-    size_t totalPix = width * height;
 
     uint8_t version = 0;
 
@@ -484,6 +483,10 @@ void Cart::setMusic(std::string musicString){
         buf[1] = line[1];
         uint8_t flagByte = (uint8_t)strtol(buf, NULL, 16);
 
+        uint8_t fstop = (flagByte & 4) >> 2;
+        uint8_t frepeat = (flagByte & 2) >> 1;
+        uint8_t fnext = flagByte & 1;
+
         buf[0] = line[3];
         buf[1] = line[4];
         uint8_t channel1byte = (uint8_t)strtol(buf, NULL, 16);
@@ -500,13 +503,12 @@ void Cart::setMusic(std::string musicString){
         buf[1] = line[10];
         uint8_t channel4byte = (uint8_t)strtol(buf, NULL, 16);
 
-        SongData[musicIdx++] = {
-            flagByte,
-            channel1byte,
-            channel2byte,
-            channel3byte,
-            channel4byte
-        };
+        SongData[musicIdx].data[0] = channel1byte | fnext << 7;
+        SongData[musicIdx].data[1] = channel2byte | frepeat << 7;
+        SongData[musicIdx].data[2] = channel3byte | fstop << 7;
+        SongData[musicIdx].data[3] = channel4byte;
+
+        musicIdx++;
     }
 
 }
@@ -544,19 +546,19 @@ void Cart::setSfx(std::string sfxString) {
         for (int i = 8; i < 168; i+=5) {
             buf[0] = line[i];
             buf[1] = line[i + 1];
-            uint8_t key = (uint8_t)strtol(buf, NULL, 16);
+            uint16_t key = (uint16_t)strtol(buf, NULL, 16);
 
             buf[0] = '0';
             buf[1] = line[i + 2];
-            uint8_t waveform = (uint8_t)strtol(buf, NULL, 16);
+            uint16_t waveform = (uint16_t)strtol(buf, NULL, 16);
 
             buf[0] = '0';
             buf[1] = line[i + 3];
-            uint8_t volume = (uint8_t)strtol(buf, NULL, 16);
+            uint16_t volume = (uint16_t)strtol(buf, NULL, 16);
 
             buf[0] = '0';
             buf[1] = line[i + 4];
-            uint8_t effect = (uint8_t)strtol(buf, NULL, 16);
+            uint16_t effect = (uint16_t)strtol(buf, NULL, 16);
 
             SfxData[sfxIdx].notes[noteIdx++] = {
                 key,

@@ -18,20 +18,31 @@
 */
 
 struct song {
-    uint8_t loop;
- 
-    uint8_t channel1;
-    uint8_t channel2;
-    uint8_t channel3;
-    uint8_t channel4;
+    union
+    {
+        struct
+        {
+            uint8_t sfx0  : 7;
+            uint8_t start : 1;
+            uint8_t sfx1  : 7;
+            uint8_t loop  : 1;
+            uint8_t sfx2  : 7;
+            uint8_t stop  : 1;
+            uint8_t sfx3  : 7;
+            uint8_t mode  : 1;
+        };
 
+        // The four song channels that should play, 0…63 (each msb holds a flag)
+        uint8_t data[4];
+    };
 };
 
+//using uint16_t may be necessary since waveform spans two bytes
 struct note {
-    uint8_t key;
-    uint8_t waveform;
-    uint8_t volume;
-    uint8_t effect;
+    uint16_t key : 6;
+    uint16_t waveform : 3;
+    uint16_t volume : 3;
+    uint16_t effect : 4;
 };
 
 struct sfx {

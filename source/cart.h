@@ -39,10 +39,10 @@ class Cart {
     uint8_t MapData[128 * 32];
 
     std::string SfxString;
-    sfx SfxData[64];
+    struct sfx SfxData[64];
 
     std::string MusicString;
-    song SongData[64];
+    struct song SongData[64];
 
     uint8_t CartLuaData[15616];
 
