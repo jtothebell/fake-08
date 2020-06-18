@@ -30,20 +30,16 @@ class Cart {
     std::string LoadError;
 
     std::string SpriteSheetString;
-    uint8_t SpriteSheetData[128 * 64];
-
     std::string SpriteFlagsString;
-    uint8_t SpriteFlagsData[256];
-
     std::string MapString;
-    uint8_t MapData[128 * 32];
-
     std::string SfxString;
-    struct sfx SfxData[64];
-
     std::string MusicString;
-    struct song SongData[64];
 
+    uint8_t SpriteSheetData[128 * 64];
+    uint8_t SpriteFlagsData[256];
+    uint8_t MapData[128 * 32];
+    struct song SongData[64];
+    struct sfx SfxData[64];
     uint8_t CartLuaData[15616];
 
 };

@@ -202,6 +202,7 @@ bool Cart::loadCartFromPng(std::string filename){
 
         uint8_t extractedByte = (a << 6) + (r << 4) + (g << 2) + b;
 
+        //TODO: write this all to one array, then memcpy to picoram?
         //store extracted byte in correct place
         size_t picoDataIdx = i / 4;
         if (picoDataIdx < 0x2000) {
@@ -213,8 +214,17 @@ bool Cart::loadCartFromPng(std::string filename){
         else if (picoDataIdx < 0x3100) {
             SpriteFlagsData[picoDataIdx - 0x3000] = extractedByte;
         }
+        else if (picoDataIdx < 0x3200) {
+            size_t offset = picoDataIdx - 0x3100;
+            size_t songIdx = offset / sizeof(song);
+            size_t channelIdx = offset % sizeof(song);
+            SongData[songIdx].data[channelIdx] = extractedByte;
+        }
         else if (picoDataIdx < 0x4300) {
-            //skipping audio for now
+            size_t offset = picoDataIdx - 0x3200;
+            size_t sfxIdx = offset / sizeof(sfx);
+            size_t byteIdx = offset % sizeof(sfx);
+            SfxData[sfxIdx].data[byteIdx] = extractedByte;
         }
         else if (picoDataIdx < 0x8000) {
             CartLuaData[picoDataIdx - 0x4300] = extractedByte;

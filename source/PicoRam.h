@@ -39,19 +39,35 @@ struct song {
 
 //using uint16_t may be necessary since waveform spans two bytes
 struct note {
-    uint16_t key : 6;
-    uint16_t waveform : 3;
-    uint16_t volume : 3;
-    uint16_t effect : 4;
+    union
+    {
+        struct
+        {
+            uint16_t key : 6;
+            uint16_t waveform : 3;
+            uint16_t volume : 3;
+            uint16_t effect : 4;
+        };
+        
+        uint8_t data[2];
+    };
 };
 
 struct sfx {
-    note notes[32];
+    union
+    {
+        struct 
+        {
+            note notes[32];
 
-    uint8_t editorMode;
-    uint8_t speed;
-    uint8_t loopRangeStart;
-    uint8_t loopRangeEnd;
+            uint8_t editorMode;
+            uint8_t speed;
+            uint8_t loopRangeStart;
+            uint8_t loopRangeEnd;
+        };
+
+        uint8_t data[68];
+    };
 };
 
 struct musicChannel {
@@ -82,11 +98,9 @@ struct PicoRam
 	uint8_t mapData[128 * 32];
 	uint8_t spriteFlags[256];
 
-	//uint8_t _musicRam[64 * 4];
-    song _songs[64];
+    struct song songs[64];
 
-    //uint8_t _sfxRam[64 * 68];
-    sfx _sfx[64];
+    struct sfx sfx[64];
 
     musicChannel _musicChannel;
     sfxChannel _sfxChannels[4];

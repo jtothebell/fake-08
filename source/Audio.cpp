@@ -122,10 +122,10 @@ void Audio::set_music_pattern(int pattern) {
 
     //array to access song's channels. may be better to have this part of the struct?
     uint8_t channels[] = {
-        _memory->_songs[pattern].sfx0,
-        _memory->_songs[pattern].sfx1,
-        _memory->_songs[pattern].sfx2,
-        _memory->_songs[pattern].sfx3,
+        _memory->songs[pattern].sfx0,
+        _memory->songs[pattern].sfx1,
+        _memory->songs[pattern].sfx2,
+        _memory->songs[pattern].sfx3,
     };
 
     // Find music speed; it’s the speed of the fastest sfx
@@ -137,7 +137,7 @@ void Audio::set_music_pattern(int pattern) {
         if (n & 0x40)
             continue;
 
-        auto &sfx = _memory->_sfx[n & 0x3f];
+        auto &sfx = _memory->sfx[n & 0x3f];
         if (_memory->_musicChannel.master == -1 || _memory->_musicChannel.speed > sfx.speed)
         {
             _memory->_musicChannel.master = i;
@@ -225,13 +225,13 @@ int16_t Audio::getSampleForChannel(int channel){
             int16_t next_pattern = _memory->_musicChannel.pattern + 1;
             int16_t next_count = _memory->_musicChannel.count + 1;
             //todo: pull out these flags, get memory storage correct as well
-            if (_memory->_songs[_memory->_musicChannel.pattern].stop) //stop part of the loop flag
+            if (_memory->songs[_memory->_musicChannel.pattern].stop) //stop part of the loop flag
             {
                 next_pattern = -1;
                 next_count = _memory->_musicChannel.count;
             }
-            else if (_memory->_songs[_memory->_musicChannel.pattern].loop){
-                while (--next_pattern > 0 && !_memory->_songs[next_pattern].start)
+            else if (_memory->songs[_memory->_musicChannel.pattern].loop){
+                while (--next_pattern > 0 && !_memory->songs[next_pattern].start)
                     ;
             }
 
@@ -245,7 +245,7 @@ int16_t Audio::getSampleForChannel(int channel){
         return 0;
     }
 
-    struct sfx const &sfx = _memory->_sfx[index];
+    struct sfx const &sfx = _memory->sfx[index];
 
     // Speed must be 1—255 otherwise the SFX is invalid
     int const speed = max(1, (int)sfx.speed);

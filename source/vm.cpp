@@ -95,11 +95,11 @@ bool Vm::loadCart(Cart* cart) {
     }
 
     for(size_t i = 0; i < 64; i++) {
-        _memory._sfx[i] = cart->SfxData[i];
+        _memory.sfx[i] = cart->SfxData[i];
     }
 
     for(size_t i = 0; i < 64; i++) {
-        _memory._songs[i] = cart->SongData[i];
+        _memory.songs[i] = cart->SongData[i];
     }
 
     // initialize Lua interpreter
