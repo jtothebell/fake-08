@@ -322,7 +322,7 @@ vector<string> Host::listcarts(){
     if (dir) {
         for(auto& p: fs::directory_iterator("/p8carts")){
             auto ext = p.path().extension().string();
-            if (ext == ".p8"){
+            if (ext == ".p8" || ext == ".png"){
                 carts.push_back(p.path().string());
             }
         }

@@ -19,103 +19,6 @@ Audio::Audio(PicoRam* memory){
     }
 }
 
-void Audio::setMusic(std::string musicString){
-    std::istringstream s(musicString);
-    std::string line;
-    char buf[3] = {0};
-    int musicIdx = 0;
-    
-    while (std::getline(s, line)) {
-        buf[0] = line[0];
-        buf[1] = line[1];
-        uint8_t flagByte = (uint8_t)strtol(buf, NULL, 16);
-
-        buf[0] = line[3];
-        buf[1] = line[4];
-        uint8_t channel1byte = (uint8_t)strtol(buf, NULL, 16);
-
-        buf[0] = line[5];
-        buf[1] = line[6];
-        uint8_t channel2byte = (uint8_t)strtol(buf, NULL, 16);
-
-        buf[0] = line[7];
-        buf[1] = line[8];
-        uint8_t channel3byte = (uint8_t)strtol(buf, NULL, 16);
-
-        buf[0] = line[9];
-        buf[1] = line[10];
-        uint8_t channel4byte = (uint8_t)strtol(buf, NULL, 16);
-
-        _memory->_songs[musicIdx++] = {
-            flagByte,
-            channel1byte,
-            channel2byte,
-            channel3byte,
-            channel4byte
-        };
-    }
-
-}
-
-void Audio::setSfx(std::string sfxString) {
-    std::istringstream s(sfxString);
-    std::string line;
-    char buf[3] = {0};
-    int sfxIdx = 0;
-    
-    while (std::getline(s, line)) {
-        buf[0] = line[0];
-        buf[1] = line[1];
-        uint8_t editorMode = (uint8_t)strtol(buf, NULL, 16);
-
-        buf[0] = line[2];
-        buf[1] = line[3];
-        uint8_t noteDuration = (uint8_t)strtol(buf, NULL, 16);
-
-        buf[0] = line[4];
-        buf[1] = line[5];
-        uint8_t loopRangeStart = (uint8_t)strtol(buf, NULL, 16);
-
-        buf[0] = line[6];
-        buf[1] = line[7];
-        uint8_t loopRangeEnd = (uint8_t)strtol(buf, NULL, 16);
-
-        _memory->_sfx[sfxIdx].editorMode = editorMode;
-        _memory->_sfx[sfxIdx].speed = noteDuration;
-        _memory->_sfx[sfxIdx].loopRangeStart = loopRangeStart;
-        _memory->_sfx[sfxIdx].loopRangeEnd = loopRangeEnd;
-
-        //32 notes, 5 chars each
-        int noteIdx = 0;
-        for (int i = 8; i < 168; i+=5) {
-            buf[0] = line[i];
-            buf[1] = line[i + 1];
-            uint8_t key = (uint8_t)strtol(buf, NULL, 16);
-
-            buf[0] = '0';
-            buf[1] = line[i + 2];
-            uint8_t waveform = (uint8_t)strtol(buf, NULL, 16);
-
-            buf[0] = '0';
-            buf[1] = line[i + 3];
-            uint8_t volume = (uint8_t)strtol(buf, NULL, 16);
-
-            buf[0] = '0';
-            buf[1] = line[i + 4];
-            uint8_t effect = (uint8_t)strtol(buf, NULL, 16);
-
-            _memory->_sfx[sfxIdx].notes[noteIdx++] = {
-                key,
-                waveform,
-                volume,
-                effect
-            };
-        }
-
-        sfxIdx++;
-    } 
-}
-
 void Audio::api_sfx(uint8_t sfx, int channel, int offset){
 
     if (sfx < -2 || sfx > 63 || channel < -1 || channel > 3 || offset > 31) {
@@ -219,10 +122,10 @@ void Audio::set_music_pattern(int pattern) {
 
     //array to access song's channels. may be better to have this part of the struct?
     uint8_t channels[] = {
-        _memory->_songs[pattern].channel1,
-        _memory->_songs[pattern].channel2,
-        _memory->_songs[pattern].channel3,
-        _memory->_songs[pattern].channel4,
+        _memory->songs[pattern].sfx0,
+        _memory->songs[pattern].sfx1,
+        _memory->songs[pattern].sfx2,
+        _memory->songs[pattern].sfx3,
     };
 
     // Find music speed; it’s the speed of the fastest sfx
@@ -234,7 +137,7 @@ void Audio::set_music_pattern(int pattern) {
         if (n & 0x40)
             continue;
 
-        auto &sfx = _memory->_sfx[n & 0x3f];
+        auto &sfx = _memory->sfx[n & 0x3f];
         if (_memory->_musicChannel.master == -1 || _memory->_musicChannel.speed > sfx.speed)
         {
             _memory->_musicChannel.master = i;
@@ -322,13 +225,13 @@ int16_t Audio::getSampleForChannel(int channel){
             int16_t next_pattern = _memory->_musicChannel.pattern + 1;
             int16_t next_count = _memory->_musicChannel.count + 1;
             //todo: pull out these flags, get memory storage correct as well
-            if (BITMASK(2) & _memory->_songs[_memory->_musicChannel.pattern].loop) //stop part of the loop flag
+            if (_memory->songs[_memory->_musicChannel.pattern].stop) //stop part of the loop flag
             {
                 next_pattern = -1;
                 next_count = _memory->_musicChannel.count;
             }
-            else if (BITMASK(1) &_memory->_songs[_memory->_musicChannel.pattern].loop){
-                while (--next_pattern > 0 && !(BITMASK(0) &_memory->_songs[next_pattern].loop))
+            else if (_memory->songs[_memory->_musicChannel.pattern].loop){
+                while (--next_pattern > 0 && !_memory->songs[next_pattern].start)
                     ;
             }
 
@@ -342,7 +245,7 @@ int16_t Audio::getSampleForChannel(int channel){
         return 0;
     }
 
-    struct sfx const &sfx = _memory->_sfx[index];
+    struct sfx const &sfx = _memory->sfx[index];
 
     // Speed must be 1—255 otherwise the SFX is invalid
     int const speed = max(1, (int)sfx.speed);

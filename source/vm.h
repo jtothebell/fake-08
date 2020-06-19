@@ -32,6 +32,8 @@ class Vm {
     bool _cartChangeQueued;
     string _nextCartKey;
 
+    string _cartLoadError;
+
     vector<string> _cartList;
 
     bool loadCart(Cart* cart);
@@ -64,5 +66,6 @@ class Vm {
 
     void SetCartList(vector<string> cartList);
     vector<string> GetCartList();
+    string GetBiosError();
 };
 

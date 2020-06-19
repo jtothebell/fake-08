@@ -84,9 +84,6 @@ class Audio {
     public:
     Audio(PicoRam* memory);
 
-    void setSfx(std::string sfxString);
-    void setMusic(std::string musicString);
-
     void api_sfx(uint8_t sfx, int channel, int offset);
     void api_music(uint8_t pattern, int16_t fade_len, int16_t mask);
 

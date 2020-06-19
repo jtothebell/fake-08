@@ -2,6 +2,8 @@
 #include <functional>
 #include <math.h>
 
+#include <string.h>
+
 #include "vm.h"
 #include "graphics.h"
 #include "fontdata.h"
@@ -66,20 +68,40 @@ bool Vm::loadCart(Cart* cart) {
     _graphics->clip();
     _graphics->pal();
 
+    if (cart->LuaString == "") {
+        if (_cartLoadError == "") {
+            _cartLoadError = "No Lua to load. Aborting cart load";
+        }
+        Logger::Write("%s\n", _cartLoadError.c_str());
+
+        return false;
+    }
+
     //reset audio
     for(int i = 0; i < 4; i++) {
         _memory._sfxChannels[i].sfxId = -1;
     }
     _memory._musicChannel.pattern = -1;
 
+    //copy data from cart rom to ram
+    for(size_t i = 0; i < sizeof(_memory.spriteSheetData); i++) {
+        _memory.spriteSheetData[i] = cart->SpriteSheetData[i];
+    }
+    for(size_t i = 0; i < sizeof(_memory.spriteFlags); i++) {
+        _memory.spriteFlags[i] = cart->SpriteFlagsData[i];
+    }
+    for(size_t i = 0; i < sizeof(_memory.mapData); i++) {
+        _memory.mapData[i] = cart->MapData[i];
+    }
 
-    _graphics->setSpriteSheet(cart->SpriteSheetString);
-    _graphics->setSpriteFlags(cart->SpriteFlagsString);
-    _graphics->setMapData(cart->MapString);
+    for(size_t i = 0; i < 64; i++) {
+        _memory.sfx[i] = cart->SfxData[i];
+    }
 
-    _audio->setSfx(cart->SfxString);
-    _audio->setMusic(cart->MusicString);
-    
+    for(size_t i = 0; i < 64; i++) {
+        _memory.songs[i] = cart->SongData[i];
+    }
+
     // initialize Lua interpreter
     _luaState = luaL_newstate();
 
@@ -90,6 +112,7 @@ bool Vm::loadCart(Cart* cart) {
     int loadedGlobals = luaL_dostring(_luaState, p8GlobalLuaFunctions);
 
     if (loadedGlobals != LUA_OK) {
+        _cartLoadError = "ERROR loading pico 8 lua globals";
         Logger::Write("ERROR loading pico 8 lua globals\n");
         Logger::Write("Error: %s\n", lua_tostring(_luaState, -1));
         lua_pop(_luaState, 1);
@@ -156,11 +179,13 @@ bool Vm::loadCart(Cart* cart) {
     //system
     lua_register(_luaState, "__listcarts", listcarts);
     lua_register(_luaState, "__loadcart", loadcart);
+    lua_register(_luaState, "__getbioserror", getbioserror);
     lua_register(_luaState, "__loadbioscart", loadbioscart);
 
     int loadedCart = luaL_dostring(_luaState, cart->LuaString.c_str());
 
     if (loadedCart != LUA_OK) {
+        _cartLoadError = "Error loading cart lua";
         Logger::Write("ERROR loading cart\n");
         Logger::Write("Error: %s\n", lua_tostring(_luaState, -1));
         lua_pop(_luaState, 1);
@@ -203,6 +228,8 @@ bool Vm::loadCart(Cart* cart) {
 
     _loadedCart = cart;
 
+    _cartLoadError = "";
+
     return true;
 }
 
@@ -219,16 +246,20 @@ void Vm::LoadBiosCart(){
 }
 
 void Vm::LoadCart(std::string filename){
-    Logger::Write("Loading cart %s\n", filename);
+    Logger::Write("Loading cart %s\n", filename.c_str());
     CloseCart();
 
     Logger::Write("Calling Cart Constructor\n");
     Cart *cart = new Cart(filename);
 
+    _cartLoadError = cart->LoadError;
+
     bool success = loadCart(cart);
 
     if (!success) {
         CloseCart();
+        //todo: show an error message on the bios?
+        LoadBiosCart();
     }
 }
 
@@ -296,13 +327,14 @@ void Vm::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
 }
 
 void Vm::CloseCart() {
-    Logger::Write("deleting cart and closing lua state\n");
     if (_loadedCart){
+        Logger::Write("deleting cart\n");
         delete _loadedCart;
         _loadedCart = nullptr;
     }
     
     if (_luaState) {
+        Logger::Write("closing lua state\n");
         lua_close(_luaState);
         _luaState = nullptr;
     }
@@ -333,4 +365,8 @@ void Vm::SetCartList(vector<string> cartList){
 
 vector<string> Vm::GetCartList(){
     return _cartList;
+}
+
+string Vm::GetBiosError() {
+    return _cartLoadError;
 }

@@ -18,29 +18,56 @@
 */
 
 struct song {
-    uint8_t loop;
- 
-    uint8_t channel1;
-    uint8_t channel2;
-    uint8_t channel3;
-    uint8_t channel4;
+    union
+    {
+        struct
+        {
+            uint8_t sfx0  : 7;
+            uint8_t start : 1;
+            uint8_t sfx1  : 7;
+            uint8_t loop  : 1;
+            uint8_t sfx2  : 7;
+            uint8_t stop  : 1;
+            uint8_t sfx3  : 7;
+            uint8_t mode  : 1;
+        };
 
+        // The four song channels that should play, 0…63 (each msb holds a flag)
+        uint8_t data[4];
+    };
 };
 
+//using uint16_t may be necessary since waveform spans two bytes
 struct note {
-    uint8_t key;
-    uint8_t waveform;
-    uint8_t volume;
-    uint8_t effect;
+    union
+    {
+        struct
+        {
+            uint16_t key : 6;
+            uint16_t waveform : 3;
+            uint16_t volume : 3;
+            uint16_t effect : 4;
+        };
+        
+        uint8_t data[2];
+    };
 };
 
 struct sfx {
-    note notes[32];
+    union
+    {
+        struct 
+        {
+            note notes[32];
 
-    uint8_t editorMode;
-    uint8_t speed;
-    uint8_t loopRangeStart;
-    uint8_t loopRangeEnd;
+            uint8_t editorMode;
+            uint8_t speed;
+            uint8_t loopRangeStart;
+            uint8_t loopRangeEnd;
+        };
+
+        uint8_t data[68];
+    };
 };
 
 struct musicChannel {
@@ -71,11 +98,9 @@ struct PicoRam
 	uint8_t mapData[128 * 32];
 	uint8_t spriteFlags[256];
 
-	//uint8_t _musicRam[64 * 4];
-    song _songs[64];
+    struct song songs[64];
 
-    //uint8_t _sfxRam[64 * 68];
-    sfx _sfx[64];
+    struct sfx sfx[64];
 
     musicChannel _musicChannel;
     sfxChannel _sfxChannels[4];

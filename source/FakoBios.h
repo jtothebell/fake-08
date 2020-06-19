@@ -27,6 +27,11 @@ function _init()
 		carts = __listcarts()
 		numcarts = #carts
 	end
+
+	if __getbioserror then
+		linebuffer = __getbioserror()
+	end
+
 	cls(bgcolor)
 	spr(0, 1, 5, 6, 1)
 	color(6)

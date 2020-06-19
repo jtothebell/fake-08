@@ -83,6 +83,7 @@ int dset(lua_State *L);
 //file system/vm functions
 int listcarts(lua_State *L);
 int loadcart(lua_State *L);
+int getbioserror(lua_State *L);
 int loadbioscart(lua_State *L);
 
 //system functions

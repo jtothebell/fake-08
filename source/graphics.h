@@ -76,10 +76,6 @@ class Graphics {
 	public:
 	Graphics(std::string fontdata, PicoRam* memory);
 
-	void setSpriteSheet(std::string spriteSheetString);
-	void setSpriteFlags(std::string spriteFlagsString);
-	void setMapData(std::string mapString);
-
 	uint8_t* GetP8FrameBuffer();
 	uint8_t* GetScreenPaletteMap();
 	Color* GetPaletteColors();
