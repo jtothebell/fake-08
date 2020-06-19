@@ -3,7 +3,7 @@
 A Pico 8 player for 3ds (homebrew). Not related to or supported by Lexaloffle Software
 
 ## Usage:
-Place the executable file (.3dsx for 3ds or .nro for Switch) in a directory where it can be executed from your homebrew menu. Place pico 8 cart files (*.p8 text files only. png carts not supported yet) in the `/p8carts/` directory on the SD card of your homebrew capable 3ds or Switch console (no support offered here for modifying your console, but you can look at https://3ds.hacks.guide/ for a guide to installing custom firmware on the 3ds).
+Place the executable file (.3dsx for 3ds or .nro for Switch) in a directory where it can be executed from your homebrew menu. Place pico 8 cart files (\*.p8 text or \*.p8.png files) in the `/p8carts/` directory on the SD card of your homebrew capable 3ds or Switch console (no support offered here for modifying your console, but you can look at https://3ds.hacks.guide/ for a guide to installing custom firmware on the 3ds).
 
 Launch the homebrew menu, then start Fake-08. Use left and right on the dpad or left stick to cycle through carts on the SD card. Choose a cart using the `A` button. To exit the currently running cart, press `Start` on 3ds or `+` on Switch. Press `R` to cycle between rendering sizes. Press `L` and `R` simultaneously to exit back to the homebrew menu.
 
@@ -42,9 +42,11 @@ Games with lots of draw calls will have slowdowns on old 3ds consoles (possibly 
 
 You browse and download carts by using the `SPLORE()` function in Pico 8 (again, if you have $15 to spend, and you are interested in game dev, it is well worth your money). Once you have loaded a cart that you want to try on FAKE-08, type `save {{cartname}}.p8` to save the cart as a text file, then copy that file to your device's SD card.
 
-You can also browse carts on the Pico-8 BBS website, but can only download complete carts in png format. Fake-08 doesn't directly support png carts yet, but you can use picotool (https://github.com/dansanderson/picotool) to convert downloaded pngs to text carts with the `writep8` command assuming the cart's license allows it (most carts on the BBS use a Creative Commons License that allows for such use).
+You can also browse carts on the Pico-8 BBS website, but can only download complete carts in png format. As of pre release v0.0.1.1 Fake-08 should load and play png carts provided they don't use any other unsupported features. You can download p8.png carts from the `Cart` link in the lower left of the game view, and save it into your sdmc:/p8carts directory.
 
-I make no specific claims of compatibility at the present time. I think many carts _should_ work, but this is still a project in the very early stages, and it is my first real foray into C or C++ development and low level game dev in general.
+## Other Notes
+
+I make no specific claims of compatibility at the present time. I think many carts _should_ work, but this is still a project in the very early stages, and it is my first real foray into C or C++ development and low level game dev in general. I'm doing this project for fun as a way to learn lower level languages than I've used before, as well as basic game engines etc. 
 
 Feel free to write up any issues you come across, and attach as small of a cart as possible that reproduces the issue.
 
