@@ -1,6 +1,8 @@
 *.3dsx
 *.elf
 *.smdh
+*.bnr
+*.cia
 
 *.nacp
 *.nro

@@ -21,5 +21,8 @@ clean-switch:
 3ds:
 	@$(MAKE) -C platform/3ds
 
+cia:
+	@$(MAKE) cia -C platform/3ds
+
 switch:
 	@$(MAKE) -C platform/switch
