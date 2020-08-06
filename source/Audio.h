@@ -84,8 +84,8 @@ class Audio {
     public:
     Audio(PicoRam* memory);
 
-    void api_sfx(uint8_t sfx, int channel, int offset);
-    void api_music(uint8_t pattern, int16_t fade_len, int16_t mask);
+    void api_sfx(int sfx, int channel, int offset);
+    void api_music(int pattern, int16_t fade_len, int16_t mask);
 
     void FillAudioBuffer(void *audioBuffer,size_t offset, size_t size);
 };

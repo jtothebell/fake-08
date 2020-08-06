@@ -556,7 +556,7 @@ int stat(lua_State *L) {
 
 //Audio
 int music(lua_State *L) {
-    double n = lua_tonumber(L,1);
+    int n = lua_tonumber(L,1);
     int fadems = 0;
     if (lua_gettop(L) > 1) {
         fadems = (int)lua_tonumber(L, 2);
@@ -566,7 +566,7 @@ int music(lua_State *L) {
         channelmask = (int)lua_tonumber(L, 3);
     }
 
-    _audioForLuaApi->api_music((uint8_t)n, fadems, channelmask);
+    _audioForLuaApi->api_music(n, fadems, channelmask);
 
     return 0;
 }

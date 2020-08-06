@@ -19,7 +19,7 @@ Audio::Audio(PicoRam* memory){
     }
 }
 
-void Audio::api_sfx(uint8_t sfx, int channel, int offset){
+void Audio::api_sfx(int sfx, int channel, int offset){
 
     if (sfx < -2 || sfx > 63 || channel < -1 || channel > 3 || offset > 31) {
         return;
@@ -89,7 +89,7 @@ void Audio::api_sfx(uint8_t sfx, int channel, int offset){
     }      
 }
 
-void Audio::api_music(uint8_t pattern, int16_t fade_len, int16_t mask){
+void Audio::api_music(int pattern, int16_t fade_len, int16_t mask){
     if (pattern < -1 || pattern > 63) {
         return;
     }
