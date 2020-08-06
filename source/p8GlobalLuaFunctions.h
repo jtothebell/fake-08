@@ -98,6 +98,7 @@ function rnd(x)
 end
 
 function srand(seed)
+	seed = seed or 0
 	math.randomseed(flr(seed*0x10000))
 end
 
