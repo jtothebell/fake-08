@@ -26,8 +26,6 @@ See LICENSE.MD for FAKE-08 license (MIT) as well as licenses of all other softwa
 
 Several functions not implemented yet (peek/poke, fillp, among others)
 
-Png carts not supported yet
-
 No support for new latest Pico 8 0.2 features yet (no tline, oval, new operators, etc)
 
 Uses standard lua 5.3, which uses floating instead of fixed point numbers. I would like to rectify this (and some other related issues) by switching the Lua implemenation to z8Lua (used by Zepto 8) at some point in the future
