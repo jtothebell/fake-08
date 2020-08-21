@@ -13,9 +13,10 @@
 
 Audio::Audio(PicoRam* memory){
     _memory = memory;
+    _audioState = {0};
 
     for(int i = 0; i < 4; i++) {
-        _memory->_sfxChannels[i].sfxId = -1;
+        _audioState._sfxChannels[i].sfxId = -1;
     }
 }
 
@@ -29,14 +30,14 @@ void Audio::api_sfx(int sfx, int channel, int offset){
     {
         // Stop playing the current channel
         if (channel != -1) {
-            _memory->_sfxChannels[channel].sfxId = -1;
+            _audioState._sfxChannels[channel].sfxId = -1;
         }
     }
     else if (sfx == -2)
     {
         // Stop looping the current channel
         if (channel != -1) {
-            _memory->_sfxChannels[channel].can_loop = false;
+            _audioState._sfxChannels[channel].can_loop = false;
         }
     }
     else
@@ -48,8 +49,8 @@ void Audio::api_sfx(int sfx, int channel, int offset){
         if (channel == -1)
         {
             for (int i = 0; i < 4; ++i)
-                if (_memory->_sfxChannels[i].sfxId == -1 ||
-                    _memory->_sfxChannels[i].sfxId == sfx)
+                if (_audioState._sfxChannels[i].sfxId == -1 ||
+                    _audioState._sfxChannels[i].sfxId == sfx)
                 {
                     channel = i;
                     break;
@@ -61,7 +62,7 @@ void Audio::api_sfx(int sfx, int channel, int offset){
         if (channel == -1)
         {
             for (int i = 0; i < 4; ++i) {
-               if (channel == -1 || _memory->_sfxChannels[i].sfxId < _memory->_sfxChannels[channel].sfxId) {
+               if (channel == -1 || _audioState._sfxChannels[i].sfxId < _audioState._sfxChannels[channel].sfxId) {
                    channel = i;
                }
             }
@@ -69,23 +70,23 @@ void Audio::api_sfx(int sfx, int channel, int offset){
 
         // Stop any channel playing the same sfx
         for (int i = 0; i < 4; ++i) {
-            if (_memory->_sfxChannels[i].sfxId == sfx) {
-                _memory->_sfxChannels[i].sfxId = -1;
+            if (_audioState._sfxChannels[i].sfxId == sfx) {
+                _audioState._sfxChannels[i].sfxId = -1;
             }
         }
 
         // Play this sound!
-        _memory->_sfxChannels[channel].sfxId = sfx;
-        _memory->_sfxChannels[channel].offset = std::max(0.f, (float)offset);
-        _memory->_sfxChannels[channel].phi = 0.f;
-        _memory->_sfxChannels[channel].can_loop = true;
-        _memory->_sfxChannels[channel].is_music = false;
+        _audioState._sfxChannels[channel].sfxId = sfx;
+        _audioState._sfxChannels[channel].offset = std::max(0.f, (float)offset);
+        _audioState._sfxChannels[channel].phi = 0.f;
+        _audioState._sfxChannels[channel].can_loop = true;
+        _audioState._sfxChannels[channel].is_music = false;
         // Playing an instrument starting with the note C-2 and the
         // slide effect causes no noticeable pitch variation in PICO-8,
         // so I assume this is the default value for “previous key”.
-        _memory->_sfxChannels[channel].prev_key = 24;
+        _audioState._sfxChannels[channel].prev_key = 24;
         // There is no default value for “previous volume”.
-        _memory->_sfxChannels[channel].prev_vol = 0.f;
+        _audioState._sfxChannels[channel].prev_vol = 0.f;
     }      
 }
 
@@ -97,28 +98,28 @@ void Audio::api_music(int pattern, int16_t fade_len, int16_t mask){
     if (pattern == -1)
     {
         // Music will stop when fade out is finished
-        _memory->_musicChannel.volume_step = fade_len <= 0 ? -FLT_MAX
-                                  : -_memory->_musicChannel.volume * (1000.f / fade_len);
+        _audioState._musicChannel.volume_step = fade_len <= 0 ? -FLT_MAX
+                                  : -_audioState._musicChannel.volume * (1000.f / fade_len);
         return;
     }
 
-    _memory->_musicChannel.count = 0;
-    _memory->_musicChannel.mask = mask ? mask & 0xf : 0xf;
+    _audioState._musicChannel.count = 0;
+    _audioState._musicChannel.mask = mask ? mask & 0xf : 0xf;
 
-    _memory->_musicChannel.volume = 1.f;
-    _memory->_musicChannel.volume_step = 0.f;
+    _audioState._musicChannel.volume = 1.f;
+    _audioState._musicChannel.volume_step = 0.f;
     if (fade_len > 0)
     {
-        _memory->_musicChannel.volume = 0.f;
-        _memory->_musicChannel.volume_step = 1000.f / fade_len;
+        _audioState._musicChannel.volume = 0.f;
+        _audioState._musicChannel.volume_step = 1000.f / fade_len;
     }
 
     set_music_pattern(pattern);
 }
 
 void Audio::set_music_pattern(int pattern) {
-    _memory->_musicChannel.pattern = pattern;
-    _memory->_musicChannel.offset = 0;
+    _audioState._musicChannel.pattern = pattern;
+    _audioState._musicChannel.offset = 0;
 
     //array to access song's channels. may be better to have this part of the struct?
     uint8_t channels[] = {
@@ -129,7 +130,7 @@ void Audio::set_music_pattern(int pattern) {
     };
 
     // Find music speed; it’s the speed of the fastest sfx
-    _memory->_musicChannel.master = _memory->_musicChannel.speed = -1;
+    _audioState._musicChannel.master = _audioState._musicChannel.speed = -1;
     for (int i = 0; i < 4; ++i)
     {
         uint8_t n = channels[i];
@@ -138,30 +139,30 @@ void Audio::set_music_pattern(int pattern) {
             continue;
 
         auto &sfx = _memory->sfx[n & 0x3f];
-        if (_memory->_musicChannel.master == -1 || _memory->_musicChannel.speed > sfx.speed)
+        if (_audioState._musicChannel.master == -1 || _audioState._musicChannel.speed > sfx.speed)
         {
-            _memory->_musicChannel.master = i;
-            _memory->_musicChannel.speed = std::max(1, (int)sfx.speed);
+            _audioState._musicChannel.master = i;
+            _audioState._musicChannel.speed = std::max(1, (int)sfx.speed);
         }
     }
 
     // Play music sfx on active channels
     for (int i = 0; i < 4; ++i)
     {
-        if (((1 << i) & _memory->_musicChannel.mask) == 0)
+        if (((1 << i) & _audioState._musicChannel.mask) == 0)
             continue;
 
         uint8_t n = channels[i];
         if (n & 0x40)
             continue;
 
-        _memory->_sfxChannels[i].sfxId = n;
-        _memory->_sfxChannels[i].offset = 0.f;
-        _memory->_sfxChannels[i].phi = 0.f;
-        _memory->_sfxChannels[i].can_loop = false;
-        _memory->_sfxChannels[i].is_music = true;
-        _memory->_sfxChannels[i].prev_key = 24;
-        _memory->_sfxChannels[i].prev_vol = 0.f;
+        _audioState._sfxChannels[i].sfxId = n;
+        _audioState._sfxChannels[i].offset = 0.f;
+        _audioState._sfxChannels[i].phi = 0.f;
+        _audioState._sfxChannels[i].can_loop = false;
+        _audioState._sfxChannels[i].is_music = true;
+        _audioState._sfxChannels[i].prev_key = 24;
+        _audioState._sfxChannels[i].prev_vol = 0.f;
     }
 }
 
@@ -199,43 +200,43 @@ int16_t Audio::getSampleForChannel(int channel){
 
     int16_t sample = 0;
 
-    const int index = _memory->_sfxChannels[channel].sfxId;
+    const int index = _audioState._sfxChannels[channel].sfxId;
  
     // Advance music using the master channel
-    if (channel == _memory->_musicChannel.master && _memory->_musicChannel.pattern != -1)
+    if (channel == _audioState._musicChannel.master && _audioState._musicChannel.pattern != -1)
     {
-        float const offset_per_second = 22050.f / (183.f * _memory->_musicChannel.speed);
+        float const offset_per_second = 22050.f / (183.f * _audioState._musicChannel.speed);
         float const offset_per_sample = offset_per_second / samples_per_second;
-        _memory->_musicChannel.offset += offset_per_sample;
-        _memory->_musicChannel.volume += _memory->_musicChannel.volume_step / samples_per_second;
-        _memory->_musicChannel.volume = std::clamp(_memory->_musicChannel.volume, 0.f, 1.f);
+        _audioState._musicChannel.offset += offset_per_sample;
+        _audioState._musicChannel.volume += _audioState._musicChannel.volume_step / samples_per_second;
+        _audioState._musicChannel.volume = std::clamp(_audioState._musicChannel.volume, 0.f, 1.f);
 
-        if (_memory->_musicChannel.volume_step < 0 && _memory->_musicChannel.volume <= 0)
+        if (_audioState._musicChannel.volume_step < 0 && _audioState._musicChannel.volume <= 0)
         {
             // Fade out is finished, stop playing the current song
             for (int i = 0; i < 4; ++i) {
-                if (_memory->_sfxChannels[i].is_music) {
-                    _memory->_sfxChannels[i].sfxId = -1;
+                if (_audioState._sfxChannels[i].is_music) {
+                    _audioState._sfxChannels[i].sfxId = -1;
                 }
             }
-            _memory->_musicChannel.pattern = -1;
+            _audioState._musicChannel.pattern = -1;
         }
-        else if (_memory->_musicChannel.offset >= 32.f)
+        else if (_audioState._musicChannel.offset >= 32.f)
         {
-            int16_t next_pattern = _memory->_musicChannel.pattern + 1;
-            int16_t next_count = _memory->_musicChannel.count + 1;
+            int16_t next_pattern = _audioState._musicChannel.pattern + 1;
+            int16_t next_count = _audioState._musicChannel.count + 1;
             //todo: pull out these flags, get memory storage correct as well
-            if (_memory->songs[_memory->_musicChannel.pattern].stop) //stop part of the loop flag
+            if (_memory->songs[_audioState._musicChannel.pattern].stop) //stop part of the loop flag
             {
                 next_pattern = -1;
-                next_count = _memory->_musicChannel.count;
+                next_count = _audioState._musicChannel.count;
             }
-            else if (_memory->songs[_memory->_musicChannel.pattern].loop){
+            else if (_memory->songs[_audioState._musicChannel.pattern].loop){
                 while (--next_pattern > 0 && !_memory->songs[next_pattern].start)
                     ;
             }
 
-            _memory->_musicChannel.count = next_count;
+            _audioState._musicChannel.count = next_count;
             set_music_pattern(next_pattern);
         }
     }
@@ -250,8 +251,8 @@ int16_t Audio::getSampleForChannel(int channel){
     // Speed must be 1—255 otherwise the SFX is invalid
     int const speed = max(1, (int)sfx.speed);
 
-    float const offset = _memory->_sfxChannels[channel].offset;
-    float const phi = _memory->_sfxChannels[channel].phi;
+    float const offset = _audioState._sfxChannels[channel].offset;
+    float const phi = _audioState._sfxChannels[channel].phi;
 
     // PICO-8 exports instruments as 22050 Hz WAV files with 183 samples
     // per speed unit per note, so this is how much we should advance
@@ -262,7 +263,7 @@ int16_t Audio::getSampleForChannel(int channel){
     // Handle SFX loops. From the documentation: “Looping is turned
     // off when the start index >= end index”.
     float const loop_range = float(sfx.loopRangeEnd - sfx.loopRangeStart);
-    if (loop_range > 0.f && next_offset >= sfx.loopRangeStart && _memory->_sfxChannels[channel].can_loop) {
+    if (loop_range > 0.f && next_offset >= sfx.loopRangeStart && _audioState._sfxChannels[channel].can_loop) {
         next_offset = fmod(next_offset - sfx.loopRangeStart, loop_range)
                     + sfx.loopRangeStart;
     }
@@ -276,14 +277,14 @@ int16_t Audio::getSampleForChannel(int channel){
 
     if (volume == 0.f){
         //volume all the way off. return silence, but make sure to set stuff
-        _memory->_sfxChannels[channel].offset = next_offset;
+        _audioState._sfxChannels[channel].offset = next_offset;
 
         if (next_offset >= 32.f){
-            _memory->_sfxChannels[channel].sfxId = -1;
+            _audioState._sfxChannels[channel].sfxId = -1;
         }
         else if (next_note_idx != note_idx){
-            _memory->_sfxChannels[channel].prev_key = sfx.notes[note_idx].key;
-            _memory->_sfxChannels[channel].prev_vol = sfx.notes[note_idx].volume / 7.f;
+            _audioState._sfxChannels[channel].prev_key = sfx.notes[note_idx].key;
+            _audioState._sfxChannels[channel].prev_vol = sfx.notes[note_idx].volume / 7.f;
         }
 
         return 0;
@@ -308,16 +309,16 @@ int16_t Audio::getSampleForChannel(int channel){
     //    sample = sample / 0x1000 * 0x1249;
     //}
 
-    _memory->_sfxChannels[channel].phi = phi + freq / samples_per_second;
+    _audioState._sfxChannels[channel].phi = phi + freq / samples_per_second;
 
-    _memory->_sfxChannels[channel].offset = next_offset;
+    _audioState._sfxChannels[channel].offset = next_offset;
 
     if (next_offset >= 32.f){
-        _memory->_sfxChannels[channel].sfxId = -1;
+        _audioState._sfxChannels[channel].sfxId = -1;
     }
     else if (next_note_idx != note_idx){
-        _memory->_sfxChannels[channel].prev_key = sfx.notes[note_idx].key;
-        _memory->_sfxChannels[channel].prev_vol = sfx.notes[note_idx].volume / 7.f;
+        _audioState._sfxChannels[channel].prev_key = sfx.notes[note_idx].key;
+        _audioState._sfxChannels[channel].prev_vol = sfx.notes[note_idx].volume / 7.f;
     }
 
     return sample;

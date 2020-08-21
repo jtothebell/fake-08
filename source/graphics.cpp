@@ -49,11 +49,12 @@ Graphics::Graphics(std::string fontdata, PicoRam* memory) {
 
 
 uint8_t* Graphics::GetP8FrameBuffer(){
+	//TODO: replace with ram's screen buffer
 	return this->_pico8_fb;
 }
 
 uint8_t* Graphics::GetScreenPaletteMap(){
-	return _memory->_gfxState_screenPaletteMap;
+	return _memory->drawState.screenPaletteMap;
 }
 
 Color* Graphics::GetPaletteColors(){
@@ -81,9 +82,9 @@ void Graphics::copySpriteToScreen(
 	applyCameraToPoint(&scr_x, &scr_y);
 
 	// left clip
-	if (scr_x < _memory->_gfxState_clip_xb) {
-		int nclip = _memory->_gfxState_clip_xb - scr_x;
-		scr_x = _memory->_gfxState_clip_xb;
+	if (scr_x < _memory->drawState.clip_xb) {
+		int nclip = _memory->drawState.clip_xb - scr_x;
+		scr_x = _memory->drawState.clip_xb;
 		scr_w -= nclip;
 		if (!flip_x) {
 			spr_x += nclip;
@@ -93,15 +94,15 @@ void Graphics::copySpriteToScreen(
 	}
 
 	// right clip
-	if (scr_x + scr_w > _memory->_gfxState_clip_xe) {
-		int nclip = (scr_x + scr_w) - _memory->_gfxState_clip_xe;
+	if (scr_x + scr_w > _memory->drawState.clip_xe) {
+		int nclip = (scr_x + scr_w) - _memory->drawState.clip_xe;
 		scr_w -= nclip;
 	}
 
 	// top clip
-	if (scr_y < _memory->_gfxState_clip_yb) {
-		int nclip = _memory->_gfxState_clip_yb - scr_y;
-		scr_y = _memory->_gfxState_clip_yb;
+	if (scr_y < _memory->drawState.clip_yb) {
+		int nclip = _memory->drawState.clip_yb - scr_y;
+		scr_y = _memory->drawState.clip_yb;
 		scr_h -= nclip;
 		if (!flip_y) {
 			spr_y += nclip;
@@ -111,8 +112,8 @@ void Graphics::copySpriteToScreen(
 	}
 
 	// bottom clip
-	if (scr_y + scr_h > _memory->_gfxState_clip_ye) {
-		int nclip = (scr_y + scr_h) - _memory->_gfxState_clip_ye;
+	if (scr_y + scr_h > _memory->drawState.clip_ye) {
+		int nclip = (scr_y + scr_h) - _memory->drawState.clip_ye;
 		scr_h -= nclip;
 	}
 	
@@ -190,9 +191,9 @@ void Graphics::copyStretchSpriteToScreen(
 	int dy = spr_h / scr_h;
 
 	// left clip
-	if (scr_x < _memory->_gfxState_clip_xb) {
-		int nclip = _memory->_gfxState_clip_xb - scr_x;
-		scr_x = _memory->_gfxState_clip_xb;
+	if (scr_x < _memory->drawState.clip_xb) {
+		int nclip = _memory->drawState.clip_xb - scr_x;
+		scr_x = _memory->drawState.clip_xb;
 		scr_w -= nclip;
 		if (!flip_x) {
 			spr_x += nclip * dx;
@@ -202,15 +203,15 @@ void Graphics::copyStretchSpriteToScreen(
 	}
 
 	// right clip
-	if (scr_x + scr_w > _memory->_gfxState_clip_xe) {
-		int nclip = (scr_x + scr_w) - _memory->_gfxState_clip_xe;
+	if (scr_x + scr_w > _memory->drawState.clip_xe) {
+		int nclip = (scr_x + scr_w) - _memory->drawState.clip_xe;
 		scr_w -= nclip;
 	}
 
 	// top clip
-	if (scr_y < _memory->_gfxState_clip_yb) {
-		int nclip = _memory->_gfxState_clip_yb - scr_y;
-		scr_y = _memory->_gfxState_clip_yb;
+	if (scr_y < _memory->drawState.clip_yb) {
+		int nclip = _memory->drawState.clip_yb - scr_y;
+		scr_y = _memory->drawState.clip_yb;
 		scr_h -= nclip;
 		if (!flip_y) {
 			spr_y += nclip * dy;
@@ -220,8 +221,8 @@ void Graphics::copyStretchSpriteToScreen(
 	}
 
 	// bottom clip
-	if (scr_y + scr_h > _memory->_gfxState_clip_ye) {
-		int nclip = (scr_y + scr_h) - _memory->_gfxState_clip_ye;
+	if (scr_y + scr_h > _memory->drawState.clip_ye) {
+		int nclip = (scr_y + scr_h) - _memory->drawState.clip_ye;
 		scr_h -= nclip;
 	}
 
@@ -271,8 +272,8 @@ void Graphics::swap(int *x, int *y) {
 }
 
 void Graphics::applyCameraToPoint(int *x, int *y) {
-	*x -= _memory->_gfxState_camera_x;
-	*y -= _memory->_gfxState_camera_y;
+	*x -= _memory->drawState.camera_x;
+	*y -= _memory->drawState.camera_y;
 }
 
 void Graphics::sortPointsLtoR(int *x1, int *y1, int *x2, int *y2){
@@ -302,37 +303,37 @@ bool Graphics::isOnScreen(int x, int y) {
 
 bool Graphics::isColorTransparent(uint8_t color) {
 	color = color & 15;
-	return _memory->_gfxState_transparencyPalette[color];
+	return _memory->drawState.drawPaletteMap[color] | BITMASK(4); //4th bit is transparency
 }
 
 uint8_t Graphics::getDrawPalMappedColor(uint8_t color) {
 	color = color & 15;
-	return _memory->_gfxState_drawPaletteMap[color];
+	return _memory->drawState.drawPaletteMap[color] & 15; //bits 0-3 are color
 }
 
 uint8_t Graphics::getScreenPalMappedColor(uint8_t color) {
 	color = color & 15;
-	return _memory->_gfxState_screenPaletteMap[color];
+	return _memory->drawState.screenPaletteMap[color] & 15;
 }
 
 bool Graphics::isWithinClip(int x, int y) {
 	return 
-		x >= _memory->_gfxState_clip_xb && 
-		x < _memory->_gfxState_clip_xe && 
-		y >= _memory->_gfxState_clip_yb && 
-		y < _memory->_gfxState_clip_ye;
+		x >= _memory->drawState.clip_xb && 
+		x < _memory->drawState.clip_xe && 
+		y >= _memory->drawState.clip_yb && 
+		y < _memory->drawState.clip_ye;
 }
 
 bool Graphics::isXWithinClip(int x) {
 	return 
-		x >= _memory->_gfxState_clip_xb && 
-		x < _memory->_gfxState_clip_xe;
+		x >= _memory->drawState.clip_xb && 
+		x < _memory->drawState.clip_xe;
 }
 
 bool Graphics::isYWithinClip(int y) {
 	return 
-		y >= _memory->_gfxState_clip_yb && 
-		y < _memory->_gfxState_clip_ye;
+		y >= _memory->drawState.clip_yb && 
+		y < _memory->drawState.clip_ye;
 }
 
 
@@ -343,21 +344,21 @@ int clampCoordToScreenDims(int val) {
 int Graphics::clampXCoordToClip(int x) {
 	return std::clamp(
 		x,
-		_memory->_gfxState_clip_xb,
-		_memory->_gfxState_clip_xe - 1);
+		_memory->drawState.clip_xb,
+		_memory->drawState.clip_xe - 1);
 }
 
 int Graphics::clampYCoordToCLip(int y) {
 	return std::clamp(
 		y,
-		_memory->_gfxState_clip_yb,
-		_memory->_gfxState_clip_ye - 1);
+		_memory->drawState.clip_yb,
+		_memory->drawState.clip_ye - 1);
 }
 
 
 void Graphics::_private_safe_pset(int x, int y, uint8_t col) {
 	if (isWithinClip(x, y)){
-		_pico8_fb[(x * 128) + y] = _memory->_gfxState_drawPaletteMap[col];
+		_pico8_fb[(x * 128) + y] = getDrawPalMappedColor(col);
 	}
 }
 
@@ -365,7 +366,7 @@ void Graphics::_private_pset(int x, int y, uint8_t col) {
 	x = x & 127;
 	y = y & 127;
 
-	_pico8_fb[(x * 128) + y] = _memory->_gfxState_drawPaletteMap[col];
+	_pico8_fb[(x * 128) + y] = getDrawPalMappedColor(col);
 }
 //end helper methods
 
@@ -376,12 +377,12 @@ void Graphics::cls() {
 void Graphics::cls(uint8_t color) {
 	memset(_pico8_fb, color, sizeof(_pico8_fb));
 
-	_memory->_gfxState_text_x = 0;
-	_memory->_gfxState_text_y = 0;
+	_memory->drawState.text_x = 0;
+	_memory->drawState.text_y = 0;
 }
 
 void Graphics::pset(int x, int y){
-	this->pset(x, y, _memory->_gfxState_color);
+	this->pset(x, y, _memory->drawState.color);
 }
 
 void Graphics::pset(int x, int y, uint8_t col){
@@ -405,14 +406,14 @@ uint8_t Graphics::pget(int x, int y){
 }
 
 void Graphics::color(uint8_t col){
-	this->_memory->_gfxState_color = col;
+	this->_memory->drawState.color = col;
 }
 
 void Graphics::line () {
 	//just invalidate line state
-	this->_memory->_gfxState_line_x = 0;
-	this->_memory->_gfxState_line_y = 0;
-	this->_memory->_gfxState_line_valid = false;
+	this->_memory->drawState.line_x = 0;
+	this->_memory->drawState.line_y = 0;
+	this->_memory->drawState.lineInvalid = 1;
 }
 
 void Graphics::line (uint8_t col){
@@ -422,19 +423,19 @@ void Graphics::line (uint8_t col){
 }
 
 void Graphics::line (int x1, int y1){
-	if (this->_memory->_gfxState_line_valid){
-		this->line(_memory->_gfxState_line_x, _memory->_gfxState_line_y, x1, y1, _memory->_gfxState_color);
+	if (this->_memory->drawState.lineInvalid == false){
+		this->line(_memory->drawState.line_x, _memory->drawState.line_y, x1, y1, _memory->drawState.color);
 	}
 }
 
 void Graphics::line (int x1, int y1, uint8_t col){
-	if (_memory->_gfxState_line_valid){
-		this->line(_memory->_gfxState_line_x, _memory->_gfxState_line_y, x1, y1, col);
+	if (_memory->drawState.lineInvalid == false){
+		this->line(_memory->drawState.line_x, _memory->drawState.line_y, x1, y1, col);
 	}
 }
 
 void Graphics::line (int x1, int y1, int x2, int y2){
-	this->line(x1, y1, x2, y2, _memory->_gfxState_color);
+	this->line(x1, y1, x2, y2, _memory->drawState.color);
 }
 
 void Graphics::_private_h_line (int x1, int x2, int y, uint8_t col){
@@ -473,9 +474,9 @@ void Graphics::_private_v_line (int y1, int y2, int x, uint8_t col){
 }
 
 void Graphics::line(int x0, int y0, int x1, int y1, uint8_t col) {
-	_memory->_gfxState_line_x = x1;
-	_memory->_gfxState_line_y = y1;
-	_memory->_gfxState_line_valid = true;
+	_memory->drawState.line_x = x1;
+	_memory->drawState.line_y = y1;
+	_memory->drawState.lineInvalid = 0;
 
 	applyCameraToPoint(&x0, &y0);
 	applyCameraToPoint(&x1, &y1);
@@ -518,7 +519,7 @@ void Graphics::circ(int ox, int oy){
 }
 
 void Graphics::circ(int ox, int oy, int r){
-	this->circ(ox, oy, r, _memory->_gfxState_color);
+	this->circ(ox, oy, r, _memory->drawState.color);
 }
 
 void Graphics::circ(int ox, int oy, int r, uint8_t col){
@@ -558,7 +559,7 @@ void Graphics::circfill(int ox, int oy){
 }
 
 void Graphics::circfill(int ox, int oy, int r){
-	this->circfill(ox, oy, r, _memory->_gfxState_color);
+	this->circfill(ox, oy, r, _memory->drawState.color);
 }
 
 void Graphics::circfill(int ox, int oy, int r, uint8_t col){
@@ -590,7 +591,7 @@ void Graphics::circfill(int ox, int oy, int r, uint8_t col){
 }
 
 void Graphics::rect(int x1, int y1, int x2, int y2) {
-	this->rect(x1, y1, x2, y2, _memory->_gfxState_color);
+	this->rect(x1, y1, x2, y2, _memory->drawState.color);
 }
 
 void Graphics::rect(int x1, int y1, int x2, int y2, uint8_t col) {
@@ -609,7 +610,7 @@ void Graphics::rect(int x1, int y1, int x2, int y2, uint8_t col) {
 }
 
 void Graphics::rectfill(int x1, int y1, int x2, int y2) {
-	this->rectfill(x1, y1, x2, y2, _memory->_gfxState_color);
+	this->rectfill(x1, y1, x2, y2, _memory->drawState.color);
 }
 
 void Graphics::rectfill(int x1, int y1, int x2, int y2, uint8_t col) {
@@ -626,31 +627,31 @@ void Graphics::rectfill(int x1, int y1, int x2, int y2, uint8_t col) {
 }
 
 int Graphics::print(std::string str) {
-	int result = this->print(str, _memory->_gfxState_text_x, _memory->_gfxState_text_y);
+	int result = this->print(str, _memory->drawState.text_x, _memory->drawState.text_y);
 
-	_memory->_gfxState_text_y += 6;
+	_memory->drawState.text_y += 6;
 
 	return result;
 }
 
 int Graphics::print(std::string str, int x, int y) {
-	return this->print(str, x, y, _memory->_gfxState_color);
+	return this->print(str, x, y, _memory->drawState.color);
 }
 
 //based on tac08 impl
 int Graphics::print(std::string str, int x, int y, uint16_t c) {
 	color(c);
 
-	_memory->_gfxState_text_x = x;
-	_memory->_gfxState_text_y = y;
+	_memory->drawState.text_x = x;
+	_memory->drawState.text_y = y;
 
 	//font sprite sheet has text as color 7, with 0 as transparent. We need to override
 	//these values and restore them after
-	uint8_t prevCol7Map = _memory->_gfxState_drawPaletteMap[7];
+	uint8_t prevCol7Map = _memory->drawState.drawPaletteMap[7];
 	bool prevCol0Transp = isColorTransparent(0);
 
-	_memory->_gfxState_drawPaletteMap[7] = c;
-	_memory->_gfxState_transparencyPalette[0] = true;
+	_memory->drawState.drawPaletteMap[7] = c | BITMASK(4);
+	palt(0, true);
 
 
 	for (size_t n = 0; n < str.length(); n++) {
@@ -664,13 +665,13 @@ int Graphics::print(std::string str, int x, int y, uint16_t c) {
 			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5, false, false);
 			x += 8;
 		} else if (ch == '\n') {
-			x = _memory->_gfxState_text_x;
+			x = _memory->drawState.text_x;
 			y += 6;
 		}
 	}
 
-	_memory->_gfxState_drawPaletteMap[7] = prevCol7Map;
-	_memory->_gfxState_transparencyPalette[0] = prevCol0Transp;
+	_memory->drawState.drawPaletteMap[7] = prevCol7Map;
+	palt(0, prevCol0Transp);
 
 	//todo: auto scrolling
 
@@ -761,8 +762,8 @@ void Graphics::camera() {
 }
 
 void Graphics::camera(int x, int y) {
-	_memory->_gfxState_camera_x = x;
-	_memory->_gfxState_camera_y = y;
+	_memory->drawState.camera_x = x;
+	_memory->drawState.camera_y = y;
 }
 
 void Graphics::clip() {
@@ -772,10 +773,10 @@ void Graphics::clip() {
 void Graphics::clip(int x, int y, int w, int h) {
 	int xe = x + w;
 	int ye = y + h;
-	_memory->_gfxState_clip_xb = clampCoordToScreenDims(x);
-	_memory->_gfxState_clip_yb = clampCoordToScreenDims(y);
-	_memory->_gfxState_clip_xe = clampCoordToScreenDims(xe);
-	_memory->_gfxState_clip_ye = clampCoordToScreenDims(ye);
+	_memory->drawState.clip_xb = clampCoordToScreenDims(x);
+	_memory->drawState.clip_yb = clampCoordToScreenDims(y);
+	_memory->drawState.clip_xe = clampCoordToScreenDims(xe);
+	_memory->drawState.clip_ye = clampCoordToScreenDims(ye);
 }
 
 
@@ -817,8 +818,8 @@ void Graphics::map(int celx, int cely, int sx, int sy, int celw, int celh, uint8
 
 void Graphics::pal() {
 	for (uint8_t c = 0; c < 16; c++) {
-		_memory->_gfxState_drawPaletteMap[c] = c;
-		_memory->_gfxState_screenPaletteMap[c] = c;
+		_memory->drawState.drawPaletteMap[c] = c;
+		_memory->drawState.screenPaletteMap[c] = c;
 	}
 
 	this->palt();
@@ -827,22 +828,29 @@ void Graphics::pal() {
 void Graphics::pal(uint8_t c0, uint8_t c1, uint8_t p){
 	if (c0 < 16 && c1 < 16) {
 		if (p == 0) {
-			_memory->_gfxState_drawPaletteMap[c0] = c1;
+			_memory->drawState.drawPaletteMap[c0] = c1;
 		} else if (p == 1) {
-			_memory->_gfxState_screenPaletteMap[c0] = c1;
+			_memory->drawState.screenPaletteMap[c0] = c1;
 		}
 	}
 }
 
 void Graphics::palt() {
-	for (uint8_t c = 0; c < 16; c++) {
-		_memory->_gfxState_transparencyPalette[c] = c == 0 ? true : false;
+	_memory->drawState.drawPaletteMap[0] &= ~(1UL << 4);
+	for (uint8_t c = 1; c < 16; c++) {
+		_memory->drawState.drawPaletteMap[c] |= BITMASK(4);
 	}
 }
 
 void Graphics::palt(uint8_t c, bool t){
 	if (c < 16) {
-		_memory->_gfxState_transparencyPalette[c] = t;
+		if (t) {
+			_memory->drawState.drawPaletteMap[c] |= BITMASK(4);
+		}
+		else {
+			_memory->drawState.drawPaletteMap[c] &= ~(1UL << 4);
+
+		}
 	}
 }
 
@@ -852,8 +860,8 @@ void Graphics::cursor() {
 }
 
 void Graphics::cursor(int x, int y) {
-	_memory->_gfxState_text_x = x;
-	_memory->_gfxState_text_y = y;
+	_memory->drawState.text_x = x;
+	_memory->drawState.text_y = y;
 }
 
 void Graphics::cursor(int x, int y, uint8_t col) {
