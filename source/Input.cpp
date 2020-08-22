@@ -1,4 +1,4 @@
-#include "input.h"
+#include "Input.h"
 #include "hostVmShared.h"
 
 void Input::SetState(uint8_t kdown, uint8_t kheld){
