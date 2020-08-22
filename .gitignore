@@ -13,3 +13,4 @@ bin/
 .vscode/
 build/
 
+test/testexec.a
