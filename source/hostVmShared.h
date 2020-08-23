@@ -16,8 +16,8 @@ enum
 };
 
 struct Color {
-	char Red;
-	char Green;
-	char Blue;
-	char Alpha;
+	uint8_t Red;
+	uint8_t Green;
+	uint8_t Blue;
+	uint8_t Alpha;
 };
