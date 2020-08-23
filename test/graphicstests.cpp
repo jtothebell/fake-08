@@ -55,6 +55,13 @@ TEST_CASE("graphics class behaves as expected") {
         testColor = {255, 204, 170, 255};
         CHECK(colorsEqual(& palette[15], & testColor) == true);
     }
+    SUBCASE("Constructor sets default clip") {
+        CHECK(picoRam._gfxState_clip_xb == 0);
+        CHECK(picoRam._gfxState_clip_yb == 0);
+        CHECK(picoRam._gfxState_clip_xe == 127);
+        CHECK(picoRam._gfxState_clip_ye == 127);
+    }
+    //check palette maps are set to default values
 
     //general teardown
     delete graphics;

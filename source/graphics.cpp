@@ -24,7 +24,6 @@ Graphics::Graphics(std::string fontdata, PicoRam* memory) {
 	
 	copy_string_to_sprite_memory(fontSpriteData, fontdata);
 
-
 	_paletteColors[0] = COLOR_00;
 	_paletteColors[1] = COLOR_01;
 	_paletteColors[2] = COLOR_02;
@@ -41,6 +40,9 @@ Graphics::Graphics(std::string fontdata, PicoRam* memory) {
 	_paletteColors[13] = COLOR_13;
 	_paletteColors[14] = COLOR_14;
 	_paletteColors[15] = COLOR_15;
+
+	//set default clip
+	clip();
 }
 
 
