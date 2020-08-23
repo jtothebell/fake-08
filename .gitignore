@@ -13,4 +13,5 @@ bin/
 .vscode/
 build/
 
-test/testexec.a
+test/testrunner.a
+test/*.o

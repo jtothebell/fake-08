@@ -1,14 +1,25 @@
- .PHONY: all buildtests runtests clean
- 
- all: buildtests runtests
- 
- buildtests:
-	g++ testroot.cpp \
-	fontdatatests.cpp ../source/fontdata.cpp \
-	-o testexec.a
+CFLAGS := -Wall -g -c
 
-runtests:
-	./testexec.a
+
+all: runtests
+
+
+testrunner.a: testroot.o fontdatatests.o
+	g++ testroot.o \
+	fontdata.o fontdatatests.o \
+	-o testrunner.a
+
+testroot.o: testroot.cpp
+	g++ $(CFLAGS) testroot.cpp 
+
+fontdatatests.o: fontdatatests.cpp ../source/fontdata.cpp
+	g++ $(CFLAGS) fontdatatests.cpp ../source/fontdata.cpp
+
+
+runtests: testrunner.a
+	./testrunner.a
 
 clean:
-	rm testexec.a
+	-rm -f testrunner.a *.o
+
+.PHONY: all buildtests runtests clean
