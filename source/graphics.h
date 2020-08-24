@@ -80,6 +80,9 @@ class Graphics {
 	uint8_t* GetScreenPaletteMap();
 	Color* GetPaletteColors();
 
+	bool isColorTransparent(uint8_t color);
+	uint8_t getPalMappedColor(uint8_t color);
+
 	void cls();
 	void cls(uint8_t color);
 

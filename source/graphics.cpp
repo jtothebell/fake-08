@@ -43,8 +43,9 @@ Graphics::Graphics(std::string fontdata, PicoRam* memory) {
 
 	//set default clip
 	clip();
+	pal();
+	color(7);
 }
-
 
 
 uint8_t* Graphics::GetP8FrameBuffer(){
@@ -135,7 +136,7 @@ void Graphics::copySpriteToScreen(
 					? bothPix & 0x0f //just first 4 bits
 					: bothPix >> 4;  //just last 4 bits
 					
-				if (_memory->_gfxState_transparencyPalette[c] == false) { //if not transparent. Come back later to add palt() support by checking tranparency palette
+				if (isColorTransparent(c) == false) { //if not transparent. Come back later to add palt() support by checking tranparency palette
 					_private_pset(scr_x + x, scr_y + y, c); //set color on framebuffer. Come back later and add pal() by translating color
 				}
 			}
@@ -149,7 +150,7 @@ void Graphics::copySpriteToScreen(
 					? bothPix >> 4 //just first 4 bits
 					: bothPix & 0x0f;  //just last 4 bits
 					
-				if (_memory->_gfxState_transparencyPalette[c] == false) { //if not transparent. Come back later to add palt() support by checking tranparency palette
+				if (isColorTransparent(c) == false) { //if not transparent. Come back later to add palt() support by checking tranparency palette
 					_private_pset(scr_x + x, scr_y + y, c); //set color on framebuffer. Come back later and add pal() by translating color
 				}
 			}
@@ -242,7 +243,7 @@ void Graphics::copyStretchSpriteToScreen(
 				uint8_t c = (pixIndex >> 16) % 2 == 0 
 					? bothPix & 0x0f //just first 4 bits
 					: bothPix >> 4;  //just last 4 bits
-				if (_memory->_gfxState_transparencyPalette[c] == false) {
+				if (isColorTransparent(c) == false) {
 					_private_pset(scr_x + x, scr_y + y, c);
 				}
 			}
@@ -255,7 +256,7 @@ void Graphics::copyStretchSpriteToScreen(
 				uint8_t c = (pixIndex >> 16) % 2 == 0 
 					? bothPix >> 4 //just first 4 bits
 					: bothPix & 0x0f;  //just last 4 bits
-				if (_memory->_gfxState_transparencyPalette[c] == false) {
+				if (isColorTransparent(c) == false) {
 					_private_pset(scr_x + x, scr_y + y, c);
 				}
 			}
@@ -298,6 +299,16 @@ bool Graphics::isOnScreen(int x, int y) {
 		x <= 127 && 
 		y >= 0 && 
 		y <= 127;
+}
+
+bool Graphics::isColorTransparent(uint8_t color) {
+	color = color & 15;
+	return _memory->_gfxState_transparencyPalette[color];
+}
+
+uint8_t Graphics::getPalMappedColor(uint8_t color) {
+	color = color & 15;
+	return _memory->_gfxState_drawPaletteMap[color];
 }
 
 bool Graphics::isWithinClip(int x, int y) {
@@ -609,7 +620,7 @@ int Graphics::print(std::string str, int x, int y, uint16_t c) {
 	//font sprite sheet has text as color 7, with 0 as transparent. We need to override
 	//these values and restore them after
 	uint8_t prevCol7Map = _memory->_gfxState_drawPaletteMap[7];
-	bool prevCol0Transp = _memory->_gfxState_transparencyPalette[0];
+	bool prevCol0Transp = isColorTransparent(0);
 
 	_memory->_gfxState_drawPaletteMap[7] = c;
 	_memory->_gfxState_transparencyPalette[0] = true;

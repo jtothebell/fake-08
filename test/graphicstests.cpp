@@ -61,6 +61,27 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK(picoRam._gfxState_clip_xe == 127);
         CHECK(picoRam._gfxState_clip_ye == 127);
     }
+    SUBCASE("Constructor sets default color") {
+        CHECK(picoRam._gfxState_color == 7);
+    }
+    SUBCASE("Constructor sets default draw color palette") {
+        //colors mapped to themselves
+        for (uint8_t c = 0; c < 16; c++) {
+            CHECK(graphics->getPalMappedColor(c) == c);
+        }
+    }
+    SUBCASE("Constructor sets default draw transparency palette") {
+        //color 0 defaults to transparent
+        CHECK(graphics->isColorTransparent(0) == true);
+
+        //all other colors not transparent
+        for (uint8_t c = 1; c < 16; c++) {
+            CHECK(graphics->isColorTransparent(c) == false);
+        }
+    }
+    SUBCASE("Constructor sets default screen palette") {
+        
+    }
     //check palette maps are set to default values
 
     //general teardown
