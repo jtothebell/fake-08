@@ -67,7 +67,7 @@ TEST_CASE("graphics class behaves as expected") {
     SUBCASE("Constructor sets default draw color palette") {
         //colors mapped to themselves
         for (uint8_t c = 0; c < 16; c++) {
-            CHECK(graphics->getPalMappedColor(c) == c);
+            CHECK(graphics->getDrawPalMappedColor(c) == c);
         }
     }
     SUBCASE("Constructor sets default draw transparency palette") {
@@ -80,7 +80,10 @@ TEST_CASE("graphics class behaves as expected") {
         }
     }
     SUBCASE("Constructor sets default screen palette") {
-        
+        //colors mapped to themselves
+        for (uint8_t c = 0; c < 16; c++) {
+            CHECK(graphics->getScreenPalMappedColor(c) == c);
+        }
     }
     //check palette maps are set to default values
 

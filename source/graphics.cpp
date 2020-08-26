@@ -306,9 +306,14 @@ bool Graphics::isColorTransparent(uint8_t color) {
 	return _memory->_gfxState_transparencyPalette[color];
 }
 
-uint8_t Graphics::getPalMappedColor(uint8_t color) {
+uint8_t Graphics::getDrawPalMappedColor(uint8_t color) {
 	color = color & 15;
 	return _memory->_gfxState_drawPaletteMap[color];
+}
+
+uint8_t Graphics::getScreenPalMappedColor(uint8_t color) {
+	color = color & 15;
+	return _memory->_gfxState_screenPaletteMap[color];
 }
 
 bool Graphics::isWithinClip(int x, int y) {
