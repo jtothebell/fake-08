@@ -85,7 +85,88 @@ TEST_CASE("graphics class behaves as expected") {
             CHECK(graphics->getScreenPalMappedColor(c) == c);
         }
     }
-    //check palette maps are set to default values
+    SUBCASE("cls() clears the pico 8 framebuffer to color, defaults to black") {
+        const uint8_t testColor = 4;
+        graphics->cls(testColor);
+        bool isAllColor = true;
+        for(int x = 0; x < 128; x++){
+            for(int y = 0; y < 128; y++){
+                isAllColor &= graphics->pget(0, 0) == testColor;
+            }
+        }
+        CHECK(isAllColor);
+    }
+    SUBCASE("cls() defaults to black") {
+        bool isAllColor = true;
+        graphics->cls();
+        for(int x = 0; x < 128; x++){
+            for(int y = 0; y < 128; y++){
+                isAllColor &= graphics->pget(0, 0) == 0;
+            }
+        }
+        CHECK(isAllColor);
+    }
+    SUBCASE("pset() sets color at coord") {
+        const uint8_t testColor = 15;
+        graphics->pset(72, 31, testColor);
+
+        CHECK(graphics->pget(72, 31) == testColor);
+    }
+    SUBCASE("pset() with no color uses pen color") {
+        graphics->pset(121, 6);
+
+        CHECK(graphics->pget(121, 6) == picoRam._gfxState_color);
+    }
+    SUBCASE("color({color}) sets color in ram") {
+        graphics->color(12);
+
+        CHECK(picoRam._gfxState_color == 12);
+    }
+    SUBCASE("line() clears line state") {
+        picoRam._gfxState_line_x = 10;
+	    picoRam._gfxState_line_y = 30;
+	    picoRam._gfxState_line_valid = true;
+
+        graphics->line();
+
+        CHECK(
+            (picoRam._gfxState_line_x == 0 && 
+            picoRam._gfxState_line_y == 0 &&
+            picoRam._gfxState_line_valid == false) == true);
+    }
+    SUBCASE("line({arg}) sets color and clears line") {
+        picoRam._gfxState_line_x = 10;
+	    picoRam._gfxState_line_y = 30;
+	    picoRam._gfxState_line_valid = true;
+        picoRam._gfxState_color = 2;
+
+        graphics->line(14);
+
+        CHECK(
+            (picoRam._gfxState_line_x == 0 && 
+            picoRam._gfxState_line_y == 0 &&
+            picoRam._gfxState_line_valid == false &&
+            picoRam._gfxState_color == 14) == true);
+    }
+    SUBCASE("line({x}, {y}) without valid line state does nothing") {
+        graphics->cls();
+        graphics->line();
+        graphics->line(10, 11);
+
+        bool isAllColor = true;
+        for(int x = 0; x < 128; x++){
+            for(int y = 0; y < 128; y++){
+                isAllColor &= graphics->pget(0, 0) == 0;
+            }
+        }
+
+        CHECK(
+            (picoRam._gfxState_line_x == 0 && 
+            picoRam._gfxState_line_y == 0 &&
+            picoRam._gfxState_line_valid == false &&
+            isAllColor) == true);
+    }
+    
 
     //general teardown
     delete graphics;
