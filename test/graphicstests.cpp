@@ -1,15 +1,32 @@
 #include <string>
+#include <vector>
 
 #include "doctest.h"
 #include "../source/graphics.h"
 #include "../source/fontdata.h"
 #include "../source/PicoRam.h"
 
+struct coloredPoint {
+    uint8_t x;
+    uint8_t y;
+    uint8_t c;
+};
+
 bool colorsEqual(Color* lhs, Color* rhs) {
 	return lhs->Alpha == rhs->Alpha &&
 		   lhs->Red == rhs->Red &&
 		   lhs->Green == rhs->Green &&
 		   lhs->Blue == rhs->Blue;
+}
+
+void checkPoints(Graphics* graphics, std::vector<coloredPoint> expectedPoints) {
+    bool isCorrect = true;
+    for(size_t i = 0; i < expectedPoints.size(); i++){
+        auto toCheck = expectedPoints[i];
+        isCorrect &= graphics->pget(toCheck.x, toCheck.y) == toCheck.c;
+    }
+
+    CHECK(isCorrect);
 }
 
 TEST_CASE("graphics class behaves as expected") {
@@ -166,6 +183,125 @@ TEST_CASE("graphics class behaves as expected") {
             picoRam._gfxState_line_valid == false &&
             isAllColor) == true);
     }
+    SUBCASE("line({x}, {y}) with valid line state updates state") {
+        graphics->cls();
+        picoRam._gfxState_line_x = 10;
+        picoRam._gfxState_line_y = 10;
+        picoRam._gfxState_line_valid = true;
+        graphics->line(13, 13);
+
+        CHECK(
+            (picoRam._gfxState_line_x == 13 && 
+            picoRam._gfxState_line_y == 13 &&
+            picoRam._gfxState_line_valid == true) == true);
+    }
+    SUBCASE("line({x}, {y}) draws (45 degree down-right)") {
+        graphics->cls();
+        picoRam._gfxState_color = 2;
+        picoRam._gfxState_line_x = 10;
+        picoRam._gfxState_line_y = 10;
+        picoRam._gfxState_line_valid = true;
+        graphics->line(12, 12);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {10, 10, 2},
+            {11, 11, 2},
+            {12, 12, 2}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("line({x}, {y}, {c}) draws (vertical down)") {
+        graphics->cls();
+        picoRam._gfxState_line_x = 20;
+        picoRam._gfxState_line_y = 20;
+        picoRam._gfxState_line_valid = true;
+        graphics->line(20, 24, 13);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {20, 20, 13},
+            {20, 21, 13},
+            {20, 22, 13},
+            {20, 23, 13},
+            {20, 24, 13}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("line({x1}, {y1}, {x2}, {y2}) draws (45 degree left)") {
+        graphics->cls();
+        picoRam._gfxState_color = 10;
+        graphics->line(20, 20, 18, 22);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {20, 20, 10},
+            {19, 21, 10},
+            {18, 22, 10}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("line({x1}, {y1}, {x2}, {y2}, {c}) draws (horizontal left)") {
+        graphics->cls();
+        graphics->line(20, 20, 18, 20, 4);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {20, 20, 4},
+            {19, 20, 4},
+            {18, 20, 4}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("line({x1}, {y1}, {x2}, {y2}, {c}) draws (45 degree up left)") {
+        graphics->cls();
+        graphics->line(20, 20, 18, 18, 5);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {20, 20, 5},
+            {19, 19, 5},
+            {18, 18, 5}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("line({x1}, {y1}, {x2}, {y2}, {c}) draws (vertical up)") {
+        graphics->cls();
+        graphics->line(20, 20, 20, 18, 5);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {20, 20, 5},
+            {20, 19, 5},
+            {20, 18, 5}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("line({x1}, {y1}, {x2}, {y2}, {c}) draws (45 degree up right)") {
+        graphics->cls();
+        graphics->line(20, 20, 22, 18, 5);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {20, 20, 5},
+            {21, 19, 5},
+            {22, 18, 5}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("line({x1}, {y1}, {x2}, {y2}, {c}) draws (horizontal right)") {
+        graphics->cls();
+        graphics->line(20, 20, 22, 20, 5);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {20, 20, 5},
+            {21, 20, 5},
+            {22, 20, 5}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+
     
 
     //general teardown

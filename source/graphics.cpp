@@ -419,7 +419,7 @@ void Graphics::line (int x1, int y1, uint8_t col){
 }
 
 void Graphics::line (int x1, int y1, int x2, int y2){
-	this->line(_memory->_gfxState_line_x, _memory->_gfxState_line_y, x1, y1, _memory->_gfxState_color);
+	this->line(x1, y1, x2, y2, _memory->_gfxState_color);
 }
 
 void Graphics::_private_h_line (int x1, int x2, int y, uint8_t col){
