@@ -301,6 +301,24 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("circ({ox}, {oy}) uses pen color and radius of 4") {
+        graphics->cls();
+        graphics->circ(40, 40);
+
+        //quarter circle from 12 oclock to 3 oclock
+        std::vector<coloredPoint> expectedPoints = {
+            {39, 36, 7},
+            {40, 36, 7},
+            {41, 36, 7},
+            {42, 37, 7},
+            {43, 37, 7},
+            {43, 38, 7},
+            {44, 39, 7},
+            {44, 40, 7}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
     
 
