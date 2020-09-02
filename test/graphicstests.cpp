@@ -523,6 +523,76 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("print({str}) uses current color, ignoring transparency") {
+        graphics->cls();
+        graphics->color(2);
+        graphics->palt(2, true);
+
+        graphics->print("t");
+
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 0, 2},
+            {1, 0, 2},
+            {2, 0, 2},
+            {1, 1, 2},
+            {1, 2, 2},
+            {1, 3, 2},
+            {1, 4, 2}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("print({str}) uses current text location") {
+        graphics->cls();
+        graphics->color(3);
+        picoRam._gfxState_text_x = 15;
+        picoRam._gfxState_text_y = 98;
+
+        graphics->print("t");
+
+        std::vector<coloredPoint> expectedPoints = {
+            {15, 98, 3},
+            {16, 98, 3},
+            {17, 98, 3},
+            {16, 99, 3},
+            {16, 100, 3},
+            {16, 101, 3},
+            {16, 102, 3}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("print({str}) increments text location y by 6") {
+        graphics->cls();
+        picoRam._gfxState_text_x = 15;
+        picoRam._gfxState_text_y = 110;
+
+        graphics->print("doesnt matter");
+
+        CHECK(picoRam._gfxState_text_y == 116);
+    }
+    SUBCASE("print({str}, {x}, {y}) updates text location ") {
+        graphics->cls();
+        picoRam._gfxState_text_x = 3;
+        picoRam._gfxState_text_y = 4;
+
+        graphics->print("doesnt matter", 42, 99);
+
+        CHECK(picoRam._gfxState_text_x == 42);
+        CHECK(picoRam._gfxState_text_y == 99);
+    }
+    SUBCASE("print({str}, {x}, {y}, {c}) updates text location and color") {
+        graphics->cls();
+        picoRam._gfxState_text_x = 3;
+        picoRam._gfxState_text_y = 4;
+        picoRam._gfxState_color = 10;
+
+        graphics->print("doesnt matter", 16, 18, 14);
+        
+        CHECK(picoRam._gfxState_text_x == 16);
+        CHECK(picoRam._gfxState_text_y == 18);
+        CHECK(picoRam._gfxState_color == 14);
+    }
 
     
 
