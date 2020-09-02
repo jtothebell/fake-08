@@ -392,7 +392,7 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->color(14);
         graphics->circfill(40, 40, 1);
 
-        //radius of 1 draws 4 points around center
+        //radius of 1 draws 4 points around center, plus the center
         std::vector<coloredPoint> expectedPoints = {
             {40, 39, 14},
             {41, 40, 14},
@@ -430,9 +430,48 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->cls();
         graphics->circfill(40, 40, 0, 13);
 
-        //radius of 2 draws this circle
+        //radius of 0 draws a point
         std::vector<coloredPoint> expectedPoints = {
             {40, 40, 13},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("rect({x1}, {y1}, {x2}, {y2}) uses pen color") {
+        graphics->cls();
+        graphics->color(15);
+        graphics->rect(40, 40, 43, 42);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {40, 40, 15},
+            {40, 41, 15},
+            {40, 42, 15},
+            {41, 40, 15},
+            {41, 42, 15},
+            {42, 40, 15},
+            {42, 42, 15},
+            {43, 40, 15},
+            {43, 41, 15},
+            {43, 42, 15}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("rect({x1}, {y1}, {x2}, {y2}, {c}) swapped coords work, color used") {
+        graphics->cls();
+        graphics->rect(42, 43, 40, 40, 1);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {40, 40, 1},
+            {40, 41, 1},
+            {40, 42, 1},
+            {40, 43, 1},
+            {41, 40, 1},
+            {41, 43, 1},
+            {42, 40, 1},
+            {42, 41, 1},
+            {42, 42, 1},
+            {42, 43, 1}
         };
 
         checkPoints(graphics, expectedPoints);
