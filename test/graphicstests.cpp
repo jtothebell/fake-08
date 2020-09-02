@@ -593,6 +593,26 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK(picoRam._gfxState_text_y == 18);
         CHECK(picoRam._gfxState_color == 14);
     }
+    SUBCASE("spr(...) draws to screen at location") {
+        graphics->cls();
+        for(uint8_t i = 0; i < 16; i++) {
+            graphics->sset(i % 8, i / 8, i%2 == 0 ? i : 0 );
+        }
+
+        graphics->spr(0, 101, 33, 1.0, 1.0, false, false);
+        
+        std::vector<coloredPoint> expectedPoints = {
+            {103, 33, 2},
+            {105, 33, 4},
+            {107, 33, 6},
+            {101, 34, 8},
+            {103, 34, 10},
+            {105, 34, 12},
+            {107, 34, 14},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
     
 
