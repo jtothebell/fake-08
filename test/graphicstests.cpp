@@ -476,6 +476,53 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("rectfill({x1}, {y1}, {x2}, {y2}) uses pen color, fills rect") {
+        graphics->cls();
+        graphics->color(10);
+        graphics->rectfill(40, 40, 43, 43);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {40, 40, 10},
+            {40, 41, 10},
+            {40, 42, 10},
+            {40, 43, 10},
+            {41, 40, 10},
+            {41, 41, 10},
+            {41, 42, 10},
+            {41, 43, 10},
+            {42, 40, 10},
+            {42, 41, 10},
+            {42, 42, 10},
+            {42, 43, 10},
+            {43, 40, 10},
+            {43, 41, 10},
+            {43, 42, 10},
+            {43, 43, 10}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("rectfill({x1}, {y1}, {x2}, {y2}, {c}) swapped coords work, color used") {
+        graphics->cls();
+        graphics->rectfill(42, 43, 40, 40, 2);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {40, 40, 2},
+            {40, 41, 2},
+            {40, 42, 2},
+            {40, 43, 2},
+            {41, 40, 2},
+            {41, 41, 2},
+            {41, 42, 2},
+            {41, 43, 2},
+            {42, 40, 2},
+            {42, 41, 2},
+            {42, 42, 2},
+            {42, 43, 2}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
     
 
