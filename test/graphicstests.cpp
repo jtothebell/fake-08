@@ -319,6 +319,124 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("circ({ox}, {oy}, {r}) uses pen color") {
+        graphics->cls();
+        graphics->color(14);
+        graphics->circ(40, 40, 1);
+
+        //radius of 1 draws 4 points around center
+        std::vector<coloredPoint> expectedPoints = {
+            {40, 39, 14},
+            {41, 40, 14},
+            {40, 41, 14},
+            {39, 40, 14},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("circ({ox}, {oy}, {r}, {c}) draws correctly") {
+        graphics->cls();
+        graphics->circ(40, 40, 2, 13);
+
+        //radius of 2 draws this circle
+        std::vector<coloredPoint> expectedPoints = {
+            {38, 39, 13},
+            {38, 40, 13},
+            {38, 41, 13},
+            {39, 38, 13},
+            {39, 42, 13},
+            {40, 38, 13},
+            {40, 42, 13},
+            {41, 38, 13},
+            {41, 42, 13},
+            {42, 39, 13},
+            {42, 40, 13},
+            {42, 41, 13},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("circ({ox}, {oy}, {r}, {c}) radius of 0 draws 1 point") {
+        graphics->cls();
+        graphics->circ(40, 40, 0, 13);
+
+        //radius of 2 draws this circle
+        std::vector<coloredPoint> expectedPoints = {
+            {40, 40, 13},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    //circfill (same as circ tests, but also test center point)
+    SUBCASE("circfill({ox}, {oy}) uses pen color and radius of 4") {
+        graphics->cls();
+        graphics->circfill(40, 40);
+
+        //quarter circle from 12 oclock to 3 oclock
+        std::vector<coloredPoint> expectedPoints = {
+            {39, 36, 7},
+            {40, 36, 7},
+            {41, 36, 7},
+            {42, 37, 7},
+            {43, 37, 7},
+            {43, 38, 7},
+            {44, 39, 7},
+            {44, 40, 7},
+            {40, 40, 7},//center point
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("circfill({ox}, {oy}, {r}) uses pen color") {
+        graphics->cls();
+        graphics->color(14);
+        graphics->circfill(40, 40, 1);
+
+        //radius of 1 draws 4 points around center
+        std::vector<coloredPoint> expectedPoints = {
+            {40, 39, 14},
+            {41, 40, 14},
+            {40, 41, 14},
+            {39, 40, 14},
+            {40, 40, 14},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("circfill({ox}, {oy}, {r}, {c}) draws correctly") {
+        graphics->cls();
+        graphics->circfill(40, 40, 2, 13);
+
+        //radius of 2 draws this circle
+        std::vector<coloredPoint> expectedPoints = {
+            {38, 39, 13},
+            {38, 40, 13},
+            {38, 41, 13},
+            {39, 38, 13},
+            {39, 42, 13},
+            {40, 38, 13},
+            {40, 42, 13},
+            {41, 38, 13},
+            {41, 42, 13},
+            {42, 39, 13},
+            {42, 40, 13},
+            {42, 41, 13},
+            {40, 40, 13},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("circfill({ox}, {oy}, {r}, {c}) radius of 0 draws 1 point") {
+        graphics->cls();
+        graphics->circfill(40, 40, 0, 13);
+
+        //radius of 2 draws this circle
+        std::vector<coloredPoint> expectedPoints = {
+            {40, 40, 13},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
     
 
