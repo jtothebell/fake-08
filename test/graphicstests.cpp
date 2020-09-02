@@ -613,6 +613,102 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("spr(...) draws more than 1 horizontal sprite") {
+        graphics->cls();
+        for(uint8_t i = 0; i < 16; i++) {
+            graphics->sset(i, 0, i);
+        }
+
+        graphics->spr(0, 35, 100, 1.5, 1.0, false, false);
+        
+        std::vector<coloredPoint> expectedPoints = {
+            {35, 100, 0},
+            {36, 100, 1},
+            {37, 100, 2},
+            {38, 100, 3},
+            {39, 100, 4},
+            {40, 100, 5},
+            {41, 100, 6},
+            {42, 100, 7},
+            {43, 100, 8},
+            {44, 100, 9},
+            {45, 100, 10},
+            {46, 100, 11},
+            {47, 100, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("spr(...) draws more than 1 vertical sprite") {
+        graphics->cls();
+        for(uint8_t i = 0; i < 16; i++) {
+            graphics->sset(0, i, i);
+        }
+
+        graphics->spr(0, 35, 100, 1.0, 1.25, false, false);
+        
+        std::vector<coloredPoint> expectedPoints = {
+            {35, 100, 0},
+            {35, 101, 1},
+            {35, 102, 2},
+            {35, 103, 3},
+            {35, 104, 4},
+            {35, 105, 5},
+            {35, 106, 6},
+            {35, 107, 7},
+            {35, 108, 8},
+            {35, 109, 9},
+            {35, 100, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("spr(...) draws flipped Horizontal") {
+        graphics->cls();
+        for(uint8_t i = 0; i < 16; i++) {
+            graphics->sset(i, 0, i);
+        }
+
+        graphics->spr(0, 35, 100, 1.0, 1.0, true, false);
+        
+        std::vector<coloredPoint> expectedPoints = {
+            {34, 100, 0},
+            {35, 100, 7},
+            {36, 100, 6},
+            {37, 100, 5},
+            {38, 100, 4},
+            {39, 100, 3},
+            {40, 100, 2},
+            {41, 100, 1},
+            {42, 100, 0},
+            {43, 100, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("spr(...) draws flipped vertical") {
+        graphics->cls();
+        for(uint8_t i = 0; i < 16; i++) {
+            graphics->sset(0, i, i);
+        }
+
+        graphics->spr(0, 35, 100, 1.0, 1.0, false, true);
+        
+        std::vector<coloredPoint> expectedPoints = {
+            {35, 99, 0},
+            {35, 100, 7},
+            {35, 101, 6},
+            {35, 102, 5},
+            {35, 103, 4},
+            {35, 104, 3},
+            {35, 105, 2},
+            {35, 106, 1},
+            {35, 107, 0},
+            {35, 108, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
     
 
