@@ -122,17 +122,16 @@ void Graphics::copySpriteToScreen(
 		dy = -dy;
 	}
 
-	//todo: honor x and y flipping
-
 	for (int y = 0; y < scr_h; y++) {
 		uint8_t* spr = spritebuffer + ((spr_y + y * dy) & 0x7f) * 64;
 
 		if (!flip_x) {
 			for (int x = 0; x < scr_w; x++) {
-				int combinedPixIdx = spr_x / 2 + x / 2;
+				int abs_spr_x = spr_x + x;
+				int combinedPixIdx = abs_spr_x / 2;
 				uint8_t bothPix = spr[combinedPixIdx];
 
-				uint8_t c = x % 2 == 0 
+				uint8_t c = abs_spr_x % 2 == 0 
 					? bothPix & 0x0f //just first 4 bits
 					: bothPix >> 4;  //just last 4 bits
 					
@@ -173,7 +172,7 @@ void Graphics::copyStretchSpriteToScreen(
 	bool flip_x,
 	bool flip_y) 
 {
-	if (false || (spr_h == scr_h && spr_w == scr_w)) {
+	if (spr_h == scr_h && spr_w == scr_w) {
 		// use faster non stretch blitter if sprite is not stretched
 		copySpriteToScreen(spritebuffer, scr_x, scr_y, spr_x, spr_y, scr_w, scr_h, flip_x, flip_y);
 		return;

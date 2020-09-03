@@ -29,6 +29,17 @@ void checkPoints(Graphics* graphics, std::vector<coloredPoint> expectedPoints) {
     CHECK(isCorrect);
 }
 
+void debugScreen(Graphics* graphics) {
+    for (int x=0; x < 128; x++) {
+        for (int y = 0; y < 128; y++) {
+ 	        uint8_t c = graphics->pget(x,y);
+            if (c != 0) {
+                printf("%d,%d,%d\n", x, y, c);
+            }
+        }
+    }
+}
+
 TEST_CASE("graphics class behaves as expected") {
     //general setup
     std::string fontdata = get_font_data();
@@ -705,6 +716,124 @@ TEST_CASE("graphics class behaves as expected") {
             {35, 106, 1},
             {35, 107, 0},
             {35, 108, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("spr(...) draws to screen at odd numbered location") {
+        graphics->cls();
+        
+        for(uint8_t i = 0; i < 16; i++) {
+            for(uint8_t j = 0; j < 16; j++) {
+                graphics->sset(i, j, i);
+            }
+        }
+
+        graphics->spr(0, 51, 11, 1, 1, false, false);
+
+        //diagonal across sprite
+        std::vector<coloredPoint> expectedPoints = {
+            {50, 10, 0},
+            {51, 11, 0},
+            {52, 12, 1},
+            {53, 13, 2},
+            {54, 14, 3},
+            {55, 15, 4},
+            {56, 16, 5},
+            {57, 17, 6},
+            {58, 18, 7},
+            {59, 19, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("sspr(...) draws to screen at odd numbered location") {
+        graphics->cls();
+        
+        for(uint8_t i = 0; i < 16; i++) {
+            for(uint8_t j = 0; j < 16; j++) {
+                graphics->sset(i, j, i);
+            }
+        }
+
+        graphics->sspr(0, 0, 8, 8, 51, 11, 8, 8, false, false);
+
+        //diagonal across sprite
+        std::vector<coloredPoint> expectedPoints = {
+            {50, 10, 0},
+            {51, 11, 0},
+            {52, 12, 1},
+            {53, 13, 2},
+            {54, 14, 3},
+            {55, 15, 4},
+            {56, 16, 5},
+            {57, 17, 6},
+            {58, 18, 7},
+            {59, 19, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("sspr(...) draws from odd numbered sprite sheet location") {
+        graphics->cls();
+        
+        for(uint8_t i = 0; i < 16; i++) {
+            for(uint8_t j = 0; j < 16; j++) {
+                graphics->sset(i, j, i);
+            }
+        }
+
+        graphics->sspr(1, 1, 4, 4, 51, 11, 4, 4, false, false);
+
+        //diagonal across sprite
+        std::vector<coloredPoint> expectedPoints = {
+            {51, 10, 0},
+            {51, 11, 1},
+            {51, 12, 1},
+            {51, 13, 1},
+            {51, 14, 1},
+            {52, 11, 2},
+            {52, 12, 2},
+            {52, 13, 2},
+            {52, 14, 2},
+            {53, 11, 3},
+            {53, 12, 3},
+            {53, 13, 3},
+            {53, 14, 3},
+            {54, 11, 4},
+            {54, 12, 4},
+            {54, 13, 4},
+            {54, 14, 4},
+            {55, 11, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("sspr(...) draws non-square to screen at location") {
+        graphics->cls();
+        
+        for(uint8_t i = 0; i < 16; i++) {
+            for(uint8_t j = 0; j < 16; j++) {
+                graphics->sset(i, j, i);
+            }
+        }
+
+        graphics->sspr(3, 2, 3, 4, 100, 50, 3, 4, false, false);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {100, 50, 3},
+            {100, 51, 3},
+            {100, 52, 3},
+            {100, 53, 3},
+            {101, 50, 4},
+            {101, 51, 4},
+            {101, 52, 4},
+            {101, 53, 4},
+            {102, 50, 5},
+            {102, 51, 5},
+            {102, 52, 5},
+            {102, 53, 5},
+            
         };
 
         checkPoints(graphics, expectedPoints);
