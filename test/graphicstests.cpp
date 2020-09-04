@@ -863,6 +863,60 @@ TEST_CASE("graphics class behaves as expected") {
         checkPoints(graphics, expectedPoints);
     }
     */
+   SUBCASE("fget for sprite with none set")
+   {
+       auto result = graphics->fget(0);
+
+       CHECK_EQ(result, 0);
+   }
+   SUBCASE("fget for sprite with flags set")
+   {
+       uint8_t flags = 47;
+       picoRam.spriteFlags[4] = flags;
+       auto result = graphics->fget(4);
+
+       CHECK_EQ(result, flags);
+   }
+   SUBCASE("fget for sprite and flag number with flags set")
+   {
+       //118 in binary: 0111 0110
+       uint8_t flags = 118;
+       picoRam.spriteFlags[12] = flags;
+       auto result0 = graphics->fget(12, 0);
+       auto result1 = graphics->fget(12, 1);
+       auto result2 = graphics->fget(12, 2);
+       auto result3 = graphics->fget(12, 3);
+       auto result4 = graphics->fget(12, 4);
+       auto result5 = graphics->fget(12, 5);
+       auto result6 = graphics->fget(12, 6);
+       auto result7 = graphics->fget(12, 7);
+
+       bool offBitsCorrect = result0 == false && result3 == false && result7 == false;
+       bool onBitsCorrect = result1 == true && result2 == true && result4 == true
+                         && result5 == true && result6 == true;
+
+       CHECK(offBitsCorrect);
+       CHECK(onBitsCorrect);
+   }
+   SUBCASE("fset sets value in ram")
+   {
+       uint8_t flags = 65;
+       graphics->fset(31, flags);
+       auto result = picoRam.spriteFlags[31];
+
+       CHECK_EQ(result, flags);
+   }
+   SUBCASE("fset for single flag sets value in ram")
+   {
+       //fifth bit and second bit 0010 0100 == 36 in decimal
+       graphics->fset(17, 5, true);
+       graphics->fset(17, 2, true);
+
+       auto result = picoRam.spriteFlags[17];
+
+       CHECK_EQ(result, 36);
+   }
+   
 
 
     
