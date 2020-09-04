@@ -838,6 +838,32 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    /*//TODO: come back and make SSPR stretch exactly how pico 8 does
+    SUBCASE("sspr(...) draws unevenly stretched sprite") {
+        graphics->cls();
+        
+        for(uint8_t i = 0; i < 16; i++) {
+            for(uint8_t j = 0; j < 16; j++) {
+                graphics->sset(i, j, i);
+            }
+        }
+
+        graphics->sspr(3,1,3,1,100,50,5,1,false,false);
+
+        debugScreen(graphics);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {100, 50, 3},
+            {101, 50, 3},
+            {102, 50, 4},
+            {103, 50, 5},
+            {104, 50, 5},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    */
+
 
     
 
