@@ -916,6 +916,55 @@ TEST_CASE("graphics class behaves as expected") {
 
        CHECK_EQ(result, 36);
    }
+   SUBCASE("sget defaults to 0 when nothing on sprite sheet")
+   {
+       auto result = graphics->sget(14, 41);
+
+       CHECK_EQ(result, 0);
+   }
+   SUBCASE("sget returns correct value for even x pixel")
+   {
+       int x = 40;
+       int y = 10;
+       int combinedIdx = y * 64 + (x / 2);
+       picoRam.spriteSheetData[combinedIdx] = 137; //10001001
+       auto result = graphics->sget(x, y);
+
+       CHECK_EQ(result, 9);
+   }
+   SUBCASE("sget returns correct value for odd x pixel")
+   {
+       int x = 41;
+       int y = 11;
+       int combinedIdx = y * 64 + (x / 2);
+       picoRam.spriteSheetData[combinedIdx] = 200; //11001000
+       auto result = graphics->sget(x, y);
+
+       CHECK_EQ(result, 12);
+   }
+   SUBCASE("sset sets value in ram for even x pixel")
+   {
+       uint8_t x = 60;
+       uint8_t y = 23;
+       graphics->sset(x, y, 14); //14 = 1110
+
+       int combinedIdx = y * 64 + (x / 2);
+       auto result = picoRam.spriteSheetData[combinedIdx];
+
+       CHECK_EQ(result, 14);
+   }
+   SUBCASE("sset sets value in ram for odd x pixel")
+   {
+       uint8_t x = 61;
+       uint8_t y = 23;
+       graphics->sset(x, y, 12); //12 = 1100
+
+       int combinedIdx = y * 64 + (x / 2);
+       auto result = picoRam.spriteSheetData[combinedIdx];
+
+       CHECK_EQ(result, 192);
+   }
+
    
 
 
