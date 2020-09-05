@@ -964,6 +964,24 @@ TEST_CASE("graphics class behaves as expected") {
 
        CHECK_EQ(result, 192);
    }
+   SUBCASE("camera({x}, {y}) sets values in memory")
+   {
+       uint8_t x = 33;
+       uint8_t y = 120;
+       graphics->camera(x, y);
+
+       CHECK_EQ(picoRam._gfxState_camera_x, x);
+       CHECK_EQ(picoRam._gfxState_camera_y, y);
+   }
+   SUBCASE("camera() sets values in memory to 0")
+   {
+       picoRam._gfxState_camera_x = 33;
+       picoRam._gfxState_camera_y = 120;
+       graphics->camera();
+
+       CHECK_EQ(picoRam._gfxState_camera_x, 0);
+       CHECK_EQ(picoRam._gfxState_camera_y, 0);
+   }
 
    
 
