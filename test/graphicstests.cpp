@@ -982,6 +982,30 @@ TEST_CASE("graphics class behaves as expected") {
        CHECK_EQ(picoRam._gfxState_camera_x, 0);
        CHECK_EQ(picoRam._gfxState_camera_y, 0);
    }
+   //TODO: check drawing calls to make sure these values honored
+   SUBCASE("camera values applies to pget")
+   {
+       uint8_t col = 13;
+       picoRam._gfxState_camera_x = -44;
+       picoRam._gfxState_camera_y = -3;
+       graphics->pset(14, 32, 13);
+       
+       auto result = graphics->pget(14, 32);
+
+       CHECK_EQ(result, col);
+   }
+   SUBCASE("camera values applies to pset")
+   {
+       uint8_t col = 13;
+       picoRam._gfxState_camera_x = -44;
+       picoRam._gfxState_camera_y = -3;
+       graphics->pset(14, 32, 13);
+       graphics->camera();
+       
+       auto result = graphics->pget(58, 35);
+
+       CHECK_EQ(result, col);
+   }
 
    
 

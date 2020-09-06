@@ -381,6 +381,8 @@ void Graphics::pset(int x, int y, uint8_t col){
 }
 
 uint8_t Graphics::pget(int x, int y){
+	applyCameraToPoint(&x, &y);
+
 	if (isOnScreen(x, y)){
 		return _pico8_fb[(x * 128) + y];
 	}
