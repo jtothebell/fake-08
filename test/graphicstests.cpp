@@ -1160,6 +1160,29 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("clip() resets clip memory to entire screen")
+    {
+        picoRam._gfxState_clip_xb = 28;
+        picoRam._gfxState_clip_xe = 28;
+        picoRam._gfxState_clip_yb = 50;
+        picoRam._gfxState_clip_ye = 50;
+
+        graphics->clip();
+
+        CHECK_EQ(picoRam._gfxState_clip_xb, 0);
+        CHECK_EQ(picoRam._gfxState_clip_xe, 127);
+        CHECK_EQ(picoRam._gfxState_clip_yb, 0);
+        CHECK_EQ(picoRam._gfxState_clip_ye, 127);
+    }
+    SUBCASE("clip({x}, {y}, {w}, {h}) sets clip in memory")
+    {
+        graphics->clip(50, 75, 25, 25);
+
+        CHECK_EQ(picoRam._gfxState_clip_xb, 50);
+        CHECK_EQ(picoRam._gfxState_clip_xe, 75);
+        CHECK_EQ(picoRam._gfxState_clip_yb, 75);
+        CHECK_EQ(picoRam._gfxState_clip_ye, 100);
+    }
 
    
 
