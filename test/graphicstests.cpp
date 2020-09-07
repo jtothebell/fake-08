@@ -1006,6 +1006,85 @@ TEST_CASE("graphics class behaves as expected") {
 
        CHECK_EQ(result, col);
    }
+   SUBCASE("camera values apply to line") {
+        graphics->cls();
+        graphics->camera(-10, -10);
+        graphics->line(20, 20, 18, 22, 10);
+        graphics->camera();
+
+        std::vector<coloredPoint> expectedPoints = {
+            {30, 30, 10},
+            {29, 31, 10},
+            {28, 32, 10}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("camera values apply to circ") {
+        graphics->cls();
+        graphics->camera(-20, -20);
+        graphics->circ(40, 40, 1, 14);
+        graphics->camera();
+
+        std::vector<coloredPoint> expectedPoints = {
+            {60, 59, 14},
+            {61, 60, 14},
+            {60, 61, 14},
+            {59, 60, 14},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("camera values apply to circfill") {
+        graphics->cls();
+        graphics->camera(-30, -30);
+        graphics->circfill(40, 40, 1, 3);
+        graphics->camera();
+
+        std::vector<coloredPoint> expectedPoints = {
+            {70, 70, 3},
+            {70, 69, 3},
+            {71, 70, 3},
+            {70, 71, 3},
+            {69, 70, 3},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("camera values apply to rect") {
+        graphics->cls();
+        graphics->camera(-50, -50);
+        graphics->rect(-10, -10, -8, -8, 4);
+        graphics->camera();
+
+        std::vector<coloredPoint> expectedPoints = {
+            {40, 40, 4},
+            {41, 40, 4},
+            {42, 40, 4},
+            {40, 41, 4},
+            {40, 42, 4},
+            {40, 42, 4},
+            {41, 42, 4},
+            {42, 42, 4},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("camera values apply to rectfill") {
+        graphics->cls();
+        graphics->camera(-100, -100);
+        graphics->rectfill(0, 0, 1, 1, 3);
+        graphics->camera();
+
+        std::vector<coloredPoint> expectedPoints = {
+            {100, 100, 3},
+            {100, 101, 3},
+            {101, 100, 3},
+            {101, 101, 3},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
    
 

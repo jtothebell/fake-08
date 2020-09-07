@@ -597,6 +597,9 @@ void Graphics::rectfill(int x1, int y1, int x2, int y2) {
 void Graphics::rectfill(int x1, int y1, int x2, int y2, uint8_t col) {
 	color(col);
 
+	applyCameraToPoint(&x1, &y1);
+	applyCameraToPoint(&x2, &y2);
+
 	sortCoordsForRect(&x1, &y1, &x2, &y2);
 
 	for (int y = y1; y <= y2; y++) {
