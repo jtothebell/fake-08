@@ -1085,6 +1085,81 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("camera values apply to print") {
+        graphics->cls();
+        graphics->camera(-100, -100);
+        graphics->print("t");
+        graphics->camera();
+
+        std::vector<coloredPoint> expectedPoints = {
+            {100, 100, 7},
+            {101, 100, 7},
+            {102, 100, 7},
+            {101, 101, 7},
+            {101, 102, 7},
+            {101, 103, 7},
+            {101, 104, 7}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("camera values apply to spr") {
+        for(uint8_t i = 0; i < 16; i++) {
+            for(uint8_t j = 0; j < 16; j++) {
+                graphics->sset(i, j, i);
+            }
+        }
+        
+        graphics->cls();
+        graphics->camera(-100, -100);
+        graphics->spr(0, 10, 10, 1, 1, false, false);
+        graphics->camera();
+
+        //diagonal across sprite
+        std::vector<coloredPoint> expectedPoints = {
+            {109, 109, 0},
+            {110, 110, 0},
+            {111, 111, 1},
+            {112, 112, 2},
+            {113, 113, 3},
+            {114, 114, 4},
+            {115, 115, 5},
+            {116, 116, 6},
+            {117, 117, 7},
+            {118, 118, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("camera values apply to spr") {
+        for(uint8_t i = 0; i < 16; i++) {
+            for(uint8_t j = 0; j < 16; j++) {
+                graphics->sset(i, j, i);
+            }
+        }
+        
+        graphics->cls();
+        graphics->camera(-100, -100);
+        graphics->sspr(0, 0, 8, 8, 10, 10, 8, 8, false, false);
+        graphics->camera();
+
+
+        //diagonal across sprite
+        std::vector<coloredPoint> expectedPoints = {
+            {109, 109, 0},
+            {110, 110, 0},
+            {111, 111, 1},
+            {112, 112, 2},
+            {113, 113, 3},
+            {114, 114, 4},
+            {115, 115, 5},
+            {116, 116, 6},
+            {117, 117, 7},
+            {118, 118, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
    
 
