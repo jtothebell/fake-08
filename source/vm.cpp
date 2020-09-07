@@ -13,6 +13,7 @@
 #include "Input.h"
 #include "p8GlobalLuaFunctions.h"
 #include "hostVmShared.h"
+#include "emojiconversion.h"
 
 extern "C" {
   #include <lua.h>
@@ -109,7 +110,8 @@ bool Vm::loadCart(Cart* cart) {
     luaL_openlibs(_luaState);
 
     //load in global lua fuctions for pico 8
-    int loadedGlobals = luaL_dostring(_luaState, p8GlobalLuaFunctions);
+    auto convertedGlobalLuaFunctions = convert_emojis(p8GlobalLuaFunctions);
+    int loadedGlobals = luaL_dostring(_luaState, convertedGlobalLuaFunctions.c_str());
 
     if (loadedGlobals != LUA_OK) {
         _cartLoadError = "ERROR loading pico 8 lua globals";

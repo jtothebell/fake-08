@@ -182,6 +182,14 @@ end
 function rotr(x, y)
 	return bit32.ror(x*0x10000, y)/0x10000
 end
+
+--Button emoji variables
+⬅️ = 0
+➡️ = 1
+⬆️ = 2
+⬇️ = 3
+🅾️ = 4
+❎ = 5
 )#";
 
 
