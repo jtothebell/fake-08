@@ -67,6 +67,8 @@ class Graphics {
 	bool isWithinClip(int x, int y);
 	bool isXWithinClip(int x);
 	bool isYWithinClip(int y);
+	int clampXCoordToClip(int x);
+	int clampYCoordToCLip(int y);
 
 	void _private_pset(int x, int y, uint8_t col);
 	void _private_safe_pset(int x, int y, uint8_t col);

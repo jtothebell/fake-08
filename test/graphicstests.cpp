@@ -19,16 +19,6 @@ bool colorsEqual(Color* lhs, Color* rhs) {
 		   lhs->Blue == rhs->Blue;
 }
 
-void checkPoints(Graphics* graphics, std::vector<coloredPoint> expectedPoints) {
-    bool isCorrect = true;
-    for(size_t i = 0; i < expectedPoints.size(); i++){
-        auto toCheck = expectedPoints[i];
-        isCorrect &= graphics->pget(toCheck.x, toCheck.y) == toCheck.c;
-    }
-
-    CHECK(isCorrect);
-}
-
 void debugScreen(Graphics* graphics) {
     for (int x=0; x < 128; x++) {
         for (int y = 0; y < 128; y++) {
@@ -38,6 +28,16 @@ void debugScreen(Graphics* graphics) {
             }
         }
     }
+}
+
+void checkPoints(Graphics* graphics, std::vector<coloredPoint> expectedPoints) {
+    bool isCorrect = true;
+    for(size_t i = 0; i < expectedPoints.size(); i++){
+        auto toCheck = expectedPoints[i];
+        isCorrect &= graphics->pget(toCheck.x, toCheck.y) == toCheck.c;
+    }
+
+    CHECK(isCorrect);
 }
 
 TEST_CASE("graphics class behaves as expected") {
@@ -982,7 +982,6 @@ TEST_CASE("graphics class behaves as expected") {
        CHECK_EQ(picoRam._gfxState_camera_x, 0);
        CHECK_EQ(picoRam._gfxState_camera_y, 0);
    }
-   //TODO: check drawing calls to make sure these values honored
    SUBCASE("camera values applies to pget")
    {
        uint8_t col = 13;
@@ -1006,7 +1005,8 @@ TEST_CASE("graphics class behaves as expected") {
 
        CHECK_EQ(result, col);
    }
-   SUBCASE("camera values apply to line") {
+   SUBCASE("camera values apply to line")
+   {
         graphics->cls();
         graphics->camera(-10, -10);
         graphics->line(20, 20, 18, 22, 10);
@@ -1020,7 +1020,8 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("camera values apply to circ") {
+    SUBCASE("camera values apply to circ")
+    {
         graphics->cls();
         graphics->camera(-20, -20);
         graphics->circ(40, 40, 1, 14);
@@ -1035,7 +1036,8 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("camera values apply to circfill") {
+    SUBCASE("camera values apply to circfill")
+    {
         graphics->cls();
         graphics->camera(-30, -30);
         graphics->circfill(40, 40, 1, 3);
@@ -1051,7 +1053,8 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("camera values apply to rect") {
+    SUBCASE("camera values apply to rect")
+    {
         graphics->cls();
         graphics->camera(-50, -50);
         graphics->rect(-10, -10, -8, -8, 4);
@@ -1070,7 +1073,8 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("camera values apply to rectfill") {
+    SUBCASE("camera values apply to rectfill")
+    {
         graphics->cls();
         graphics->camera(-100, -100);
         graphics->rectfill(0, 0, 1, 1, 3);
@@ -1085,7 +1089,8 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("camera values apply to print") {
+    SUBCASE("camera values apply to print")
+    {
         graphics->cls();
         graphics->camera(-100, -100);
         graphics->print("t");
@@ -1103,7 +1108,8 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("camera values apply to spr") {
+    SUBCASE("camera values apply to spr")
+    {
         for(uint8_t i = 0; i < 16; i++) {
             for(uint8_t j = 0; j < 16; j++) {
                 graphics->sset(i, j, i);
@@ -1131,7 +1137,8 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("camera values apply to spr") {
+    SUBCASE("camera values apply to sspr")
+    {
         for(uint8_t i = 0; i < 16; i++) {
             for(uint8_t j = 0; j < 16; j++) {
                 graphics->sset(i, j, i);
@@ -1183,10 +1190,203 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(picoRam._gfxState_clip_yb, 75);
         CHECK_EQ(picoRam._gfxState_clip_ye, 100);
     }
+    SUBCASE("clip values applies to pset")
+    {
+       graphics->clip(100, 100, 28, 28);
+       graphics->pset(32, 32, 13);
+       
+       auto result = graphics->pget(32, 32);
 
-   
+       CHECK_EQ(result, 0);
+    }
+    SUBCASE("clip values apply to diagonal line") 
+    {
+        graphics->cls();
+        graphics->clip(100, 100, 28, 28);
+        graphics->line(98, 98, 102, 102, 10);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {98, 98, 0},
+            {99, 99, 0},
+            {100, 100, 10},
+            {101, 101, 10},
+            {102, 102, 10},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("clip values apply to horizontal line") 
+    {
+        graphics->cls();
+        graphics->clip(100, 100, 28, 28);
+        graphics->line(98, 102, 102, 102, 10);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {98, 102, 0},
+            {99, 102, 0},
+            {100, 102, 10},
+            {101, 102, 10},
+            {102, 102, 10},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("clip values apply to vertical line") 
+    {
+        graphics->cls();
+        graphics->clip(100, 100, 28, 28);
+        graphics->line(102, 98, 102, 102, 10);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {102, 98,   0},
+            {102, 99,   0},
+            {102, 100, 10},
+            {102, 101, 10},
+            {102, 102, 10},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("clip values apply to circ") {
+        graphics->cls();
+        graphics->clip(100, 100, 28, 28);
+        graphics->circ(100, 100, 1, 14);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {100, 99, 0},
+            {101, 100, 14},
+            {100, 101, 14},
+            {99, 100, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("clip values apply to circfill") {
+        graphics->cls();
+        graphics->clip(100, 100, 28, 28);
+        graphics->circfill(105, 99, 1, 3);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {105, 100, 3},
+            {106, 99, 0},
+            {105, 98, 0},
+            {104, 99, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("clip values apply to rect") {
+        graphics->cls();
+        graphics->clip(100, 100, 28, 28);
+        graphics->rect(98, 98, 101, 101, 4);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {98, 98, 0},
+            {98, 99, 0},
+            {98, 100, 0},
+            {98, 101, 0},
+            {99, 98, 0},
+            {100, 98, 0},
+            {101, 98, 0},
+            {101, 99, 0},
+            {101, 100, 4},
+            {101, 101, 4},
+            {100, 101, 4},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("clip values apply to rectfill") {
+        graphics->cls();
+        graphics->clip(100, 100, 28, 28);
+        graphics->rectfill(99, 99, 100, 102, 3);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {99, 99, 0},
+            {99, 100, 0},
+            {99, 101, 0},
+            {99, 102, 0},
+            {100, 99, 0},
+            {100, 100, 3},
+            {100, 101, 3},
+            {100, 102, 3},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("clip values apply to print") {
+        graphics->cls();
+        graphics->clip(101, 101, 27, 27);
+        graphics->camera(-100, -100);
+        graphics->print("t");
+        graphics->camera();
+
+        std::vector<coloredPoint> expectedPoints = {
+            {100, 100, 0},
+            {101, 100, 0},
+            {102, 100, 0},
+            {101, 101, 7},
+            {101, 102, 7},
+            {101, 103, 7},
+            {101, 104, 7}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("clip values apply to spr") {
+        for(uint8_t i = 0; i < 16; i++) {
+            for(uint8_t j = 0; j < 16; j++) {
+                graphics->sset(i, j, i);
+            }
+        }
+        
+        graphics->cls();
+        graphics->clip(111, 111, 17, 17);
+        graphics->spr(0, 110, 110, 1, 1, false, false);
+
+        //diagonal across sprite
+        std::vector<coloredPoint> expectedPoints = {
+            {109, 109, 0},
+            {110, 110, 0},
+            {111, 111, 1},
+            {112, 112, 2},
+            {113, 113, 3},
+            {114, 114, 4},
+            {115, 115, 5},
+            {116, 116, 6},
+            {117, 117, 7},
+            {118, 118, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("clip values apply to sspr") {
+        for(uint8_t i = 0; i < 16; i++) {
+            for(uint8_t j = 0; j < 16; j++) {
+                graphics->sset(i, j, i);
+            }
+        }
+        
+        graphics->cls();
+        graphics->clip(100, 100, 28, 28);
+        graphics->sspr(1, 1, 2, 2, 96, 96, 8, 8, false, false);
 
 
+        //diagonal across sprite
+        std::vector<coloredPoint> expectedPoints = {
+            {96, 96, 0},
+            {97, 97, 0},
+            {98, 98, 0},
+            {99, 99, 0},
+            {100, 100, 2},
+            {101, 101, 2},
+            {102, 102, 2},
+            {103, 103, 2},
+            {104, 104, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
     
 
     //general teardown

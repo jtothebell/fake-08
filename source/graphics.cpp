@@ -340,6 +340,20 @@ int clampCoordToScreenDims(int val) {
 	return std::clamp(val, 0, 127);
 }
 
+int Graphics::clampXCoordToClip(int x) {
+	return std::clamp(
+		x,
+		_memory->_gfxState_clip_xb,
+		_memory->_gfxState_clip_xe);
+}
+
+int Graphics::clampYCoordToCLip(int y) {
+	return std::clamp(
+		y,
+		_memory->_gfxState_clip_yb,
+		_memory->_gfxState_clip_ye);
+}
+
 
 void Graphics::_private_safe_pset(int x, int y, uint8_t col) {
 	if (isWithinClip(x, y)){
@@ -424,12 +438,15 @@ void Graphics::line (int x1, int y1, int x2, int y2){
 }
 
 void Graphics::_private_h_line (int x1, int x2, int y, uint8_t col){
-	if (!isYWithinClip(y)){
+	if (!isYWithinClip(y) || 
+		(!isXWithinClip(x1) && !isXWithinClip(x2))
+	)
+	{
 		return;
 	}
 
-	int maxx = clampCoordToScreenDims(std::max(x1, x2));
-	int minx = clampCoordToScreenDims(std::min(x1, x2));
+	int maxx = clampXCoordToClip(std::max(x1, x2));
+	int minx = clampXCoordToClip(std::min(x1, x2));
 
 	
 	//possible todo: check if memset is any better here? this seems to be wrong
@@ -442,12 +459,13 @@ void Graphics::_private_h_line (int x1, int x2, int y, uint8_t col){
 
 void Graphics::_private_v_line (int y1, int y2, int x, uint8_t col){
 	//save draw calls if its out
-	if (!isXWithinClip(x)){
+	if (!isXWithinClip(x)|| 
+		(!isYWithinClip(y1) && !isYWithinClip(y2))){
 		return;
 	}
 
-	int maxy = clampCoordToScreenDims(std::max(y1, y2));
-	int miny = clampCoordToScreenDims(std::min(y1, y2));
+	int maxy = clampYCoordToCLip(std::max(y1, y2));
+	int miny = clampYCoordToCLip(std::min(y1, y2));
 
 	for (int y = miny; y <= maxy; y++){
 		_private_pset(x, y, col);
