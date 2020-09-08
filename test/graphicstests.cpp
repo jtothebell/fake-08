@@ -1427,6 +1427,151 @@ TEST_CASE("graphics class behaves as expected") {
 
         CHECK_EQ(251, result);
     }
+    SUBCASE("map with no layer argument draws map cell sprite"){
+        for(int i = 0; i < 128; i++) {
+            for (int j = 0; j < 32; j++)
+            graphics->sset(i, j, 5);
+        }
+        for(int x = 0; x < 128; x++) {
+            for (int y = 0; y < 32; y++) {
+                graphics->mset(x, y, 1);
+            }
+        }
+
+        graphics->map(0,0,0,0,2,2);
+
+        //diagonal across screen- 2x2 cells, 16x16 pixels
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 0, 5},
+            {1, 1, 5},
+            {2, 2, 5},
+            {3, 3, 5},
+            {15, 15, 5},
+            {16, 16, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("map with unfilled layer argument doesn't draw"){
+        for(int i = 0; i < 128; i++) {
+            for (int j = 0; j < 32; j++)
+            graphics->sset(i, j, 5);
+        }
+        for(int x = 0; x < 128; x++) {
+            for (int y = 0; y < 32; y++) {
+                graphics->mset(x, y, 1);
+            }
+        }
+
+        graphics->map(0,0,0,0,2,2,5);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 0, 0},
+            {1, 1, 0},
+            {2, 2, 0},
+            {3, 3, 0},
+            {15, 15, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("map with filled layer argument doesn't draw"){
+        for(int i = 0; i < 128; i++) {
+            for (int j = 0; j < 32; j++)
+            graphics->sset(i, j, 5);
+        }
+        for(int x = 0; x < 128; x++) {
+            for (int y = 0; y < 32; y++) {
+                graphics->mset(x, y, 1);
+            }
+        }
+        uint8_t layer = 3;
+        graphics->fset(1, layer);
+
+        graphics->map(0,0,0,0,2,2,layer);
+
+        //diagonal across screen- 2x2 cells, 16x16 pixels
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 0, 5},
+            {1, 1, 5},
+            {2, 2, 5},
+            {3, 3, 5},
+            {15, 15, 5},
+            {16, 16, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("pal({c0}, {c1}) remaps draw color") {
+        graphics->pal(14, 5, 0);
+
+        auto result = graphics->getDrawPalMappedColor(14);
+
+        CHECK_EQ(5, result);
+    }
+    SUBCASE("pal({c0}, {c1}, {p}) remaps screen color") {
+        graphics->pal(13, 4, 1);
+
+        auto result = graphics->getScreenPalMappedColor(13);
+
+        CHECK_EQ(4, result);
+    }
+    SUBCASE("palt({c}, {t}) sets transparency value for color") {
+        graphics->palt(2, true);
+
+        CHECK(graphics->isColorTransparent(2) == true);
+    }
+    SUBCASE("pal() resets all palette changes") {
+        graphics->pal(14, 5, 0);
+        graphics->pal(13, 4, 1);
+        graphics->palt(15, true);
+
+        graphics->pal();
+
+        bool isDefault = true;
+
+        for (uint8_t c = 0; c < 16; c++) {
+            isDefault &= graphics->getDrawPalMappedColor(c) == c;
+            isDefault &= graphics->isColorTransparent(c) == (c == 0);
+            isDefault &= graphics->getScreenPalMappedColor(c) == c;
+        }
+
+        CHECK(isDefault);
+    }
+    SUBCASE("pal changes sprite colors"){
+        for(int i = 0; i < 128; i++) {
+            for (int j = 0; j < 32; j++)
+            graphics->sset(i, j, 5);
+        }
+        graphics->pal(5, 2, 0);
+        graphics->spr(1, 0, 0, 1.0, 1.0, false, false);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 0, 2},
+            {1, 1, 2},
+            {2, 2, 2},
+            {3, 3, 2},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("palt changes sprite transparency"){
+        for(int i = 0; i < 128; i++) {
+            for (int j = 0; j < 32; j++)
+            graphics->sset(i, j, 5);
+        }
+        graphics->palt(5, true);
+        graphics->spr(1, 0, 0, 1.0, 1.0, false, false);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 0, 0},
+            {1, 1, 0},
+            {2, 2, 0},
+            {3, 3, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
     
 
     //general teardown
