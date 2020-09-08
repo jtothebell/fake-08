@@ -1572,6 +1572,27 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("cursor({x}, {y}) sets cursor loc in memory"){
+        graphics->cursor(4, 13);
+
+        CHECK_EQ(picoRam._gfxState_text_x, 4);
+        CHECK_EQ(picoRam._gfxState_text_y, 13);
+    }
+    SUBCASE("cursor({x}, {y}, {c}) sets cursor loc in memory and color"){
+        graphics->cursor(42, 99, 3);
+
+        CHECK_EQ(picoRam._gfxState_text_x, 42);
+        CHECK_EQ(picoRam._gfxState_text_y, 99);
+        CHECK_EQ(picoRam._gfxState_color, 3);
+    }
+    SUBCASE("cursor() resets cursor but not color"){
+        graphics->cursor(42, 99, 3);
+        graphics->cursor();
+
+        CHECK_EQ(picoRam._gfxState_text_x, 0);
+        CHECK_EQ(picoRam._gfxState_text_y, 0);
+        CHECK_EQ(picoRam._gfxState_color, 3);
+    }
     
 
     //general teardown
