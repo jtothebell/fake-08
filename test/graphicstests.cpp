@@ -1387,6 +1387,46 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("mget from upper half of map data (non-shared)"){
+        int x = 78;
+        int y = 17;
+        int idx = y * 128 + x;
+        picoRam.mapData[idx] = 242;
+
+        auto result = graphics->mget(x, y);
+
+        CHECK_EQ(242, result);
+    }
+    SUBCASE("mget from lower half of map data (shared)"){
+        int x = 121;
+        int y = 57;
+        int idx = y * 128 + x;
+        picoRam.spriteSheetData[idx] = 71;
+
+        auto result = graphics->mget(x, y);
+
+        CHECK_EQ(71, result);
+    }
+    SUBCASE("mset from upper half of map data (non-shared)"){
+        int x = 13;
+        int y = 7;
+        int idx = y * 128 + x;
+        graphics->mset(x, y, 177);
+
+        auto result = picoRam.mapData[idx];
+
+        CHECK_EQ(177, result);
+    }
+    SUBCASE("mset from lower half of map data (shared)"){
+        int x = 12;
+        int y = 63;
+        int idx = y * 128 + x;
+        graphics->mset(x, y, 251);
+
+        auto result = picoRam.spriteSheetData[idx];
+
+        CHECK_EQ(251, result);
+    }
     
 
     //general teardown
