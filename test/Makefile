@@ -6,10 +6,11 @@ CFLAGS := -Wall -g -c -O2 \
 all: runtests
 
 
-testrunner.a: testroot.o fontdatatests.o graphicstests.o
+testrunner.a: testroot.o fontdatatests.o graphicstests.o audiotests.o
 	g++ testroot.o \
 	fontdata.o fontdatatests.o \
 	graphics.o graphicstests.o stringToDataHelpers.o \
+	Audio.o synth.o audiotests.o \
 	-o testrunner.a
 
 testroot.o: testroot.cpp doctest.h
@@ -23,6 +24,11 @@ graphicstests.o: graphicstests.cpp ../source/graphics.cpp ../source/graphics.h \
 	../source/PicoRam.h ../source/hostVmShared.h \
 	../source/stringToDataHelpers.h ../source/stringToDataHelpers.cpp
 	g++ $(CFLAGS) graphicstests.cpp ../source/graphics.cpp ../source/stringToDataHelpers.cpp
+
+audiotests.o: audiotests.cpp ../source/Audio.cpp ../source/Audio.h \
+	../source/synth.cpp ../source/synth.h \
+	../source/PicoRam.h ../source/hostVmShared.h
+	g++ $(CFLAGS) audiotests.cpp ../source/Audio.cpp ../source/synth.cpp
 
 
 runtests: testrunner.a
