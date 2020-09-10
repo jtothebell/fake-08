@@ -24,5 +24,32 @@ TEST_CASE("audio class behaves as expected") {
 
         CHECK_EQ(picoRam._sfxChannels[0].sfxId, sfxId);
     }
+    SUBCASE("api_sfx() with -1 channel finds first available") {
+        audio->api_sfx(1, 0, 0);
+        audio->api_sfx(2, 1, 0);
+        audio->api_sfx(5, -1, 0);
+
+
+        CHECK_EQ(picoRam._sfxChannels[2].sfxId, 5);
+    }
+    SUBCASE("api_sfx() -2 sfx id stops looping") {
+        picoRam._sfxChannels[3].can_loop = true;
+
+        audio->api_sfx(-2, 3, 0);
+
+        CHECK_EQ(picoRam._sfxChannels[3].can_loop, false);
+    }
+    SUBCASE("api_sfx() -2 sfx id stops looping") {
+        picoRam._sfxChannels[3].can_loop = true;
+
+        audio->api_sfx(-2, 3, 0);
+
+        CHECK_EQ(picoRam._sfxChannels[3].can_loop, false);
+    }
+    SUBCASE("api_music sets music pattern"){
+        audio->api_music(14, 0, 0);
+
+        CHECK_EQ(picoRam._musicChannel.pattern, 14);
+    }
 
 }
