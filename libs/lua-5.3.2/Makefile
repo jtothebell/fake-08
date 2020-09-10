@@ -39,10 +39,10 @@ RM= rm -f
 PLATS= aix bsd c89 freebsd generic linux macosx mingw posix solaris
 
 # What to install.
-TO_BIN= lua luac
+TO_BIN= 
 TO_INC= lua.h luaconf.h lualib.h lauxlib.h lua.hpp
 TO_LIB= liblua.a
-TO_MAN= lua.1 luac.1
+TO_MAN= 
 
 # Lua version and release.
 V= 5.3

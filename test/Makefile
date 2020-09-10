@@ -6,6 +6,16 @@ CFLAGS := -Wall -g -c -O2 \
 all: runtests
 
 
+#testrunner.a: testroot.o fontdatatests.o graphicstests.o audiotests.o cartpatchertests.o
+	#g++ -I$(CURDIR)/include -L$(CURDIR)/lib \
+	testroot.o \
+	fontdata.o fontdatatests.o \
+	graphics.o graphicstests.o stringToDataHelpers.o \
+	Audio.o synth.o audiotests.o \
+	cartPatcher.o cartpatchertests.o \
+	-llua -ldl \
+	-o testrunner.a
+
 testrunner.a: testroot.o fontdatatests.o graphicstests.o audiotests.o
 	g++ testroot.o \
 	fontdata.o fontdatatests.o \
@@ -30,11 +40,37 @@ audiotests.o: audiotests.cpp ../source/Audio.cpp ../source/Audio.h \
 	../source/PicoRam.h ../source/hostVmShared.h
 	g++ $(CFLAGS) audiotests.cpp ../source/Audio.cpp ../source/synth.cpp
 
+cartpatchertests.o: liblua.a cartpatchertests.cpp ../source/cartPatcher.cpp ../source/cartPatcher.h
+	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \
+	cartpatchertests.cpp ../source/cartPatcher.cpp \
+	-llua
+	
+
+liblua.a: 
+	@echo 'starting lua build\n' &&\
+	cd ../libs/lua-5.3.2 && make linux && \
+	cd ../../test && \
+	mkdir -p lib && \
+	mkdir -p include && \
+	cp ../libs/lua-5.3.2/src/liblua.a lib/liblua.a && \
+	cp ../libs/lua-5.3.2/src/lua.h include/lua.h && \
+	cp ../libs/lua-5.3.2/src/luaconf.h include/luaconf.h && \
+	cp ../libs/lua-5.3.2/src/lualib.h include/lualib.h && \
+	cp ../libs/lua-5.3.2/src/lauxlib.h include/lauxlib.h 
+#make lua (cd ../libs/lua-5.3.2/src make linux, cp liblua.a, lua.h luaconf.h lualib.h lauxlib.h
+
 
 runtests: testrunner.a
 	./testrunner.a
 
 clean:
 	-rm -f testrunner.a *.o
+
+echo:
+	@echo "CURDIR= $(CURDIR)"
+	@echo "CC= $(CC)"
+	@echo "CFLAGS= $(CFLAGS)"
+	@echo "LDFLAGS= $(SYSLDFLAGS)"
+	@echo "LIBS= $(LIBS)"
 
 .PHONY: all buildtests runtests clean

@@ -46,6 +46,7 @@ TEST_CASE("graphics class behaves as expected") {
     PicoRam picoRam;
     picoRam = {0};
     Graphics* graphics = new Graphics(fontdata, &picoRam);
+    graphics->cls();
 
     SUBCASE("Palette set up in constructor") {
         Color* palette = graphics->GetPaletteColors();
