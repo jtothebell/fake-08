@@ -6,21 +6,14 @@ CFLAGS := -Wall -g -c -O2 \
 all: runtests
 
 
-#testrunner.a: testroot.o fontdatatests.o graphicstests.o audiotests.o cartpatchertests.o
-	#g++ -I$(CURDIR)/include -L$(CURDIR)/lib \
+testrunner.a: testroot.o fontdatatests.o graphicstests.o audiotests.o cartpatchertests.o
+	g++ -I$(CURDIR)/include -L$(CURDIR)/lib \
 	testroot.o \
 	fontdata.o fontdatatests.o \
 	graphics.o graphicstests.o stringToDataHelpers.o \
 	Audio.o synth.o audiotests.o \
 	cartPatcher.o cartpatchertests.o \
 	-llua -ldl \
-	-o testrunner.a
-
-testrunner.a: testroot.o fontdatatests.o graphicstests.o audiotests.o
-	g++ testroot.o \
-	fontdata.o fontdatatests.o \
-	graphics.o graphicstests.o stringToDataHelpers.o \
-	Audio.o synth.o audiotests.o \
 	-o testrunner.a
 
 testroot.o: testroot.cpp doctest.h
@@ -43,7 +36,7 @@ audiotests.o: audiotests.cpp ../source/Audio.cpp ../source/Audio.h \
 cartpatchertests.o: liblua.a cartpatchertests.cpp ../source/cartPatcher.cpp ../source/cartPatcher.h
 	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \
 	cartpatchertests.cpp ../source/cartPatcher.cpp \
-	-llua
+	-llua -ldl
 	
 
 liblua.a: 

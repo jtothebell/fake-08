@@ -34,8 +34,16 @@ const char * patchLuaFunction = R"#(
         end
       end
     end)
-    -- rewrite assignment operators
-    lua = lua:gsub("(%S+)%s*([%+-%*/%%])=","%1 = %1 %2 ")
+    -- rewrite assignment operators (longest operators first)
+    lua = lua:gsub("(%S+)%s*>>>=","%1 = %1 >>> ")
+
+    lua = lua:gsub("(%S+)%s*%.%.=","%1 = %1 .. ")
+    lua = lua:gsub("(%S+)%s*^^=","%1 = %1 ^^ ")
+    lua = lua:gsub("(%S+)%s*<<=","%1 = %1 << ")
+    lua = lua:gsub("(%S+)%s*>>=","%1 = %1 >> ")
+    
+    lua = lua:gsub("(%S+)%s*([%+-%*/%%\\^|&])=","%1 = %1 %2 ")
+    
     -- rewrite inspect operator "?"
     lua = lua:gsub("^(%s*)?([^\n\r]*)","%1print(%2)")
     -- convert binary literals to hex literals
