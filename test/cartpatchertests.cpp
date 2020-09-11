@@ -33,7 +33,7 @@ TEST_CASE("Cart Patcher/Preprocessor tests") {
 
         CHECK(patched == "--this is a comment");
     }
-    SUBCASE("shorthand if statment converted"){
+    SUBCASE("shorthand if statement converted"){
         std::string patched = getPatchedLua("if (pl.drilling>0) pl.drilling-=1\n");
 
         CHECK(patched == "if pl.drilling>0 then pl.drilling = pl.drilling - 1 end\n");
@@ -42,10 +42,15 @@ TEST_CASE("Cart Patcher/Preprocessor tests") {
 
         CHECK(patched == "if thingIsTrue() then doADifferentThing() end\n");
     }
-    SUBCASE("shorthand if else statment converted"){
+    SUBCASE("shorthand if else statement converted"){
         std::string patched = getPatchedLua("if (cond2) print(\"cond2\") else print(\"not cond2\")\n");
 
         CHECK(patched == "if cond2 then print(\"cond2\") else print(\"not cond2\") end\n");
+    }
+    SUBCASE("shorthand while statement converted"){
+        std::string patched = getPatchedLua("x=0 while(x<5) print(x) x+=1\n");
+
+        CHECK(patched == "x=0 while (x<5) do print(x) x = x + 1 end\n");
     }
 
 }
