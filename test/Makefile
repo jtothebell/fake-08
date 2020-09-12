@@ -6,13 +6,16 @@ CFLAGS := -Wall -g -c -O2 \
 all: runtests
 
 
-testrunner.a: testroot.o fontdatatests.o graphicstests.o audiotests.o cartpatchertests.o
+testrunner.a: testroot.o \
+	fontdatatests.o graphicstests.o audiotests.o cartpatchertests.o \
+	carttests.o 
 	g++ -I$(CURDIR)/include -L$(CURDIR)/lib \
 	testroot.o \
 	fontdata.o fontdatatests.o \
 	graphics.o graphicstests.o stringToDataHelpers.o \
 	Audio.o synth.o audiotests.o \
 	cartPatcher.o cartpatchertests.o \
+	cart.o carttests.o nooplogger.o lodepng.o emojiconversion.o filehelpers.o utf8-util.o \
 	-llua -ldl \
 	-o testrunner.a
 
@@ -51,6 +54,17 @@ liblua.a:
 	cp ../libs/lua-5.3.2/src/lualib.h include/lualib.h && \
 	cp ../libs/lua-5.3.2/src/lauxlib.h include/lauxlib.h 
 #make lua (cd ../libs/lua-5.3.2/src make linux, cp liblua.a, lua.h luaconf.h lualib.h lauxlib.h
+
+carttests.o: carttests.cpp ../source/cart.cpp ../source/cart.h \
+	../libs/lodepng/lodepng.cpp ../libs/lodepng/lodepng.h \
+	../source/logger.h ../source/emojiconversion.h ../source/emojiconversion.cpp \
+	../source/filehelpers.h ../source/filehelpers.cpp
+	cp ../libs/lodepng/lodepng.h include/lodepng.h && \
+	cp ../source/logger.h include/logger.h && \
+	cp ../libs/utf8-util/utf8-util.h include/utf8-util.h && \
+	g++ $(CFLAGS) -I$(CURDIR)/include carttests.cpp ../source/cart.cpp ../libs/lodepng/lodepng.cpp \
+	nooplogger.cpp ../source/emojiconversion.cpp ../source/filehelpers.cpp \
+	../libs/utf8-util/utf8-util.cpp
 
 
 runtests: testrunner.a
