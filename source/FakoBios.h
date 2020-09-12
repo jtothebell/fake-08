@@ -9,7 +9,6 @@ const char * fake08BiosP8 = R"#(
 pico-8 cartridge // http://www.pico-8.com
 version 27
 __lua__
---carts hardcoded for now
 local carts={}
 local numcarts = 0
 
