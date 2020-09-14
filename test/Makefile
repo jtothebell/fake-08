@@ -8,7 +8,7 @@ all: runtests
 
 testrunner.a: testroot.o \
 	fontdatatests.o graphicstests.o audiotests.o cartpatchertests.o \
-	carttests.o 
+	carttests.o endtoendtests.o
 	g++ -I$(CURDIR)/include -L$(CURDIR)/lib \
 	testroot.o \
 	fontdata.o fontdatatests.o \
@@ -16,6 +16,7 @@ testrunner.a: testroot.o \
 	Audio.o synth.o audiotests.o \
 	cartPatcher.o cartpatchertests.o \
 	cart.o carttests.o nooplogger.o lodepng.o emojiconversion.o filehelpers.o utf8-util.o \
+	vm.o endtoendtests.o picoluaapi.o Input.o \
 	-llua -ldl \
 	-o testrunner.a
 
@@ -25,7 +26,7 @@ testroot.o: testroot.cpp doctest.h
 fontdatatests.o: fontdatatests.cpp ../source/fontdata.cpp ../source/fontdata.h
 	g++ $(CFLAGS) fontdatatests.cpp ../source/fontdata.cpp
 
-graphicstests.o: graphicstests.cpp ../source/graphics.cpp ../source/graphics.h \
+graphicstests.o: fontdatatests.o graphicstests.cpp ../source/graphics.cpp ../source/graphics.h \
 	../source/fontdata.cpp ../source/fontdata.h \
 	../source/PicoRam.h ../source/hostVmShared.h \
 	../source/stringToDataHelpers.h ../source/stringToDataHelpers.cpp
@@ -38,10 +39,8 @@ audiotests.o: audiotests.cpp ../source/Audio.cpp ../source/Audio.h \
 
 cartpatchertests.o: liblua.a cartpatchertests.cpp ../source/cartPatcher.cpp ../source/cartPatcher.h
 	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \
-	cartpatchertests.cpp ../source/cartPatcher.cpp \
-	-llua -ldl
+	cartpatchertests.cpp ../source/cartPatcher.cpp
 	
-
 liblua.a: 
 	@echo 'starting lua build\n' &&\
 	cd ../libs/lua-5.3.2 && make linux && \
@@ -65,6 +64,15 @@ carttests.o: carttests.cpp ../source/cart.cpp ../source/cart.h \
 	g++ $(CFLAGS) -I$(CURDIR)/include carttests.cpp ../source/cart.cpp ../libs/lodepng/lodepng.cpp \
 	nooplogger.cpp ../source/emojiconversion.cpp ../source/filehelpers.cpp \
 	../libs/utf8-util/utf8-util.cpp
+
+endtoendtests.o: cartpatchertests.o carttests.o graphicstests.o audiotests.o \
+	endtoendtests.cpp \
+	../source/vm.cpp ../source/vm.h \
+	../source/Input.cpp ../source/Input.h \
+	../source/picoluaapi.cpp ../source/picoluaapi.h
+	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \
+	endtoendtests.cpp ../source/vm.cpp  ../source/picoluaapi.cpp ../source/Input.cpp
+	
 
 
 runtests: testrunner.a

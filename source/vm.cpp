@@ -178,6 +178,9 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "dget", dget);
     lua_register(_luaState, "dset", dset);
 
+    //
+    lua_register(_luaState, "printh", printh);
+
     //system
     lua_register(_luaState, "__listcarts", listcarts);
     lua_register(_luaState, "__loadcart", loadcart);
