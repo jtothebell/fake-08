@@ -36,11 +36,11 @@ LIB_O=	lauxlib.o lbaselib.o lbitlib.o lcorolib.o ldblib.o liolib.o \
 	lmathlib.o loslib.o lstrlib.o ltablib.o lutf8lib.o loadlib.o linit.o
 BASE_O= $(CORE_O) $(LIB_O) $(MYOBJS)
 
-LUA_T=	lua
-LUA_O=	lua.o
+#LUA_T=	lua
+#LUA_O=	lua.o
 
-LUAC_T=	luac
-LUAC_O=	luac.o
+#LUAC_T=	luac
+#LUAC_O=	luac.o
 
 ALL_O= $(BASE_O) $(LUA_O) $(LUAC_O)
 ALL_T= $(LUA_A) $(LUA_T) $(LUAC_T)
@@ -181,8 +181,10 @@ ltable.o: ltable.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
 ltablib.o: ltablib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
 ltm.o: ltm.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
  llimits.h ltm.h lzio.h lmem.h ldo.h lstring.h lgc.h ltable.h lvm.h
-lua.o: lua.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
-luac.o: luac.c lprefix.h lua.h luaconf.h lauxlib.h lobject.h llimits.h \
+#not compiling lua interpreter/compiler (we only want the library)
+#possibly put this behind a flag to compile when on a desktop platform
+#lua.o: lua.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
+#luac.o: luac.c lprefix.h lua.h luaconf.h lauxlib.h lobject.h llimits.h \
  lstate.h ltm.h lzio.h lmem.h lundump.h ldebug.h lopcodes.h
 lundump.o: lundump.c lprefix.h lua.h luaconf.h ldebug.h lstate.h \
  lobject.h llimits.h ltm.h lzio.h lmem.h ldo.h lfunc.h lstring.h lgc.h \

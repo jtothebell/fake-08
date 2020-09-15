@@ -94,6 +94,11 @@ trace = debug.traceback
 --Math
 ---------------------------------
 function rnd(x)
+	if type(x) == 'table' then
+		local idx = math.ceil(math.random()*#x)
+		return x[idx]
+	end
+
 	return math.random()*(x or 1)
 end
 

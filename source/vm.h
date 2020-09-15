@@ -67,5 +67,7 @@ class Vm {
     void SetCartList(vector<string> cartList);
     vector<string> GetCartList();
     string GetBiosError();
+
+    bool ExecuteLua(string luaString, string callbackFunction);
 };
 

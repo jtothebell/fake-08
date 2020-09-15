@@ -24,7 +24,6 @@ Graphics::Graphics(std::string fontdata, PicoRam* memory) {
 	
 	copy_string_to_sprite_memory(fontSpriteData, fontdata);
 
-
 	_paletteColors[0] = COLOR_00;
 	_paletteColors[1] = COLOR_01;
 	_paletteColors[2] = COLOR_02;
@@ -41,8 +40,12 @@ Graphics::Graphics(std::string fontdata, PicoRam* memory) {
 	_paletteColors[13] = COLOR_13;
 	_paletteColors[14] = COLOR_14;
 	_paletteColors[15] = COLOR_15;
-}
 
+	//set default clip
+	clip();
+	pal();
+	color(7);
+}
 
 
 uint8_t* Graphics::GetP8FrameBuffer(){
@@ -119,21 +122,20 @@ void Graphics::copySpriteToScreen(
 		dy = -dy;
 	}
 
-	//todo: honor x and y flipping
-
 	for (int y = 0; y < scr_h; y++) {
 		uint8_t* spr = spritebuffer + ((spr_y + y * dy) & 0x7f) * 64;
 
 		if (!flip_x) {
 			for (int x = 0; x < scr_w; x++) {
-				int combinedPixIdx = spr_x / 2 + x / 2;
+				int abs_spr_x = spr_x + x;
+				int combinedPixIdx = abs_spr_x / 2;
 				uint8_t bothPix = spr[combinedPixIdx];
 
-				uint8_t c = x % 2 == 0 
+				uint8_t c = abs_spr_x % 2 == 0 
 					? bothPix & 0x0f //just first 4 bits
 					: bothPix >> 4;  //just last 4 bits
 					
-				if (_memory->_gfxState_transparencyPalette[c] == false) { //if not transparent. Come back later to add palt() support by checking tranparency palette
+				if (isColorTransparent(c) == false) { //if not transparent. Come back later to add palt() support by checking tranparency palette
 					_private_pset(scr_x + x, scr_y + y, c); //set color on framebuffer. Come back later and add pal() by translating color
 				}
 			}
@@ -147,7 +149,7 @@ void Graphics::copySpriteToScreen(
 					? bothPix >> 4 //just first 4 bits
 					: bothPix & 0x0f;  //just last 4 bits
 					
-				if (_memory->_gfxState_transparencyPalette[c] == false) { //if not transparent. Come back later to add palt() support by checking tranparency palette
+				if (isColorTransparent(c) == false) { //if not transparent. Come back later to add palt() support by checking tranparency palette
 					_private_pset(scr_x + x, scr_y + y, c); //set color on framebuffer. Come back later and add pal() by translating color
 				}
 			}
@@ -170,7 +172,7 @@ void Graphics::copyStretchSpriteToScreen(
 	bool flip_x,
 	bool flip_y) 
 {
-	if (false || (spr_h == scr_h && spr_w == scr_w)) {
+	if (spr_h == scr_h && spr_w == scr_w) {
 		// use faster non stretch blitter if sprite is not stretched
 		copySpriteToScreen(spritebuffer, scr_x, scr_y, spr_x, spr_y, scr_w, scr_h, flip_x, flip_y);
 		return;
@@ -240,7 +242,7 @@ void Graphics::copyStretchSpriteToScreen(
 				uint8_t c = (pixIndex >> 16) % 2 == 0 
 					? bothPix & 0x0f //just first 4 bits
 					: bothPix >> 4;  //just last 4 bits
-				if (_memory->_gfxState_transparencyPalette[c] == false) {
+				if (isColorTransparent(c) == false) {
 					_private_pset(scr_x + x, scr_y + y, c);
 				}
 			}
@@ -253,7 +255,7 @@ void Graphics::copyStretchSpriteToScreen(
 				uint8_t c = (pixIndex >> 16) % 2 == 0 
 					? bothPix >> 4 //just first 4 bits
 					: bothPix & 0x0f;  //just last 4 bits
-				if (_memory->_gfxState_transparencyPalette[c] == false) {
+				if (isColorTransparent(c) == false) {
 					_private_pset(scr_x + x, scr_y + y, c);
 				}
 			}
@@ -298,29 +300,58 @@ bool Graphics::isOnScreen(int x, int y) {
 		y <= 127;
 }
 
+bool Graphics::isColorTransparent(uint8_t color) {
+	color = color & 15;
+	return _memory->_gfxState_transparencyPalette[color];
+}
+
+uint8_t Graphics::getDrawPalMappedColor(uint8_t color) {
+	color = color & 15;
+	return _memory->_gfxState_drawPaletteMap[color];
+}
+
+uint8_t Graphics::getScreenPalMappedColor(uint8_t color) {
+	color = color & 15;
+	return _memory->_gfxState_screenPaletteMap[color];
+}
+
 bool Graphics::isWithinClip(int x, int y) {
 	return 
 		x >= _memory->_gfxState_clip_xb && 
-		x <= _memory->_gfxState_clip_xe && 
+		x < _memory->_gfxState_clip_xe && 
 		y >= _memory->_gfxState_clip_yb && 
-		y <= _memory->_gfxState_clip_ye;
+		y < _memory->_gfxState_clip_ye;
 }
 
 bool Graphics::isXWithinClip(int x) {
 	return 
 		x >= _memory->_gfxState_clip_xb && 
-		x <= _memory->_gfxState_clip_xe;
+		x < _memory->_gfxState_clip_xe;
 }
 
 bool Graphics::isYWithinClip(int y) {
 	return 
 		y >= _memory->_gfxState_clip_yb && 
-		y <= _memory->_gfxState_clip_ye;
+		y < _memory->_gfxState_clip_ye;
 }
 
 
 int clampCoordToScreenDims(int val) {
-	return std::clamp(val, 0, 127);
+	return std::clamp(val, 0, 128);
+}
+
+int Graphics::clampXCoordToClip(int x) {
+	return std::clamp(
+		x,
+		_memory->_gfxState_clip_xb,
+		_memory->_gfxState_clip_xe - 1);
+}
+
+int Graphics::clampYCoordToCLip(int y) {
+	return std::clamp(
+		y,
+		_memory->_gfxState_clip_yb,
+		_memory->_gfxState_clip_ye - 1);
 }
 
 
@@ -364,6 +395,8 @@ void Graphics::pset(int x, int y, uint8_t col){
 }
 
 uint8_t Graphics::pget(int x, int y){
+	applyCameraToPoint(&x, &y);
+
 	if (isOnScreen(x, y)){
 		return _pico8_fb[(x * 128) + y];
 	}
@@ -401,16 +434,19 @@ void Graphics::line (int x1, int y1, uint8_t col){
 }
 
 void Graphics::line (int x1, int y1, int x2, int y2){
-	this->line(_memory->_gfxState_line_x, _memory->_gfxState_line_y, x1, y1, _memory->_gfxState_color);
+	this->line(x1, y1, x2, y2, _memory->_gfxState_color);
 }
 
 void Graphics::_private_h_line (int x1, int x2, int y, uint8_t col){
-	if (!isYWithinClip(y)){
+	if (!isYWithinClip(y) || 
+		(!isXWithinClip(x1) && !isXWithinClip(x2))
+	)
+	{
 		return;
 	}
 
-	int maxx = clampCoordToScreenDims(std::max(x1, x2));
-	int minx = clampCoordToScreenDims(std::min(x1, x2));
+	int maxx = clampXCoordToClip(std::max(x1, x2));
+	int minx = clampXCoordToClip(std::min(x1, x2));
 
 	
 	//possible todo: check if memset is any better here? this seems to be wrong
@@ -423,12 +459,13 @@ void Graphics::_private_h_line (int x1, int x2, int y, uint8_t col){
 
 void Graphics::_private_v_line (int y1, int y2, int x, uint8_t col){
 	//save draw calls if its out
-	if (!isXWithinClip(x)){
+	if (!isXWithinClip(x)|| 
+		(!isYWithinClip(y1) && !isYWithinClip(y2))){
 		return;
 	}
 
-	int maxy = clampCoordToScreenDims(std::max(y1, y2));
-	int miny = clampCoordToScreenDims(std::min(y1, y2));
+	int maxy = clampYCoordToCLip(std::max(y1, y2));
+	int miny = clampYCoordToCLip(std::min(y1, y2));
 
 	for (int y = miny; y <= maxy; y++){
 		_private_pset(x, y, col);
@@ -578,6 +615,9 @@ void Graphics::rectfill(int x1, int y1, int x2, int y2) {
 void Graphics::rectfill(int x1, int y1, int x2, int y2, uint8_t col) {
 	color(col);
 
+	applyCameraToPoint(&x1, &y1);
+	applyCameraToPoint(&x2, &y2);
+
 	sortCoordsForRect(&x1, &y1, &x2, &y2);
 
 	for (int y = y1; y <= y2; y++) {
@@ -607,7 +647,7 @@ int Graphics::print(std::string str, int x, int y, uint16_t c) {
 	//font sprite sheet has text as color 7, with 0 as transparent. We need to override
 	//these values and restore them after
 	uint8_t prevCol7Map = _memory->_gfxState_drawPaletteMap[7];
-	bool prevCol0Transp = _memory->_gfxState_transparencyPalette[0];
+	bool prevCol0Transp = isColorTransparent(0);
 
 	_memory->_gfxState_drawPaletteMap[7] = c;
 	_memory->_gfxState_transparencyPalette[0] = true;
@@ -726,7 +766,7 @@ void Graphics::camera(int x, int y) {
 }
 
 void Graphics::clip() {
-	this->clip(0, 0, 127, 127);
+	this->clip(0, 0, 128, 128);
 }
 
 void Graphics::clip(int x, int y, int w, int h) {

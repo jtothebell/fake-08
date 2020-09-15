@@ -33,7 +33,7 @@
 ** ensure that all software connected to Lua will be compiled with the
 ** same configuration.
 */
-#define LUA_32BITS
+ #define LUA_32BITS
 
 
 /*
@@ -288,7 +288,9 @@
 ** You can define it to get all options, or change specific options
 ** to fit your specific needs.
 */
+#ifndef LUA_COMPAT_5_2
 #define LUA_COMPAT_5_2
+#endif
 #if defined(LUA_COMPAT_5_2)	/* { */
 
 /*

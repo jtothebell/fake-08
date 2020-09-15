@@ -4,7 +4,7 @@
 #include "hostVmShared.h"
 #include "PicoRam.h"
 
-#define COLOR_00 {  0,   0,   0, 255}
+#define COLOR_00 {  2,   4,   8, 255}
 #define COLOR_01 { 29,  43,  83, 255}
 #define COLOR_02 {126,  37,  83, 255}
 #define COLOR_03 {  0, 135,  81, 255}
@@ -14,8 +14,8 @@
 #define COLOR_07 {255, 241, 232, 255}
 #define COLOR_08 {255,   0,  77, 255}
 #define COLOR_09 {255, 163,   0, 255}
-#define COLOR_10 {255, 240,  36, 255}
-#define COLOR_11 {  0, 231,  86, 255}
+#define COLOR_10 {255, 236,  39, 255}
+#define COLOR_11 {  0, 228,  54, 255}
 #define COLOR_12 { 41, 173, 255, 255}
 #define COLOR_13 {131, 118, 156, 255}
 #define COLOR_14 {255, 119, 168, 255}
@@ -67,6 +67,8 @@ class Graphics {
 	bool isWithinClip(int x, int y);
 	bool isXWithinClip(int x);
 	bool isYWithinClip(int y);
+	int clampXCoordToClip(int x);
+	int clampYCoordToCLip(int y);
 
 	void _private_pset(int x, int y, uint8_t col);
 	void _private_safe_pset(int x, int y, uint8_t col);
@@ -79,6 +81,10 @@ class Graphics {
 	uint8_t* GetP8FrameBuffer();
 	uint8_t* GetScreenPaletteMap();
 	Color* GetPaletteColors();
+
+	bool isColorTransparent(uint8_t color);
+	uint8_t getDrawPalMappedColor(uint8_t color);
+	uint8_t getScreenPalMappedColor(uint8_t color);
 
 	void cls();
 	void cls(uint8_t color);

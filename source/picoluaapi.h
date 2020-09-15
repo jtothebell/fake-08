@@ -80,6 +80,9 @@ int cartdata(lua_State *L);
 int dget(lua_State *L);
 int dset(lua_State *L);
 
+//
+int printh(lua_State *L);
+
 //file system/vm functions
 int listcarts(lua_State *L);
 int loadcart(lua_State *L);

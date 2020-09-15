@@ -10,7 +10,7 @@ export INCLUDES  = ../../include ../../libs/lua-5.3.2/src ../../libs/utf8-util .
 
 all: 3ds switch
 
-clean: clean-3ds clean-switch
+clean: clean-tests clean-3ds clean-switch
 
 clean-3ds:
 	@$(MAKE) -C platform/3ds clean
@@ -26,3 +26,9 @@ cia:
 
 switch:
 	@$(MAKE) -C platform/switch
+
+clean-tests:
+	@$(MAKE) -C test clean
+
+tests:
+	@$(MAKE) -C test
