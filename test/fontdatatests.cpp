@@ -2,5 +2,6 @@
 #include "../source/fontdata.h"
 
 TEST_CASE("checking fontdata exists") {
-    CHECK(get_font_data().length() == 15995);
+    //test failing test
+    CHECK(get_font_data().length() == 15996);
 }
