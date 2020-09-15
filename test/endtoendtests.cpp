@@ -41,21 +41,7 @@ bool verifyScreenshot(Vm* vm, std::string screenshotFilename) {
         //ignore alpha
         //uint8_t a = image[i + 3];
 
-        //pico 8 screenshots don't have pure black for some reason?
-        bool black = r == 2 && g == 4 && b == 8;
-
-        if (black) {
-            continue;
-        }
-
-        /*
-        if (!black && i < 128 * 4) {
-            int x = (i / 4) % 128;
-            int y = (i / 4) / 128;
-            printf("Non-black pixel at idx %d (%d,%d): rgb: %d,%d,%d\n", i, x, y, r, g, b);
-        }
-        */
-        uint8_t pixIdx = i / 4;
+        int pixIdx = i / 4;
         int x = pixIdx % 128;
         int y = pixIdx / 128;
         uint8_t c = picoFb[(x * 128) + y];
@@ -63,7 +49,7 @@ bool verifyScreenshot(Vm* vm, std::string screenshotFilename) {
 
         bool pixelMatches = r == col.Red && g == col.Green && b == col.Blue;
 
-        if (!pixelMatches && pixIdx < 512) {
+        if (!pixelMatches) {
             
             printf("Non-matching pixel at idx %d (%d,%d): rgb: %d,%d,%d\n", pixIdx, x, y, r, g, b);
 
@@ -105,9 +91,7 @@ TEST_CASE("Loading and running carts") {
         }
         SUBCASE("sceen matches screenshot")
         {
-            printf("e2e test calling update and draw\n");
             vm->UpdateAndDraw(0, 0);
-            printf("done calling update and draw\n");
 
             CHECK(verifyScreenshot(vm, "carts/screenshots/pset00-test_f01.png"));
         }
@@ -122,16 +106,13 @@ TEST_CASE("Loading and running carts") {
         }
         SUBCASE("sceen matches screenshot")
         {
-            printf("e2e test calling update and draw\n");
             vm->UpdateAndDraw(0, 0);
-            printf("done calling update and draw\n");
 
             CHECK(verifyScreenshot(vm, "carts/screenshots/pset3pix_f01.png"));
         }
 
         vm->CloseCart();
     }
-    /*
     SUBCASE("pset all pixels test cart renders correctly"){
         vm->LoadCart("carts/psetall.p8");
 
@@ -140,9 +121,7 @@ TEST_CASE("Loading and running carts") {
         }
         SUBCASE("sceen matches screenshot")
         {
-            printf("e2e test calling update and draw\n");
             vm->UpdateAndDraw(0, 0);
-            printf("done calling update and draw\n");
 
             CHECK(verifyScreenshot(vm, "carts/screenshots/psetall_f01.png"));
         }
@@ -157,16 +136,13 @@ TEST_CASE("Loading and running carts") {
         }
         SUBCASE("sceen matches screenshot")
         {
-            printf("e2e test calling update and draw\n");
             vm->UpdateAndDraw(0, 0);
-            printf("done calling update and draw\n");
 
             CHECK(verifyScreenshot(vm, "carts/screenshots/cliptest_f01.png"));
         }
 
         vm->CloseCart();
     }
-    */
 
     delete vm;
 }

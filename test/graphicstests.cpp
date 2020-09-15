@@ -51,7 +51,7 @@ TEST_CASE("graphics class behaves as expected") {
     SUBCASE("Palette set up in constructor") {
         Color* palette = graphics->GetPaletteColors();
         Color testColor;
-        testColor = {  0,   0,   0, 255};
+        testColor = {  2,   4,   8, 255};
         CHECK(colorsEqual(& palette[0], & testColor) == true);
         testColor = { 29,  43,  83, 255};
         CHECK(colorsEqual(& palette[1], & testColor) == true);
@@ -71,9 +71,9 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK(colorsEqual(& palette[8], & testColor) == true);
         testColor = {255, 163,   0, 255};
         CHECK(colorsEqual(& palette[9], & testColor) == true);
-        testColor = {255, 240,  36, 255};
+        testColor = {255, 236,  39, 255};
         CHECK(colorsEqual(& palette[10], & testColor) == true);
-        testColor = {  0, 231,  86, 255};
+        testColor = {  0, 228,  54, 255};
         CHECK(colorsEqual(& palette[11], & testColor) == true);
         testColor = { 41, 173, 255, 255};
         CHECK(colorsEqual(& palette[12], & testColor) == true);
@@ -87,8 +87,8 @@ TEST_CASE("graphics class behaves as expected") {
     SUBCASE("Constructor sets default clip") {
         CHECK(picoRam._gfxState_clip_xb == 0);
         CHECK(picoRam._gfxState_clip_yb == 0);
-        CHECK(picoRam._gfxState_clip_xe == 127);
-        CHECK(picoRam._gfxState_clip_ye == 127);
+        CHECK(picoRam._gfxState_clip_xe == 128);
+        CHECK(picoRam._gfxState_clip_ye == 128);
     }
     SUBCASE("Constructor sets default color") {
         CHECK(picoRam._gfxState_color == 7);
@@ -1178,9 +1178,9 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->clip();
 
         CHECK_EQ(picoRam._gfxState_clip_xb, 0);
-        CHECK_EQ(picoRam._gfxState_clip_xe, 127);
+        CHECK_EQ(picoRam._gfxState_clip_xe, 128);
         CHECK_EQ(picoRam._gfxState_clip_yb, 0);
-        CHECK_EQ(picoRam._gfxState_clip_ye, 127);
+        CHECK_EQ(picoRam._gfxState_clip_ye, 128);
     }
     SUBCASE("clip({x}, {y}, {w}, {h}) sets clip in memory")
     {

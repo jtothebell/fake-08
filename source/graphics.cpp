@@ -318,40 +318,40 @@ uint8_t Graphics::getScreenPalMappedColor(uint8_t color) {
 bool Graphics::isWithinClip(int x, int y) {
 	return 
 		x >= _memory->_gfxState_clip_xb && 
-		x <= _memory->_gfxState_clip_xe && 
+		x < _memory->_gfxState_clip_xe && 
 		y >= _memory->_gfxState_clip_yb && 
-		y <= _memory->_gfxState_clip_ye;
+		y < _memory->_gfxState_clip_ye;
 }
 
 bool Graphics::isXWithinClip(int x) {
 	return 
 		x >= _memory->_gfxState_clip_xb && 
-		x <= _memory->_gfxState_clip_xe;
+		x < _memory->_gfxState_clip_xe;
 }
 
 bool Graphics::isYWithinClip(int y) {
 	return 
 		y >= _memory->_gfxState_clip_yb && 
-		y <= _memory->_gfxState_clip_ye;
+		y < _memory->_gfxState_clip_ye;
 }
 
 
 int clampCoordToScreenDims(int val) {
-	return std::clamp(val, 0, 127);
+	return std::clamp(val, 0, 128);
 }
 
 int Graphics::clampXCoordToClip(int x) {
 	return std::clamp(
 		x,
 		_memory->_gfxState_clip_xb,
-		_memory->_gfxState_clip_xe);
+		_memory->_gfxState_clip_xe - 1);
 }
 
 int Graphics::clampYCoordToCLip(int y) {
 	return std::clamp(
 		y,
 		_memory->_gfxState_clip_yb,
-		_memory->_gfxState_clip_ye);
+		_memory->_gfxState_clip_ye - 1);
 }
 
 
@@ -766,7 +766,7 @@ void Graphics::camera(int x, int y) {
 }
 
 void Graphics::clip() {
-	this->clip(0, 0, 127, 127);
+	this->clip(0, 0, 128, 128);
 }
 
 void Graphics::clip(int x, int y, int w, int h) {
