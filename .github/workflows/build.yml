@@ -36,3 +36,14 @@ jobs:
 
       - name: Build
         run: make switch
+
+  third:
+    name: Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: make test
