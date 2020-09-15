@@ -7,7 +7,6 @@ end
 
 function _draw()
  cls()
- printh("made it to lua draw call\n")
  camera(-64, 0)
  clip(0, 8, 128, 112)
  

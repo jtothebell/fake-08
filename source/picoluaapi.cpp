@@ -629,7 +629,7 @@ int printh(lua_State *L) {
     if (lua_isstring(L, 1)){
         const char * str = "";
         str = lua_tolstring(L, 1, nullptr);
-        printf(str);
+        printf("%s", str);
     }
     return 0;
 }

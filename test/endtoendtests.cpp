@@ -31,8 +31,6 @@ bool verifyScreenshot(Vm* vm, std::string screenshotFilename) {
 
     size_t imageBytes = image.size();
 
-    printf("Dimensions: %dx%d, size: %d\n", width, height, (int)imageBytes);
-
     for(size_t i = 0; i < imageBytes; i += 4) {
         //get argb values
         uint8_t r = image[i];
@@ -79,6 +77,16 @@ TEST_CASE("Loading and running carts") {
             vm->UpdateAndDraw(0, 0);
 
             CHECK(vm->GetFrameCount() == 3);
+        }
+        SUBCASE("check lua state")
+        {
+            bool globalVarLoaded = vm->ExecuteLua(
+                "function globalVarTest()\n"
+                " return a == 1\n"
+                "end\n",
+                "globalVarTest");
+
+            CHECK(globalVarLoaded);
         }
 
         vm->CloseCart();

@@ -375,3 +375,28 @@ vector<string> Vm::GetCartList(){
 string Vm::GetBiosError() {
     return _cartLoadError;
 }
+
+bool Vm::ExecuteLua(string luaString, string callbackFunction){
+    int success = luaL_dostring(_luaState, luaString.c_str());
+
+    if (! success == LUA_OK){
+        //bad lua passed
+        Logger::Write("Error: %s\n", lua_tostring(_luaState, -1));
+        lua_pop(_luaState, 1);
+
+        return false;
+    }
+
+    if (callbackFunction.length() > 0) {
+        lua_getglobal(_luaState, callbackFunction.c_str());
+        lua_call(_luaState, 0, 1);
+
+        bool result = lua_toboolean(_luaState, -1);
+
+        lua_pop(_luaState, 0);
+
+        return result;
+    }
+
+    return true;
+}
