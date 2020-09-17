@@ -85,6 +85,9 @@ class Audio {
     public:
     Audio(PicoRam* memory);
 
+    void resetAudioState();
+    audioState* getAudioState();
+
     void api_sfx(int sfx, int channel, int offset);
     void api_music(int pattern, int16_t fade_len, int16_t mask);
 

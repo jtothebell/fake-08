@@ -79,7 +79,8 @@ runtests: testrunner.a
 	./testrunner.a
 
 clean:
-	-rm -f testrunner.a *.o
+	-rm -f testrunner.a *.o && \
+	cd ../libs/lua-5.3.2 && make clean
 
 echo:
 	@echo "CURDIR= $(CURDIR)"

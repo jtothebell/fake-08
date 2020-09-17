@@ -13,11 +13,21 @@
 
 Audio::Audio(PicoRam* memory){
     _memory = memory;
+    
+    resetAudioState();
+}
+
+void Audio::resetAudioState() {
     _audioState = {0};
 
     for(int i = 0; i < 4; i++) {
         _audioState._sfxChannels[i].sfxId = -1;
     }
+    _audioState._musicChannel.pattern = -1;
+}
+
+audioState* Audio::getAudioState() {
+    return &_audioState;
 }
 
 void Audio::api_sfx(int sfx, int channel, int offset){

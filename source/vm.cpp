@@ -32,10 +32,6 @@ Vm::Vm(){
     Graphics* graphics = new Graphics(fontdata, &_memory);
     _graphics = graphics;
 
-    _memory._gfxState_color = 7;
-    _graphics->clip();
-    _graphics->pal();
-
     Logger::Write("Creating Input object\n");
     Input* input = new Input();
     _input = input;
@@ -65,7 +61,7 @@ bool Vm::loadCart(Cart* cart) {
     //reset memory (may have to be more selective about zeroing out to be accurate?)
     _memory = {0};
     //set graphics state
-    _memory._gfxState_color = 7;
+    _graphics->color(7);
     _graphics->clip();
     _graphics->pal();
 
@@ -79,10 +75,7 @@ bool Vm::loadCart(Cart* cart) {
     }
 
     //reset audio
-    for(int i = 0; i < 4; i++) {
-        _memory._sfxChannels[i].sfxId = -1;
-    }
-    _memory._musicChannel.pattern = -1;
+    _audio->resetAudioState();
 
     //copy data from cart rom to ram
     for(size_t i = 0; i < sizeof(_memory.spriteSheetData); i++) {

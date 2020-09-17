@@ -303,7 +303,7 @@ bool Graphics::isOnScreen(int x, int y) {
 
 bool Graphics::isColorTransparent(uint8_t color) {
 	color = color & 15;
-	return _memory->drawState.drawPaletteMap[color] | BITMASK(4); //4th bit is transparency
+	return (_memory->drawState.drawPaletteMap[color] >> 4) & 1U; //4th bit is transparency
 }
 
 uint8_t Graphics::getDrawPalMappedColor(uint8_t color) {
@@ -344,15 +344,15 @@ int clampCoordToScreenDims(int val) {
 int Graphics::clampXCoordToClip(int x) {
 	return std::clamp(
 		x,
-		_memory->drawState.clip_xb,
-		_memory->drawState.clip_xe - 1);
+		(int)_memory->drawState.clip_xb,
+		(int)_memory->drawState.clip_xe - 1);
 }
 
 int Graphics::clampYCoordToCLip(int y) {
 	return std::clamp(
 		y,
-		_memory->drawState.clip_yb,
-		_memory->drawState.clip_ye - 1);
+		(int)_memory->drawState.clip_yb,
+		(int)_memory->drawState.clip_ye - 1);
 }
 
 
@@ -650,7 +650,8 @@ int Graphics::print(std::string str, int x, int y, uint16_t c) {
 	uint8_t prevCol7Map = _memory->drawState.drawPaletteMap[7];
 	bool prevCol0Transp = isColorTransparent(0);
 
-	_memory->drawState.drawPaletteMap[7] = c | BITMASK(4);
+	pal(7, c, 0);
+	palt(7, false);
 	palt(0, true);
 
 
@@ -836,21 +837,19 @@ void Graphics::pal(uint8_t c0, uint8_t c1, uint8_t p){
 }
 
 void Graphics::palt() {
-	_memory->drawState.drawPaletteMap[0] &= ~(1UL << 4);
+	_memory->drawState.drawPaletteMap[0] |= 1UL << 4;
 	for (uint8_t c = 1; c < 16; c++) {
-		_memory->drawState.drawPaletteMap[c] |= BITMASK(4);
+		_memory->drawState.drawPaletteMap[c] &= ~(1UL << 4);
 	}
 }
 
 void Graphics::palt(uint8_t c, bool t){
-	if (c < 16) {
-		if (t) {
-			_memory->drawState.drawPaletteMap[c] |= BITMASK(4);
-		}
-		else {
-			_memory->drawState.drawPaletteMap[c] &= ~(1UL << 4);
-
-		}
+	c = c & 15;
+	if (t) {
+		_memory->drawState.drawPaletteMap[c] |= 1UL << 4;
+	}
+	else {
+		_memory->drawState.drawPaletteMap[c] &= ~(1UL << 4);
 	}
 }
 

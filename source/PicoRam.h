@@ -96,7 +96,7 @@ struct audioState {
     sfxChannel _sfxChannels[4];
 };
 
-struct drawState {
+struct drawState_t {
     uint8_t drawPaletteMap[16];
 	uint8_t screenPaletteMap[16];
 
@@ -112,8 +112,8 @@ struct drawState {
     uint8_t text_x;
 	uint8_t text_y;
 
-    uint8_t camera_x;
-	uint8_t camera_y;
+    int16_t camera_x;
+	int16_t camera_y;
 
     uint8_t drawMode;
 
@@ -144,7 +144,7 @@ struct drawState {
 };
 
 
-struct hwState {
+struct hwState_t {
     uint8_t audioHardwareState[4];
 
     uint8_t rngState[8];
@@ -192,12 +192,10 @@ struct PicoRam
             uint8_t generalUseRam[6912];
             //0x5e00  0x5eff    Persistent cart data (64 numbers = 256 bytes)
             uint8_t cartData[256];
-            musicChannel _musicChannel;
-            sfxChannel _sfxChannels[4];
             
-            drawState drawState;
+            drawState_t drawState;
 
-            hwState hwState;
+            hwState_t hwState;
 
             //TODO use draw state struct here
             /*

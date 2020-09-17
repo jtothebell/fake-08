@@ -85,13 +85,13 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK(colorsEqual(& palette[15], & testColor) == true);
     }
     SUBCASE("Constructor sets default clip") {
-        CHECK(picoRam._gfxState_clip_xb == 0);
-        CHECK(picoRam._gfxState_clip_yb == 0);
-        CHECK(picoRam._gfxState_clip_xe == 128);
-        CHECK(picoRam._gfxState_clip_ye == 128);
+        CHECK(picoRam.drawState.clip_xb == 0);
+        CHECK(picoRam.drawState.clip_yb == 0);
+        CHECK(picoRam.drawState.clip_xe == 128);
+        CHECK(picoRam.drawState.clip_ye == 128);
     }
     SUBCASE("Constructor sets default color") {
-        CHECK(picoRam._gfxState_color == 7);
+        CHECK(picoRam.drawState.color == 7);
     }
     SUBCASE("Constructor sets default draw color palette") {
         //colors mapped to themselves
@@ -144,38 +144,38 @@ TEST_CASE("graphics class behaves as expected") {
     SUBCASE("pset() with no color uses pen color") {
         graphics->pset(121, 6);
 
-        CHECK(graphics->pget(121, 6) == picoRam._gfxState_color);
+        CHECK(graphics->pget(121, 6) == picoRam.drawState.color);
     }
     SUBCASE("color({color}) sets color in ram") {
         graphics->color(12);
 
-        CHECK(picoRam._gfxState_color == 12);
+        CHECK(picoRam.drawState.color == 12);
     }
     SUBCASE("line() clears line state") {
-        picoRam._gfxState_line_x = 10;
-	    picoRam._gfxState_line_y = 30;
-	    picoRam._gfxState_line_valid = true;
+        picoRam.drawState.line_x = 10;
+	    picoRam.drawState.line_y = 30;
+	    picoRam.drawState.lineInvalid = false;
 
         graphics->line();
 
         CHECK(
-            (picoRam._gfxState_line_x == 0 && 
-            picoRam._gfxState_line_y == 0 &&
-            picoRam._gfxState_line_valid == false) == true);
+            (picoRam.drawState.line_x == 0 && 
+            picoRam.drawState.line_y == 0 &&
+            picoRam.drawState.lineInvalid == true) == true);
     }
     SUBCASE("line({arg}) sets color and clears line") {
-        picoRam._gfxState_line_x = 10;
-	    picoRam._gfxState_line_y = 30;
-	    picoRam._gfxState_line_valid = true;
-        picoRam._gfxState_color = 2;
+        picoRam.drawState.line_x = 10;
+	    picoRam.drawState.line_y = 30;
+	    picoRam.drawState.lineInvalid = false;
+        picoRam.drawState.color = 2;
 
         graphics->line(14);
 
         CHECK(
-            (picoRam._gfxState_line_x == 0 && 
-            picoRam._gfxState_line_y == 0 &&
-            picoRam._gfxState_line_valid == false &&
-            picoRam._gfxState_color == 14) == true);
+            (picoRam.drawState.line_x == 0 && 
+            picoRam.drawState.line_y == 0 &&
+            picoRam.drawState.lineInvalid == true &&
+            picoRam.drawState.color == 14) == true);
     }
     SUBCASE("line({x}, {y}) without valid line state does nothing") {
         graphics->cls();
@@ -190,29 +190,29 @@ TEST_CASE("graphics class behaves as expected") {
         }
 
         CHECK(
-            (picoRam._gfxState_line_x == 0 && 
-            picoRam._gfxState_line_y == 0 &&
-            picoRam._gfxState_line_valid == false &&
+            (picoRam.drawState.line_x == 0 && 
+            picoRam.drawState.line_y == 0 &&
+            picoRam.drawState.lineInvalid == true &&
             isAllColor) == true);
     }
     SUBCASE("line({x}, {y}) with valid line state updates state") {
         graphics->cls();
-        picoRam._gfxState_line_x = 10;
-        picoRam._gfxState_line_y = 10;
-        picoRam._gfxState_line_valid = true;
+        picoRam.drawState.line_x = 10;
+        picoRam.drawState.line_y = 10;
+        picoRam.drawState.lineInvalid = false;
         graphics->line(13, 13);
 
         CHECK(
-            (picoRam._gfxState_line_x == 13 && 
-            picoRam._gfxState_line_y == 13 &&
-            picoRam._gfxState_line_valid == true) == true);
+            (picoRam.drawState.line_x == 13 && 
+            picoRam.drawState.line_y == 13 &&
+            picoRam.drawState.lineInvalid == false) == true);
     }
     SUBCASE("line({x}, {y}) draws (45 degree down-right)") {
         graphics->cls();
-        picoRam._gfxState_color = 2;
-        picoRam._gfxState_line_x = 10;
-        picoRam._gfxState_line_y = 10;
-        picoRam._gfxState_line_valid = true;
+        picoRam.drawState.color = 2;
+        picoRam.drawState.line_x = 10;
+        picoRam.drawState.line_y = 10;
+        picoRam.drawState.lineInvalid = false;
         graphics->line(12, 12);
 
         std::vector<coloredPoint> expectedPoints = {
@@ -225,9 +225,9 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("line({x}, {y}, {c}) draws (vertical down)") {
         graphics->cls();
-        picoRam._gfxState_line_x = 20;
-        picoRam._gfxState_line_y = 20;
-        picoRam._gfxState_line_valid = true;
+        picoRam.drawState.line_x = 20;
+        picoRam.drawState.line_y = 20;
+        picoRam.drawState.lineInvalid = false;
         graphics->line(20, 24, 13);
 
         std::vector<coloredPoint> expectedPoints = {
@@ -242,7 +242,7 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("line({x1}, {y1}, {x2}, {y2}) draws (45 degree left)") {
         graphics->cls();
-        picoRam._gfxState_color = 10;
+        picoRam.drawState.color = 10;
         graphics->line(20, 20, 18, 22);
 
         std::vector<coloredPoint> expectedPoints = {
@@ -557,8 +557,8 @@ TEST_CASE("graphics class behaves as expected") {
     SUBCASE("print({str}) uses current text location") {
         graphics->cls();
         graphics->color(3);
-        picoRam._gfxState_text_x = 15;
-        picoRam._gfxState_text_y = 98;
+        picoRam.drawState.text_x = 15;
+        picoRam.drawState.text_y = 98;
 
         graphics->print("t");
 
@@ -576,34 +576,34 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("print({str}) increments text location y by 6") {
         graphics->cls();
-        picoRam._gfxState_text_x = 15;
-        picoRam._gfxState_text_y = 110;
+        picoRam.drawState.text_x = 15;
+        picoRam.drawState.text_y = 110;
 
         graphics->print("doesnt matter");
 
-        CHECK(picoRam._gfxState_text_y == 116);
+        CHECK(picoRam.drawState.text_y == 116);
     }
     SUBCASE("print({str}, {x}, {y}) updates text location ") {
         graphics->cls();
-        picoRam._gfxState_text_x = 3;
-        picoRam._gfxState_text_y = 4;
+        picoRam.drawState.text_x = 3;
+        picoRam.drawState.text_y = 4;
 
         graphics->print("doesnt matter", 42, 99);
 
-        CHECK(picoRam._gfxState_text_x == 42);
-        CHECK(picoRam._gfxState_text_y == 99);
+        CHECK(picoRam.drawState.text_x == 42);
+        CHECK(picoRam.drawState.text_y == 99);
     }
     SUBCASE("print({str}, {x}, {y}, {c}) updates text location and color") {
         graphics->cls();
-        picoRam._gfxState_text_x = 3;
-        picoRam._gfxState_text_y = 4;
-        picoRam._gfxState_color = 10;
+        picoRam.drawState.text_x = 3;
+        picoRam.drawState.text_y = 4;
+        picoRam.drawState.color = 10;
 
         graphics->print("doesnt matter", 16, 18, 14);
         
-        CHECK(picoRam._gfxState_text_x == 16);
-        CHECK(picoRam._gfxState_text_y == 18);
-        CHECK(picoRam._gfxState_color == 14);
+        CHECK(picoRam.drawState.text_x == 16);
+        CHECK(picoRam.drawState.text_y == 18);
+        CHECK(picoRam.drawState.color == 14);
     }
     SUBCASE("spr(...) draws to screen at location") {
         graphics->cls();
@@ -971,23 +971,23 @@ TEST_CASE("graphics class behaves as expected") {
        uint8_t y = 120;
        graphics->camera(x, y);
 
-       CHECK_EQ(picoRam._gfxState_camera_x, x);
-       CHECK_EQ(picoRam._gfxState_camera_y, y);
+       CHECK_EQ(picoRam.drawState.camera_x, x);
+       CHECK_EQ(picoRam.drawState.camera_y, y);
    }
    SUBCASE("camera() sets values in memory to 0")
    {
-       picoRam._gfxState_camera_x = 33;
-       picoRam._gfxState_camera_y = 120;
+       picoRam.drawState.camera_x = 33;
+       picoRam.drawState.camera_y = 120;
        graphics->camera();
 
-       CHECK_EQ(picoRam._gfxState_camera_x, 0);
-       CHECK_EQ(picoRam._gfxState_camera_y, 0);
+       CHECK_EQ(picoRam.drawState.camera_x, 0);
+       CHECK_EQ(picoRam.drawState.camera_y, 0);
    }
    SUBCASE("camera values applies to pget")
    {
        uint8_t col = 13;
-       picoRam._gfxState_camera_x = -44;
-       picoRam._gfxState_camera_y = -3;
+       picoRam.drawState.camera_x = -44;
+       picoRam.drawState.camera_y = -3;
        graphics->pset(14, 32, 13);
        
        auto result = graphics->pget(14, 32);
@@ -997,8 +997,8 @@ TEST_CASE("graphics class behaves as expected") {
    SUBCASE("camera values applies to pset")
    {
        uint8_t col = 13;
-       picoRam._gfxState_camera_x = -44;
-       picoRam._gfxState_camera_y = -3;
+       picoRam.drawState.camera_x = -44;
+       picoRam.drawState.camera_y = -3;
        graphics->pset(14, 32, 13);
        graphics->camera();
        
@@ -1170,26 +1170,26 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("clip() resets clip memory to entire screen")
     {
-        picoRam._gfxState_clip_xb = 28;
-        picoRam._gfxState_clip_xe = 28;
-        picoRam._gfxState_clip_yb = 50;
-        picoRam._gfxState_clip_ye = 50;
+        picoRam.drawState.clip_xb = 28;
+        picoRam.drawState.clip_xe = 28;
+        picoRam.drawState.clip_yb = 50;
+        picoRam.drawState.clip_ye = 50;
 
         graphics->clip();
 
-        CHECK_EQ(picoRam._gfxState_clip_xb, 0);
-        CHECK_EQ(picoRam._gfxState_clip_xe, 128);
-        CHECK_EQ(picoRam._gfxState_clip_yb, 0);
-        CHECK_EQ(picoRam._gfxState_clip_ye, 128);
+        CHECK_EQ(picoRam.drawState.clip_xb, 0);
+        CHECK_EQ(picoRam.drawState.clip_xe, 128);
+        CHECK_EQ(picoRam.drawState.clip_yb, 0);
+        CHECK_EQ(picoRam.drawState.clip_ye, 128);
     }
     SUBCASE("clip({x}, {y}, {w}, {h}) sets clip in memory")
     {
         graphics->clip(50, 75, 25, 25);
 
-        CHECK_EQ(picoRam._gfxState_clip_xb, 50);
-        CHECK_EQ(picoRam._gfxState_clip_xe, 75);
-        CHECK_EQ(picoRam._gfxState_clip_yb, 75);
-        CHECK_EQ(picoRam._gfxState_clip_ye, 100);
+        CHECK_EQ(picoRam.drawState.clip_xb, 50);
+        CHECK_EQ(picoRam.drawState.clip_xe, 75);
+        CHECK_EQ(picoRam.drawState.clip_yb, 75);
+        CHECK_EQ(picoRam.drawState.clip_ye, 100);
     }
     SUBCASE("clip values applies to pset")
     {
@@ -1522,6 +1522,12 @@ TEST_CASE("graphics class behaves as expected") {
 
         CHECK(graphics->isColorTransparent(2) == true);
     }
+    SUBCASE("palt({c}, {t}) sets transparency value for color") {
+        graphics->palt(4, true);
+        graphics->palt(4, false);
+
+        CHECK(graphics->isColorTransparent(4) == false);
+    }
     SUBCASE("pal() resets all palette changes") {
         graphics->pal(14, 5, 0);
         graphics->pal(13, 4, 1);
@@ -1576,23 +1582,23 @@ TEST_CASE("graphics class behaves as expected") {
     SUBCASE("cursor({x}, {y}) sets cursor loc in memory"){
         graphics->cursor(4, 13);
 
-        CHECK_EQ(picoRam._gfxState_text_x, 4);
-        CHECK_EQ(picoRam._gfxState_text_y, 13);
+        CHECK_EQ(picoRam.drawState.text_x, 4);
+        CHECK_EQ(picoRam.drawState.text_y, 13);
     }
     SUBCASE("cursor({x}, {y}, {c}) sets cursor loc in memory and color"){
         graphics->cursor(42, 99, 3);
 
-        CHECK_EQ(picoRam._gfxState_text_x, 42);
-        CHECK_EQ(picoRam._gfxState_text_y, 99);
-        CHECK_EQ(picoRam._gfxState_color, 3);
+        CHECK_EQ(picoRam.drawState.text_x, 42);
+        CHECK_EQ(picoRam.drawState.text_y, 99);
+        CHECK_EQ(picoRam.drawState.color, 3);
     }
     SUBCASE("cursor() resets cursor but not color"){
         graphics->cursor(42, 99, 3);
         graphics->cursor();
 
-        CHECK_EQ(picoRam._gfxState_text_x, 0);
-        CHECK_EQ(picoRam._gfxState_text_y, 0);
-        CHECK_EQ(picoRam._gfxState_color, 3);
+        CHECK_EQ(picoRam.drawState.text_x, 0);
+        CHECK_EQ(picoRam.drawState.text_y, 0);
+        CHECK_EQ(picoRam.drawState.color, 3);
     }
     
 
