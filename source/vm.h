@@ -69,5 +69,15 @@ class Vm {
     string GetBiosError();
 
     bool ExecuteLua(string luaString, string callbackFunction);
+
+    PicoRam* getPicoRam();
+
+    uint8_t ram_peek(int addr);
+    int16_t ram_peek2(int addr);
+    int32_t ram_peek4(int addr); //note: this should return a 32 bit fixed point number
+
+    void ram_poke(int addr, uint8_t value);
+    void ram_poke2(int addr, int16_t value);
+    void ram_poke4(int addr, int32_t value); //note: this parameter should be a 32 bit fixed point number
 };
 

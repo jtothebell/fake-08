@@ -55,6 +55,10 @@ Vm::~Vm(){
     delete _audio;
 }
 
+PicoRam* Vm::getPicoRam(){
+    return &_memory;
+}
+
 bool Vm::loadCart(Cart* cart) {
     _picoFrameCount = 0;
 
@@ -392,4 +396,74 @@ bool Vm::ExecuteLua(string luaString, string callbackFunction){
     }
 
     return true;
+}
+
+
+uint8_t Vm::ram_peek(int addr){
+    if (addr < 0 || addr > 0x8000){
+        return 0;
+    }
+
+    return _memory.data[addr];
+}
+
+int16_t Vm::ram_peek2(int addr){
+    //zepto8
+    int16_t bits = 0;
+    for (int i = 0; i < 2; ++i)
+    {
+        /* This code handles partial reads by adding zeroes */
+        if (addr + i < 0x8000)
+            bits |= _memory.data[addr + i] << (8 * i);
+        else if (addr + i >= 0x8000)
+            bits |= _memory.data[addr + i - 0x8000] << (8 * i);
+    }
+
+    return bits;
+}
+
+//note: this should return a 32 bit fixed point number
+int32_t Vm::ram_peek4(int addr){
+    //zepto8
+    int32_t bits = 0;
+    for (int i = 0; i < 4; ++i)
+    {
+        /* This code handles partial reads by adding zeroes */
+        if (addr + i < 0x8000)
+            bits |= _memory.data[addr + i] << (8 * i);
+        else if (addr + i >= 0x8000)
+            bits |= _memory.data[addr + i - 0x8000] << (8 * i);
+    }
+
+    return bits;
+} 
+
+void Vm::ram_poke(int addr, uint8_t value){
+    //todo: check how pico 8 handles out of bounds
+    if (addr < 0 || addr > 0x8000){
+        return;
+    }
+    
+    _memory.data[addr] = value;
+}
+
+void Vm::ram_poke2(int addr, int16_t value){
+    if (addr < 0 || addr > 0x8000 - 1){
+        return;
+    }
+
+    _memory.data[addr] = (uint8_t)value;
+    _memory.data[addr + 1] = (uint8_t)((uint16_t)value >> 8);
+
+}
+
+void Vm::ram_poke4(int addr, int32_t value){
+    if (addr < 0 || addr > 0x8000 - 3){
+        return;
+    }
+
+    _memory.data[addr + 0] = (uint8_t)value;
+    _memory.data[addr + 1] = (uint8_t)(value >> 8);
+    _memory.data[addr + 2] = (uint8_t)(value >> 16);
+    _memory.data[addr + 3] = (uint8_t)(value >> 24);
 }
