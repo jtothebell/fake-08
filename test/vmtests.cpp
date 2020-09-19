@@ -20,6 +20,20 @@ TEST_CASE("Vm memory functions") {
     SUBCASE("memory data stats with 0"){
         CHECK(memory->data[0] == 0);
     }
+    SUBCASE("resetting memory zeroes out everything"){
+        for(int i = 0; i < 0x8000; ++i) {
+            memory->data[i] = i & 255;
+        }
+
+        memory->Reset();
+
+        bool allZeroes = true;
+        for(int i = 0; i < 0x8000; ++i) {
+            allZeroes &= memory->data[i] == 0;
+        }
+
+        CHECK(allZeroes);
+    }
     SUBCASE("size of PicoRam struct corrct"){
         CHECK(sizeof(PicoRam) == 0x8000);
     }
@@ -99,6 +113,123 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(memory->cartData[0], 56);
         CHECK_EQ(vm->vm_dget(0), 56);
     }
+    SUBCASE("poking draw palette data"){
+        //21 : 0001 0101 (transparet: true) (color mapped 5)
+        vm->ram_poke(0x5f02, 21);
+
+        CHECK_EQ(memory->drawState.drawPaletteMap[2], 21);
+        CHECK_EQ(graphics->getDrawPalMappedColor(2), 5);
+        CHECK_EQ(graphics->isColorTransparent(2), true);
+    }
+    SUBCASE("poking clip data"){
+        //7 : 0000 0111
+        vm->ram_poke(0x5f21, 89);
+
+        CHECK_EQ(memory->drawState.clip_yb, 89);
+    }
+    SUBCASE("poking unknown ram at 0x5f24"){
+        //7 : 0000 0111
+        vm->ram_poke(0x5f24, 254);
+
+        CHECK_EQ(memory->drawState.unknown05f24, 254);
+    }
+    SUBCASE("poking color"){
+        vm->ram_poke(0x5f25, 12);
+
+        CHECK_EQ(memory->drawState.color, 12);
+    }
+    SUBCASE("poking text cursor"){
+        vm->ram_poke(0x5f26, 74);
+
+        CHECK_EQ(memory->drawState.text_x, 74);
+    }
+    SUBCASE("poking camera position"){
+        vm->ram_poke2(0x5f2a, -72);
+
+        CHECK_EQ(memory->drawState.camera_y, -72);
+    }
+    SUBCASE("poking draw mode"){
+        vm->ram_poke(0x5f2c, 2);
+
+        CHECK_EQ(memory->drawState.drawMode, 2);
+    }
+    SUBCASE("poking dev kit mode"){
+        vm->ram_poke(0x5f2d, 2);
+
+        CHECK_EQ(memory->drawState.devkitMode, 2);
+    }
+    SUBCASE("poking persist palette"){
+        vm->ram_poke(0x5f2e, 1);
+
+        CHECK_EQ(memory->drawState.persistPalette, 1);
+    }
+    SUBCASE("poking sound pause state"){
+        vm->ram_poke(0x5f2f, 4);
+
+        CHECK_EQ(memory->drawState.soundPauseState, 4);
+    }
+    SUBCASE("poking suppress pause"){
+        vm->ram_poke(0x5f30, 1);
+
+        CHECK_EQ(memory->drawState.suppressPause, 1);
+    }
+    SUBCASE("poking fill pattern"){
+        vm->ram_poke(0x5f31, 24);
+
+        CHECK_EQ(memory->drawState.fillPattern[0], 24);
+    }
+    SUBCASE("poking fill pattern transparency bit"){
+        vm->ram_poke(0x5f33, 1);
+
+        CHECK_EQ(memory->drawState.fillPatternTransparencyBit, 1);
+    }
+    SUBCASE("poking color setting flag"){
+        /*
+-- bit  0x1000.0000 means the non-colour bits should be observed
+-- bit  0x0100.0000 transparency bit
+-- bits 0x00FF.0000 are the usual colour bits
+-- bits 0x0000.FFFF are interpreted as the fill pattern
+        */
+        vm->ram_poke(0x5f34, 36);
+
+        CHECK_EQ(memory->drawState.colorSettingFlag, 36);
+    }
+    SUBCASE("poking line invalid"){
+        vm->ram_poke(0x5f35, 1);
+
+        CHECK_EQ(memory->drawState.lineInvalid, 1);
+    }
+    SUBCASE("poking tline width"){
+        vm->ram_poke(0x5f38, 65);
+
+        CHECK_EQ(memory->drawState.tlineMapWidth, 65);
+    }
+    SUBCASE("poking tline height"){
+        vm->ram_poke(0x5f39, 66);
+
+        CHECK_EQ(memory->drawState.tlineMapHeight, 66);
+    }
+    SUBCASE("poking tline x"){
+        vm->ram_poke(0x5f3a, 67);
+
+        CHECK_EQ(memory->drawState.tlineMapXOffset, 67);
+    }
+    SUBCASE("poking tline y"){
+        vm->ram_poke(0x5f3b, 68);
+
+        CHECK_EQ(memory->drawState.tlineMapYOffset, 68);
+    }
+    SUBCASE("poking line x"){
+        vm->ram_poke2(0x5f3c, -3);
+
+        CHECK_EQ(memory->drawState.line_x, -3);
+    }
+    SUBCASE("poking line y"){
+        vm->ram_poke2(0x5f3e, 262);
+
+        CHECK_EQ(memory->drawState.line_y, 262);
+    }
+
     
     delete graphics;
     delete input;

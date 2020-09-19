@@ -122,9 +122,11 @@ struct drawState_t {
 
     uint8_t persistPalette;
 
+    uint8_t soundPauseState;
+
     uint8_t suppressPause;
 
-    uint16_t fillPattern;
+    uint8_t fillPattern[2];
 
     uint8_t fillPatternTransparencyBit;
 
