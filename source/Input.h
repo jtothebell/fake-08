@@ -9,8 +9,8 @@ class Input{
 	uint16_t _framesHeld[8];
 	
     public:
+    Input();
     void SetState(uint8_t kdown, uint8_t kheld);
-    
 
 	uint8_t btn();
     uint8_t btnp();

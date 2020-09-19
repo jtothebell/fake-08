@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstring> 
 #include <string>
 
 /*
@@ -173,6 +174,10 @@ struct hwState_t {
 
 struct PicoRam
 {
+    void Reset() {
+        memset(data, 0, 0x8000);
+    }
+    
     union
     {
         struct 
@@ -196,34 +201,6 @@ struct PicoRam
             drawState_t drawState;
 
             hwState_t hwState;
-
-            //TODO use draw state struct here
-            /*
-            uint8_t _gfxState_color;
-            uint8_t _gfxState_bgColor;
-
-            int _gfxState_text_x;
-            int _gfxState_text_y;
-
-            int _gfxState_camera_x;
-            int _gfxState_camera_y;
-
-            int _gfxState_clip_xb;
-            int _gfxState_clip_yb;
-            int _gfxState_clip_xe;
-            int _gfxState_clip_ye;
-
-            uint8_t _gfxState_drawPaletteMap[16];
-            uint8_t _gfxState_screenPaletteMap[16];
-            bool _gfxState_transparencyPalette[16];
-
-            //not actually part of graphics state memory?
-            int _gfxState_line_x;
-            int _gfxState_line_y;
-            bool _gfxState_line_valid;
-            */
-
-            
 
             uint8_t screenBuffer[128 * 64];
         };

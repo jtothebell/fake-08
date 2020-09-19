@@ -1,5 +1,14 @@
+#include <algorithm>
+
 #include "Input.h"
 #include "hostVmShared.h"
+
+Input::Input():
+    _currentKDown(0),
+    _currentKHeld(0) 
+{
+    std::fill(_framesHeld, _framesHeld + 8, 0);
+}
 
 void Input::SetState(uint8_t kdown, uint8_t kheld){
     _currentKDown = kdown;

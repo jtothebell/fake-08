@@ -7,7 +7,6 @@
 #include "../source/vm.h"
 #include "../source/hostVmShared.h"
 
-
 bool verifyScreenshot(Vm* vm, std::string screenshotFilename) {
     std::vector<unsigned char> png;
     std::vector<unsigned char> image; //the raw pixels

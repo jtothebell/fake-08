@@ -15,13 +15,16 @@ extern "C" {
 }
 
 class Vm {
-    PicoRam _memory;
+    PicoRam* _memory;
 
-    Cart* _loadedCart;
     Graphics* _graphics;
     Audio* _audio;
-    lua_State* _luaState;
     Input* _input;
+
+    Cart* _loadedCart;
+    lua_State* _luaState;
+
+    bool _cleanupDeps;
 
     int _targetFps;
 
@@ -34,12 +37,17 @@ class Vm {
 
     string _cartLoadError;
 
+    string _cartdataKey;
+
     vector<string> _cartList;
 
     bool loadCart(Cart* cart);
 
     public:
-    Vm();
+    Vm(PicoRam* memory = nullptr,
+       Graphics* graphics = nullptr,
+       Input* input = nullptr,
+       Audio* audio = nullptr);
     ~Vm();
 
     void LoadBiosCart();
@@ -79,5 +87,9 @@ class Vm {
     void ram_poke(int addr, uint8_t value);
     void ram_poke2(int addr, int16_t value);
     void ram_poke4(int addr, int32_t value); //note: this parameter should be a 32 bit fixed point number
+
+    void vm_cartdata(string key);
+    int32_t vm_dget(uint8_t n);
+    void vm_dset(uint8_t n, int32_t value); //note: this should return a 32 bit fixed point number
 };
 
