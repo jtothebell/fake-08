@@ -2,21 +2,34 @@
 
 #include "Input.h"
 #include "hostVmShared.h"
+#include "PicoRam.h"
 
-Input::Input():
-    _currentKDown(0),
-    _currentKHeld(0) 
+Input::Input(PicoRam* memory):
+    _currentKDown(0)
 {
+    _memory = memory;
+
     std::fill(_framesHeld, _framesHeld + 8, 0);
 }
 
 void Input::SetState(uint8_t kdown, uint8_t kheld){
     _currentKDown = kdown;
-    _currentKHeld = kheld;
+    _memory->hwState.buttonStates[0] = kheld;
 
-    //TODO: this can be overridden by poking certain memory address
+    uint8_t repeatDelay = _memory->hwState.btnpRepeatDelay == 0 
+        ? 15 
+        : _memory->hwState.btnpRepeatDelay;
+
+    if (repeatDelay == 255){
+        return;
+    }
+
+    uint8_t repeatInterval = _memory->hwState.btnpRepeatInterval == 0 
+        ? 4 
+        : _memory->hwState.btnpRepeatDelay;
+
     for (int i = 0; i < 8; i ++) {
-        bool down = BITMASK(i) & _currentKHeld;
+        bool down = BITMASK(i) & kheld;
 
         _framesHeld[i] = down ? _framesHeld[i] + 1 : 0;
 
@@ -28,8 +41,8 @@ void Input::SetState(uint8_t kdown, uint8_t kheld){
         //player releases the button. 
 
         bool repeatPressed = 
-            (_framesHeld[i] == 15) ||
-            (_framesHeld[i] / 15 >= 1 && _framesHeld[i] % 4 == 0);
+            (_framesHeld[i] == repeatDelay) ||
+            (_framesHeld[i] / repeatDelay >= 1 && _framesHeld[i] % repeatInterval == 0);
 
         if (repeatPressed) {
             _currentKDown = _currentKDown | BITMASK(i);
@@ -38,7 +51,7 @@ void Input::SetState(uint8_t kdown, uint8_t kheld){
 }
 
 uint8_t Input::btn(){
-    return _currentKHeld;
+    return _memory->hwState.buttonStates[0];
 }
 
 //todo: repetition behavior to match pico 8

@@ -1,15 +1,16 @@
 #pragma once
 
 #include <stdint.h>
+#include "PicoRam.h"
 
 class Input{
+    PicoRam* _memory;
 	uint8_t _currentKDown;
-	uint8_t _currentKHeld;
 
 	uint16_t _framesHeld[8];
 	
     public:
-    Input();
+    Input(PicoRam* memory);
     void SetState(uint8_t kdown, uint8_t kheld);
 
 	uint8_t btn();

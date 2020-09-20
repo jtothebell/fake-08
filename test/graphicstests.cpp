@@ -120,7 +120,7 @@ TEST_CASE("graphics class behaves as expected") {
         bool isAllColor = true;
         for(int x = 0; x < 128; x++){
             for(int y = 0; y < 128; y++){
-                isAllColor &= graphics->pget(0, 0) == testColor;
+                isAllColor &= graphics->pget(x, y) == testColor;
             }
         }
         CHECK(isAllColor);
@@ -130,7 +130,7 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->cls();
         for(int x = 0; x < 128; x++){
             for(int y = 0; y < 128; y++){
-                isAllColor &= graphics->pget(0, 0) == 0;
+                isAllColor &= graphics->pget(x, y) == 0;
             }
         }
         CHECK(isAllColor);

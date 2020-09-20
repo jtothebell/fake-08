@@ -12,7 +12,7 @@
 TEST_CASE("Vm memory functions") {
     PicoRam* memory = new PicoRam();
     Graphics* graphics = new Graphics(get_font_data(), memory);
-    Input* input = new Input();
+    Input* input = new Input(memory);
     Audio* audio = new Audio(memory);
 
     Vm* vm = new Vm(memory, graphics, input, audio);
@@ -228,6 +228,83 @@ TEST_CASE("Vm memory functions") {
         vm->ram_poke2(0x5f3e, 262);
 
         CHECK_EQ(memory->drawState.line_y, 262);
+    }
+    SUBCASE("poking audio hardware state") {
+        vm->ram_poke(0x5f40, 3);
+
+        CHECK_EQ(memory->hwState.audioHardwareState[0], 3);
+    }
+    SUBCASE("poking rng state") {
+        vm->ram_poke(0x5f44, 20);
+
+        CHECK_EQ(memory->hwState.rngState[0], 20);
+    }
+    SUBCASE("poking button state") {
+        //0000 1010
+        vm->ram_poke(0x5f4c, 10);
+
+        CHECK_EQ(memory->hwState.buttonStates[0], 10);
+        CHECK_EQ(input->btn(), 10);
+        CHECK_EQ(input->btn(0), false);
+        CHECK_EQ(input->btn(1), true);
+        CHECK_EQ(input->btn(2), false);
+        CHECK_EQ(input->btn(3), true);
+    }
+    SUBCASE("poking unknown input block") {
+        vm->ram_poke(0x5f54, 53);
+
+        CHECK_EQ(memory->hwState.unknownInputBlock[0], 53);
+    }
+    SUBCASE("poking btnp repeat delay") {
+        vm->ram_poke(0x5f5c, 10);
+
+        CHECK_EQ(memory->hwState.btnpRepeatDelay, 10);
+    }
+    SUBCASE("poking btnp repeat interval") {
+        vm->ram_poke(0x5f5d, 25);
+
+        CHECK_EQ(memory->hwState.btnpRepeatInterval, 25);
+    }
+    SUBCASE("poking color bitmask") {
+        vm->ram_poke(0x5f5e, 42);
+
+        CHECK_EQ(memory->hwState.colorBitmask, 42);
+    }
+    SUBCASE("poking alternate palette flag") {
+        vm->ram_poke(0x5f5f, 10);
+
+        CHECK_EQ(memory->hwState.alternatePaletteFlag, 10);
+    }
+    SUBCASE("poking alternate palette map") {
+        vm->ram_poke(0x5f60, 11);
+
+        CHECK_EQ(memory->hwState.alternatePaletteMap[0], 11);
+    }
+    SUBCASE("poking alternate palette map") {
+        vm->ram_poke(0x5f70, 7);
+
+        CHECK_EQ(memory->hwState.alternatePaletteScreenLineBitfield[0], 7);
+    }
+    SUBCASE("poking gpio pins") {
+        vm->ram_poke(0x5f80, 192);
+
+        CHECK_EQ(memory->hwState.gpioPins[0], 192);
+    }
+    SUBCASE("poking screen data (first two pixels") {
+        //195: 1100 0011 (left pixel 3, right pixel 12)
+        vm->ram_poke(0x6000, 195);
+
+        CHECK_EQ(memory->screenBuffer[0], 195);
+        CHECK_EQ(graphics->pget(0, 0), 3);
+        CHECK_EQ(graphics->pget(1, 0), 12);
+    }
+    SUBCASE("poking screen data (last two pixels") {
+        //210: 1101 0010
+        vm->ram_poke(0x7fff, 210);
+
+        CHECK_EQ(memory->screenBuffer[8191], 210);
+        CHECK_EQ(graphics->pget(126, 127), 2);
+        CHECK_EQ(graphics->pget(127, 127), 13);
     }
 
     

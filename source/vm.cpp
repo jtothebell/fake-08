@@ -51,7 +51,7 @@ Vm::Vm(
     _graphics = graphics;
 
     if (input == nullptr){
-        input = new Input();
+        input = new Input(memory);
         _cleanupDeps = true;
     }
     _input = input;

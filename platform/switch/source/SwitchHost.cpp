@@ -12,6 +12,7 @@ namespace fs = std::filesystem;
 
 #include "../../../source/host.h"
 #include "../../../source/hostVmShared.h"
+#include "../../../source/nibblehelpers.h"
 
 #define FB_WIDTH  1280
 #define FB_HEIGHT 720
@@ -274,7 +275,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, Color* paletteC
         {
             int picoX = (int)(x / ratio);
             int picoY = (int)(y / ratio);
-            uint8_t c = picoFb[picoX*128 + picoY];
+            uint8_t c = getPixelNibble(picoX, picoY, picoFb);
             //uint8_t c = picoFb[x*128 + y];
             Color col = paletteColors[screenPaletteMap[c]];
 

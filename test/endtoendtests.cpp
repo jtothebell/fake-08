@@ -6,6 +6,7 @@
 
 #include "../source/vm.h"
 #include "../source/hostVmShared.h"
+#include "../source/nibblehelpers.h"
 
 bool verifyScreenshot(Vm* vm, std::string screenshotFilename) {
     std::vector<unsigned char> png;
@@ -41,16 +42,16 @@ bool verifyScreenshot(Vm* vm, std::string screenshotFilename) {
         int pixIdx = i / 4;
         int x = pixIdx % 128;
         int y = pixIdx / 128;
-        uint8_t c = picoFb[(x * 128) + y];
+        uint8_t c = getPixelNibble(x, y, picoFb);
         Color col = paletteColors[screenPaletteMap[c]];
 
         bool pixelMatches = r == col.Red && g == col.Green && b == col.Blue;
 
         if (!pixelMatches) {
             
-            printf("Non-matching pixel at idx %d (%d,%d): rgb: %d,%d,%d\n", pixIdx, x, y, r, g, b);
+            //printf("Non-matching pixel at idx %d (%d,%d): rgb: %d,%d,%d\n", pixIdx, x, y, r, g, b);
 
-            printf("fake 08 color is %d rgb: %d,%d,%d\n", c, col.Red, col.Green, col.Blue);
+            //printf("fake 08 color is %d rgb: %d,%d,%d\n", c, col.Red, col.Green, col.Blue);
         }
 
         pixelsMatch &= pixelMatches;

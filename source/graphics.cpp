@@ -7,6 +7,7 @@
 
 #include "graphics.h"
 #include "hostVmShared.h"
+#include "nibblehelpers.h"
 
 #include "stringToDataHelpers.h"
 
@@ -50,7 +51,7 @@ Graphics::Graphics(std::string fontdata, PicoRam* memory) {
 
 uint8_t* Graphics::GetP8FrameBuffer(){
 	//TODO: replace with ram's screen buffer
-	return this->_pico8_fb;
+	return _memory->screenBuffer;
 }
 
 uint8_t* Graphics::GetScreenPaletteMap(){
@@ -358,7 +359,7 @@ int Graphics::clampYCoordToCLip(int y) {
 
 void Graphics::_private_safe_pset(int x, int y, uint8_t col) {
 	if (isWithinClip(x, y)){
-		_pico8_fb[(x * 128) + y] = getDrawPalMappedColor(col);
+		_private_pset(x, y, col);
 	}
 }
 
@@ -366,7 +367,9 @@ void Graphics::_private_pset(int x, int y, uint8_t col) {
 	x = x & 127;
 	y = y & 127;
 
-	_pico8_fb[(x * 128) + y] = getDrawPalMappedColor(col);
+	col = getDrawPalMappedColor(col);
+
+	setPixelNibble(x, y, col, _memory->screenBuffer);
 }
 //end helper methods
 
@@ -375,7 +378,9 @@ void Graphics::cls() {
 }
 
 void Graphics::cls(uint8_t color) {
-	memset(_pico8_fb, color, sizeof(_pico8_fb));
+	color = color & 15;
+	uint8_t val = color << 4 | color;
+	memset(_memory->screenBuffer, val, sizeof(_memory->screenBuffer));
 
 	_memory->drawState.text_x = 0;
 	_memory->drawState.text_y = 0;
@@ -399,7 +404,7 @@ uint8_t Graphics::pget(int x, int y){
 	applyCameraToPoint(&x, &y);
 
 	if (isOnScreen(x, y)){
-		return _pico8_fb[(x * 128) + y];
+		return getPixelNibble(x, y, _memory->screenBuffer);
 	}
 
 	return 0;
@@ -449,10 +454,6 @@ void Graphics::_private_h_line (int x1, int x2, int y, uint8_t col){
 	int maxx = clampXCoordToClip(std::max(x1, x2));
 	int minx = clampXCoordToClip(std::min(x1, x2));
 
-	
-	//possible todo: check if memset is any better here? this seems to be wrong
-	//uint8_t* fb_line = _pico8_fb + y * PicoScreenWidth;
-	//memset(fb_line + minx, col, maxx - minx);
 	for (int x = minx; x <= maxx; x++){
 		_private_pset(x, y, col);
 	}
@@ -730,32 +731,11 @@ void Graphics::fset(uint8_t n, uint8_t v){
 }
 
 uint8_t Graphics::sget(uint8_t x, uint8_t y){
-	int combinedIdx = y * 64 + (x / 2);
-
-	uint8_t combinedPix = _memory->spriteSheetData[combinedIdx];
-
-	uint8_t c = x % 2 == 0 
-		? combinedPix & 0x0f //just first 4 bits
-		: combinedPix >> 4;  //just last 4 bits
-	
-	return c;
+	return getPixelNibble(x, y, _memory->spriteSheetData);
 }
 
 void Graphics::sset(uint8_t x, uint8_t y, uint8_t c){
-	int combinedIdx = y * 64 + (x / 2);
-
-	uint8_t currentByte = _memory->spriteSheetData[combinedIdx];
-	uint8_t mask;
-	// set just 4 bits: https://stackoverflow.com/a/4439221
-	if (x % 2 == 0) {
-		mask = 0x0f;
-	}
-	else {
-		c = c << 4;
-		mask = 0xf0;
-	}
-
-	_memory->spriteSheetData[combinedIdx] = (currentByte & ~mask) | (c & mask);
+	setPixelNibble(x, y, c, _memory->spriteSheetData);
 }
 
 void Graphics::camera() {

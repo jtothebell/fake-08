@@ -25,7 +25,6 @@
 
 
 class Graphics {
-	uint8_t _pico8_fb[128*128];
 	uint8_t fontSpriteData[128 * 64];
 
 	Color _paletteColors[16];

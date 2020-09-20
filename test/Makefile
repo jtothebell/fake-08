@@ -12,7 +12,7 @@ testrunner.a: testroot.o \
 	g++ -I$(CURDIR)/include -L$(CURDIR)/lib \
 	testroot.o \
 	fontdata.o fontdatatests.o \
-	graphics.o graphicstests.o stringToDataHelpers.o \
+	graphics.o graphicstests.o stringToDataHelpers.o nibblehelpers.o \
 	Audio.o synth.o audiotests.o \
 	cartPatcher.o cartpatchertests.o \
 	cart.o carttests.o nooplogger.o lodepng.o emojiconversion.o filehelpers.o utf8-util.o \
@@ -30,8 +30,10 @@ fontdatatests.o: fontdatatests.cpp ../source/fontdata.cpp ../source/fontdata.h
 graphicstests.o: fontdatatests.o graphicstests.cpp ../source/graphics.cpp ../source/graphics.h \
 	../source/fontdata.cpp ../source/fontdata.h \
 	../source/PicoRam.h ../source/hostVmShared.h \
-	../source/stringToDataHelpers.h ../source/stringToDataHelpers.cpp
-	g++ $(CFLAGS) graphicstests.cpp ../source/graphics.cpp ../source/stringToDataHelpers.cpp
+	../source/stringToDataHelpers.h ../source/stringToDataHelpers.cpp \
+	../source/nibblehelpers.h ../source/nibblehelpers.cpp
+	g++ $(CFLAGS) graphicstests.cpp ../source/graphics.cpp \
+		../source/stringToDataHelpers.cpp ../source/nibblehelpers.cpp
 
 audiotests.o: audiotests.cpp ../source/Audio.cpp ../source/Audio.h \
 	../source/synth.cpp ../source/synth.h \
