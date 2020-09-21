@@ -118,21 +118,21 @@ bool Vm::loadCart(Cart* cart) {
 
     //copy data from cart rom to ram
     for(size_t i = 0; i < sizeof(_memory->spriteSheetData); i++) {
-        _memory->spriteSheetData[i] = cart->SpriteSheetData[i];
+        _memory->spriteSheetData[i] = cart->CartRom.SpriteSheetData[i];
     }
     for(size_t i = 0; i < sizeof(_memory->spriteFlags); i++) {
-        _memory->spriteFlags[i] = cart->SpriteFlagsData[i];
+        _memory->spriteFlags[i] = cart->CartRom.SpriteFlagsData[i];
     }
     for(size_t i = 0; i < sizeof(_memory->mapData); i++) {
-        _memory->mapData[i] = cart->MapData[i];
+        _memory->mapData[i] = cart->CartRom.MapData[i];
     }
 
     for(size_t i = 0; i < 64; i++) {
-        _memory->sfx[i] = cart->SfxData[i];
+        _memory->sfx[i] = cart->CartRom.SfxData[i];
     }
 
     for(size_t i = 0; i < 64; i++) {
-        _memory->songs[i] = cart->SongData[i];
+        _memory->songs[i] = cart->CartRom.SongData[i];
     }
 
     // initialize Lua interpreter

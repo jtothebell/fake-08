@@ -5,6 +5,23 @@
 #include "graphics.h"
 
 
+struct CartRomData
+{
+    union
+    {
+        struct 
+        {
+            uint8_t SpriteSheetData[128 * 64];
+            uint8_t MapData[128 * 32];
+            uint8_t SpriteFlagsData[256];
+            struct song SongData[64];
+            struct sfx SfxData[64];
+        };
+
+        uint8_t data[0x4300];
+    };
+};
+
 class Cart {
     std::string fullCartText;
 
@@ -35,11 +52,6 @@ class Cart {
     std::string SfxString;
     std::string MusicString;
 
-    uint8_t SpriteSheetData[128 * 64];
-    uint8_t SpriteFlagsData[256];
-    uint8_t MapData[128 * 32];
-    struct song SongData[64];
-    struct sfx SfxData[64];
+    CartRomData CartRom;
     uint8_t CartLuaData[15616];
-
 };

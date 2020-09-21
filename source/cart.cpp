@@ -24,10 +24,6 @@
 
 #include "FakoBios.h"
 
-//#include "tests/test_base.h"
-//#if _TEST
-//#include "tests/cart_test.h"
-//#endif
 
 static char const *legacyCompressionLut = "\n 0123456789abcdefghijklmnopqrstuvwxyz!#%(){}[]<>+=/*:;.,~_";
 
@@ -140,25 +136,25 @@ bool Cart::loadCartFromPng(std::string filename){
         //store extracted byte in correct place
         size_t picoDataIdx = i / 4;
         if (picoDataIdx < 0x2000) {
-            SpriteSheetData[picoDataIdx] = extractedByte;
+            CartRom.SpriteSheetData[picoDataIdx] = extractedByte;
         }
         else if (picoDataIdx < 0x3000) {
-            MapData[picoDataIdx - 0x2000] = extractedByte;
+            CartRom.MapData[picoDataIdx - 0x2000] = extractedByte;
         }
         else if (picoDataIdx < 0x3100) {
-            SpriteFlagsData[picoDataIdx - 0x3000] = extractedByte;
+            CartRom.SpriteFlagsData[picoDataIdx - 0x3000] = extractedByte;
         }
         else if (picoDataIdx < 0x3200) {
             size_t offset = picoDataIdx - 0x3100;
             size_t songIdx = offset / sizeof(song);
             size_t channelIdx = offset % sizeof(song);
-            SongData[songIdx].data[channelIdx] = extractedByte;
+            CartRom.SongData[songIdx].data[channelIdx] = extractedByte;
         }
         else if (picoDataIdx < 0x4300) {
             size_t offset = picoDataIdx - 0x3200;
             size_t sfxIdx = offset / sizeof(sfx);
             size_t byteIdx = offset % sizeof(sfx);
-            SfxData[sfxIdx].data[byteIdx] = extractedByte;
+            CartRom.SfxData[sfxIdx].data[byteIdx] = extractedByte;
         }
         else if (picoDataIdx < 0x8000) {
             CartLuaData[picoDataIdx - 0x4300] = extractedByte;
@@ -367,15 +363,6 @@ Cart::Cart(std::string filename){
     const char * patched = getPatchedLua(LuaString.c_str());
 
     LuaString = patched;
-    
-    
-    #if _TEST
-    //run tests to make sure cart is parsed correctly
-    //verifyFullCartText(cartStr);
-
-    //verifyCart(this);
-
-    #endif
 }
 
 Cart::~Cart(){
@@ -384,36 +371,36 @@ Cart::~Cart(){
 
 void Cart::initCartRom(){
     //zero out cart rom so no garbage is left over
-    for(size_t i = 0; i < sizeof(SpriteSheetData); i++) {
-        SpriteSheetData[i] = 0;
+    for(size_t i = 0; i < sizeof(CartRom.SpriteSheetData); i++) {
+        CartRom.SpriteSheetData[i] = 0;
     }
-    for(size_t i = 0; i < sizeof(SpriteFlagsData); i++) {
-        SpriteFlagsData[i] = 0;
+    for(size_t i = 0; i < sizeof(CartRom.SpriteFlagsData); i++) {
+        CartRom.SpriteFlagsData[i] = 0;
     }
-    for(size_t i = 0; i < sizeof(MapData); i++) {
-        MapData[i] = 0;
-    }
-    for(size_t i = 0; i < 64; i++) {
-        SfxData[i] = {0};
+    for(size_t i = 0; i < sizeof(CartRom.MapData); i++) {
+        CartRom.MapData[i] = 0;
     }
     for(size_t i = 0; i < 64; i++) {
-        SongData[i] = {0};
+        CartRom.SfxData[i] = {0};
+    }
+    for(size_t i = 0; i < 64; i++) {
+        CartRom.SongData[i] = {0};
     }
 }
 
 void Cart::setSpriteSheet(std::string spritesheetstring){
 	Logger::Write("Copying data to spritesheet\n");
-	copy_string_to_sprite_memory(SpriteSheetData, spritesheetstring);
+	copy_string_to_sprite_memory(CartRom.SpriteSheetData, spritesheetstring);
 }
 
 void Cart::setSpriteFlags(std::string spriteFlagsstring){
 	Logger::Write("Copying data to sprite flags\n");
-	copy_string_to_memory(SpriteFlagsData, spriteFlagsstring);
+	copy_string_to_memory(CartRom.SpriteFlagsData, spriteFlagsstring);
 }
 
 void Cart::setMapData(std::string mapDataString){
 	Logger::Write("Copying data to map data\n");
-	copy_string_to_memory(MapData, mapDataString);
+	copy_string_to_memory(CartRom.MapData, mapDataString);
 }
 
 void Cart::setMusic(std::string musicString){
@@ -447,10 +434,10 @@ void Cart::setMusic(std::string musicString){
         buf[1] = line[10];
         uint8_t channel4byte = (uint8_t)strtol(buf, NULL, 16);
 
-        SongData[musicIdx].data[0] = channel1byte | fnext << 7;
-        SongData[musicIdx].data[1] = channel2byte | frepeat << 7;
-        SongData[musicIdx].data[2] = channel3byte | fstop << 7;
-        SongData[musicIdx].data[3] = channel4byte;
+        CartRom.SongData[musicIdx].data[0] = channel1byte | fnext << 7;
+        CartRom.SongData[musicIdx].data[1] = channel2byte | frepeat << 7;
+        CartRom.SongData[musicIdx].data[2] = channel3byte | fstop << 7;
+        CartRom.SongData[musicIdx].data[3] = channel4byte;
 
         musicIdx++;
     }
@@ -480,10 +467,10 @@ void Cart::setSfx(std::string sfxString) {
         buf[1] = line[7];
         uint8_t loopRangeEnd = (uint8_t)strtol(buf, NULL, 16);
 
-        SfxData[sfxIdx].editorMode = editorMode;
-        SfxData[sfxIdx].speed = noteDuration;
-        SfxData[sfxIdx].loopRangeStart = loopRangeStart;
-        SfxData[sfxIdx].loopRangeEnd = loopRangeEnd;
+        CartRom.SfxData[sfxIdx].editorMode = editorMode;
+        CartRom.SfxData[sfxIdx].speed = noteDuration;
+        CartRom.SfxData[sfxIdx].loopRangeStart = loopRangeStart;
+        CartRom.SfxData[sfxIdx].loopRangeEnd = loopRangeEnd;
 
         //32 notes, 5 chars each
         int noteIdx = 0;
@@ -504,7 +491,7 @@ void Cart::setSfx(std::string sfxString) {
             buf[1] = line[i + 4];
             uint16_t effect = (uint16_t)strtol(buf, NULL, 16);
 
-            SfxData[sfxIdx].notes[noteIdx++] = {
+            CartRom.SfxData[sfxIdx].notes[noteIdx++] = {
                 key,
                 waveform,
                 volume,
