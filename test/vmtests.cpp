@@ -306,7 +306,61 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(graphics->pget(126, 127), 2);
         CHECK_EQ(graphics->pget(127, 127), 13);
     }
+    SUBCASE("Loading cart copies cart rom to memory") {
+        vm->LoadCart("carts/cartparsetest.p8.png");
 
+        SUBCASE("Gfx data is populated") {
+            CHECK(memory->spriteSheetData[0] == 255);
+            CHECK(memory->spriteSheetData[1] == 1);
+            CHECK(memory->spriteSheetData[2] == 2);
+            CHECK(memory->spriteSheetData[3] == 3);
+        }
+        SUBCASE("Sprite flags is populated") {
+            CHECK(memory->spriteFlags[0] == 0);
+            CHECK(memory->spriteFlags[1] == 1);
+        }
+        SUBCASE("Map data is populated") {
+            CHECK(memory->mapData[0] == 1);
+            CHECK(memory->mapData[1] == 0);
+        }
+        SUBCASE("Sfx data is populated") {
+            CHECK(memory->sfx[0].data[0] == 13);
+            CHECK(memory->sfx[0].editorMode == 0);
+            CHECK(memory->sfx[0].loopRangeEnd == 0);
+            CHECK(memory->sfx[0].loopRangeEnd == 0);
+            CHECK(memory->sfx[0].speed == 29);
+
+            CHECK(memory->sfx[0].notes[0].waveform == 0);
+            CHECK(memory->sfx[0].notes[0].effect == 0);
+            CHECK(memory->sfx[0].notes[0].key == 13);
+            CHECK(memory->sfx[0].notes[0].volume == 3);
+            CHECK(memory->sfx[0].notes[0].data[0] == 13);
+            CHECK(memory->sfx[0].notes[0].data[1] == 6);
+        }
+        SUBCASE("Music data is populated") {
+            CHECK(memory->songs[0].sfx0 == 1);
+            CHECK(memory->songs[0].start == 0);
+            CHECK(memory->songs[0].sfx1 == 66);
+            CHECK(memory->songs[0].loop == 0);
+            CHECK(memory->songs[0].sfx2 == 67);
+            CHECK(memory->songs[0].stop == 0);
+            CHECK(memory->songs[0].sfx3 == 68);
+            CHECK(memory->songs[0].mode == 0);
+        }
+    }
+    SUBCASE("reload writes cart rom over changes") {
+        vm->LoadCart("carts/cartparsetest.p8.png");
+
+        graphics->sset(0, 0, 4);
+        graphics->fset(0, 3);
+        graphics->mset(0, 0, 10);
+
+        vm->vm_reload(0, 0, 0x4300, "");
+
+        CHECK_EQ(graphics->sget(0, 0), 15);
+        CHECK_EQ(graphics->fget(0), 0);
+        CHECK_EQ(graphics->mget(0, 0), 1);
+    }
     
     delete graphics;
     delete input;

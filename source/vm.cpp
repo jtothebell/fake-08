@@ -117,23 +117,7 @@ bool Vm::loadCart(Cart* cart) {
     _audio->resetAudioState();
 
     //copy data from cart rom to ram
-    for(size_t i = 0; i < sizeof(_memory->spriteSheetData); i++) {
-        _memory->spriteSheetData[i] = cart->CartRom.SpriteSheetData[i];
-    }
-    for(size_t i = 0; i < sizeof(_memory->spriteFlags); i++) {
-        _memory->spriteFlags[i] = cart->CartRom.SpriteFlagsData[i];
-    }
-    for(size_t i = 0; i < sizeof(_memory->mapData); i++) {
-        _memory->mapData[i] = cart->CartRom.MapData[i];
-    }
-
-    for(size_t i = 0; i < 64; i++) {
-        _memory->sfx[i] = cart->CartRom.SfxData[i];
-    }
-
-    for(size_t i = 0; i < 64; i++) {
-        _memory->songs[i] = cart->CartRom.SongData[i];
-    }
+    vm_reload(0, 0, sizeof(cart->CartRom), cart);
 
     // initialize Lua interpreter
     _luaState = luaL_newstate();
@@ -514,8 +498,50 @@ int32_t Vm::vm_dget(uint8_t n) {
 
     return 0;
 }
+
 void Vm::vm_dset(uint8_t n, int32_t value){
     if (_cartdataKey.length() > 0 && n < 64) {
         ram_poke4(0x5e00 + 4 * n, value);
+    }
+}
+
+void Vm::vm_reload(int destaddr, int sourceaddr, int len, Cart* cart){
+    memcpy(&_memory->data[destaddr], &cart->CartRom.data[sourceaddr], sizeof(cart->CartRom));
+}
+
+void Vm::vm_reload(int destaddr, int sourceaddr, int len, string filename){
+    if (destaddr < 0 || destaddr > 0x8000) {
+        //invalid dest address
+        return;
+    }
+    if (sourceaddr < 0 || sourceaddr > 0x4300) {
+        //invalid source address
+        return;
+    }
+    if (len < 0 || destaddr + len > 0x4300) {
+        //invalid length address
+        return;
+    }
+
+    Cart* cart = _loadedCart;
+    bool multicart = false;
+
+    if (filename.length() > 0) {
+        cart = new Cart(filename);
+        if (cart->LoadError.length() > 0) {
+            //error, can't load cart
+            //todo: see what kind of error pico 8 throws, emulate
+            delete cart;
+
+            return;
+        }
+
+        multicart = true;
+    }
+
+    vm_reload(destaddr, sourceaddr, len, cart);
+
+    if (multicart) {
+        delete cart;
     }
 }

@@ -42,6 +42,7 @@ class Vm {
     vector<string> _cartList;
 
     bool loadCart(Cart* cart);
+    void vm_reload(int destaddr, int sourceaddr, int len, Cart* cart);
 
     public:
     Vm(PicoRam* memory = nullptr,
@@ -91,5 +92,7 @@ class Vm {
     void vm_cartdata(string key);
     int32_t vm_dget(uint8_t n);
     void vm_dset(uint8_t n, int32_t value); //note: this should return a 32 bit fixed point number
+
+    void vm_reload(int destaddr, int sourceaddr, int len, string filename);
 };
 

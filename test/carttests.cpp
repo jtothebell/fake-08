@@ -155,7 +155,6 @@ TEST_CASE("Load simple png cart") {
         CHECK(cart->CartRom.SongData[0].stop == 0);
         CHECK(cart->CartRom.SongData[0].sfx3 == 68);
         CHECK(cart->CartRom.SongData[0].mode == 0);
-
     }
 
     delete cart;
