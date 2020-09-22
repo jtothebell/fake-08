@@ -45,7 +45,7 @@ Graphics::Graphics(std::string fontdata, PicoRam* memory) {
 	//set default clip
 	clip();
 	pal();
-	color(7);
+	color(6);
 }
 
 

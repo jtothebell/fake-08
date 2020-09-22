@@ -595,23 +595,95 @@ int cstore(lua_State *L) {
 }
 
 int api_memcpy(lua_State *L) {
-    return noop("memcpy");
+    int dest = lua_tonumber(L,1);
+    int src = lua_tonumber(L,2);
+    int len = lua_tonumber(L,3);
+
+    _vmForLuaApi->vm_memcpy(dest, src, len);
+
+    return 0;
 }
 
 int api_memset(lua_State *L) {
-    return noop("memset");
+    int dest = lua_tonumber(L,1);
+    int val = lua_tonumber(L,2);
+    int len = lua_tonumber(L,3);
+
+    _vmForLuaApi->vm_memset(dest, val, len);
+
+    return 0;
 }
 
 int peek(lua_State *L) {
-    return noopreturns(L, "peek");
+    int addr = lua_tonumber(L,1);
+
+    uint8_t val = _vmForLuaApi->vm_peek(addr);
+
+    lua_pushinteger(L, val);
+
+    return 1;
 }
 
 int poke(lua_State *L) {
-    return noop("poke");
+    int dest = lua_tonumber(L,1);
+    int val = lua_tonumber(L,2);
+
+    _vmForLuaApi->vm_poke(dest, (uint8_t)val);
+
+    return 0;
+}
+
+int peek2(lua_State *L) {
+    int addr = lua_tonumber(L,1);
+
+    int16_t val = _vmForLuaApi->vm_peek2(addr);
+
+    lua_pushinteger(L, val);
+
+    return 1;
+}
+
+int poke2(lua_State *L) {
+    int dest = lua_tonumber(L,1);
+    int val = lua_tonumber(L,2);
+
+    _vmForLuaApi->vm_poke2(dest, (int16_t)val);
+
+    return 0;
+}
+
+int peek4(lua_State *L) {
+    int addr = lua_tonumber(L,1);
+
+    int32_t val = _vmForLuaApi->vm_peek4(addr);
+
+    lua_pushinteger(L, val);
+
+    return 1;
+}
+
+int poke4(lua_State *L) {
+    int dest = lua_tonumber(L,1);
+    int val = lua_tonumber(L,2);
+
+    _vmForLuaApi->vm_poke4(dest, (int32_t)val);
+
+    return 0;
 }
 
 int reload(lua_State *L) {
-    return noop("reload");
+    int dest = lua_tonumber(L,1);
+    int src = lua_tonumber(L,2);
+    int len = lua_tonumber(L,3);
+    const char * str = "";
+
+    if (lua_gettop(L) > 3) {
+        str = lua_tolstring(L, 4, nullptr);
+    }
+
+    _vmForLuaApi->vm_reload(dest, src, len, str);
+
+    return 0;
 }
 
 //cart data

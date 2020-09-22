@@ -91,7 +91,7 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK(picoRam.drawState.clip_ye == 128);
     }
     SUBCASE("Constructor sets default color") {
-        CHECK(picoRam.drawState.color == 7);
+        CHECK(picoRam.drawState.color == 6);
     }
     SUBCASE("Constructor sets default draw color palette") {
         //colors mapped to themselves
@@ -319,14 +319,14 @@ TEST_CASE("graphics class behaves as expected") {
 
         //quarter circle from 12 oclock to 3 oclock
         std::vector<coloredPoint> expectedPoints = {
-            {39, 36, 7},
-            {40, 36, 7},
-            {41, 36, 7},
-            {42, 37, 7},
-            {43, 37, 7},
-            {43, 38, 7},
-            {44, 39, 7},
-            {44, 40, 7}
+            {39, 36, 6},
+            {40, 36, 6},
+            {41, 36, 6},
+            {42, 37, 6},
+            {43, 37, 6},
+            {43, 38, 6},
+            {44, 39, 6},
+            {44, 40, 6}
         };
 
         checkPoints(graphics, expectedPoints);
@@ -386,15 +386,15 @@ TEST_CASE("graphics class behaves as expected") {
 
         //quarter circle from 12 oclock to 3 oclock
         std::vector<coloredPoint> expectedPoints = {
-            {39, 36, 7},
-            {40, 36, 7},
-            {41, 36, 7},
-            {42, 37, 7},
-            {43, 37, 7},
-            {43, 38, 7},
-            {44, 39, 7},
-            {44, 40, 7},
-            {40, 40, 7},//center point
+            {39, 36, 6},
+            {40, 36, 6},
+            {41, 36, 6},
+            {42, 37, 6},
+            {43, 37, 6},
+            {43, 38, 6},
+            {44, 39, 6},
+            {44, 40, 6},
+            {40, 40, 6},//center point
         };
 
         checkPoints(graphics, expectedPoints);
@@ -1098,13 +1098,13 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->camera();
 
         std::vector<coloredPoint> expectedPoints = {
-            {100, 100, 7},
-            {101, 100, 7},
-            {102, 100, 7},
-            {101, 101, 7},
-            {101, 102, 7},
-            {101, 103, 7},
-            {101, 104, 7}
+            {100, 100, 6},
+            {101, 100, 6},
+            {102, 100, 6},
+            {101, 101, 6},
+            {101, 102, 6},
+            {101, 103, 6},
+            {101, 104, 6}
         };
 
         checkPoints(graphics, expectedPoints);
@@ -1326,10 +1326,10 @@ TEST_CASE("graphics class behaves as expected") {
             {100, 100, 0},
             {101, 100, 0},
             {102, 100, 0},
-            {101, 101, 7},
-            {101, 102, 7},
-            {101, 103, 7},
-            {101, 104, 7}
+            {101, 101, 6},
+            {101, 102, 6},
+            {101, 103, 6},
+            {101, 104, 6}
         };
 
         checkPoints(graphics, expectedPoints);

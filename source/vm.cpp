@@ -100,7 +100,7 @@ bool Vm::loadCart(Cart* cart) {
     _memory->Reset();
 
     //set graphics state
-    _graphics->color(7);
+    _graphics->color(6);
     _graphics->clip();
     _graphics->pal();
 
@@ -187,6 +187,10 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "memset", api_memset);
     lua_register(_luaState, "peek", peek);
     lua_register(_luaState, "poke", poke);
+    lua_register(_luaState, "peek2", peek2);
+    lua_register(_luaState, "poke2", poke2);
+    lua_register(_luaState, "peek4", peek4);
+    lua_register(_luaState, "poke4", poke4);
     lua_register(_luaState, "reload", reload);
 
     //stubbed in cart data
