@@ -81,18 +81,21 @@ class Vm {
 
     PicoRam* getPicoRam();
 
-    uint8_t ram_peek(int addr);
-    int16_t ram_peek2(int addr);
-    int32_t ram_peek4(int addr); //note: this should return a 32 bit fixed point number
+    uint8_t vm_peek(int addr);
+    int16_t vm_peek2(int addr);
+    int32_t vm_peek4(int addr); //note: this should return a 32 bit fixed point number
 
-    void ram_poke(int addr, uint8_t value);
-    void ram_poke2(int addr, int16_t value);
-    void ram_poke4(int addr, int32_t value); //note: this parameter should be a 32 bit fixed point number
+    void vm_poke(int addr, uint8_t value);
+    void vm_poke2(int addr, int16_t value);
+    void vm_poke4(int addr, int32_t value); //note: this parameter should be a 32 bit fixed point number
 
     void vm_cartdata(string key);
     int32_t vm_dget(uint8_t n);
     void vm_dset(uint8_t n, int32_t value); //note: this should return a 32 bit fixed point number
 
     void vm_reload(int destaddr, int sourceaddr, int len, string filename);
+
+    void vm_memset(int destaddr, uint8_t val, int len);
+    void vm_memcpy(int destaddr, int sourceaddr, int len);
 };
 

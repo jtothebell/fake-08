@@ -589,6 +589,8 @@ int sfx(lua_State *L) {
 
 //Memory
 int cstore(lua_State *L) {
+    //this is supposed to copy data from ram to the file.
+    //for now, not implementing this
     return noop("cstore");
 }
 

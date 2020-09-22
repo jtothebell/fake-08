@@ -418,7 +418,7 @@ bool Vm::ExecuteLua(string luaString, string callbackFunction){
 }
 
 
-uint8_t Vm::ram_peek(int addr){
+uint8_t Vm::vm_peek(int addr){
     if (addr < 0 || addr > 0x8000){
         return 0;
     }
@@ -426,7 +426,7 @@ uint8_t Vm::ram_peek(int addr){
     return _memory->data[addr];
 }
 
-int16_t Vm::ram_peek2(int addr){
+int16_t Vm::vm_peek2(int addr){
     //zepto8
     int16_t bits = 0;
     for (int i = 0; i < 2; ++i)
@@ -442,7 +442,7 @@ int16_t Vm::ram_peek2(int addr){
 }
 
 //note: this should return a 32 bit fixed point number
-int32_t Vm::ram_peek4(int addr){
+int32_t Vm::vm_peek4(int addr){
     //zepto8
     int32_t bits = 0;
     for (int i = 0; i < 4; ++i)
@@ -457,7 +457,7 @@ int32_t Vm::ram_peek4(int addr){
     return bits;
 } 
 
-void Vm::ram_poke(int addr, uint8_t value){
+void Vm::vm_poke(int addr, uint8_t value){
     //todo: check how pico 8 handles out of bounds
     if (addr < 0 || addr > 0x8000){
         return;
@@ -466,7 +466,7 @@ void Vm::ram_poke(int addr, uint8_t value){
     _memory->data[addr] = value;
 }
 
-void Vm::ram_poke2(int addr, int16_t value){
+void Vm::vm_poke2(int addr, int16_t value){
     if (addr < 0 || addr > 0x8000 - 1){
         return;
     }
@@ -476,7 +476,7 @@ void Vm::ram_poke2(int addr, int16_t value){
 
 }
 
-void Vm::ram_poke4(int addr, int32_t value){
+void Vm::vm_poke4(int addr, int32_t value){
     if (addr < 0 || addr > 0x8000 - 3){
         return;
     }
@@ -493,7 +493,7 @@ void Vm::vm_cartdata(string key) {
 
 int32_t Vm::vm_dget(uint8_t n) {
     if (_cartdataKey.length() > 0 && n < 64) {
-        return ram_peek4(0x5e00 + 4 * n);
+        return vm_peek4(0x5e00 + 4 * n);
     }
 
     return 0;
@@ -501,7 +501,7 @@ int32_t Vm::vm_dget(uint8_t n) {
 
 void Vm::vm_dset(uint8_t n, int32_t value){
     if (_cartdataKey.length() > 0 && n < 64) {
-        ram_poke4(0x5e00 + 4 * n, value);
+        vm_poke4(0x5e00 + 4 * n, value);
     }
 }
 
@@ -510,15 +510,15 @@ void Vm::vm_reload(int destaddr, int sourceaddr, int len, Cart* cart){
 }
 
 void Vm::vm_reload(int destaddr, int sourceaddr, int len, string filename){
-    if (destaddr < 0 || destaddr > 0x8000) {
+    if (destaddr < 0 || destaddr > (int)sizeof(PicoRam)) {
         //invalid dest address
         return;
     }
-    if (sourceaddr < 0 || sourceaddr > 0x4300) {
+    if (sourceaddr < 0 || sourceaddr > (int)sizeof(CartRomData)) {
         //invalid source address
         return;
     }
-    if (len < 0 || destaddr + len > 0x4300) {
+    if (len < 0 || destaddr + len > (int)sizeof(CartRomData)) {
         //invalid length address
         return;
     }
@@ -544,4 +544,23 @@ void Vm::vm_reload(int destaddr, int sourceaddr, int len, string filename){
     if (multicart) {
         delete cart;
     }
+}
+
+void Vm::vm_memset(int destaddr, uint8_t val, int len){
+    if (destaddr < 0 || destaddr + len > (int)sizeof(PicoRam)) {
+        return;
+    }
+
+    memset(&_memory->data[destaddr], val, len);
+
+}
+void Vm::vm_memcpy(int destaddr, int sourceaddr, int len){
+    if (sourceaddr < 0 || sourceaddr + len > (int)sizeof(PicoRam)) {
+        return;
+    }
+    if (destaddr < 0 || destaddr + len > (int)sizeof(PicoRam)) {
+        return;
+    }
+
+    memcpy(&_memory->data[destaddr], &_memory->data[sourceaddr], len);
 }
