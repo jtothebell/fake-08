@@ -45,7 +45,7 @@ Graphics::Graphics(std::string fontdata, PicoRam* memory) {
 	//set default clip
 	clip();
 	pal();
-	color(6);
+	color();
 }
 
 
@@ -408,6 +408,10 @@ uint8_t Graphics::pget(int x, int y){
 	}
 
 	return 0;
+}
+
+void Graphics::color(){
+	color(6);
 }
 
 void Graphics::color(uint8_t col){

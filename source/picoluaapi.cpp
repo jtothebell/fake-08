@@ -688,15 +688,30 @@ int reload(lua_State *L) {
 
 //cart data
 int cartdata(lua_State *L) {
-    return noop("cartdata");
+    const char * str = lua_tolstring(L, 1, nullptr);
+
+    _vmForLuaApi->vm_cartdata(str);
+
+    return 0;
 }
 
 int dget(lua_State *L) {
-    return noopreturns(L, "dget");
+    int addr = lua_tonumber(L,1);
+
+    int32_t val = _vmForLuaApi->vm_dget(addr);
+
+    lua_pushinteger(L, val);
+
+    return 1;
 }
 
 int dset(lua_State *L) {
-    return noop("dset");
+    int dest = lua_tonumber(L,1);
+    int val = lua_tonumber(L,2);
+
+    _vmForLuaApi->vm_dset(dest, (int32_t)val);
+
+    return 0;
 }
 
 int printh(lua_State *L) {

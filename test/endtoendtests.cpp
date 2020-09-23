@@ -151,6 +151,36 @@ TEST_CASE("Loading and running carts") {
 
         vm->CloseCart();
     }
+    SUBCASE("Memory function test cart"){
+        vm->LoadCart("carts/memorytest.p8");
+
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("sceen matches screenshot")
+        {
+            vm->UpdateAndDraw(0, 0);
+
+            CHECK(verifyScreenshot(vm, "carts/screenshots/memorytest_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
+    SUBCASE("Cart data function test cart"){
+        vm->LoadCart("carts/cartdatatest.p8");
+
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("sceen matches screenshot")
+        {
+            vm->UpdateAndDraw(0, 0);
+
+            CHECK(verifyScreenshot(vm, "carts/screenshots/cartdatatest_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
 
     delete vm;
 }

@@ -100,7 +100,7 @@ bool Vm::loadCart(Cart* cart) {
     _memory->Reset();
 
     //set graphics state
-    _graphics->color(6);
+    _graphics->color();
     _graphics->clip();
     _graphics->pal();
 

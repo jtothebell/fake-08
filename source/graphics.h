@@ -92,6 +92,7 @@ class Graphics {
 	void pset(int x, int y, uint8_t col);
 	uint8_t pget(int x, int y);
 
+	void color();
 	void color(uint8_t c);
 
 	void line ();
