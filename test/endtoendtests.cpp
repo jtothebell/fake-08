@@ -70,16 +70,14 @@ TEST_CASE("Loading and running carts") {
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
         }
-        SUBCASE("Frame count updated with each UpdateAndDrawCall()")
-        {
+        SUBCASE("Frame count updated with each UpdateAndDrawCall()"){
             vm->UpdateAndDraw(0, 0);
             vm->UpdateAndDraw(0, 0);
             vm->UpdateAndDraw(0, 0);
 
             CHECK(vm->GetFrameCount() == 3);
         }
-        SUBCASE("check lua state")
-        {
+        SUBCASE("check lua state"){
             bool globalVarLoaded = vm->ExecuteLua(
                 "function globalVarTest()\n"
                 " return a == 1\n"
@@ -97,8 +95,7 @@ TEST_CASE("Loading and running carts") {
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
         }
-        SUBCASE("sceen matches screenshot")
-        {
+        SUBCASE("sceen matches screenshot"){
             vm->UpdateAndDraw(0, 0);
 
             CHECK(verifyScreenshot(vm, "carts/screenshots/pset00-test_f01.png"));
@@ -112,8 +109,7 @@ TEST_CASE("Loading and running carts") {
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
         }
-        SUBCASE("sceen matches screenshot")
-        {
+        SUBCASE("sceen matches screenshot"){
             vm->UpdateAndDraw(0, 0);
 
             CHECK(verifyScreenshot(vm, "carts/screenshots/pset3pix_f01.png"));
@@ -127,8 +123,7 @@ TEST_CASE("Loading and running carts") {
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
         }
-        SUBCASE("sceen matches screenshot")
-        {
+        SUBCASE("sceen matches screenshot"){
             vm->UpdateAndDraw(0, 0);
 
             CHECK(verifyScreenshot(vm, "carts/screenshots/psetall_f01.png"));
@@ -142,8 +137,7 @@ TEST_CASE("Loading and running carts") {
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
         }
-        SUBCASE("sceen matches screenshot")
-        {
+        SUBCASE("sceen matches screenshot"){
             vm->UpdateAndDraw(0, 0);
 
             CHECK(verifyScreenshot(vm, "carts/screenshots/cliptest_f01.png"));
@@ -157,8 +151,7 @@ TEST_CASE("Loading and running carts") {
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
         }
-        SUBCASE("sceen matches screenshot")
-        {
+        SUBCASE("sceen matches screenshot"){
             vm->UpdateAndDraw(0, 0);
 
             CHECK(verifyScreenshot(vm, "carts/screenshots/memorytest_f01.png"));
@@ -172,12 +165,111 @@ TEST_CASE("Loading and running carts") {
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
         }
-        SUBCASE("sceen matches screenshot")
-        {
+        SUBCASE("sceen matches screenshot"){
             vm->UpdateAndDraw(0, 0);
 
             CHECK(verifyScreenshot(vm, "carts/screenshots/cartdatatest_f01.png"));
         }
+
+        vm->CloseCart();
+    }
+    SUBCASE("tonum test cart"){
+        vm->LoadCart("carts/tonumtest2.p8");
+
+        SUBCASE("can parse positive int"){
+            vm->UpdateAndDraw(0, 0);
+
+            bool parsedCorrectly = vm->ExecuteLua(
+                "function r1test()\n"
+                " return r1 == 12345\n"
+                "end\n",
+                "r1test");
+
+            CHECK(parsedCorrectly);
+        }
+        SUBCASE("can parse negative decimal") {
+            vm->UpdateAndDraw(0, 0);
+
+            bool parsedCorrectly = vm->ExecuteLua(
+                "function r2test()\n"
+                " return r2 == -12345.67\n"
+                "end\n",
+                "r2test");
+
+            CHECK(parsedCorrectly);
+        }
+        SUBCASE("can parse hex") {
+            vm->UpdateAndDraw(0, 0);
+
+            bool parsedCorrectly = vm->ExecuteLua(
+                "function r3test()\n"
+                " return r3 == 15\n"
+                "end\n",
+                "r3test");
+
+            CHECK(parsedCorrectly);
+        }
+        
+       SUBCASE("can parse binary literal") {
+            vm->UpdateAndDraw(0, 0);
+
+            bool parsedCorrectly = vm->ExecuteLua(
+                "function r5test()\n"
+                " return r5 == 9\n"
+                "end\n",
+                "r5test");
+
+            CHECK(parsedCorrectly);
+        }
+        SUBCASE("can parse large positive number") {
+            vm->UpdateAndDraw(0, 0);
+
+            bool parsedCorrectly = vm->ExecuteLua(
+                "function r6test()\n"
+                " return r6 == 32767\n"
+                "end\n",
+                "r6test");
+
+            CHECK(parsedCorrectly);
+        }
+        SUBCASE("unparseable string returns nil") {
+            vm->UpdateAndDraw(0, 0);
+
+            bool parsedCorrectly = vm->ExecuteLua(
+                "function r8test()\n"
+                " return r8 == nil\n"
+                "end\n",
+                "r8test");
+
+            CHECK(parsedCorrectly);
+        }
+        
+        //currently failing
+        SUBCASE("can parse hex with decimal") {
+            vm->UpdateAndDraw(0, 0);
+
+            bool parsedCorrectly = vm->ExecuteLua(
+                "function r4test()\n"
+                " return r4 == 15.6709\n"
+                "end\n",
+                "r4test");
+
+            
+            CHECK(parsedCorrectly);
+        }
+        /*
+        SUBCASE("too large int overflows") {
+            vm->UpdateAndDraw(0, 0);
+
+            bool parsedCorrectly = vm->ExecuteLua(
+                "function r7test()\n"
+                " return r7 == -32768\n"
+                "end\n",
+                "r7test");
+
+            CHECK(parsedCorrectly);
+        }
+        */
 
         vm->CloseCart();
     }
