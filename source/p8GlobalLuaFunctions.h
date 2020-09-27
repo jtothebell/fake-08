@@ -85,6 +85,33 @@ function tostr(val, hex)
 	end
 end
 
+function tonum(val)
+	--todo: fix these cases (real fix is fixed point support- might do a bandaid):
+	--tonum('99999')      -- -32768
+	--parse it, and clamp to pico 8 max value
+
+	local number = tonumber(val)
+	--limit to 4 decimal places to emulate fixed point for now
+	if string.match(val, "%.") then
+		return round(number, 4)
+	end
+
+	--if number >= 32768 then
+		--number = -32768
+	--end
+
+	return number
+end
+
+function round(x, decimals)
+	-- hacky band aid until true fixed point support 
+	-- https://steamcommunity.com/app/573090/discussions/0/1639792569839228614/
+    local n = 10^(decimals or 0)
+    x = x * n
+    if x >= 0 then x = math.floor(x + 0.5) else x = math.ceil(x - 0.5) end
+    return x / n
+end
+
 ---------------------------------
 --Debug
 ---------------------------------
