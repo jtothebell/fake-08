@@ -16,10 +16,11 @@ int main(int argc, char* argv[])
 {
 	Logger::Initialize();
 
-	Host *host = new Host();
-	host->oneTimeSetup();
-
 	Vm *vm = new Vm();
+
+	Host *host = new Host();
+	host->oneTimeSetup(vm->GetPaletteColors());
+	
 	Logger::Write("initialized Vm and host\n");
 
 	Logger::Write("Setting cart list on vm\n");
@@ -52,9 +53,8 @@ int main(int argc, char* argv[])
 
 		uint8_t* picoFb = vm->GetPicoInteralFb();
 		uint8_t* screenPaletteMap = vm->GetScreenPaletteMap();
-		Color* paletteColors = vm->GetPaletteColors();
 
-		host->drawFrame(picoFb, screenPaletteMap, paletteColors);
+		host->drawFrame(picoFb, screenPaletteMap);
 
 		if (host->shouldFillAudioBuff()) {
 			vm->FillAudioBuffer(host->getAudioBufferPointer(), 0, host->getAudioBufferSize());

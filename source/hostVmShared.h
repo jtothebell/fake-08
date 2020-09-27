@@ -21,3 +21,9 @@ struct Color {
 	uint8_t Blue;
 	uint8_t Alpha;
 };
+
+struct Bgr24Col {
+	uint8_t Blue;
+	uint8_t Green;
+	uint8_t Red;
+};

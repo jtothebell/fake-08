@@ -16,7 +16,7 @@ class Host {
     public:
     Host();
 
-    void oneTimeSetup();
+    void oneTimeSetup(Color* paletteColors);
 
     void setTargetFps(int targetFps);
 
@@ -32,7 +32,7 @@ class Host {
     
     void waitForTargetFps();
 
-    void drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, Color* paletteColors);
+    void drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap);
 
     bool shouldFillAudioBuff();
     void* getAudioBufferPointer();

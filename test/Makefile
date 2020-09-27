@@ -7,17 +7,18 @@ all: runtests
 
 
 testrunner.a: testroot.o \
-	fontdatatests.o graphicstests.o audiotests.o cartpatchertests.o \
+	fontdatatests.o nibblehelperstests.o graphicstests.o audiotests.o cartpatchertests.o \
 	carttests.o endtoendtests.o vmtests.o
 	g++ -I$(CURDIR)/include -L$(CURDIR)/lib \
 	testroot.o \
 	fontdata.o fontdatatests.o \
-	graphics.o graphicstests.o stringToDataHelpers.o nibblehelpers.o \
+	graphics.o graphicstests.o stringToDataHelpers.o \
 	Audio.o synth.o audiotests.o \
 	cartPatcher.o cartpatchertests.o \
 	cart.o carttests.o nooplogger.o lodepng.o emojiconversion.o filehelpers.o utf8-util.o \
 	vm.o endtoendtests.o picoluaapi.o Input.o \
 	vmtests.o \
+	nibblehelpers.o nibblehelperstests.o \
 	-llua -ldl \
 	-o testrunner.a
 
@@ -26,6 +27,9 @@ testroot.o: testroot.cpp doctest.h
 
 fontdatatests.o: fontdatatests.cpp ../source/fontdata.cpp ../source/fontdata.h
 	g++ $(CFLAGS) fontdatatests.cpp ../source/fontdata.cpp
+
+nibblehelperstests.o: nibblehelperstests.cpp ../source/nibblehelpers.cpp ../source/nibblehelpers.h
+	g++ $(CFLAGS) nibblehelperstests.cpp ../source/nibblehelpers.cpp
 
 graphicstests.o: fontdatatests.o graphicstests.cpp ../source/graphics.cpp ../source/graphics.h \
 	../source/fontdata.cpp ../source/fontdata.h \

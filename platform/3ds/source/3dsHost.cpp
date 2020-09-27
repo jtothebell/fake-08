@@ -15,6 +15,7 @@ namespace fs = std::filesystem;
 #include "../../../source/host.h"
 #include "../../../source/hostVmShared.h"
 #include "../../../source/nibblehelpers.h"
+#include "../../../source/PicoRam.h"
 
 #define SCREEN_WIDTH 400;
 #define SCREEN_HEIGHT 240;
@@ -36,8 +37,10 @@ const int __3ds_BottomScreenHeight = SCREEN_2_HEIGHT;
 const int PicoScreenWidth = 128;
 const int PicoScreenHeight = 128;
 
+const int PicoFbLength = 128 * 64;
 
-StretchOption stretch = StretchAndOverflow;
+
+StretchOption stretch = PixelPerfect;
 u64 last_time;
 u64 now_time;
 u64 frame_time;
@@ -45,6 +48,9 @@ double targetFrameTimeMs;
 
 u32 currKDown;
 u32 currKHeld;
+
+Color* _paletteColors;
+Bgr24Col _bgrColors[16];
 
 uint8_t ConvertInputToP8(u32 input){
 	uint8_t result = 0;
@@ -172,7 +178,7 @@ void audioSetup(){
 Host::Host() { }
 
 
-void Host::oneTimeSetup(){
+void Host::oneTimeSetup(Color* paletteColors){
     osSetSpeedupEnable(true);
 
     audioSetup();
@@ -183,6 +189,15 @@ void Host::oneTimeSetup(){
     now_time = 0;
     frame_time = 0;
     targetFrameTimeMs = 0;
+
+    _paletteColors = paletteColors;
+    for(int i = 0; i < 16; i++){
+        _bgrColors[i] = {
+            _paletteColors[i].Blue,
+            _paletteColors[i].Green,
+            _paletteColors[i].Red
+        };
+    }
 }
 
 void Host::oneTimeCleanup(){
@@ -251,7 +266,7 @@ void Host::waitForTargetFps(){
 }
 
 
-void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, Color* paletteColors){
+void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
     int bgcolor = 0;
 	uint8_t* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
 	//clear whole top framebuffer
@@ -267,17 +282,24 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, Color* paletteC
 	if (stretch == PixelPerfect) {
 		int xOffset = __3ds_TopScreenWidth / 2 - PicoScreenWidth / 2;
         int yOffset = __3ds_TopScreenHeight / 2 - PicoScreenHeight / 2;
-        //todo: test if it is faster to convert colors to uint24_ts and write one instead of 3 (assuming these are )
-        for(x = 0; x < 128; x++) {
+
+       for(x = 0; x < 64; x++) {
             for(y = 0; y < 128; y++) {
-                uint8_t c = getPixelNibble(x, y, picoFb);
-                Color col = paletteColors[screenPaletteMap[c]];
+                int x1 = x << 1;
+                int x2 = x1 + 1;
+                uint8_t lc = getPixelNibble(x1, y, picoFb);
+                Bgr24Col lcol = _bgrColors[screenPaletteMap[lc]];
 
-                int pixIdx = (((x + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y + yOffset)))*3;
+                int pixIdx = (((x1 + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y + yOffset)));
 
-                fb[pixIdx + 0] = col.Blue;
-                fb[pixIdx + 1] = col.Green;
-                fb[pixIdx + 2] = col.Red;
+                ((Bgr24Col*)fb)[pixIdx] = lcol;
+
+                uint8_t rc = getPixelNibble(x2, y, picoFb);
+                Bgr24Col rcol = _bgrColors[screenPaletteMap[rc]];
+
+                pixIdx = (((x2 + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y + yOffset)));
+
+                ((Bgr24Col*)fb)[pixIdx] = rcol;
             }
         }
 	}
@@ -293,7 +315,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, Color* paletteC
                 int picoX = (int)(x / ratio);
                 int picoY = (int)(y / ratio);
                 uint8_t c = getPixelNibble(picoX, picoY, picoFb);
-                Color col = paletteColors[screenPaletteMap[c]];
+                Color col = _paletteColors[screenPaletteMap[c]];
 
                 int pixIdx = (((x + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y + yOffset)))*3;
 
@@ -317,7 +339,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, Color* paletteC
                 int picoX = (int)(x / ratio);
                 int picoY = (int)(y / ratio);
                 uint8_t c = getPixelNibble(picoX, picoY, picoFb);
-                Color col = paletteColors[screenPaletteMap[c]];
+                Color col = _paletteColors[screenPaletteMap[c]];
 
                 int pixIdx = (((x + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y + yOffset)))*3;
 
@@ -337,7 +359,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, Color* paletteC
                 int picoX = (int)(x / ratio);
                 int picoY = (int)((y + __3ds_TopScreenHeight) / ratio);
                 uint8_t c = getPixelNibble(picoX, picoY, picoFb);
-                Color col = paletteColors[screenPaletteMap[c]];
+                Color col = _paletteColors[screenPaletteMap[c]];
 
                 int pixIdx = (((x + xOffset)*__3ds_BottomScreenHeight)+ ((__3ds_BottomScreenHeight - 1) - (y + yOffset)))*3;
 
