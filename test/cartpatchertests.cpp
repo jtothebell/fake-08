@@ -52,5 +52,14 @@ TEST_CASE("Cart Patcher/Preprocessor tests") {
 
         CHECK(patched == "x=0 while (x<5) do print(x) x = x + 1 end\n");
     }
+    SUBCASE("shorthand print statement converted"){
+        std::string patched = getPatchedLua("?x\n");
 
+        CHECK(patched == "print(x)\n");
+    }
+    SUBCASE("shorthand print statement with args converted"){
+        std::string patched = getPatchedLua("?thing, 65, 32,c\n");
+
+        CHECK(patched == "print(thing, 65, 32,c)\n");
+    }
 }
