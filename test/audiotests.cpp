@@ -7,12 +7,13 @@ TEST_CASE("audio class behaves as expected") {
     PicoRam picoRam;
     picoRam = {0};
     Audio* audio = new Audio(&picoRam);
+    audioState* audioState = audio->getAudioState();
 
     SUBCASE("Audio constructor sets sfx channels to -1") {
         bool allChannelsOff = true;
         
         for(int i = 0; i < 4; i++) {
-            allChannelsOff &= picoRam._sfxChannels[i].sfxId == -1;
+            allChannelsOff &= audioState->_sfxChannels[i].sfxId == -1;
         }
 
         CHECK(allChannelsOff);
@@ -22,7 +23,7 @@ TEST_CASE("audio class behaves as expected") {
         int sfxId = 3;
         audio->api_sfx(sfxId, channel, 0);
 
-        CHECK_EQ(picoRam._sfxChannels[0].sfxId, sfxId);
+        CHECK_EQ(audioState->_sfxChannels[0].sfxId, sfxId);
     }
     SUBCASE("api_sfx() with -1 channel finds first available") {
         audio->api_sfx(1, 0, 0);
@@ -30,26 +31,26 @@ TEST_CASE("audio class behaves as expected") {
         audio->api_sfx(5, -1, 0);
 
 
-        CHECK_EQ(picoRam._sfxChannels[2].sfxId, 5);
+        CHECK_EQ(audioState->_sfxChannels[2].sfxId, 5);
     }
     SUBCASE("api_sfx() -2 sfx id stops looping") {
-        picoRam._sfxChannels[3].can_loop = true;
+        audioState->_sfxChannels[3].can_loop = true;
 
         audio->api_sfx(-2, 3, 0);
 
-        CHECK_EQ(picoRam._sfxChannels[3].can_loop, false);
+        CHECK_EQ(audioState->_sfxChannels[3].can_loop, false);
     }
     SUBCASE("api_sfx() -2 sfx id stops looping") {
-        picoRam._sfxChannels[3].can_loop = true;
+        audioState->_sfxChannels[3].can_loop = true;
 
         audio->api_sfx(-2, 3, 0);
 
-        CHECK_EQ(picoRam._sfxChannels[3].can_loop, false);
+        CHECK_EQ(audioState->_sfxChannels[3].can_loop, false);
     }
     SUBCASE("api_music sets music pattern"){
         audio->api_music(14, 0, 0);
 
-        CHECK_EQ(picoRam._musicChannel.pattern, 14);
+        CHECK_EQ(audioState->_musicChannel.pattern, 14);
     }
 
 }

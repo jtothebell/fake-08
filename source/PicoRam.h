@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstring> 
 #include <string>
 
 /*
@@ -91,42 +92,121 @@ struct sfxChannel {
     float prev_vol = 0;
 };
 
+struct audioState {
+    musicChannel _musicChannel;
+    sfxChannel _sfxChannels[4];
+};
+
+struct drawState_t {
+    uint8_t drawPaletteMap[16];
+	uint8_t screenPaletteMap[16];
+
+    uint8_t clip_xb;
+	uint8_t clip_yb;
+	uint8_t clip_xe;
+	uint8_t clip_ye;
+
+    uint8_t unknown05f24;
+
+    uint8_t color;
+
+    uint8_t text_x;
+	uint8_t text_y;
+
+    int16_t camera_x;
+	int16_t camera_y;
+
+    uint8_t drawMode;
+
+    uint8_t devkitMode;
+
+    uint8_t persistPalette;
+
+    uint8_t soundPauseState;
+
+    uint8_t suppressPause;
+
+    uint8_t fillPattern[2];
+
+    uint8_t fillPatternTransparencyBit;
+
+    uint8_t colorSettingFlag;
+
+    uint8_t lineInvalid;
+
+    uint8_t unknown05f36;
+    uint8_t unknown05f37;
+
+    uint8_t tlineMapWidth;
+    uint8_t tlineMapHeight;
+    uint8_t tlineMapXOffset;
+    uint8_t tlineMapYOffset;
+
+    int16_t line_x;
+    int16_t line_y;
+};
+
+
+struct hwState_t {
+    uint8_t audioHardwareState[4];
+
+    uint8_t rngState[8];
+
+    uint8_t buttonStates[8];
+
+    uint8_t unknownInputBlock[8];
+
+    uint8_t btnpRepeatDelay;
+
+    uint8_t btnpRepeatInterval;
+
+    uint8_t colorBitmask;
+
+    uint8_t alternatePaletteFlag;
+
+    uint8_t alternatePaletteMap[16];
+
+    uint8_t alternatePaletteScreenLineBitfield[16];
+
+    uint8_t gpioPins[128];
+
+};
+
+
 
 struct PicoRam
 {
-    uint8_t spriteSheetData[128 * 64];
-	uint8_t mapData[128 * 32];
-	uint8_t spriteFlags[256];
+    void Reset() {
+        memset(data, 0, 0x8000);
+    }
+    
+    union
+    {
+        struct 
+        {
+            //0x0     0x0fff    Sprite sheet (0-127)
+            //0x1000  0x1fff    Sprite sheet (128-255) / Map (rows 32-63) (shared) 
+            uint8_t spriteSheetData[128 * 64];
+            //0x2000  0x2fff    Map (rows 0-31) 
+            uint8_t mapData[128 * 32];
+            //0x3000  0x30ff    Sprite flags 
+            uint8_t spriteFlags[256];
+            //0x3100  0x31ff    Music
+            struct song songs[64];
+            //0x3200  0x42ff    Sound effects
+            struct sfx sfx[64];
+            //0x4300  0x5dff    General use (or work RAM)
+            uint8_t generalUseRam[6912];
+            //0x5e00  0x5eff    Persistent cart data (64 numbers = 256 bytes)
+            uint8_t cartData[256];
+            
+            drawState_t drawState;
 
-    struct song songs[64];
+            hwState_t hwState;
 
-    struct sfx sfx[64];
+            uint8_t screenBuffer[128 * 64];
+        };
 
-    musicChannel _musicChannel;
-    sfxChannel _sfxChannels[4];
-	
-
-	uint8_t _gfxState_color;
-    uint8_t _gfxState_bgColor;
-
-    int _gfxState_text_x;
-	int _gfxState_text_y;
-
-	int _gfxState_camera_x;
-	int _gfxState_camera_y;
-
-	int _gfxState_clip_xb;
-	int _gfxState_clip_yb;
-	int _gfxState_clip_xe;
-	int _gfxState_clip_ye;
-
-	uint8_t _gfxState_drawPaletteMap[16];
-	uint8_t _gfxState_screenPaletteMap[16];
-	bool _gfxState_transparencyPalette[16];
-
-	//not actually part of graphics state memory?
-	int _gfxState_line_x;
-	int _gfxState_line_y;
-	bool _gfxState_line_valid;
-
+        uint8_t data[0x8000];
+    };
 };

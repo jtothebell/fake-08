@@ -76,6 +76,7 @@ note is encoded in 16 bits, LSB first, like so:
 
 class Audio {
     PicoRam* _memory;
+    audioState _audioState;
 
     int16_t getSampleForChannel(int channel);
 
@@ -83,6 +84,9 @@ class Audio {
     
     public:
     Audio(PicoRam* memory);
+
+    void resetAudioState();
+    audioState* getAudioState();
 
     void api_sfx(int sfx, int channel, int offset);
     void api_music(int pattern, int16_t fade_len, int16_t mask);

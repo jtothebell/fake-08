@@ -7,8 +7,8 @@ all: runtests
 
 
 testrunner.a: testroot.o \
-	fontdatatests.o graphicstests.o audiotests.o cartpatchertests.o \
-	carttests.o endtoendtests.o
+	fontdatatests.o nibblehelperstests.o graphicstests.o audiotests.o cartpatchertests.o \
+	carttests.o endtoendtests.o vmtests.o
 	g++ -I$(CURDIR)/include -L$(CURDIR)/lib \
 	testroot.o \
 	fontdata.o fontdatatests.o \
@@ -17,6 +17,8 @@ testrunner.a: testroot.o \
 	cartPatcher.o cartpatchertests.o \
 	cart.o carttests.o nooplogger.o lodepng.o emojiconversion.o filehelpers.o utf8-util.o \
 	vm.o endtoendtests.o picoluaapi.o Input.o \
+	vmtests.o \
+	nibblehelpers.o nibblehelperstests.o \
 	-llua -ldl \
 	-o testrunner.a
 
@@ -26,11 +28,16 @@ testroot.o: testroot.cpp doctest.h
 fontdatatests.o: fontdatatests.cpp ../source/fontdata.cpp ../source/fontdata.h
 	g++ $(CFLAGS) fontdatatests.cpp ../source/fontdata.cpp
 
+nibblehelperstests.o: nibblehelperstests.cpp ../source/nibblehelpers.cpp ../source/nibblehelpers.h
+	g++ $(CFLAGS) nibblehelperstests.cpp ../source/nibblehelpers.cpp
+
 graphicstests.o: fontdatatests.o graphicstests.cpp ../source/graphics.cpp ../source/graphics.h \
 	../source/fontdata.cpp ../source/fontdata.h \
 	../source/PicoRam.h ../source/hostVmShared.h \
-	../source/stringToDataHelpers.h ../source/stringToDataHelpers.cpp
-	g++ $(CFLAGS) graphicstests.cpp ../source/graphics.cpp ../source/stringToDataHelpers.cpp
+	../source/stringToDataHelpers.h ../source/stringToDataHelpers.cpp \
+	../source/nibblehelpers.h ../source/nibblehelpers.cpp
+	g++ $(CFLAGS) graphicstests.cpp ../source/graphics.cpp \
+		../source/stringToDataHelpers.cpp ../source/nibblehelpers.cpp
 
 audiotests.o: audiotests.cpp ../source/Audio.cpp ../source/Audio.h \
 	../source/synth.cpp ../source/synth.h \
@@ -72,6 +79,11 @@ endtoendtests.o: cartpatchertests.o carttests.o graphicstests.o audiotests.o \
 	../source/picoluaapi.cpp ../source/picoluaapi.h
 	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \
 	endtoendtests.cpp ../source/vm.cpp  ../source/picoluaapi.cpp ../source/Input.cpp
+
+vmtests.o: endtoendtests.o \
+	vmtests.cpp
+	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \
+	vmtests.cpp ../source/vm.cpp  ../source/picoluaapi.cpp ../source/Input.cpp
 	
 
 
@@ -79,7 +91,8 @@ runtests: testrunner.a
 	./testrunner.a
 
 clean:
-	-rm -f testrunner.a *.o
+	-rm -f testrunner.a *.o && \
+	cd ../libs/lua-5.3.2 && make clean
 
 echo:
 	@echo "CURDIR= $(CURDIR)"

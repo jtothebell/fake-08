@@ -21,26 +21,45 @@ extern "C" {
   #include <lauxlib.h>
 }
 
-Vm::Vm(){
-    Logger::Write("getting font string\n");
-    auto fontdata = get_font_data();
-
-    _memory = {0};
+Vm::Vm(
+    PicoRam* memory,
+    Graphics* graphics,
+    Input* input,
+    Audio* audio) :
+        _loadedCart(nullptr),
+        _luaState(nullptr),
+        _cleanupDeps(false),
+        _targetFps(30),
+        _picoFrameCount(0),
+        _hasUpdate(false),
+        _hasDraw(false),
+        _cartChangeQueued(false),
+        _nextCartKey(""),
+        _cartLoadError(""),
+        _cartdataKey("")
+{
+    if (memory == nullptr) {
+        memory = new PicoRam();
+        _cleanupDeps = true;
+    }
+    _memory = memory;
     
-
-    Logger::Write("Creating Graphics object\n");
-    Graphics* graphics = new Graphics(fontdata, &_memory);
+    if (graphics == nullptr) {
+        graphics = new Graphics(get_font_data(), _memory);
+        _cleanupDeps = true;
+    }
     _graphics = graphics;
 
-    _memory._gfxState_color = 7;
-    _graphics->clip();
-    _graphics->pal();
-
-    Logger::Write("Creating Input object\n");
-    Input* input = new Input();
+    if (input == nullptr){
+        input = new Input(memory);
+        _cleanupDeps = true;
+    }
     _input = input;
 
-    Audio* audio = new Audio(&_memory);
+    if (audio == nullptr) {
+        audio = new Audio(_memory);
+        _cleanupDeps = true;
+    }
     _audio = audio;
 
     //this can probably go away when I'm loading actual carts and just have to expose api to lua
@@ -48,24 +67,40 @@ Vm::Vm(){
     initPicoApi(_graphics, _input, this, _audio);
     //initGlobalApi(_graphics);
 
-    _targetFps = 30;
 }
 
 Vm::~Vm(){
     CloseCart();
 
-    delete _graphics;
-    delete _input;
-    delete _audio;
+    if (_cleanupDeps){
+        if (_input != nullptr) {
+            delete _input;
+        }
+        if (_graphics != nullptr) {
+            delete _graphics;
+        }
+        if (_audio != nullptr) {
+            delete _audio;
+        }
+        if (_memory != nullptr) {
+            delete _memory;
+        }
+    }
+}
+
+PicoRam* Vm::getPicoRam(){
+    return _memory;
 }
 
 bool Vm::loadCart(Cart* cart) {
     _picoFrameCount = 0;
+    _cartdataKey = "";
 
     //reset memory (may have to be more selective about zeroing out to be accurate?)
-    _memory = {0};
+    _memory->Reset();
+
     //set graphics state
-    _memory._gfxState_color = 7;
+    _graphics->color();
     _graphics->clip();
     _graphics->pal();
 
@@ -79,29 +114,10 @@ bool Vm::loadCart(Cart* cart) {
     }
 
     //reset audio
-    for(int i = 0; i < 4; i++) {
-        _memory._sfxChannels[i].sfxId = -1;
-    }
-    _memory._musicChannel.pattern = -1;
+    _audio->resetAudioState();
 
     //copy data from cart rom to ram
-    for(size_t i = 0; i < sizeof(_memory.spriteSheetData); i++) {
-        _memory.spriteSheetData[i] = cart->SpriteSheetData[i];
-    }
-    for(size_t i = 0; i < sizeof(_memory.spriteFlags); i++) {
-        _memory.spriteFlags[i] = cart->SpriteFlagsData[i];
-    }
-    for(size_t i = 0; i < sizeof(_memory.mapData); i++) {
-        _memory.mapData[i] = cart->MapData[i];
-    }
-
-    for(size_t i = 0; i < 64; i++) {
-        _memory.sfx[i] = cart->SfxData[i];
-    }
-
-    for(size_t i = 0; i < 64; i++) {
-        _memory.songs[i] = cart->SongData[i];
-    }
+    vm_reload(0, 0, sizeof(cart->CartRom), cart);
 
     // initialize Lua interpreter
     _luaState = luaL_newstate();
@@ -171,6 +187,10 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "memset", api_memset);
     lua_register(_luaState, "peek", peek);
     lua_register(_luaState, "poke", poke);
+    lua_register(_luaState, "peek2", peek2);
+    lua_register(_luaState, "poke2", poke2);
+    lua_register(_luaState, "peek4", peek4);
+    lua_register(_luaState, "poke4", poke4);
     lua_register(_luaState, "reload", reload);
 
     //stubbed in cart data
@@ -399,4 +419,152 @@ bool Vm::ExecuteLua(string luaString, string callbackFunction){
     }
 
     return true;
+}
+
+
+uint8_t Vm::vm_peek(int addr){
+    if (addr < 0 || addr > 0x8000){
+        return 0;
+    }
+
+    return _memory->data[addr];
+}
+
+int16_t Vm::vm_peek2(int addr){
+    //zepto8
+    int16_t bits = 0;
+    for (int i = 0; i < 2; ++i)
+    {
+        /* This code handles partial reads by adding zeroes */
+        if (addr + i < 0x8000)
+            bits |= _memory->data[addr + i] << (8 * i);
+        else if (addr + i >= 0x8000)
+            bits |= _memory->data[addr + i - 0x8000] << (8 * i);
+    }
+
+    return bits;
+}
+
+//note: this should return a 32 bit fixed point number
+int32_t Vm::vm_peek4(int addr){
+    //zepto8
+    int32_t bits = 0;
+    for (int i = 0; i < 4; ++i)
+    {
+        /* This code handles partial reads by adding zeroes */
+        if (addr + i < 0x8000)
+            bits |= _memory->data[addr + i] << (8 * i);
+        else if (addr + i >= 0x8000)
+            bits |= _memory->data[addr + i - 0x8000] << (8 * i);
+    }
+
+    return bits;
+} 
+
+void Vm::vm_poke(int addr, uint8_t value){
+    //todo: check how pico 8 handles out of bounds
+    if (addr < 0 || addr > 0x8000){
+        return;
+    }
+    
+    _memory->data[addr] = value;
+}
+
+void Vm::vm_poke2(int addr, int16_t value){
+    if (addr < 0 || addr > 0x8000 - 1){
+        return;
+    }
+
+    _memory->data[addr] = (uint8_t)value;
+    _memory->data[addr + 1] = (uint8_t)(value >> 8);
+
+}
+
+void Vm::vm_poke4(int addr, int32_t value){
+    if (addr < 0 || addr > 0x8000 - 3){
+        return;
+    }
+
+    _memory->data[addr + 0] = (uint8_t)value;
+    _memory->data[addr + 1] = (uint8_t)(value >> 8);
+    _memory->data[addr + 2] = (uint8_t)(value >> 16);
+    _memory->data[addr + 3] = (uint8_t)(value >> 24);
+}
+
+void Vm::vm_cartdata(string key) {
+    _cartdataKey = key;
+}
+
+int32_t Vm::vm_dget(uint8_t n) {
+    if (_cartdataKey.length() > 0 && n < 64) {
+        return vm_peek4(0x5e00 + 4 * n);
+    }
+
+    return 0;
+}
+
+void Vm::vm_dset(uint8_t n, int32_t value){
+    if (_cartdataKey.length() > 0 && n < 64) {
+        vm_poke4(0x5e00 + 4 * n, value);
+    }
+}
+
+void Vm::vm_reload(int destaddr, int sourceaddr, int len, Cart* cart){
+    memcpy(&_memory->data[destaddr], &cart->CartRom.data[sourceaddr], sizeof(cart->CartRom));
+}
+
+void Vm::vm_reload(int destaddr, int sourceaddr, int len, string filename){
+    if (destaddr < 0 || destaddr > (int)sizeof(PicoRam)) {
+        //invalid dest address
+        return;
+    }
+    if (sourceaddr < 0 || sourceaddr > (int)sizeof(CartRomData)) {
+        //invalid source address
+        return;
+    }
+    if (len < 0 || destaddr + len > (int)sizeof(CartRomData)) {
+        //invalid length address
+        return;
+    }
+
+    Cart* cart = _loadedCart;
+    bool multicart = false;
+
+    if (filename.length() > 0) {
+        cart = new Cart(filename);
+        if (cart->LoadError.length() > 0) {
+            //error, can't load cart
+            //todo: see what kind of error pico 8 throws, emulate
+            delete cart;
+
+            return;
+        }
+
+        multicart = true;
+    }
+
+    vm_reload(destaddr, sourceaddr, len, cart);
+
+    if (multicart) {
+        delete cart;
+    }
+}
+
+void Vm::vm_memset(int destaddr, uint8_t val, int len){
+    if (destaddr < 0 || destaddr + len > (int)sizeof(PicoRam)) {
+        return;
+    }
+
+    memset(&_memory->data[destaddr], val, len);
+
+}
+void Vm::vm_memcpy(int destaddr, int sourceaddr, int len){
+    if (sourceaddr < 0 || sourceaddr + len > (int)sizeof(PicoRam)) {
+        return;
+    }
+    if (destaddr < 0 || destaddr + len > (int)sizeof(PicoRam)) {
+        return;
+    }
+
+    memcpy(&_memory->data[destaddr], &_memory->data[sourceaddr], len);
 }

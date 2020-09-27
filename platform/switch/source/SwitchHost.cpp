@@ -12,6 +12,7 @@ namespace fs = std::filesystem;
 
 #include "../../../source/host.h"
 #include "../../../source/hostVmShared.h"
+#include "../../../source/nibblehelpers.h"
 
 #define FB_WIDTH  1280
 #define FB_HEIGHT 720
@@ -37,6 +38,8 @@ u32 currKDown;
 u32 currKHeld;
 
 Framebuffer fb;
+
+Color* _paletteColors;
 
 uint8_t ConvertInputToP8(u32 input){
 	uint8_t result = 0;
@@ -166,7 +169,7 @@ void audioSetup(){
 Host::Host() { }
 
 
-void Host::oneTimeSetup(){
+void Host::oneTimeSetup(Color* paletteColors){
 
     audioSetup();
 
@@ -179,6 +182,8 @@ void Host::oneTimeSetup(){
     now_time = 0;
     frame_time = 0;
     targetFrameTimeMs = 0;
+
+    _paletteColors = paletteColors;
 }
 
 void Host::oneTimeCleanup(){
@@ -247,7 +252,7 @@ void Host::waitForTargetFps(){
 }
 
 
-void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, Color* paletteColors){
+void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
 	u32 stride;
     u32* framebuf = (u32*) framebufferBegin(&fb, &stride);
 
@@ -274,9 +279,9 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, Color* paletteC
         {
             int picoX = (int)(x / ratio);
             int picoY = (int)(y / ratio);
-            uint8_t c = picoFb[picoX*128 + picoY];
+            uint8_t c = getPixelNibble(picoX, picoY, picoFb);
             //uint8_t c = picoFb[x*128 + y];
-            Color col = paletteColors[screenPaletteMap[c]];
+            Color col = _paletteColors[screenPaletteMap[c]];
 
             u32 pos = (yOffset + y) * stride / sizeof(u32) + (xOffset + x);
             framebuf[pos] = RGBA8_MAXALPHA(col.Red, col.Green, col.Blue);

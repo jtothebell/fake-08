@@ -73,6 +73,10 @@ int api_memcpy(lua_State *L);
 int api_memset(lua_State *L);
 int peek(lua_State *L);
 int poke(lua_State *L);
+int peek2(lua_State *L);
+int poke2(lua_State *L);
+int peek4(lua_State *L);
+int poke4(lua_State *L);
 int reload(lua_State *L);
 
 //cart data
