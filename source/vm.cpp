@@ -177,11 +177,11 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "time", time);
     lua_register(_luaState, "t", time);
 
-    //stubbed in audio:
+    //audio:
     lua_register(_luaState, "music", music);
     lua_register(_luaState, "sfx", sfx);
 
-    //stubbed in memory
+    //memory
     lua_register(_luaState, "cstore", cstore);
     lua_register(_luaState, "memcpy", api_memcpy);
     lua_register(_luaState, "memset", api_memset);
@@ -193,13 +193,14 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "poke4", poke4);
     lua_register(_luaState, "reload", reload);
 
-    //stubbed in cart data
+    //cart data
     lua_register(_luaState, "cartdata", cartdata);
     lua_register(_luaState, "dget", dget);
     lua_register(_luaState, "dset", dset);
 
     //
     lua_register(_luaState, "printh", printh);
+    lua_register(_luaState, "stat", stat);
 
     //system
     lua_register(_luaState, "__listcarts", listcarts);
