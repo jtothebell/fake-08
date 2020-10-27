@@ -8,11 +8,11 @@ using namespace std;
 #include "Input.h"
 #include "Audio.h"
 
-extern "C" {
+//extern "C" {
   #include <lua.h>
   #include <lualib.h>
   #include <lauxlib.h>
-}
+//}
 
 class Vm {
     PicoRam* _memory;

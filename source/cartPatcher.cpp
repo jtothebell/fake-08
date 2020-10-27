@@ -2,11 +2,11 @@
 
 #include "cartPatcher.h"
 
-extern "C" {
+//extern "C" {
   #include <lua.h>
   #include <lualib.h>
   #include <lauxlib.h>
-}
+//}
 
 //from https://github.com/benwiley4000/pico8-to-lua, which was in turn adapted from LovePotion: 
 //https://github.com/gamax92/picolove/blob/master/cart.lua (zlib license)

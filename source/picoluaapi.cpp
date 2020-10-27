@@ -9,11 +9,11 @@ using namespace std;
 #include "vm.h"
 #include "logger.h"
 
-extern "C" {
+//extern "C" {
   #include <lua.h>
   #include <lualib.h>
   #include <lauxlib.h>
-}
+//}
 
 Graphics* _graphicsForLuaApi;
 Input* _inputForLuaApi;

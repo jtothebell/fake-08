@@ -11,31 +11,29 @@ jobs:
     name: 3DS
     runs-on: ubuntu-latest
 
-    container:
-      image: docker://devkitpro/devkitarm
-      options: --cpus 2
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          submodules : recursive
 
       - name: Build
-        run: make 3ds
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir devkitpro/devkitarm /bin/bash -ex /build_dir/.github/workflows/build3ds.sh
 
   second:
     name: Switch
     runs-on: ubuntu-latest
 
-    container:
-      image: docker://devkitpro/devkita64
-      options: --cpus 2
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          submodules : recursive
 
       - name: Build
-        run: make switch
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir devkitpro/devkita64 /bin/bash -ex /build_dir/.github/workflows/buildSwitch.sh
 
   third:
     name: Tests
@@ -44,6 +42,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          submodules : recursive
 
       - name: Build
         run: make tests

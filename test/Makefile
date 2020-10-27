@@ -50,16 +50,17 @@ cartpatchertests.o: liblua.a cartpatchertests.cpp ../source/cartPatcher.cpp ../s
 	
 liblua.a: 
 	@echo 'starting lua build\n' &&\
-	cd ../libs/lua-5.3.2 && make linux && \
+	cd ../libs/z8lua && make a && \
 	cd ../../test && \
 	mkdir -p lib && \
 	mkdir -p include && \
-	cp ../libs/lua-5.3.2/src/liblua.a lib/liblua.a && \
-	cp ../libs/lua-5.3.2/src/lua.h include/lua.h && \
-	cp ../libs/lua-5.3.2/src/luaconf.h include/luaconf.h && \
-	cp ../libs/lua-5.3.2/src/lualib.h include/lualib.h && \
-	cp ../libs/lua-5.3.2/src/lauxlib.h include/lauxlib.h 
-#make lua (cd ../libs/lua-5.3.2/src make linux, cp liblua.a, lua.h luaconf.h lualib.h lauxlib.h
+	cp ../libs/z8lua/liblua.a lib/liblua.a && \
+	cp ../libs/z8lua/lua.h include/lua.h && \
+	cp ../libs/z8lua/luaconf.h include/luaconf.h && \
+	cp ../libs/z8lua/lualib.h include/lualib.h && \
+	cp ../libs/z8lua/lauxlib.h include/lauxlib.h && \
+	cp ../libs/z8lua/fix32.h include/fix32.h 
+#make lua (cd ../libs/z8lua make linux, cp liblua.a, lua.h luaconf.h lualib.h lauxlib.h
 
 carttests.o: carttests.cpp ../source/cart.cpp ../source/cart.h \
 	../libs/lodepng/lodepng.cpp ../libs/lodepng/lodepng.h \
@@ -92,7 +93,9 @@ runtests: testrunner.a
 
 clean:
 	-rm -f testrunner.a *.o && \
-	cd ../libs/lua-5.3.2 && make clean
+	rm -rf lib && \
+	rm -rf include && \
+	cd ../libs/z8lua && make clean
 
 echo:
 	@echo "CURDIR= $(CURDIR)"

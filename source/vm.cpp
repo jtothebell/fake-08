@@ -15,11 +15,11 @@
 #include "hostVmShared.h"
 #include "emojiconversion.h"
 
-extern "C" {
+//extern "C" {
   #include <lua.h>
   #include <lualib.h>
   #include <lauxlib.h>
-}
+//}
 
 Vm::Vm(
     PicoRam* memory,
