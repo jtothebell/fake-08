@@ -222,6 +222,11 @@ end
 ⬇️ = 3
 🅾️ = 4
 ❎ = 5
+
+function menuitem()
+--noop placeholder for now
+end
+
 )#";
 
 
