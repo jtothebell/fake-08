@@ -723,6 +723,29 @@ int printh(lua_State *L) {
     return 0;
 }
 
+int rnd(lua_State *L) {
+    if (lua_gettop(L) == 0) {
+        fix32 val = _vmForLuaApi->api_rnd();
+
+        lua_pushnumber(L, val);
+    }
+    else {
+        fix32 range = lua_tonumber(L,1);
+        fix32 val = _vmForLuaApi->api_rnd(range);
+
+        lua_pushnumber(L, val);
+    }
+
+    return 1;
+}
+
+int srand(lua_State *L) {
+    fix32 seed = lua_tonumber(L,1);
+    _vmForLuaApi->api_srand(seed);
+
+    return 0;
+}
+
 int listcarts(lua_State *L) {
     //get cart list from VM (who should get it from host)
     vector<string> carts = _vmForLuaApi->GetCartList();

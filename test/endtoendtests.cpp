@@ -1,5 +1,7 @@
 #include <string>
 #include <vector>
+#include <sstream>
+#include <algorithm>
 
 #include "doctest.h"
 #include "../libs/lodepng/lodepng.h"
@@ -273,6 +275,148 @@ TEST_CASE("Loading and running carts") {
 
         vm->CloseCart();
     }
+    SUBCASE("Simple Arithmetic Cart"){
+        vm->LoadCart("carts/arithmetictest.p8");
 
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("addition works"){
+            vm->UpdateAndDraw(0, 0);
+
+            bool additionWorks = vm->ExecuteLua(
+                "function additiontest()\n"
+                " return frames == 1\n"
+                "end\n",
+                "additiontest");
+
+            CHECK(additionWorks);
+        }
+        SUBCASE("multiplication works"){
+            vm->UpdateAndDraw(0, 0);
+
+            bool multiplicationWorks = vm->ExecuteLua(
+                "function multiplicationtest()\n"
+                " return result == 10\n"
+                "end\n",
+                "multiplicationtest");
+
+            CHECK(multiplicationWorks);
+        }
+        SUBCASE("division works"){
+            vm->UpdateAndDraw(0, 0);
+
+            bool divisionWorks = vm->ExecuteLua(
+                "function divisiontest()\n"
+                " return result2 == 0.2\n"
+                "end\n",
+                "divisiontest");
+
+            CHECK(divisionWorks);
+        }
+        SUBCASE("subtraction works"){
+            vm->UpdateAndDraw(0, 0);
+
+            bool subtractionWorks = vm->ExecuteLua(
+                "function subtractiontest()\n"
+                " return result3 == 3.6\n"
+                "end\n",
+                "subtractiontest");
+
+            CHECK(subtractionWorks);
+        }
+        SUBCASE("rnd returns between 0 and 1, and can add"){
+            vm->UpdateAndDraw(0, 0);
+
+            bool rndWorks = vm->ExecuteLua(
+                "function rndtest()\n"
+                " return result4 > 0 and result4 < 1\n"
+                "end\n",
+                "rndtest");
+
+            CHECK(rndWorks);
+        }
+        SUBCASE("rnd returns between 0 and 1 without calling srand first"){
+            vm->UpdateAndDraw(0, 0);
+
+            bool rndWorks = vm->ExecuteLua(
+                "function firstrndtest()\n"
+                " return firstrand > 0 and firstrand < 1\n"
+                "end\n",
+                "firstrndtest");
+
+            CHECK(rndWorks);
+        }
+        SUBCASE("# returns count of array"){
+            vm->UpdateAndDraw(0, 0);
+
+            bool rndWorks = vm->ExecuteLua(
+                "function counttest()\n"
+                " return tblcount == 4\n"
+                "end\n",
+                "counttest");
+
+            CHECK(rndWorks);
+        }
+        SUBCASE("ceil works"){
+            vm->UpdateAndDraw(0, 0);
+
+            bool ceilWorks = vm->ExecuteLua(
+                "function ceiltest()\n"
+                " return ceilcount == 1\n"
+                "end\n",
+                "ceiltest");
+
+            CHECK(ceilWorks);
+        }
+
+        vm->CloseCart();
+    }
+
+    SUBCASE("api loaded with cart load") {
+
+        vm->LoadCart("carts/cartparsetest.p8");
+
+        SUBCASE("all api functions exist"){
+            vector<string> apiFunctions {
+                "time", "t", "sub", "chr", "ord", "tostr", "tonum", 
+                "add", "del", "deli", "clip", "color", "pal", "palt",
+                "fillp", "pget", "pset", "sget", "sset", "fget", 
+                "fset", "circ", "circfill", "rect", "rectfill", "oval",
+                "ovalfill", "line", "spr", "sspr", "mget", "mset", 
+                "tline", "peek", "poke", "peek2", "poke2", "peek4",
+                "poke4", "memcpy", "memset", "max", "min", "mid", "flr", 
+                "ceil", "cos", "sin", "atan2", "rnd", "srand", "band",
+                "bor", "bxor", "bnot", "shl", "shr", "lshr", "rotl", "rotr"
+            };
+
+            vector<string> expectedMissing {
+                "oval", "ovalfill", "tline"
+            };
+
+            string missing = "";
+            
+            for (auto apiFunction : apiFunctions) {
+                if (std::find(expectedMissing.begin(), expectedMissing.end(), apiFunction) != expectedMissing.end())
+                {
+                    continue;
+                }
+
+                std::stringstream ss;
+                ss << "function globalfunctest()\n  return " << apiFunction << " ~= nil\n  end\n";
+
+                bool functionExists = vm->ExecuteLua(ss.str(), "globalfunctest");
+
+                if (!functionExists) {
+                    missing = missing + ", " + apiFunction;
+                }
+            }
+
+            CHECK_MESSAGE(missing.length() == 0, missing);
+        }
+
+        vm->CloseCart();
+    }
+    
     delete vm;
 }

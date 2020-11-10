@@ -19,7 +19,6 @@
 
 #include "logger.h"
 
-#include "cartPatcher.h"
 #include "emojiconversion.h"
 
 #include "FakoBios.h"
@@ -359,10 +358,6 @@ Cart::Cart(std::string filename){
     else {
         return;
     }
-
-    const char * patched = getPatchedLua(LuaString.c_str());
-
-    LuaString = patched;
 }
 
 Cart::~Cart(){

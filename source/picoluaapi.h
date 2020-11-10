@@ -95,6 +95,9 @@ int loadbioscart(lua_State *L);
 
 //system functions
 
+int rnd(lua_State *L);
+int srand(lua_State *L);
+
 //api.tonum(val)
 
 //api.tostr(val, hex)

@@ -1,5 +1,6 @@
 #include <string>
 #include <functional>
+#include <chrono>
 #include <math.h>
 
 #include <string.h>
@@ -19,7 +20,10 @@
   #include <lua.h>
   #include <lualib.h>
   #include <lauxlib.h>
+  #include <fix32.h>
 //}
+
+using namespace z8;
 
 Vm::Vm(
     PicoRam* memory,
@@ -99,6 +103,10 @@ bool Vm::loadCart(Cart* cart) {
     //reset memory (may have to be more selective about zeroing out to be accurate?)
     _memory->Reset();
 
+    //seed rng
+    auto now = std::chrono::high_resolution_clock::now();
+    api_srand(fix32::frombits((int32_t)now.time_since_epoch().count()));
+
     //set graphics state
     _graphics->color();
     _graphics->clip();
@@ -122,8 +130,12 @@ bool Vm::loadCart(Cart* cart) {
     // initialize Lua interpreter
     _luaState = luaL_newstate();
 
+    lua_setpico8memory(_luaState, (uint8_t *)&_memory->data);
     // load Lua base libraries (print / math / etc)
     luaL_openlibs(_luaState);
+	//luaopen_debug(_luaState);
+	//luaopen_string(_luaState);
+    lua_pushglobaltable(_luaState);
 
     //load in global lua fuctions for pico 8
     auto convertedGlobalLuaFunctions = convert_emojis(p8GlobalLuaFunctions);
@@ -201,6 +213,10 @@ bool Vm::loadCart(Cart* cart) {
     //
     lua_register(_luaState, "printh", printh);
     lua_register(_luaState, "stat", stat);
+
+    //rng
+    lua_register(_luaState, "rnd", rnd);
+    lua_register(_luaState, "srand", srand);
 
     //system
     lua_register(_luaState, "__listcarts", listcarts);
@@ -568,4 +584,33 @@ void Vm::vm_memcpy(int destaddr, int sourceaddr, int len){
     }
 
     memcpy(&_memory->data[destaddr], &_memory->data[sourceaddr], len);
+}
+
+void Vm::update_prng()
+{
+    auto rngState = _memory->hwState.rngState;
+    rngState[1] = rngState[0] + ((rngState[1] >> 16) | (rngState[1] << 16));
+    rngState[0] += rngState[1];
+}
+
+fix32 Vm::api_rnd()
+{
+    return api_rnd((fix32)1);
+}
+
+fix32 Vm::api_rnd(fix32 in_range)
+{
+    update_prng();
+    uint32_t b = _memory->hwState.rngState[1];
+    uint32_t range = in_range.bits();
+    return fix32::frombits(range > 0 ? b % range : 0);
+}
+
+void Vm::api_srand(fix32 seed)
+{
+    auto rngState = _memory->hwState.rngState;
+    rngState[0] = seed ? seed.bits() : 0xdeadbeef;
+    rngState[1] = rngState[0] ^ 0xbead29ba;
+    for (int i = 0; i < 32; ++i)
+        update_prng();
 }

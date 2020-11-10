@@ -235,6 +235,8 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(memory->hwState.audioHardwareState[0], 3);
     }
     SUBCASE("poking rng state") {
+        //rng gets seeded, we need to zero it out to test this easier
+        memory->hwState.rngState[0] = 0;
         vm->vm_poke(0x5f44, 20);
 
         CHECK_EQ(memory->hwState.rngState[0], 20);

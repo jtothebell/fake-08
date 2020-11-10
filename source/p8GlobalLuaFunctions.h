@@ -52,6 +52,17 @@ function del(a, dv)
 	end
 end
 
+//from zepto 8 bios.p8
+function deli(c,i)
+    if c != nil then
+        -- delete at i if specified, otherwise at the end
+        i=i and mid(1,i\1,#c) or #c
+        local v=c[i]
+        for j=i,#c-1 do c[j]=c[j+1] end
+        return v
+    end
+end
+
 ---------------------------------
 --Coroutines
 ---------------------------------
@@ -64,6 +75,10 @@ costatus = coroutine.status
 --Debug
 ---------------------------------
 trace = debug.traceback
+
+sub = string.sub
+pack = table.pack
+unpack = table.unpack
 
 --Button emoji variables
 ⬅️ = 0

@@ -12,7 +12,10 @@ using namespace std;
   #include <lua.h>
   #include <lualib.h>
   #include <lauxlib.h>
+  #include <fix32.h>
 //}
+
+using namespace z8;
 
 class Vm {
     PicoRam* _memory;
@@ -97,5 +100,11 @@ class Vm {
 
     void vm_memset(int destaddr, uint8_t val, int len);
     void vm_memcpy(int destaddr, int sourceaddr, int len);
+
+    void update_prng();
+
+    fix32 api_rnd();
+    fix32 api_rnd(fix32 inRange);
+    void api_srand(fix32 seed);
 };
 
