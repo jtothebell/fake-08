@@ -13,6 +13,9 @@
 
 #include "logger.h"
 
+#include <fix32.h>
+using namespace z8;
+
 const uint8_t PicoScreenWidth = 128;
 const uint8_t PicoScreenHeight = 128;
 
@@ -688,14 +691,16 @@ void Graphics::spr(
 	int n,
 	int x,
 	int y,
-	double w = 1.0,
-	double h = 1.0,
+	fix32 w = 1.0,
+	fix32 h = 1.0,
 	bool flip_x = false,
 	bool flip_y = false) 
 {
 	int spr_x = (n % 16) * 8;
 	int spr_y = (n / 16) * 8;
-	copySpriteToScreen(_memory->spriteSheetData, x, y, spr_x, spr_y, w * 8, h * 8, flip_x, flip_y);
+	int16_t spr_w = (int16_t)(w * (fix32)8);
+	int16_t spr_h = (int16_t)(h * (fix32)8);
+	copySpriteToScreen(_memory->spriteSheetData, x, y, spr_x, spr_y, spr_w, spr_h, flip_x, flip_y);
 }
 
 void Graphics::sspr(

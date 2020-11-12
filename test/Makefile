@@ -31,13 +31,14 @@ fontdatatests.o: fontdatatests.cpp ../source/fontdata.cpp ../source/fontdata.h
 nibblehelperstests.o: nibblehelperstests.cpp ../source/nibblehelpers.cpp ../source/nibblehelpers.h
 	g++ $(CFLAGS) nibblehelperstests.cpp ../source/nibblehelpers.cpp
 
-graphicstests.o: fontdatatests.o graphicstests.cpp ../source/graphics.cpp ../source/graphics.h \
+graphicstests.o: liblua.a fontdatatests.o graphicstests.cpp ../source/graphics.cpp ../source/graphics.h \
 	../source/fontdata.cpp ../source/fontdata.h \
 	../source/PicoRam.h ../source/hostVmShared.h \
 	../source/stringToDataHelpers.h ../source/stringToDataHelpers.cpp \
 	../source/nibblehelpers.h ../source/nibblehelpers.cpp
-	g++ $(CFLAGS) graphicstests.cpp ../source/graphics.cpp \
-		../source/stringToDataHelpers.cpp ../source/nibblehelpers.cpp
+	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \
+	graphicstests.cpp ../source/graphics.cpp \
+	../source/stringToDataHelpers.cpp ../source/nibblehelpers.cpp
 
 audiotests.o: audiotests.cpp ../source/Audio.cpp ../source/Audio.h \
 	../source/synth.cpp ../source/synth.h \

@@ -3,6 +3,8 @@
 #include <string>
 #include "hostVmShared.h"
 #include "PicoRam.h"
+#include <fix32.h>
+using namespace z8;
 
 #define COLOR_00 {  2,   4,   8, 255}
 #define COLOR_01 { 29,  43,  83, 255}
@@ -122,8 +124,8 @@ class Graphics {
 		int n,
 		int x,
 		int y,
-		double w,
-		double h,
+		fix32 w,
+		fix32 h,
 		bool flip_x,
 		bool flip_y);
 
