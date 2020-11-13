@@ -306,7 +306,6 @@ void Vm::LoadCart(std::string filename){
 }
 
 
-//how to call lua from c: https://www.cs.usfca.edu/~galles/cs420/lecture/LuaLectures/LuaAndC.html
 void Vm::UpdateAndDraw(
       uint8_t kdown,
       uint8_t kheld)
