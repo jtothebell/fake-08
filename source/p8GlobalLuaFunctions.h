@@ -92,6 +92,29 @@ function menuitem()
 --noop placeholder for now
 end
 
+--https://twitter.com/lexaloffle/status/1314463271324315649
+--save host cpu by making most of the api local
+local 
+time, t, sub, chr, ord, tostr, tonum, 
+add, del, deli, clip, color, pal, palt,
+fillp, pget, pset, sget, sset, fget, 
+fset, circ, circfill, rect, rectfill, oval,
+ovalfill, line, spr, sspr, mget, mset, 
+tline, peek, poke, peek2, poke2, peek4,
+poke4, memcpy, memset, max, min, mid, flr, 
+ceil, cos, sin, atan2, rnd, srand, band,
+bor, bxor, bnot, shl, shr, lshr, rotl, rotr =
+
+time, t, sub, chr, ord, tostr, tonum, 
+add, del, deli, clip, color, pal, palt,
+fillp, pget, pset, sget, sset, fget, 
+fset, circ, circfill, rect, rectfill, oval,
+ovalfill, line, spr, sspr, mget, mset, 
+tline, peek, poke, peek2, poke2, peek4,
+poke4, memcpy, memset, max, min, mid, flr, 
+ceil, cos, sin, atan2, rnd, srand, band,
+bor, bxor, bnot, shl, shr, lshr, rotl, rotr
+
 )#";
 
 
