@@ -386,6 +386,52 @@ TEST_CASE("Vm memory functions") {
 
         CHECK_EQ(vm->vm_dget(34), 1923);
     }
+    SUBCASE("pico driller style input"){
+        vm->LoadCart("carts/drillerinputtest.p8");
+
+        SUBCASE("no buttons gives 0"){
+            vm->UpdateAndDraw(0, 0);
+            bool btnbits = vm->ExecuteLua(
+                "function btnbitstest0()\n"
+                " return btnbits == 0\n"
+                "end\n",
+                "btnbitstest0");
+
+            CHECK(btnbits);
+        }
+        SUBCASE("left pushed returns 1"){
+            vm->UpdateAndDraw(1, 1);
+            bool btnbits = vm->ExecuteLua(
+                "function btnbitstest1()\n"
+                " printh(\"hello btnbits: \" .. btnbits .. \"\\\n\")"
+                " return btnbits == 1\n"
+                "end\n",
+                "btnbitstest1");
+
+            CHECK(btnbits);
+        }
+        SUBCASE("right pushed returns 2"){
+            vm->UpdateAndDraw(2, 2);
+            bool btnbits = vm->ExecuteLua(
+                "function btnbitstest2()\n"
+                " return btnbits == 2\n"
+                "end\n",
+                "btnbitstest2");
+
+            CHECK(btnbits);
+        }
+        SUBCASE("right pushed detected by band op"){
+            vm->UpdateAndDraw(2, 2);
+            bool btnbits = vm->ExecuteLua(
+                "function rightbandtest()\n"
+                " return rightband == 2\n"
+                "end\n",
+                "rightbandtest");
+
+            CHECK(btnbits);
+        }
+        vm->CloseCart();
+    }
 
     
     delete graphics;
