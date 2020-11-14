@@ -224,43 +224,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
             base[3] = col.Alpha;
         }
     }
-    /*
-	u32 stride;
-    u32* framebuf = (u32*) framebufferBegin(&fb, &stride);
-
-	//clear frame buf
-	memset(framebuf, 0, __screenHeight*__screenWidth*4);
-
-
-    u32 renderWidth = PicoScreenWidth;
-    u32 renderHeight = PicoScreenHeight;
-    u32 ratio = 1;
-
-    if (stretch == PixelPerfectStretch){
-        ratio = FB_HEIGHT / PicoScreenHeight; //should be 5
-        renderWidth = PicoScreenWidth * ratio;
-        renderHeight = PicoScreenHeight * ratio;
-    }
-
-    u32 xOffset = (FB_WIDTH - renderWidth) / 2;
-    u32 yOffset = (FB_HEIGHT - renderHeight) / 2;
-
-    for (u32 y = 0; y < renderHeight; y ++)
-    {
-        for (u32 x = 0; x < renderWidth; x ++)
-        {
-            int picoX = (int)(x / ratio);
-            int picoY = (int)(y / ratio);
-            uint8_t c = getPixelNibble(picoX, picoY, picoFb);
-            //uint8_t c = picoFb[x*128 + y];
-            Color col = _paletteColors[screenPaletteMap[c]];
-
-            u32 pos = (yOffset + y) * stride / sizeof(u32) + (xOffset + x);
-            framebuf[pos] = RGBA8_MAXALPHA(col.Red, col.Green, col.Blue);
-
-        }
-    }
-    */
+    
 
     postFlipFunction();
 }
@@ -302,9 +266,9 @@ bool Host::mainLoop(){
                     case SDLK_RIGHT: currKDown |= P8_KEY_RIGHT; break;
                     case SDLK_UP:    currKDown |= P8_KEY_UP; break;
                     case SDLK_DOWN:  currKDown |= P8_KEY_DOWN; break;
-                    case SDLK_z:     currKDown |= P8_KEY_O; break;
-                    case SDLK_x:     currKDown |= P8_KEY_X; break;
-                    case SDLK_c:     currKDown |= P8_KEY_O; break;
+                    case SDLK_z:     currKDown |= P8_KEY_X; break;
+                    case SDLK_x:     currKDown |= P8_KEY_O; break;
+                    case SDLK_c:     currKDown |= P8_KEY_X; break;
                 }
                 break;
             case SDL_QUIT:
@@ -315,6 +279,31 @@ bool Host::mainLoop(){
 
     if (done == SDL_TRUE){
         return false;
+    }
+
+    const Uint8* keystate = SDL_GetKeyboardState(NULL);
+
+    //continuous-response keys
+    if(keystate[SDL_SCANCODE_LEFT]){
+        currKHeld |= P8_KEY_LEFT;
+    }
+    if(keystate[SDL_SCANCODE_RIGHT]){
+        currKHeld |= P8_KEY_RIGHT;;
+    }
+    if(keystate[SDL_SCANCODE_UP]){
+        currKHeld |= P8_KEY_UP;
+    }
+    if(keystate[SDL_SCANCODE_DOWN]){
+        currKHeld |= P8_KEY_DOWN;
+    }
+    if(keystate[SDL_SCANCODE_Z]){
+        currKHeld |= P8_KEY_X;
+    }
+    if(keystate[SDL_SCANCODE_X]){
+        currKHeld |= P8_KEY_O;
+    }
+    if(keystate[SDL_SCANCODE_C]){
+        currKHeld |= P8_KEY_X;
     }
 
     return true;
