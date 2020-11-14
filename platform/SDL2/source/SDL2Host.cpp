@@ -333,10 +333,11 @@ vector<string> Host::listcarts(){
     struct dirent *ent;
     std::string home = getenv("HOME");
     std::string cartDir = "/p8carts";
-    if ((dir = opendir ((home + cartDir).c_str())) != NULL) {
+    std::string fullCartDir = home + cartDir;
+    if ((dir = opendir (fullCartDir.c_str())) != NULL) {
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
-            carts.push_back(ent->d_name);
+            carts.push_back(fullCartDir + "/" + ent->d_name);
         }
         closedir (dir);
     } else {
