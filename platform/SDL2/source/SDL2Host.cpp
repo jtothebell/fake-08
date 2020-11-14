@@ -6,88 +6,56 @@
 
 #include <fstream>
 #include <iostream>
-#include <filesystem>
 using namespace std;
-namespace fs = std::filesystem;
 
 #include "../../../source/host.h"
 #include "../../../source/hostVmShared.h"
 #include "../../../source/nibblehelpers.h"
 
-#define FB_WIDTH  1280
-#define FB_HEIGHT 720
+// sdl
+#include <SDL2/SDL.h>
+
+#define SCREEN_SIZE_X 512
+#define SCREEN_SIZE_Y 512
+
 
 #define SAMPLERATE 22050
 #define SAMPLESPERBUF (SAMPLERATE / 30)
 #define NUM_BUFFERS 2
 
-const int __screenWidth = FB_WIDTH;
-const int __screenHeight = FB_HEIGHT;
+const int __screenWidth = SCREEN_SIZE_X;
+const int __screenHeight = SCREEN_SIZE_Y;
 
 const int PicoScreenWidth = 128;
 const int PicoScreenHeight = 128;
 
 
 StretchOption stretch;
-u64 last_time;
-u64 now_time;
-u64 frame_time;
+uint16_t last_time;
+uint16_t now_time;
+uint16_t frame_time;
 double targetFrameTimeMs;
 
-u32 currKDown;
-u32 currKHeld;
-
-Framebuffer fb;
+uint32_t currKDown;
+uint32_t currKHeld;
 
 Color* _paletteColors;
 
-uint8_t ConvertInputToP8(u32 input){
-	uint8_t result = 0;
-	if (input & KEY_LEFT){
-		result |= P8_KEY_LEFT;
-	}
+SDL_Window* window;
+SDL_Event event;
+SDL_Renderer *renderer;
 
-	if (input & KEY_RIGHT){
-		result |= P8_KEY_RIGHT;
-	}
-
-	if (input & KEY_UP){
-		result |= P8_KEY_UP;
-	}
-
-	if (input & KEY_DOWN){
-		result |= P8_KEY_DOWN;
-	}
-
-	if (input & KEY_B){
-		result |= P8_KEY_O;
-	}
-
-	if (input & KEY_A){
-		result |= P8_KEY_X;
-	}
-
-	if (input & KEY_PLUS){
-		result |= P8_KEY_PAUSE;
-	}
-
-	if (input & KEY_MINUS){
-		result |= P8_KEY_7;
-	}
-
-	return result;
-}
 
 void postFlipFunction(){
     //flush switch frame buffers
     // We're done rendering, so we end the frame here.
-    framebufferEnd(&fb);
+    SDL_RenderPresent(renderer);
 }
 
 
 void init_fill_buffer(void *audioBuffer,size_t offset, size_t size) {
 
-	u32 *dest = (u32*)audioBuffer;
+	uint32_t *dest = (uint32_t*)audioBuffer;
 
 	for (size_t i=0; i<size; i++) {
 		dest[i] = 0;
@@ -98,11 +66,11 @@ void init_fill_buffer(void *audioBuffer,size_t offset, size_t size) {
 }
 
 bool audioInitialized = false;
-u32 *audioBuffer;
-u32 audioBufferSize;
+uint32_t *audioBuffer;
+uint32_t audioBufferSize;
 //ndspWaveBuf waveBuf[2];
 bool fillBlock = false;
-u32 currPos;
+uint32_t currPos;
 
 
 void audioCleanup(){
@@ -117,51 +85,7 @@ void audioCleanup(){
 }
 
 void audioSetup(){
-    /*
-    if(R_FAILED(ndspInit())) {
-        return;
-    }
 
-	//audio setup
-	audioBufferSize = SAMPLESPERBUF * NUM_BUFFERS * sizeof(u32);
-	audioBuffer = (u32*)linearAlloc(audioBufferSize);
-	if(audioBuffer == nullptr) {
-        audioCleanup();
-        return;
-    }
-	
-
-	ndspSetOutputMode(NDSP_OUTPUT_STEREO);
-
-	ndspChnSetInterp(0, NDSP_INTERP_LINEAR);
-	ndspChnSetRate(0, SAMPLERATE);
-	ndspChnSetFormat(0, NDSP_FORMAT_STEREO_PCM16);
-
-	float mix[12];
-	memset(mix, 0, sizeof(mix));
-	mix[0] = 1.0;
-	mix[1] = 1.0;
-	ndspChnSetMix(0, mix);
-
-	memset(waveBuf,0,sizeof(waveBuf));
-	waveBuf[0].data_vaddr = &audioBuffer[0];
-	waveBuf[0].nsamples = SAMPLESPERBUF;
-	waveBuf[1].data_vaddr = &audioBuffer[SAMPLESPERBUF];
-	waveBuf[1].nsamples = SAMPLESPERBUF;
-
-
-	size_t stream_offset = 0;
-
-	//not sure if this is necessary? if it is, memset might be better?
-	init_fill_buffer(audioBuffer,stream_offset, SAMPLESPERBUF * 2);
-
-	stream_offset += SAMPLESPERBUF;
-
-	ndspChnWaveBufAdd(0, &waveBuf[0]);
-	ndspChnWaveBufAdd(0, &waveBuf[1]);
-
-	audioInitialized = true;
-    */
 }
 
 
@@ -173,10 +97,21 @@ void Host::oneTimeSetup(Color* paletteColors){
 
     audioSetup();
 
-    NWindow* win = nwindowGetDefault();
+    // ----- Initialize SDL
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
+    {
+        fprintf(stderr, "SDL could not initialize\n");
+        return;
+    }
 
-    framebufferCreate(&fb, win, FB_WIDTH, FB_HEIGHT, PIXEL_FORMAT_RGBA_8888, 2);
-    framebufferMakeLinear(&fb);
+    // ----- Create window
+    SDL_CreateWindowAndRenderer(SCREEN_SIZE_X, SCREEN_SIZE_Y, 0, &window, &renderer);
+    if (!window)
+    {
+        fprintf(stderr, "Error creating window.\n");
+        return;
+    }
+
     
     last_time = 0;
     now_time = 0;
@@ -189,7 +124,9 @@ void Host::oneTimeSetup(Color* paletteColors){
 void Host::oneTimeCleanup(){
     audioCleanup();
 
-	framebufferClose(&fb);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 }
 
 void Host::setTargetFps(int targetFps){
@@ -197,6 +134,7 @@ void Host::setTargetFps(int targetFps){
 }
 
 void Host::changeStretch(){
+    /*
     if (currKDown & KEY_R) {
         if (stretch == PixelPerfect) {
             stretch = PixelPerfectStretch;
@@ -205,39 +143,44 @@ void Host::changeStretch(){
             stretch = PixelPerfect;
         }
     }
+    */
 }
 
 void Host::scanInput(){
-    hidScanInput();
+    //hidScanInput();
 
-    currKDown = hidKeysDown(CONTROLLER_P1_AUTO);
-    currKHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
+    //currKDown = hidKeysDown(CONTROLLER_P1_AUTO);
+    //currKHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
 }
 
 uint8_t Host::getKeysDown(){
-    return ConvertInputToP8(currKDown);
+    //return ConvertInputToP8(currKDown);
+    return 0;
 }
 
 uint8_t Host::getKeysHeld(){
-    return ConvertInputToP8(currKHeld);
+    //return ConvertInputToP8(currKHeld);
+    return 0;
 }
 
 
 bool Host::shouldQuit() {
-    bool lpressed = currKHeld & KEY_L;
-	bool rpressed = currKDown & KEY_R;
+    //bool lpressed = currKHeld & KEY_L;
+	//bool rpressed = currKDown & KEY_R;
 
-	return lpressed && rpressed;
+	//return lpressed && rpressed;
+    return false;
 }
 
 const double NANOSECONDS_TO_MILLISECONDS = 1.0 / 1000000.0;
 
 void Host::waitForTargetFps(){
+    /*
     now_time = armGetSystemTick();
     frame_time = now_time - last_time;
 	last_time = now_time;
 
-    u64 frameTimeNs = armTicksToNs(frame_time);
+    uint64_t frameTimeNs = armTicksToNs(frame_time);
 	double frameTimeMs = frameTimeNs * NANOSECONDS_TO_MILLISECONDS;
 
 	//sleep for remainder of time
@@ -249,10 +192,30 @@ void Host::waitForTargetFps(){
 
 		last_time += armNsToTicks(nsToSleep);
 	}
+    */
 }
 
 
 void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
+    //clear screen to all black
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    SDL_RenderClear(renderer);
+
+
+    for (int y = 0; y < PicoScreenHeight; y ++)
+    {
+        for (int x = 0; x < PicoScreenWidth; x ++)
+        {
+            uint8_t c = getPixelNibble(x, y, picoFb);
+            //uint8_t c = picoFb[x*128 + y];
+            Color col = _paletteColors[screenPaletteMap[c]];
+
+            SDL_SetRenderDrawColor(renderer, col.Red, col.Green, col.Blue, 255);
+
+            SDL_RenderDrawPoint(renderer, x, y);
+        }
+    }
+    /*
 	u32 stride;
     u32* framebuf = (u32*) framebufferBegin(&fb, &stride);
 
@@ -288,6 +251,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
 
         }
     }
+    */
 
     postFlipFunction();
 }
@@ -316,23 +280,27 @@ void Host::playFilledAudioBuffer(){
 }
 
 bool Host::mainLoop(){
-    return appletMainLoop();
+    if (SDL_PollEvent(&event) && event.type == SDL_QUIT){
+        return false;
+    }
+
+    return true;
 }
 
 vector<string> Host::listcarts(){
     vector<string> carts;
 
-    DIR* dir = opendir("/p8carts");
-
-    if (dir) {
-        for(auto& p: fs::directory_iterator("/p8carts")){
-            auto ext = p.path().extension().string();
-            if (ext == ".p8" || ext == ".png"){
-                carts.push_back(p.path().string());
-            }
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir ("~/p8carts")) != NULL) {
+        /* print all the files and directories within directory */
+        while ((ent = readdir (dir)) != NULL) {
+            carts.push_back(ent->d_name);
         }
-
-        closedir(dir);
+        closedir (dir);
+    } else {
+        /* could not open directory */
+        perror ("");
     }
 
     

@@ -1,69 +1,120 @@
-########################################################################
-####################### Makefile Template ##############################
-########################################################################
 
-# Compiler settings - Can be customized.
-CC = g++
-CXXFLAGS = -std=c++17 -Wall -g
-LDFLAGS = -lSDL2 -lGL -lGLEW
+#---------------------------------------------------------------------------------
+# TARGET is the name of the output
+# BUILD is the directory where object files & intermediate files will be placed
+# SOURCES is a list of directories containing source code
+# INCLUDES is a list of directories containing header files
+#
+#---------------------------------------------------------------------------------
+TARGET		:=	FAKE08
+BUILD		:=	build
+SOURCES		:=	${SOURCES} source
+INCLUDES	:=	${INCLUDES}
 
-# Makefile settings - Can be customized.
-APPNAME = fake08
-EXT = .cpp
-SRCDIR = source
-OBJDIR = obj
+#---------------------------------------------------------------------------------
+# options for code generation
+#---------------------------------------------------------------------------------
+CC = $(CXX)
 
-############## Do not change anything from here downwards! #############
-SRC = $(wildcard $(SRCDIR)/*$(EXT))
-OBJ = $(SRC:$(SRCDIR)/%$(EXT)=$(OBJDIR)/%.o)
-DEP = $(OBJ:$(OBJDIR)/%.o=%.d)
-# UNIX-based OS variables & settings
-RM = rm
-DELOBJ = $(OBJ)
-# Windows OS variables & settings
-DEL = del
-EXE = .exe
-WDELOBJ = $(SRC:$(SRCDIR)/%$(EXT)=$(OBJDIR)\\%.o)
+CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
+			$(DEFINES)
 
-########################################################################
-####################### Targets beginning here #########################
-########################################################################
+CFLAGS	+=	$(INCLUDE)
 
-all: $(APPNAME)
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
 
-# Builds the app
-$(APPNAME): $(OBJ)
+ASFLAGS	:=	-g $(ARCH)
+
+LIBS	:= -lSDL2 -lstdc++fs
+
+LDFLAGS	:= $(LIBS)
+
+
+#---------------------------------------------------------------------------------
+# no real need to edit anything past this point unless you need to add additional
+# rules for different file extensions
+#---------------------------------------------------------------------------------
+ifneq ($(BUILD),$(notdir $(CURDIR)))
+#---------------------------------------------------------------------------------
+
+export OUTPUT	:=	$(CURDIR)/$(TARGET)
+export TOPDIR	:=	$(CURDIR)
+
+export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
+			$(foreach dir,$(DATA),$(CURDIR)/$(dir))
+
+export DEPSDIR	:=	$(CURDIR)/$(BUILD)
+
+CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
+CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
+
+#---------------------------------------------------------------------------------
+# use CXX for linking C++ projects, CC for standard C
+#---------------------------------------------------------------------------------
+ifeq ($(strip $(CPPFILES)),)
+#---------------------------------------------------------------------------------
+	export LD	:=	$(CC)
+#---------------------------------------------------------------------------------
+else
+#---------------------------------------------------------------------------------
+	export LD	:=	$(CXX)
+#---------------------------------------------------------------------------------
+endif
+#---------------------------------------------------------------------------------
+
+export OFILES_BIN	:=	$(addsuffix .o,$(BINFILES))
+export OFILES_SRC	:=	$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
+export OFILES 		:=	$(OFILES_BIN) $(OFILES_SRC)
+export HFILES_BIN	:=	$(addsuffix .h,$(subst .,_,$(BINFILES)))
+
+export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
+			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+			-I$(CURDIR)/$(BUILD)
+
+export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
+
+
+.PHONY: $(BUILD) clean all
+
+#---------------------------------------------------------------------------------
+all: $(BUILD)
+
+$(BUILD):
+	@[ -d $@ ] || mkdir -p $@
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+
+#---------------------------------------------------------------------------------
+clean:
+	@echo clean ...
+	@rm -fr $(BUILD) $(TARGET)
+
+
+#---------------------------------------------------------------------------------
+else
+.PHONY:	all
+
+DEPENDS	:=	$(OFILES:.o=.d)
+
+#---------------------------------------------------------------------------------
+# main targets
+#---------------------------------------------------------------------------------
+all	:	$(OUTPUT)
+
+$(OUTPUT)		:	$(OFILES)
 	$(CC) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
-# Creates the dependecy rules
-%.d: $(SRCDIR)/%$(EXT)
-	@$(CPP) $(CFLAGS) $< -MM -MT $(@:%.d=$(OBJDIR)/%.o) >$@
+$(OFILES_SRC)	: $(HFILES_BIN)
 
-# Includes all .h files
--include $(DEP)
+#---------------------------------------------------------------------------------
+# you need a rule like this for each extension you use as binary data
+#---------------------------------------------------------------------------------
+%.bin.o	%_bin.h :	%.bin
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@$(bin2o)
 
-# Building rule for .o files and its .c/.cpp in combination with all .h
-$(OBJDIR)/%.o: $(SRCDIR)/%$(EXT)
-	$(CC) $(CXXFLAGS) -o $@ -c $<
+-include $(DEPENDS)
 
-################### Cleaning rules for Unix-based OS ###################
-# Cleans complete project
-.PHONY: clean
-clean:
-	$(RM) $(DELOBJ) $(DEP) $(APPNAME)
-
-# Cleans only all files with the extension .d
-.PHONY: cleandep
-cleandep:
-	$(RM) $(DEP)
-
-#################### Cleaning rules for Windows OS #####################
-# Cleans complete project
-.PHONY: cleanw
-cleanw:
-	$(DEL) $(WDELOBJ) $(DEP) $(APPNAME)$(EXE)
-
-# Cleans only all files with the extension .d
-.PHONY: cleandepw
-cleandepw:
-	$(DEL) $(DEP)
+#---------------------------------------------------------------------------------------
+endif
+#---------------------------------------------------------------------------------------
