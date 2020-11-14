@@ -44,11 +44,20 @@ Color* _paletteColors;
 SDL_Window* window;
 SDL_Event event;
 SDL_Renderer *renderer;
+SDL_Texture *texture = NULL;
+void *pixels;
+uint8_t *base;
+int pitch;
 
 
 void postFlipFunction(){
     //flush switch frame buffers
     // We're done rendering, so we end the frame here.
+    
+
+    SDL_UnlockTexture(texture);
+    SDL_RenderCopy(renderer, texture, NULL, NULL);
+
     SDL_RenderPresent(renderer);
 }
 
@@ -112,6 +121,12 @@ void Host::oneTimeSetup(Color* paletteColors){
         return;
     }
 
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, PicoScreenWidth, PicoScreenHeight);
+    if (!texture)
+    {
+        fprintf(stderr, "Error creating texture.\n");
+        return;
+    }
     
     last_time = 0;
     now_time = 0;
@@ -201,18 +216,18 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
 
+    SDL_LockTexture(texture, NULL, &pixels, &pitch);
 
-    for (int y = 0; y < PicoScreenHeight; y ++)
-    {
-        for (int x = 0; x < PicoScreenWidth; x ++)
-        {
+    for (int y = 0; y < PicoScreenHeight; y ++){
+        for (int x = 0; x < PicoScreenWidth; x ++){
             uint8_t c = getPixelNibble(x, y, picoFb);
-            //uint8_t c = picoFb[x*128 + y];
             Color col = _paletteColors[screenPaletteMap[c]];
 
-            SDL_SetRenderDrawColor(renderer, col.Red, col.Green, col.Blue, 255);
-
-            SDL_RenderDrawPoint(renderer, x, y);
+            base = ((Uint8 *)pixels) + (4 * ( y * PicoScreenHeight + x));
+            base[0] = col.Blue;
+            base[1] = col.Green;
+            base[2] = col.Red;
+            base[3] = col.Alpha;
         }
     }
     /*
