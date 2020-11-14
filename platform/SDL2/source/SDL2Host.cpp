@@ -36,8 +36,8 @@ uint16_t now_time;
 uint16_t frame_time;
 double targetFrameTimeMs;
 
-uint32_t currKDown;
-uint32_t currKHeld;
+uint8_t currKDown;
+uint8_t currKHeld;
 
 Color* _paletteColors;
 
@@ -45,6 +45,7 @@ SDL_Window* window;
 SDL_Event event;
 SDL_Renderer *renderer;
 SDL_Texture *texture = NULL;
+SDL_bool done = SDL_FALSE;
 void *pixels;
 uint8_t *base;
 int pitch;
@@ -166,16 +167,15 @@ void Host::scanInput(){
 
     //currKDown = hidKeysDown(CONTROLLER_P1_AUTO);
     //currKHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
+    
 }
 
 uint8_t Host::getKeysDown(){
-    //return ConvertInputToP8(currKDown);
-    return 0;
+    return currKDown;
 }
 
 uint8_t Host::getKeysHeld(){
-    //return ConvertInputToP8(currKHeld);
-    return 0;
+    return currKHeld;
 }
 
 
@@ -295,7 +295,31 @@ void Host::playFilledAudioBuffer(){
 }
 
 bool Host::mainLoop(){
-    if (SDL_PollEvent(&event) && event.type == SDL_QUIT){
+    currKDown = 0;
+    currKHeld = 0;
+
+    while (SDL_PollEvent(&event)) {
+        switch (event.type) {
+            case SDL_KEYDOWN:
+                switch (event.key.keysym.sym)
+                {
+                    case SDLK_ESCAPE:currKDown |= P8_KEY_PAUSE; break;
+                    case SDLK_LEFT:  currKDown |= P8_KEY_LEFT; break;
+                    case SDLK_RIGHT: currKDown |= P8_KEY_RIGHT; break;
+                    case SDLK_UP:    currKDown |= P8_KEY_UP; break;
+                    case SDLK_DOWN:  currKDown |= P8_KEY_DOWN; break;
+                    case SDLK_z:     currKDown |= P8_KEY_O; break;
+                    case SDLK_x:     currKDown |= P8_KEY_X; break;
+                    case SDLK_c:     currKDown |= P8_KEY_O; break;
+                }
+                break;
+            case SDL_QUIT:
+                done = SDL_TRUE;
+                break;
+        }
+    }
+
+    if (done == SDL_TRUE){
         return false;
     }
 
@@ -307,7 +331,9 @@ vector<string> Host::listcarts(){
 
     DIR *dir;
     struct dirent *ent;
-    if ((dir = opendir ("~/p8carts")) != NULL) {
+    std::string home = getenv("HOME");
+    std::string cartDir = "/p8carts";
+    if ((dir = opendir ((home + cartDir).c_str())) != NULL) {
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
             carts.push_back(ent->d_name);
