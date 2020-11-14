@@ -31,10 +31,10 @@ const int PicoScreenHeight = 128;
 
 
 StretchOption stretch;
-uint16_t last_time;
-uint16_t now_time;
-uint16_t frame_time;
-double targetFrameTimeMs;
+uint32_t last_time;
+uint32_t now_time;
+uint32_t frame_time;
+uint32_t targetFrameTimeMs;
 
 uint8_t currKDown;
 uint8_t currKHeld;
@@ -146,7 +146,7 @@ void Host::oneTimeCleanup(){
 }
 
 void Host::setTargetFps(int targetFps){
-    targetFrameTimeMs = 1000.0 / (double)targetFps;
+    targetFrameTimeMs = 1000 / targetFps;
 }
 
 void Host::changeStretch(){
@@ -187,27 +187,21 @@ bool Host::shouldQuit() {
     return false;
 }
 
-const double NANOSECONDS_TO_MILLISECONDS = 1.0 / 1000000.0;
 
 void Host::waitForTargetFps(){
-    /*
-    now_time = armGetSystemTick();
+    now_time = SDL_GetTicks();
     frame_time = now_time - last_time;
 	last_time = now_time;
 
-    uint64_t frameTimeNs = armTicksToNs(frame_time);
-	double frameTimeMs = frameTimeNs * NANOSECONDS_TO_MILLISECONDS;
 
 	//sleep for remainder of time
-	if (frameTimeMs < targetFrameTimeMs) {
-		double msToSleep = targetFrameTimeMs - frameTimeMs;
-        u64 nsToSleep = msToSleep * 1000 * 1000;
+	if (frame_time < targetFrameTimeMs) {
+		uint32_t msToSleep = targetFrameTimeMs - frame_time;
+        
+        SDL_Delay(msToSleep);
 
-		svcSleepThread(nsToSleep);
-
-		last_time += armNsToTicks(nsToSleep);
+		last_time += msToSleep;
 	}
-    */
 }
 
 
