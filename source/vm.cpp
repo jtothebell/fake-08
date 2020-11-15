@@ -249,17 +249,17 @@ bool Vm::loadCart(Cart* cart) {
     lua_pop(_luaState, 0);
 
     //check for update, mark correct target fps
-    lua_getglobal(_luaState, "_update");
+    lua_getglobal(_luaState, "_update60");
     if (lua_isfunction(_luaState, -1)) {
         _hasUpdate = true;
-        _targetFps = 30;
+        _targetFps = 60;
     }
     lua_pop(_luaState, 0);
     if (!_hasUpdate){
-        lua_getglobal(_luaState, "_update60");
+        lua_getglobal(_luaState, "_update");
         if (lua_isfunction(_luaState, -1)) {
             _hasUpdate = true;
-            _targetFps = 60;
+            _targetFps = 30;
         }
         lua_pop(_luaState, 0);
     }
