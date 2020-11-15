@@ -686,11 +686,19 @@ int poke4(lua_State *L) {
 }
 
 int reload(lua_State *L) {
-    int dest = lua_tonumber(L,1);
-    int src = lua_tonumber(L,2);
-    int len = lua_tonumber(L,3);
+    int dest = 0;
+    int src = 0;
+    int len = 0x4300;
     const char * str = "";
-
+    if (lua_gettop(L) > 0) {
+        dest = lua_tonumber(L,1);
+    }
+    if (lua_gettop(L) > 1) {
+        src = lua_tonumber(L,2);
+    }
+    if (lua_gettop(L) > 2) {
+        len = lua_tonumber(L,3);
+    }
     if (lua_gettop(L) > 3) {
         str = lua_tolstring(L, 4, nullptr);
     }

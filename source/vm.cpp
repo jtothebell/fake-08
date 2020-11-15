@@ -127,6 +127,8 @@ bool Vm::loadCart(Cart* cart) {
     //copy data from cart rom to ram
     vm_reload(0, 0, sizeof(cart->CartRom), cart);
 
+    _loadedCart = cart;
+
     // initialize Lua interpreter
     _luaState = luaL_newstate();
 
@@ -267,8 +269,6 @@ bool Vm::loadCart(Cart* cart) {
         _hasDraw = true;
     }
     lua_pop(_luaState, 0);
-
-    _loadedCart = cart;
 
     _cartLoadError = "";
 
@@ -526,7 +526,7 @@ void Vm::vm_dset(uint8_t n, int32_t value){
 }
 
 void Vm::vm_reload(int destaddr, int sourceaddr, int len, Cart* cart){
-    memcpy(&_memory->data[destaddr], &cart->CartRom.data[sourceaddr], sizeof(cart->CartRom));
+    memcpy(&_memory->data[destaddr], &cart->CartRom.data[sourceaddr], len);
 }
 
 void Vm::vm_reload(int destaddr, int sourceaddr, int len, string filename){

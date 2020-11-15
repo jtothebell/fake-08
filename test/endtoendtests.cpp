@@ -417,6 +417,12 @@ TEST_CASE("Loading and running carts") {
 
         vm->CloseCart();
     }
+    SUBCASE("calling reload from init doesn't crash") {
+        vm->LoadCart("carts/reloadininit.p8");
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+    }
     
     delete vm;
 }
