@@ -1579,6 +1579,17 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("pal({c0}, {c1}, {p}) doesn't change default transparency") {
+        graphics->pal(0, 0, 0);
+
+        CHECK(graphics->isColorTransparent(0) == true);
+    }
+    SUBCASE("pal({c0}, {c1}, {p}) doesn't change transparency") {
+        graphics->palt(4, true);
+        graphics->pal(4, 7, 0);
+
+        CHECK(graphics->isColorTransparent(4) == true);
+    }
     SUBCASE("cursor({x}, {y}) sets cursor loc in memory"){
         graphics->cursor(4, 13);
 

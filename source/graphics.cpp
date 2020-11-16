@@ -818,7 +818,8 @@ void Graphics::pal() {
 void Graphics::pal(uint8_t c0, uint8_t c1, uint8_t p){
 	if (c0 < 16 && c1 < 16) {
 		if (p == 0) {
-			_memory->drawState.drawPaletteMap[c0] = c1;
+			//for draw palette we have to preserve the transparency bit
+			_memory->drawState.drawPaletteMap[c0] = (_memory->drawState.drawPaletteMap[c0] & 0x10) | (c1 & 0xf);
 		} else if (p == 1) {
 			_memory->drawState.screenPaletteMap[c0] = c1;
 		}
