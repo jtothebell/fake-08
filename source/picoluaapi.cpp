@@ -752,10 +752,19 @@ int rnd(lua_State *L) {
         lua_pushnumber(L, val);
     }
     else {
-        fix32 range = lua_tonumber(L,1);
-        fix32 val = _vmForLuaApi->api_rnd(range);
+        if (lua_istable(L, 1)){
+            size_t len = lua_rawlen(L,1);
+            fix32 range = (fix32)len;
+            int idx = (int)(_vmForLuaApi->api_rnd(range)) + 1;
+            
+            lua_rawgeti(L, 1, idx);
+        }
+        else {
+            fix32 range = lua_tonumber(L,1);
+            fix32 val = _vmForLuaApi->api_rnd(range);
 
-        lua_pushnumber(L, val);
+            lua_pushnumber(L, val);
+        }
     }
 
     return 1;

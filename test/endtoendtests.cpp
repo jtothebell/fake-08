@@ -423,6 +423,12 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
     }
+    SUBCASE("rnd with table argument works") {
+        vm->LoadCart("carts/tablerndtest.p8");
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+    }
     
     delete vm;
 }
