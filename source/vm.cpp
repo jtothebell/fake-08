@@ -26,6 +26,7 @@
 using namespace z8;
 
 Vm::Vm(
+    Host* host,
     PicoRam* memory,
     Graphics* graphics,
     Input* input,
@@ -42,6 +43,8 @@ Vm::Vm(
         _cartLoadError(""),
         _cartdataKey("")
 {
+    _host = host;
+
     if (memory == nullptr) {
         memory = new PicoRam();
         _cleanupDeps = true;
@@ -215,6 +218,7 @@ bool Vm::loadCart(Cart* cart) {
     //
     lua_register(_luaState, "printh", printh);
     lua_register(_luaState, "stat", stat);
+    lua_register(_luaState, "_update_buttons", _update_buttons);
 
     //rng
     lua_register(_luaState, "rnd", rnd);
@@ -306,11 +310,8 @@ void Vm::LoadCart(std::string filename){
 }
 
 
-void Vm::UpdateAndDraw(
-      uint8_t kdown,
-      uint8_t kheld)
-{
-    _input->SetState(kdown, kheld);
+void Vm::UpdateAndDraw() {
+    update_buttons();
 
     if (_hasUpdate){
         // Push the _update function on the top of the lua stack
@@ -339,7 +340,7 @@ void Vm::UpdateAndDraw(
     _picoFrameCount++;
 
     //todo: pause menu here, but for now just load bios
-    if (kdown & P8_KEY_PAUSE) {
+    if (_input->btnp(6)) {
         QueueCartChange("__FAKE08-BIOS.p8");
     }
 
@@ -612,4 +613,10 @@ void Vm::api_srand(fix32 seed)
     rngState[1] = rngState[0] ^ 0xbead29ba;
     for (int i = 0; i < 32; ++i)
         update_prng();
+}
+
+void Vm::update_buttons() {
+    //get button states from hardware
+    auto inputState = _host->scanInput();
+    _input->SetState(inputState.KDown, inputState.KHeld);
 }

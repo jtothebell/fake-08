@@ -7,6 +7,7 @@ using namespace std;
 #include "cart.h"
 #include "Input.h"
 #include "Audio.h"
+#include "host.h"
 
 //extern "C" {
   #include <lua.h>
@@ -18,6 +19,7 @@ using namespace std;
 using namespace z8;
 
 class Vm {
+    Host* _host;
     PicoRam* _memory;
 
     Graphics* _graphics;
@@ -48,7 +50,9 @@ class Vm {
     void vm_reload(int destaddr, int sourceaddr, int len, Cart* cart);
 
     public:
-    Vm(PicoRam* memory = nullptr,
+    Vm(
+       Host* host,
+       PicoRam* memory = nullptr,
        Graphics* graphics = nullptr,
        Input* input = nullptr,
        Audio* audio = nullptr);
@@ -58,9 +62,7 @@ class Vm {
 
     void LoadCart(string filename);
 
-    void UpdateAndDraw(
-      uint8_t kdown,
-      uint8_t kheld);
+    void UpdateAndDraw();
 
     uint8_t* GetPicoInteralFb();
     uint8_t* GetScreenPaletteMap();
@@ -106,5 +108,7 @@ class Vm {
     fix32 api_rnd();
     fix32 api_rnd(fix32 inRange);
     void api_srand(fix32 seed);
+
+    void update_buttons();
 };
 

@@ -16,9 +16,9 @@ int main(int argc, char* argv[])
 {
 	Logger::Initialize();
 
-	Vm *vm = new Vm();
-
 	Host *host = new Host();
+	Vm *vm = new Vm(host);
+	
 	host->oneTimeSetup(vm->GetPaletteColors());
 	
 	Logger::Write("initialized Vm and host\n");
@@ -33,23 +33,23 @@ int main(int argc, char* argv[])
 	// Main loop
 	Logger::Write("Starting main loop\n");
 
-	while (host->mainLoop())
+	while (host->shouldRunMainLoop())
 	{
 		int targetFps = vm->GetTargetFps();
+		//shouldn't need to set this every frame
 		host->setTargetFps(targetFps);
 
+		//is this better at the end of the loop?
 		host->waitForTargetFps();
 
-		host->scanInput();
-
 		if (host->shouldQuit()) break; // break in order to return to hbmenu
-
+		//this should probably be handled just in the host class
 		host->changeStretch();
 
-		uint8_t p8kDown = host->getKeysDown();
-		uint8_t p8kHeld = host->getKeysHeld();
-
-		vm->UpdateAndDraw(p8kDown, p8kHeld);
+		//update buttons needs to be callable from the cart, and also flip
+		//it should update call the pico part of scanInput and set the values in memory
+		//then we don't need to pass them in here
+		vm->UpdateAndDraw();
 
 		uint8_t* picoFb = vm->GetPicoInteralFb();
 		uint8_t* screenPaletteMap = vm->GetScreenPaletteMap();

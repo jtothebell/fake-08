@@ -20,12 +20,9 @@ class Host {
 
     void setTargetFps(int targetFps);
 
-    bool mainLoop();
+    bool shouldRunMainLoop();
 
-    void scanInput();
-    uint8_t getKeysDown();
-    uint8_t getKeysHeld();
-
+    InputState_t scanInput();
     bool shouldQuit();
 
     void changeStretch();

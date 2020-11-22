@@ -27,3 +27,8 @@ struct Bgr24Col {
 	uint8_t Green;
 	uint8_t Red;
 };
+
+struct InputState_t {
+	uint8_t KDown;
+	uint8_t KHeld;
+};

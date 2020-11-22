@@ -98,8 +98,6 @@ void audioSetup(){
 
 }
 
-
-
 Host::Host() { }
 
 
@@ -150,43 +148,66 @@ void Host::setTargetFps(int targetFps){
 }
 
 void Host::changeStretch(){
-    /*
-    if (currKDown & KEY_R) {
-        if (stretch == PixelPerfect) {
-            stretch = PixelPerfectStretch;
-        }
-        else if (stretch == PixelPerfectStretch) {
-            stretch = PixelPerfect;
+}
+InputState_t Host::scanInput(){
+    currKDown = 0;
+    currKHeld = 0;
+
+    while (SDL_PollEvent(&event)) {
+        switch (event.type) {
+            case SDL_KEYDOWN:
+                switch (event.key.keysym.sym)
+                {
+                    case SDLK_ESCAPE:currKDown |= P8_KEY_PAUSE; break;
+                    case SDLK_LEFT:  currKDown |= P8_KEY_LEFT; break;
+                    case SDLK_RIGHT: currKDown |= P8_KEY_RIGHT; break;
+                    case SDLK_UP:    currKDown |= P8_KEY_UP; break;
+                    case SDLK_DOWN:  currKDown |= P8_KEY_DOWN; break;
+                    case SDLK_z:     currKDown |= P8_KEY_X; break;
+                    case SDLK_x:     currKDown |= P8_KEY_O; break;
+                    case SDLK_c:     currKDown |= P8_KEY_X; break;
+                }
+                break;
+            case SDL_QUIT:
+                done = SDL_TRUE;
+                break;
         }
     }
-    */
-}
 
-void Host::scanInput(){
-    //hidScanInput();
+    const Uint8* keystate = SDL_GetKeyboardState(NULL);
 
-    //currKDown = hidKeysDown(CONTROLLER_P1_AUTO);
-    //currKHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
+    //continuous-response keys
+    if(keystate[SDL_SCANCODE_LEFT]){
+        currKHeld |= P8_KEY_LEFT;
+    }
+    if(keystate[SDL_SCANCODE_RIGHT]){
+        currKHeld |= P8_KEY_RIGHT;;
+    }
+    if(keystate[SDL_SCANCODE_UP]){
+        currKHeld |= P8_KEY_UP;
+    }
+    if(keystate[SDL_SCANCODE_DOWN]){
+        currKHeld |= P8_KEY_DOWN;
+    }
+    if(keystate[SDL_SCANCODE_Z]){
+        currKHeld |= P8_KEY_X;
+    }
+    if(keystate[SDL_SCANCODE_X]){
+        currKHeld |= P8_KEY_O;
+    }
+    if(keystate[SDL_SCANCODE_C]){
+        currKHeld |= P8_KEY_X;
+    }
     
+    return InputState_t {
+        currKDown,
+        currKHeld
+    };
 }
-
-uint8_t Host::getKeysDown(){
-    return currKDown;
-}
-
-uint8_t Host::getKeysHeld(){
-    return currKHeld;
-}
-
 
 bool Host::shouldQuit() {
-    //bool lpressed = currKHeld & KEY_L;
-	//bool rpressed = currKDown & KEY_R;
-
-	//return lpressed && rpressed;
-    return false;
+    return done == SDL_TRUE;
 }
-
 
 void Host::waitForTargetFps(){
     now_time = SDL_GetTicks();
@@ -252,58 +273,9 @@ void Host::playFilledAudioBuffer(){
 	fillBlock = !fillBlock;
 }
 
-bool Host::mainLoop(){
-    currKDown = 0;
-    currKHeld = 0;
-
-    while (SDL_PollEvent(&event)) {
-        switch (event.type) {
-            case SDL_KEYDOWN:
-                switch (event.key.keysym.sym)
-                {
-                    case SDLK_ESCAPE:currKDown |= P8_KEY_PAUSE; break;
-                    case SDLK_LEFT:  currKDown |= P8_KEY_LEFT; break;
-                    case SDLK_RIGHT: currKDown |= P8_KEY_RIGHT; break;
-                    case SDLK_UP:    currKDown |= P8_KEY_UP; break;
-                    case SDLK_DOWN:  currKDown |= P8_KEY_DOWN; break;
-                    case SDLK_z:     currKDown |= P8_KEY_X; break;
-                    case SDLK_x:     currKDown |= P8_KEY_O; break;
-                    case SDLK_c:     currKDown |= P8_KEY_X; break;
-                }
-                break;
-            case SDL_QUIT:
-                done = SDL_TRUE;
-                break;
-        }
-    }
-
-    if (done == SDL_TRUE){
+bool Host::shouldRunMainLoop(){
+    if (shouldQuit()){
         return false;
-    }
-
-    const Uint8* keystate = SDL_GetKeyboardState(NULL);
-
-    //continuous-response keys
-    if(keystate[SDL_SCANCODE_LEFT]){
-        currKHeld |= P8_KEY_LEFT;
-    }
-    if(keystate[SDL_SCANCODE_RIGHT]){
-        currKHeld |= P8_KEY_RIGHT;;
-    }
-    if(keystate[SDL_SCANCODE_UP]){
-        currKHeld |= P8_KEY_UP;
-    }
-    if(keystate[SDL_SCANCODE_DOWN]){
-        currKHeld |= P8_KEY_DOWN;
-    }
-    if(keystate[SDL_SCANCODE_Z]){
-        currKHeld |= P8_KEY_X;
-    }
-    if(keystate[SDL_SCANCODE_X]){
-        currKHeld |= P8_KEY_O;
-    }
-    if(keystate[SDL_SCANCODE_C]){
-        currKHeld |= P8_KEY_X;
     }
 
     return true;

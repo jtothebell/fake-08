@@ -17,7 +17,7 @@ testrunner.a: testroot.o \
 	cartPatcher.o cartpatchertests.o \
 	cart.o carttests.o nooplogger.o lodepng.o emojiconversion.o filehelpers.o utf8-util.o \
 	vm.o endtoendtests.o picoluaapi.o Input.o \
-	vmtests.o \
+	vmtests.o stubhost.o \
 	nibblehelpers.o nibblehelperstests.o \
 	-llua -ldl \
 	-o testrunner.a
@@ -77,15 +77,16 @@ carttests.o: carttests.cpp ../source/cart.cpp ../source/cart.h \
 endtoendtests.o: cartpatchertests.o carttests.o graphicstests.o audiotests.o \
 	endtoendtests.cpp \
 	../source/vm.cpp ../source/vm.h \
+	stubhost.cpp stubhost.h ../source/host.h \
 	../source/Input.cpp ../source/Input.h \
 	../source/picoluaapi.cpp ../source/picoluaapi.h
 	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \
-	endtoendtests.cpp ../source/vm.cpp  ../source/picoluaapi.cpp ../source/Input.cpp
+	endtoendtests.cpp stubhost.cpp ../source/vm.cpp  ../source/picoluaapi.cpp ../source/Input.cpp
 
 vmtests.o: endtoendtests.o \
-	vmtests.cpp
+	vmtests.cpp stubhost.cpp
 	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \
-	vmtests.cpp ../source/vm.cpp  ../source/picoluaapi.cpp ../source/Input.cpp
+	vmtests.cpp stubhost.cpp ../source/vm.cpp  ../source/picoluaapi.cpp ../source/Input.cpp
 	
 
 
