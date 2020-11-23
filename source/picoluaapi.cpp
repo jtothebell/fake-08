@@ -785,6 +785,12 @@ int _update_buttons(lua_State *L) {
     return 0;
 }
 
+int run(lua_State *L) {
+    _vmForLuaApi->vm_run();
+    
+    return 0;
+}
+
 int listcarts(lua_State *L) {
     //get cart list from VM (who should get it from host)
     vector<string> carts = _vmForLuaApi->GetCartList();

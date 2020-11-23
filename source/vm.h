@@ -114,5 +114,6 @@ class Vm {
     void update_buttons();
 
     void vm_flip();
+    void vm_run();
 };
 

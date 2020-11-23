@@ -220,6 +220,7 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "printh", printh);
     lua_register(_luaState, "stat", stat);
     lua_register(_luaState, "_update_buttons", _update_buttons);
+    lua_register(_luaState, "run", run);
 
     //rng
     lua_register(_luaState, "rnd", rnd);
@@ -679,5 +680,10 @@ void Vm::vm_flip() {
         //is this better at the end of the loop?
 		_host->waitForTargetFps();
     }
+}
 
+void Vm::vm_run() {
+    if (_loadedCart) {
+        loadCart(_loadedCart);
+    }
 }

@@ -98,6 +98,7 @@ int loadbioscart(lua_State *L);
 int rnd(lua_State *L);
 int srand(lua_State *L);
 int _update_buttons(lua_State *L);
+int run(lua_State *L);
 
 //api.tonum(val)
 
