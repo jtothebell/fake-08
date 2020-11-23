@@ -131,6 +131,7 @@ bool Vm::loadCart(Cart* cart) {
     vm_reload(0, 0, sizeof(cart->CartRom), cart);
 
     _loadedCart = cart;
+    _cartChangeQueued = false;
 
     // initialize Lua interpreter
     _luaState = luaL_newstate();
@@ -313,6 +314,17 @@ void Vm::LoadCart(std::string filename){
 void Vm::UpdateAndDraw() {
     update_buttons();
 
+    _picoFrameCount++;
+
+    //todo: pause menu here, but for now just load bios
+    if (_input->btnp(6)) {
+        QueueCartChange("__FAKE08-BIOS.p8");
+    }
+
+    if (_cartChangeQueued) {
+        LoadCart(_nextCartKey);
+    }
+
     if (_hasUpdate){
         // Push the _update function on the top of the lua stack
         if (_targetFps == 60) {
@@ -337,18 +349,6 @@ void Vm::UpdateAndDraw() {
         lua_pop(_luaState, 0);
     }
 
-    _picoFrameCount++;
-
-    //todo: pause menu here, but for now just load bios
-    if (_input->btnp(6)) {
-        QueueCartChange("__FAKE08-BIOS.p8");
-    }
-
-    if (_cartChangeQueued) {
-        LoadCart(_nextCartKey);
-
-        _cartChangeQueued = false;
-    }
 }
 
 uint8_t* Vm::GetPicoInteralFb(){
@@ -650,4 +650,34 @@ void Vm::update_buttons() {
     //get button states from hardware
     auto inputState = _host->scanInput();
     _input->SetState(inputState.KDown, inputState.KHeld);
+}
+
+void Vm::vm_flip() {
+    if (_host->shouldRunMainLoop() && !_host->shouldQuit()) {
+        update_buttons();
+
+        _picoFrameCount++;
+
+        //todo: pause menu here, but for now just load bios
+        if (_input->btnp(6)) {
+            QueueCartChange("__FAKE08-BIOS.p8");
+        }
+
+        if (_cartChangeQueued) {
+            LoadCart(_nextCartKey);
+        }
+
+        _host->changeStretch();
+
+        _host->setTargetFps(_targetFps);
+
+		uint8_t* picoFb = GetPicoInteralFb();
+		uint8_t* screenPaletteMap = GetScreenPaletteMap();
+
+		_host->drawFrame(picoFb, screenPaletteMap);
+
+        //is this better at the end of the loop?
+		_host->waitForTargetFps();
+    }
+
 }

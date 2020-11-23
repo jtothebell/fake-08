@@ -513,7 +513,9 @@ int fillp(lua_State *L) {
 }
 
 int flip(lua_State *L) {
-    return noop("flip");
+    _vmForLuaApi->vm_flip();
+
+    return 0;
 }
 
 //Input

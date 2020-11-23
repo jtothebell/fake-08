@@ -112,5 +112,7 @@ class Vm {
     void api_srand(fix32 seed);
 
     void update_buttons();
+
+    void vm_flip();
 };
 
