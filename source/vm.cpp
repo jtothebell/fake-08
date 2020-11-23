@@ -413,6 +413,37 @@ string Vm::GetBiosError() {
     return _cartLoadError;
 }
 
+void Vm::GameLoop() {
+    while (_host->shouldRunMainLoop())
+	{
+		//shouldn't need to set this every frame
+		_host->setTargetFps(_targetFps);
+
+		//is this better at the end of the loop?
+		_host->waitForTargetFps();
+
+		if (_host->shouldQuit()) break; // break in order to return to hbmenu
+		//this should probably be handled just in the host class
+		_host->changeStretch();
+
+		//update buttons needs to be callable from the cart, and also flip
+		//it should update call the pico part of scanInput and set the values in memory
+		//then we don't need to pass them in here
+		UpdateAndDraw();
+
+		uint8_t* picoFb = GetPicoInteralFb();
+		uint8_t* screenPaletteMap = GetScreenPaletteMap();
+
+		_host->drawFrame(picoFb, screenPaletteMap);
+
+		if (_host->shouldFillAudioBuff()) {
+			FillAudioBuffer(_host->getAudioBufferPointer(), 0, _host->getAudioBufferSize());
+
+			_host->playFilledAudioBuffer();
+		}
+	}
+}
+
 bool Vm::ExecuteLua(string luaString, string callbackFunction){
     int success = luaL_dostring(_luaState, luaString.c_str());
 

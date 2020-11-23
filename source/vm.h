@@ -78,6 +78,8 @@ class Vm {
 
     int GetFrameCount();
 
+    void GameLoop();
+
     void SetCartList(vector<string> cartList);
     vector<string> GetCartList();
     string GetBiosError();
