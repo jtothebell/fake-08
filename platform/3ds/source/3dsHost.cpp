@@ -224,21 +224,17 @@ void Host::changeStretch(){
     }
 }
 
-void Host::scanInput(){
+InputState_t Host::scanInput(){
     hidScanInput();
 
     currKDown = hidKeysDown();
     currKHeld = hidKeysHeld();
-}
 
-uint8_t Host::getKeysDown(){
-    return ConvertInputToP8(currKDown);
+    return InputState_t {
+        ConvertInputToP8(currKDown),
+        ConvertInputToP8(currKHeld)
+    };
 }
-
-uint8_t Host::getKeysHeld(){
-    return ConvertInputToP8(currKHeld);
-}
-
 
 bool Host::shouldQuit() {
     bool lpressed = currKHeld & KEY_L;
@@ -393,7 +389,7 @@ void Host::playFilledAudioBuffer(){
 	fillBlock = !fillBlock;
 }
 
-bool Host::mainLoop(){
+bool Host::shouldRunMainLoop(){
     return aptMainLoop();
 }
 
