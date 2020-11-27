@@ -2,6 +2,7 @@
 #include <functional>
 #include <chrono>
 #include <math.h>
+#include <setjmp.h>
 
 #include <string.h>
 
@@ -99,6 +100,9 @@ PicoRam* Vm::getPicoRam(){
     return _memory;
 }
 
+jmp_buf place;
+bool abortLua;
+
 bool Vm::loadCart(Cart* cart) {
     _picoFrameCount = 0;
     _cartdataKey = "";
@@ -132,6 +136,7 @@ bool Vm::loadCart(Cart* cart) {
 
     _loadedCart = cart;
     _cartChangeQueued = false;
+    abortLua = false;
 
     // initialize Lua interpreter
     _luaState = luaL_newstate();
@@ -139,8 +144,6 @@ bool Vm::loadCart(Cart* cart) {
     lua_setpico8memory(_luaState, (uint8_t *)&_memory->data);
     // load Lua base libraries (print / math / etc)
     luaL_openlibs(_luaState);
-	//luaopen_debug(_luaState);
-	//luaopen_string(_luaState);
     lua_pushglobaltable(_luaState);
 
     //load in global lua fuctions for pico 8
@@ -232,8 +235,8 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "__getbioserror", getbioserror);
     lua_register(_luaState, "__loadbioscart", loadbioscart);
 
-    int loadedCart = luaL_dostring(_luaState, cart->LuaString.c_str());
 
+    int loadedCart = luaL_loadstring(_luaState, cart->LuaString.c_str());
     if (loadedCart != LUA_OK) {
         _cartLoadError = "Error loading cart lua";
         Logger::Write("ERROR loading cart\n");
@@ -243,6 +246,19 @@ bool Vm::loadCart(Cart* cart) {
         return false;
     }
 
+    if (setjmp(place) == 0) {
+        if (lua_pcall(_luaState, 0, 0, 0)){
+            _cartLoadError = "Runtime error";
+            Logger::Write("ERROR running cart\n");
+            Logger::Write("Error: %s\n", lua_tostring(_luaState, -1));
+            lua_pop(_luaState, 1);
+        }
+    }
+
+    if (abortLua) {
+        //trigger closing of cart and reload of bios
+        return false;
+    }
 
     // Push the _init function on the top of the lua stack (or nil if it doesn't exist)
     lua_getglobal(_luaState, "_init");
@@ -654,7 +670,14 @@ void Vm::update_buttons() {
 }
 
 void Vm::vm_flip() {
-    if (_host->shouldRunMainLoop() && !_host->shouldQuit()) {
+    if (!_host->shouldRunMainLoop()){
+        abortLua = true;
+        if (abortLua){
+            longjmp(place, 1);
+        }
+    }
+
+    if (!_host->shouldQuit() && !_cartChangeQueued) {
         update_buttons();
 
         _picoFrameCount++;
@@ -662,10 +685,12 @@ void Vm::vm_flip() {
         //todo: pause menu here, but for now just load bios
         if (_input->btnp(6)) {
             QueueCartChange("__FAKE08-BIOS.p8");
-        }
-
-        if (_cartChangeQueued) {
-            LoadCart(_nextCartKey);
+            abortLua = true;
+            if (abortLua){
+                longjmp(place, 1);
+            }
+            //shouldn't get here
+            return;
         }
 
         _host->changeStretch();
