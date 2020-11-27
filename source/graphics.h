@@ -111,6 +111,12 @@ class Graphics {
 	void circfill(int ox, int oy, int r);
 	void circfill(int ox, int oy, int r, uint8_t col);
 
+	void oval(int x0, int y0, int x1, int y1);
+	void oval(int x0, int y0, int x1, int y1, uint8_t col);
+
+	void ovalfill(int x0, int y0, int x1, int y1);
+	void ovalfill(int x0, int y0, int x1, int y1, uint8_t col);
+
 	void rect(int x1, int y1, int x2, int y2);
 	void rect(int x1, int y1, int x2, int y2, uint8_t col);
 	void rectfill(int x1, int y1, int x2, int y2);

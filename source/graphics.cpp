@@ -595,7 +595,198 @@ void Graphics::circfill(int ox, int oy, int r, uint8_t col){
 				err += ++y * 2 + 1;
 		} while (x < 0);
 	}
-	
+}
+
+void Graphics::oval(int x0, int y0, int x1, int y1) {
+	this->oval(x0, y0, x1, y1, _memory->drawState.color);
+}
+
+//https://stackoverflow.com/a/8448181
+void Graphics::oval(int x0, int y0, int x1, int y1, uint8_t col) {
+	color(col);
+
+	applyCameraToPoint(&x0, &y0);
+	applyCameraToPoint(&x1, &y1);
+
+	sortCoordsForRect(&x0, &y0, &x1, &y1);
+
+	//x radius and y radius
+	int xr = (x1 - x0) / 2;
+	int yr = (y1 - y0) / 2;
+
+	//center location
+	int xc = x0 + xr;
+	int yc = y0 + yr;
+
+	int wx, wy;
+    int thresh;
+    int asq = xr * xr;
+    int bsq = yr * yr;
+    int xa, ya;
+
+	_private_safe_pset(xc, yc+yr, col);
+    _private_safe_pset(xc, yc-yr, col);
+
+    wx = 0;
+    wy = yr;
+    xa = 0;
+    ya = asq * 2 * yr;
+    thresh = asq / 4 - asq * yr;
+
+    for (;;) {
+        thresh += xa + bsq;
+
+        if (thresh >= 0) {
+            ya -= asq * 2;
+            thresh -= ya;
+            wy--;
+        }
+
+        xa += bsq * 2;
+        wx++;
+
+        if (xa >= ya)
+          break;
+
+
+        _private_safe_pset(xc+wx, yc-wy, col);
+        _private_safe_pset(xc-wx, yc-wy, col);
+        _private_safe_pset(xc+wx, yc+wy, col);
+        _private_safe_pset(xc-wx, yc+wy, col);
+    }
+
+    _private_safe_pset(xc+xr, yc, col);
+    _private_safe_pset(xc-xr, yc, col);
+
+    wx = xr;
+    wy = 0;
+    xa = bsq * 2 * xr;
+
+    ya = 0;
+    thresh = bsq / 4 - bsq * xr;
+
+    for (;;) {
+        thresh += ya + asq;
+
+        if (thresh >= 0) {
+            xa -= bsq * 2;
+            thresh = thresh - xa;
+            wx--;
+        }
+
+        ya += asq * 2;
+        wy++;
+
+        if (ya > xa)
+          break;
+
+        _private_safe_pset(xc+wx, yc-wy, col);
+        _private_safe_pset(xc-wx, yc-wy, col);
+        _private_safe_pset(xc+wx, yc+wy, col);
+        _private_safe_pset(xc-wx, yc+wy, col);
+    }
+}
+
+void Graphics::ovalfill(int x0, int y0, int x1, int y1) {
+	this->ovalfill(x0, y0, x1, y1, _memory->drawState.color);
+}
+
+//https://stackoverflow.com/a/8448181
+void Graphics::ovalfill(int x0, int y0, int x1, int y1, uint8_t col){
+	color(col);
+
+	applyCameraToPoint(&x0, &y0);
+	applyCameraToPoint(&x1, &y1);
+
+	sortCoordsForRect(&x0, &y0, &x1, &y1);
+
+	//x radius and y radius
+	int xr = (x1 - x0) / 2;
+	int yr = (y1 - y0) / 2;
+
+	//center location
+	int xc = x0 + xr;
+	int yc = y0 + yr;
+
+	int wx, wy;
+    int thresh;
+    int asq = xr * xr;
+    int bsq = yr * yr;
+    int xa, ya;
+
+	_private_v_line(yc+yr, yc-yr, xc, col);
+
+    wx = 0;
+    wy = yr;
+    xa = 0;
+    ya = asq * 2 * yr;
+    thresh = asq / 4 - asq * yr;
+
+    for (;;) {
+        thresh += xa + bsq;
+
+        if (thresh >= 0) {
+            ya -= asq * 2;
+            thresh -= ya;
+            wy--;
+        }
+
+        xa += bsq * 2;
+        wx++;
+
+        if (xa >= ya)
+          break;
+
+		_private_h_line(xc+wx, xc-wx, yc-wy, col);
+		_private_h_line(xc+wx, xc-wx, yc+wy, col);
+    }
+
+	_private_h_line(xc+xr, xc-xr, yc, col);
+
+    wx = xr;
+    wy = 0;
+    xa = bsq * 2 * xr;
+
+    ya = 0;
+    thresh = bsq / 4 - bsq * xr;
+
+    for (;;) {
+        thresh += ya + asq;
+
+        if (thresh >= 0) {
+            xa -= bsq * 2;
+            thresh = thresh - xa;
+            wx--;
+        }
+
+        ya += asq * 2;
+        wy++;
+
+        if (ya > xa)
+          break;
+
+		_private_h_line(xc+wx, xc-wx, yc-wy, col);
+		_private_h_line(xc+wx, xc-wx, yc+wy, col);
+    }
+	/*
+	//this algo doesn't like up correctly
+	//center line
+	_private_h_line(xc - xr, xc + xr, yc, col);
+
+	for (int y = 1; y <= yr; y++) {
+		int x = currWidth - (dx - 1);  // try slopes of dx - 1 or more
+		for ( ; x > 0; x--) {
+			if (x*x*hh + y*y*ww <= hhww) {
+				break;
+			}
+		}
+		dx = currWidth - x;  // current approximation of the slope
+		currWidth = x;
+
+		_private_h_line(xc - currWidth, xc + currWidth, yc + y, col);
+		_private_h_line(xc - currWidth, xc + currWidth, yc - y, col);
+	}
+	*/
 }
 
 void Graphics::rect(int x1, int y1, int x2, int y2) {

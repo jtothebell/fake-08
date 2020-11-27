@@ -173,6 +173,49 @@ int circfill(lua_State *L){
     return 0;
 }
 
+int oval(lua_State *L){
+
+    if (lua_gettop(L) >= 4) {
+        int x1 = lua_tonumber(L,1);
+        int y1 = lua_tonumber(L,2);
+        int x2 = lua_tonumber(L,3);
+        int y2 = lua_tonumber(L,4);
+
+        if (lua_gettop(L) == 4){
+            _graphicsForLuaApi->oval(x1, y1, x2, y2);
+
+        }
+        else {
+            uint8_t c = lua_tonumber(L,5);
+
+            _graphicsForLuaApi->oval(x1, y1, x2, y2, c);
+        }
+    }
+
+    return 0;
+}
+
+int ovalfill(lua_State *L){
+    if (lua_gettop(L) >= 4) {
+        int x1 = lua_tonumber(L,1);
+        int y1 = lua_tonumber(L,2);
+        int x2 = lua_tonumber(L,3);
+        int y2 = lua_tonumber(L,4);
+
+        if (lua_gettop(L) == 4){
+            _graphicsForLuaApi->ovalfill(x1, y1, x2, y2);
+
+        }
+        else {
+            fix32 c = lua_tonumber(L,5);
+
+            _graphicsForLuaApi->ovalfill(x1, y1, x2, y2, c);
+        }
+    }
+
+    return 0;
+}
+
 int rect(lua_State *L){
 
     if (lua_gettop(L) >= 4) {

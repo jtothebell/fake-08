@@ -393,7 +393,7 @@ TEST_CASE("Loading and running carts") {
             };
 
             vector<string> expectedMissing {
-                "oval", "ovalfill", "tline"
+                "tline"
             };
 
             string missing = "";

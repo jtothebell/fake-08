@@ -407,7 +407,6 @@ TEST_CASE("Vm memory functions") {
             vm->UpdateAndDraw();
             bool btnbits = vm->ExecuteLua(
                 "function btnbitstest1()\n"
-                " printh(\"hello btnbits: \" .. btnbits .. \"\\\n\")"
                 " return btnbits == 1\n"
                 "end\n",
                 "btnbitstest1");

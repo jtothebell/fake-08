@@ -449,6 +449,43 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("oval({x0}, {x1}, {y0}, {y1}, {c}) draws an ellipse") {
+        graphics->cls();
+        graphics->oval(40, 40, 45, 42, 13);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {40,41,13},
+            {41,40,13},
+            {41,42,13},
+            {42,40,13},
+            {42,42,13},
+            {43,40,13},
+            {43,42,13},
+            {44,41,13}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("ovalfill({x0}, {x1}, {y0}, {y1}, {c}) fills an ellipse") {
+        graphics->cls();
+        graphics->ovalfill(40, 40, 45, 42, 13);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {40,41,13},
+            {41,40,13},
+            {41,41,13},
+            {41,42,13},
+            {42,40,13},
+            {42,41,13},
+            {42,42,13},
+            {43,40,13},
+            {43,41,13},
+            {43,42,13},
+            {44,41,13}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
     SUBCASE("rect({x1}, {y1}, {x2}, {y2}) uses pen color") {
         graphics->cls();
         graphics->color(15);

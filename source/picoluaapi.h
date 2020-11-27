@@ -23,6 +23,8 @@ int color(lua_State *L);
 int line (lua_State *L);
 int circ(lua_State *L);
 int circfill(lua_State *L);
+int oval(lua_State *L);
+int ovalfill(lua_State *L);
 int rect(lua_State *L);
 int rectfill(lua_State *L);
 int print(lua_State *L);
