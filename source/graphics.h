@@ -104,6 +104,9 @@ class Graphics {
 	void line (int x1, int y1, int x2, int y2);
 	void line (int x1, int y1, int x2, int y2, uint8_t col);
 
+	void tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my);
+	void tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 mdx, fix32 mdy);
+
 	void circ(int ox, int oy);
 	void circ(int ox, int oy, int r);
 	void circ(int ox, int oy, int r, uint8_t col);

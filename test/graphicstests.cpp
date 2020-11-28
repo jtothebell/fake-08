@@ -1648,6 +1648,33 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(picoRam.drawState.text_y, 0);
         CHECK_EQ(picoRam.drawState.color, 3);
     }
+    SUBCASE("tline draws sprites from map"){
+        for(int i = 0; i < 128; i++) {
+            for (int j = 0; j < 32; j++)
+            graphics->sset(i, j, i%16);
+        }
+        for(int x = 0; x < 128; x++) {
+            for (int y = 0; y < 32; y++) {
+                graphics->mset(x, y, (x + y) % 16);
+            }
+        }
+
+        graphics->tline(27, 34, 34, 41, 3, 4);
+
+        //diagonal across screen- 2x2 cells, 16x16 pixels
+        std::vector<coloredPoint> expectedPoints = {
+            {27,34,8},
+            {28,35,9},
+            {29,36,10},
+            {30,37,11},
+            {31,38,12},
+            {32,39,13},
+            {33,40,14},
+            {34,41,15}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
     
 
     //general teardown

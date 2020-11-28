@@ -392,18 +392,9 @@ TEST_CASE("Loading and running carts") {
                 "bor", "bxor", "bnot", "shl", "shr", "lshr", "rotl", "rotr"
             };
 
-            vector<string> expectedMissing {
-                "tline"
-            };
-
             string missing = "";
             
             for (auto apiFunction : apiFunctions) {
-                if (std::find(expectedMissing.begin(), expectedMissing.end(), apiFunction) != expectedMissing.end())
-                {
-                    continue;
-                }
-
                 std::stringstream ss;
                 ss << "function globalfunctest()\n  return " << apiFunction << " ~= nil\n  end\n";
 

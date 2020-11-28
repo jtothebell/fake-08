@@ -522,6 +522,99 @@ void Graphics::line(int x0, int y0, int x1, int y1, uint8_t col) {
 	}
 }
 
+
+void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my){
+	tline(
+		x0,
+		y0,
+		x1,
+		y1,
+		mx,
+		my,
+		fix32::frombits(0x2000), // 1/8
+		fix32(0)
+	);
+}
+
+//proted from zepto 8 impl
+void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 mdx, fix32 mdy){
+	applyCameraToPoint(&x0, &y0);
+	applyCameraToPoint(&x1, &y1);
+
+	//determine whether x or y coordinates need to get incremented
+	bool xDifGreater = std::abs(x1 - x0) >= std::abs(y1 - y0);
+	int dx = xDifGreater ? x0 <= x1 ? 1 : -1 : 0;
+    int dy = xDifGreater ? 0 : y0 <= y1 ? 1 : -1;
+
+	bool vertical = x0 == x1;
+
+	int x = clampCoordToScreenDims(x0);
+	int xend = clampCoordToScreenDims(x1);
+	int y = clampCoordToScreenDims(y0);
+	int yend = clampCoordToScreenDims(y1);
+
+	auto &ds = _memory->drawState;
+
+	// Retrieve masks for wrap-around and subtract 0x0.0001
+	fix32 xmask = fix32(ds.tlineMapWidth) - fix32::frombits(1);
+    fix32 ymask = fix32(ds.tlineMapHeight) - fix32::frombits(1);
+
+	// Advance texture coordinates; do it in steps to avoid overflows
+    int delta = abs(xDifGreater ? x - x0 : y - y0);
+    while (delta) {
+        int step = std::min(8192, delta);
+        mx = (mx & ~xmask) | ((mx + mdx * fix32(step)) & xmask);
+        my = (my & ~ymask) | ((my + mdy * fix32(step)) & ymask);
+        delta -= step;
+    }
+
+	for (;;) {
+        // Find sprite in map memory
+        int sx = (ds.tlineMapXOffset + int(mx)) & 0x7f;
+        int sy = (ds.tlineMapYOffset + int(my)) & 0x3f;
+		uint8_t sprite = mget(sx, sy);
+        //uint8_t bits = fget(sprite);
+
+		int spr_x = (sprite % 16) * 8;
+		int spr_y = (sprite / 16) * 8;
+
+        // If found, draw pixel //todo layer param
+		//if (cell && ((layer == 0) || (fget(cell) & layer))) {
+        if (sprite) {
+            //uint8_t col = _memory->spriteSheetData.gfx.get(spr_x + (int(mx << 3) & 0x7),
+            //                        spr_y + (int(my << 3) & 0x7));
+			uint8_t col = getPixelNibble(
+				spr_x + (int(mx << 3) & 0x7),
+				spr_y + (int(my << 3) & 0x7),
+				_memory->spriteSheetData);
+
+            if (!isColorTransparent(col)) {
+                _private_pset(x, y, getDrawPalMappedColor(col));
+            }
+        }
+
+        // Advance source coordinates
+        mx = (mx & ~xmask) | ((mx + mdx) & xmask);
+        my = (my & ~ymask) | ((my + mdy) & ymask);
+
+        // Advance destination coordinates
+        if (xDifGreater) {
+            if (x == xend)
+                break;
+            x += dx;
+            y = y0 + ((float)(x - x0) / (x1 - x0)) * (y1 - y0);
+        }
+        else {
+            if (y == yend)
+                break;
+            y += dy;
+			if (! vertical) {
+            	x = x0 + ((float)(y - y0) / (y1 - y0)) * (x1 - x0);
+			}
+		}
+	}
+}
+
 void Graphics::circ(int ox, int oy){
 	this->circ(ox, oy, 4);
 }

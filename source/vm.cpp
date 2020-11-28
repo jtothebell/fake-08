@@ -165,6 +165,7 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "pget", pget);
     lua_register(_luaState, "color", color);
     lua_register(_luaState, "line", line);
+    lua_register(_luaState, "tline", tline);
     lua_register(_luaState, "circ", circ);
     lua_register(_luaState, "circfill", circfill);
     lua_register(_luaState, "oval", oval);

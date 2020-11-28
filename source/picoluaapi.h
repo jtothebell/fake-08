@@ -21,6 +21,7 @@ int pset(lua_State *L);
 int pget(lua_State *L);
 int color(lua_State *L);
 int line (lua_State *L);
+int tline (lua_State *L);
 int circ(lua_State *L);
 int circfill(lua_State *L);
 int oval(lua_State *L);

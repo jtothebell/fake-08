@@ -131,6 +131,28 @@ int line (lua_State *L){
     return 0;
 }
 
+int tline (lua_State *L){
+    int x0 = 0, y0 = 0, x1 = 0, y1 = 0;
+    fix32 mx = 0, my = 0, mdx = fix32::frombits(0x2000), mdy = 0;
+
+    if (lua_gettop(L) >= 6) {
+        x0 = lua_tonumber(L,1);
+        y0 = lua_tonumber(L,2);
+        x1 = lua_tonumber(L,3);
+        y1 = lua_tonumber(L,4);
+        mx = lua_tonumber(L,5);
+        my = lua_tonumber(L,6);
+    }
+    if (lua_gettop(L) > 7){
+        mdx = lua_tonumber(L,7);
+        mdy = lua_tonumber(L,8);
+    }
+
+    _graphicsForLuaApi->tline(x0, y0, x1, y1, mx, my, mdx, mdy);
+
+    return 0;
+}
+
 int circ(lua_State *L){
     int ox = lua_tonumber(L,1);
     int oy = lua_tonumber(L,2);
