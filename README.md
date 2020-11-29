@@ -46,5 +46,5 @@ You can also browse carts on the Pico-8 BBS website, but can only download compl
 
 I make no specific claims of compatibility at the present time. I think many carts _should_ work, but this is still a project in the very early stages, and it is my first real foray into C or C++ development and low level game dev in general. I'm mostly doing this project as a fun way to learn.
 
-Feel free to write up any issues you come across, and attach or link to a cart that reproduces the issue. My main goal is to improve compatibility with Pico 8, and then improve speed of carts that are too slow on New 3DS systems. S
+Feel free to write up any issues you come across, and attach or link to a cart that reproduces the issue. My main goal is to improve compatibility with Pico 8, and then improve speed of carts that are too slow on New 3DS systems.
 
