@@ -1,10 +1,13 @@
 #include <string>
 #include <vector>
+#include <sstream>
+#include <algorithm>
 
 #include "doctest.h"
 #include "../libs/lodepng/lodepng.h"
 
 #include "../source/vm.h"
+#include "../source/host.h"
 #include "../source/hostVmShared.h"
 #include "../source/nibblehelpers.h"
 
@@ -62,7 +65,8 @@ bool verifyScreenshot(Vm* vm, std::string screenshotFilename) {
 }
 
 TEST_CASE("Loading and running carts") {
-    Vm* vm = new Vm();
+    Host* host = new Host();
+    Vm* vm = new Vm(host);
 
     SUBCASE("Load simple cart"){
         vm->LoadCart("carts/cartparsetest.p8");
@@ -71,9 +75,9 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("Frame count updated with each UpdateAndDrawCall()"){
-            vm->UpdateAndDraw(0, 0);
-            vm->UpdateAndDraw(0, 0);
-            vm->UpdateAndDraw(0, 0);
+            vm->UpdateAndDraw();
+            vm->UpdateAndDraw();
+            vm->UpdateAndDraw();
 
             CHECK(vm->GetFrameCount() == 3);
         }
@@ -96,7 +100,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw(0, 0);
+            vm->UpdateAndDraw();
 
             CHECK(verifyScreenshot(vm, "carts/screenshots/pset00-test_f01.png"));
         }
@@ -110,7 +114,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw(0, 0);
+            vm->UpdateAndDraw();
 
             CHECK(verifyScreenshot(vm, "carts/screenshots/pset3pix_f01.png"));
         }
@@ -124,7 +128,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw(0, 0);
+            vm->UpdateAndDraw();
 
             CHECK(verifyScreenshot(vm, "carts/screenshots/psetall_f01.png"));
         }
@@ -138,7 +142,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw(0, 0);
+            vm->UpdateAndDraw();
 
             CHECK(verifyScreenshot(vm, "carts/screenshots/cliptest_f01.png"));
         }
@@ -152,7 +156,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw(0, 0);
+            vm->UpdateAndDraw();
 
             CHECK(verifyScreenshot(vm, "carts/screenshots/memorytest_f01.png"));
         }
@@ -166,7 +170,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw(0, 0);
+            vm->UpdateAndDraw();
 
             CHECK(verifyScreenshot(vm, "carts/screenshots/cartdatatest_f01.png"));
         }
@@ -177,7 +181,7 @@ TEST_CASE("Loading and running carts") {
         vm->LoadCart("carts/tonumtest2.p8");
 
         SUBCASE("can parse positive int"){
-            vm->UpdateAndDraw(0, 0);
+            vm->UpdateAndDraw();
 
             bool parsedCorrectly = vm->ExecuteLua(
                 "function r1test()\n"
@@ -188,7 +192,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(parsedCorrectly);
         }
         SUBCASE("can parse negative decimal") {
-            vm->UpdateAndDraw(0, 0);
+            vm->UpdateAndDraw();
 
             bool parsedCorrectly = vm->ExecuteLua(
                 "function r2test()\n"
@@ -199,7 +203,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(parsedCorrectly);
         }
         SUBCASE("can parse hex") {
-            vm->UpdateAndDraw(0, 0);
+            vm->UpdateAndDraw();
 
             bool parsedCorrectly = vm->ExecuteLua(
                 "function r3test()\n"
@@ -211,7 +215,7 @@ TEST_CASE("Loading and running carts") {
         }
         
        SUBCASE("can parse binary literal") {
-            vm->UpdateAndDraw(0, 0);
+            vm->UpdateAndDraw();
 
             bool parsedCorrectly = vm->ExecuteLua(
                 "function r5test()\n"
@@ -222,7 +226,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(parsedCorrectly);
         }
         SUBCASE("can parse large positive number") {
-            vm->UpdateAndDraw(0, 0);
+            vm->UpdateAndDraw();
 
             bool parsedCorrectly = vm->ExecuteLua(
                 "function r6test()\n"
@@ -233,7 +237,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(parsedCorrectly);
         }
         SUBCASE("unparseable string returns nil") {
-            vm->UpdateAndDraw(0, 0);
+            vm->UpdateAndDraw();
 
             bool parsedCorrectly = vm->ExecuteLua(
                 "function r8test()\n"
@@ -246,7 +250,7 @@ TEST_CASE("Loading and running carts") {
         
         //currently failing
         SUBCASE("can parse hex with decimal") {
-            vm->UpdateAndDraw(0, 0);
+            vm->UpdateAndDraw();
 
             bool parsedCorrectly = vm->ExecuteLua(
                 "function r4test()\n"
@@ -259,7 +263,7 @@ TEST_CASE("Loading and running carts") {
         }
         /*
         SUBCASE("too large int overflows") {
-            vm->UpdateAndDraw(0, 0);
+            vm->UpdateAndDraw();
 
             bool parsedCorrectly = vm->ExecuteLua(
                 "function r7test()\n"
@@ -273,6 +277,151 @@ TEST_CASE("Loading and running carts") {
 
         vm->CloseCart();
     }
+    SUBCASE("Simple Arithmetic Cart"){
+        vm->LoadCart("carts/arithmetictest.p8");
 
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("addition works"){
+            vm->UpdateAndDraw();
+
+            bool additionWorks = vm->ExecuteLua(
+                "function additiontest()\n"
+                " return frames == 1\n"
+                "end\n",
+                "additiontest");
+
+            CHECK(additionWorks);
+        }
+        SUBCASE("multiplication works"){
+            vm->UpdateAndDraw();
+
+            bool multiplicationWorks = vm->ExecuteLua(
+                "function multiplicationtest()\n"
+                " return result == 10\n"
+                "end\n",
+                "multiplicationtest");
+
+            CHECK(multiplicationWorks);
+        }
+        SUBCASE("division works"){
+            vm->UpdateAndDraw();
+
+            bool divisionWorks = vm->ExecuteLua(
+                "function divisiontest()\n"
+                " return result2 == 0.2\n"
+                "end\n",
+                "divisiontest");
+
+            CHECK(divisionWorks);
+        }
+        SUBCASE("subtraction works"){
+            vm->UpdateAndDraw();
+
+            bool subtractionWorks = vm->ExecuteLua(
+                "function subtractiontest()\n"
+                " return result3 == 3.6\n"
+                "end\n",
+                "subtractiontest");
+
+            CHECK(subtractionWorks);
+        }
+        SUBCASE("rnd returns between 0 and 1, and can add"){
+            vm->UpdateAndDraw();
+
+            bool rndWorks = vm->ExecuteLua(
+                "function rndtest()\n"
+                " return result4 > 0 and result4 < 1\n"
+                "end\n",
+                "rndtest");
+
+            CHECK(rndWorks);
+        }
+        SUBCASE("rnd returns between 0 and 1 without calling srand first"){
+            vm->UpdateAndDraw();
+
+            bool rndWorks = vm->ExecuteLua(
+                "function firstrndtest()\n"
+                " return firstrand > 0 and firstrand < 1\n"
+                "end\n",
+                "firstrndtest");
+
+            CHECK(rndWorks);
+        }
+        SUBCASE("# returns count of array"){
+            vm->UpdateAndDraw();
+
+            bool rndWorks = vm->ExecuteLua(
+                "function counttest()\n"
+                " return tblcount == 4\n"
+                "end\n",
+                "counttest");
+
+            CHECK(rndWorks);
+        }
+        SUBCASE("ceil works"){
+            vm->UpdateAndDraw();
+
+            bool ceilWorks = vm->ExecuteLua(
+                "function ceiltest()\n"
+                " return ceilcount == 1\n"
+                "end\n",
+                "ceiltest");
+
+            CHECK(ceilWorks);
+        }
+
+        vm->CloseCart();
+    }
+
+    SUBCASE("api loaded with cart load") {
+
+        vm->LoadCart("carts/cartparsetest.p8");
+
+        SUBCASE("all api functions exist"){
+            vector<string> apiFunctions {
+                "time", "t", "sub", "chr", "ord", "tostr", "tonum", 
+                "add", "del", "deli", "clip", "color", "pal", "palt",
+                "fillp", "pget", "pset", "sget", "sset", "fget", 
+                "fset", "circ", "circfill", "rect", "rectfill", "oval",
+                "ovalfill", "line", "spr", "sspr", "mget", "mset", 
+                "tline", "peek", "poke", "peek2", "poke2", "peek4",
+                "poke4", "memcpy", "memset", "max", "min", "mid", "flr", 
+                "ceil", "cos", "sin", "atan2", "rnd", "srand", "band",
+                "bor", "bxor", "bnot", "shl", "shr", "lshr", "rotl", "rotr"
+            };
+
+            string missing = "";
+            
+            for (auto apiFunction : apiFunctions) {
+                std::stringstream ss;
+                ss << "function globalfunctest()\n  return " << apiFunction << " ~= nil\n  end\n";
+
+                bool functionExists = vm->ExecuteLua(ss.str(), "globalfunctest");
+
+                if (!functionExists) {
+                    missing = missing + ", " + apiFunction;
+                }
+            }
+
+            CHECK_MESSAGE(missing.length() == 0, missing);
+        }
+
+        vm->CloseCart();
+    }
+    SUBCASE("calling reload from init doesn't crash") {
+        vm->LoadCart("carts/reloadininit.p8");
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+    }
+    SUBCASE("rnd with table argument works") {
+        vm->LoadCart("carts/tablerndtest.p8");
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+    }
+    
     delete vm;
 }

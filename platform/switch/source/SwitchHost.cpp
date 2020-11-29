@@ -207,19 +207,16 @@ void Host::changeStretch(){
     }
 }
 
-void Host::scanInput(){
+InputState_t Host::scanInput(){
     hidScanInput();
 
     currKDown = hidKeysDown(CONTROLLER_P1_AUTO);
     currKHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
-}
 
-uint8_t Host::getKeysDown(){
-    return ConvertInputToP8(currKDown);
-}
-
-uint8_t Host::getKeysHeld(){
-    return ConvertInputToP8(currKHeld);
+    return InputState_t {
+        ConvertInputToP8(currKDown),
+        ConvertInputToP8(currKHeld)
+    };
 }
 
 
@@ -315,7 +312,7 @@ void Host::playFilledAudioBuffer(){
 	fillBlock = !fillBlock;
 }
 
-bool Host::mainLoop(){
+bool Host::shouldRunMainLoop(){
     return appletMainLoop();
 }
 

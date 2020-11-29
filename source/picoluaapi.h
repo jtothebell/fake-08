@@ -2,11 +2,11 @@
 
 #include <string>
 
-extern "C" {
+//extern "C" {
   #include <lua.h>
   #include <lualib.h>
   #include <lauxlib.h>
-}
+//}
 
 #include "graphics.h"
 #include "Input.h"
@@ -21,8 +21,11 @@ int pset(lua_State *L);
 int pget(lua_State *L);
 int color(lua_State *L);
 int line (lua_State *L);
+int tline (lua_State *L);
 int circ(lua_State *L);
 int circfill(lua_State *L);
+int oval(lua_State *L);
+int ovalfill(lua_State *L);
 int rect(lua_State *L);
 int rectfill(lua_State *L);
 int print(lua_State *L);
@@ -94,6 +97,11 @@ int getbioserror(lua_State *L);
 int loadbioscart(lua_State *L);
 
 //system functions
+
+int rnd(lua_State *L);
+int srand(lua_State *L);
+int _update_buttons(lua_State *L);
+int run(lua_State *L);
 
 //api.tonum(val)
 

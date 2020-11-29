@@ -1,6 +1,8 @@
 #include <string>
 #include <functional>
+#include <chrono>
 #include <math.h>
+#include <setjmp.h>
 
 #include <string.h>
 
@@ -15,13 +17,17 @@
 #include "hostVmShared.h"
 #include "emojiconversion.h"
 
-extern "C" {
+//extern "C" {
   #include <lua.h>
   #include <lualib.h>
   #include <lauxlib.h>
-}
+  #include <fix32.h>
+//}
+
+using namespace z8;
 
 Vm::Vm(
+    Host* host,
     PicoRam* memory,
     Graphics* graphics,
     Input* input,
@@ -38,6 +44,8 @@ Vm::Vm(
         _cartLoadError(""),
         _cartdataKey("")
 {
+    _host = host;
+
     if (memory == nullptr) {
         memory = new PicoRam();
         _cleanupDeps = true;
@@ -92,12 +100,19 @@ PicoRam* Vm::getPicoRam(){
     return _memory;
 }
 
+jmp_buf place;
+bool abortLua;
+
 bool Vm::loadCart(Cart* cart) {
     _picoFrameCount = 0;
     _cartdataKey = "";
 
     //reset memory (may have to be more selective about zeroing out to be accurate?)
     _memory->Reset();
+
+    //seed rng
+    auto now = std::chrono::high_resolution_clock::now();
+    api_srand(fix32::frombits((int32_t)now.time_since_epoch().count()));
 
     //set graphics state
     _graphics->color();
@@ -119,11 +134,17 @@ bool Vm::loadCart(Cart* cart) {
     //copy data from cart rom to ram
     vm_reload(0, 0, sizeof(cart->CartRom), cart);
 
+    _loadedCart = cart;
+    _cartChangeQueued = false;
+    abortLua = false;
+
     // initialize Lua interpreter
     _luaState = luaL_newstate();
 
+    lua_setpico8memory(_luaState, (uint8_t *)&_memory->data);
     // load Lua base libraries (print / math / etc)
     luaL_openlibs(_luaState);
+    lua_pushglobaltable(_luaState);
 
     //load in global lua fuctions for pico 8
     auto convertedGlobalLuaFunctions = convert_emojis(p8GlobalLuaFunctions);
@@ -144,8 +165,11 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "pget", pget);
     lua_register(_luaState, "color", color);
     lua_register(_luaState, "line", line);
+    lua_register(_luaState, "tline", tline);
     lua_register(_luaState, "circ", circ);
     lua_register(_luaState, "circfill", circfill);
+    lua_register(_luaState, "oval", oval);
+    lua_register(_luaState, "ovalfill", ovalfill);
     lua_register(_luaState, "rect", rect);
     lua_register(_luaState, "rectfill", rectfill);
     lua_register(_luaState, "print", print);
@@ -201,6 +225,12 @@ bool Vm::loadCart(Cart* cart) {
     //
     lua_register(_luaState, "printh", printh);
     lua_register(_luaState, "stat", stat);
+    lua_register(_luaState, "_update_buttons", _update_buttons);
+    lua_register(_luaState, "run", run);
+
+    //rng
+    lua_register(_luaState, "rnd", rnd);
+    lua_register(_luaState, "srand", srand);
 
     //system
     lua_register(_luaState, "__listcarts", listcarts);
@@ -208,8 +238,8 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "__getbioserror", getbioserror);
     lua_register(_luaState, "__loadbioscart", loadbioscart);
 
-    int loadedCart = luaL_dostring(_luaState, cart->LuaString.c_str());
 
+    int loadedCart = luaL_loadstring(_luaState, cart->LuaString.c_str());
     if (loadedCart != LUA_OK) {
         _cartLoadError = "Error loading cart lua";
         Logger::Write("ERROR loading cart\n");
@@ -219,6 +249,19 @@ bool Vm::loadCart(Cart* cart) {
         return false;
     }
 
+    if (setjmp(place) == 0) {
+        if (lua_pcall(_luaState, 0, 0, 0)){
+            _cartLoadError = "Runtime error";
+            Logger::Write("ERROR running cart\n");
+            Logger::Write("Error: %s\n", lua_tostring(_luaState, -1));
+            lua_pop(_luaState, 1);
+        }
+    }
+
+    if (abortLua) {
+        //trigger closing of cart and reload of bios
+        return false;
+    }
 
     // Push the _init function on the top of the lua stack (or nil if it doesn't exist)
     lua_getglobal(_luaState, "_init");
@@ -231,17 +274,17 @@ bool Vm::loadCart(Cart* cart) {
     lua_pop(_luaState, 0);
 
     //check for update, mark correct target fps
-    lua_getglobal(_luaState, "_update");
+    lua_getglobal(_luaState, "_update60");
     if (lua_isfunction(_luaState, -1)) {
         _hasUpdate = true;
-        _targetFps = 30;
+        _targetFps = 60;
     }
     lua_pop(_luaState, 0);
     if (!_hasUpdate){
-        lua_getglobal(_luaState, "_update60");
+        lua_getglobal(_luaState, "_update");
         if (lua_isfunction(_luaState, -1)) {
             _hasUpdate = true;
-            _targetFps = 60;
+            _targetFps = 30;
         }
         lua_pop(_luaState, 0);
     }
@@ -251,8 +294,6 @@ bool Vm::loadCart(Cart* cart) {
         _hasDraw = true;
     }
     lua_pop(_luaState, 0);
-
-    _loadedCart = cart;
 
     _cartLoadError = "";
 
@@ -290,12 +331,19 @@ void Vm::LoadCart(std::string filename){
 }
 
 
-//how to call lua from c: https://www.cs.usfca.edu/~galles/cs420/lecture/LuaLectures/LuaAndC.html
-void Vm::UpdateAndDraw(
-      uint8_t kdown,
-      uint8_t kheld)
-{
-    _input->SetState(kdown, kheld);
+void Vm::UpdateAndDraw() {
+    update_buttons();
+
+    _picoFrameCount++;
+
+    //todo: pause menu here, but for now just load bios
+    if (_input->btnp(6)) {
+        QueueCartChange("__FAKE08-BIOS.p8");
+    }
+
+    if (_cartChangeQueued) {
+        LoadCart(_nextCartKey);
+    }
 
     if (_hasUpdate){
         // Push the _update function on the top of the lua stack
@@ -321,18 +369,6 @@ void Vm::UpdateAndDraw(
         lua_pop(_luaState, 0);
     }
 
-    _picoFrameCount++;
-
-    //todo: pause menu here, but for now just load bios
-    if (kdown & P8_KEY_PAUSE) {
-        QueueCartChange("__FAKE08-BIOS.p8");
-    }
-
-    if (_cartChangeQueued) {
-        LoadCart(_nextCartKey);
-
-        _cartChangeQueued = false;
-    }
 }
 
 uint8_t* Vm::GetPicoInteralFb(){
@@ -395,6 +431,37 @@ vector<string> Vm::GetCartList(){
 
 string Vm::GetBiosError() {
     return _cartLoadError;
+}
+
+void Vm::GameLoop() {
+    while (_host->shouldRunMainLoop())
+	{
+		//shouldn't need to set this every frame
+		_host->setTargetFps(_targetFps);
+
+		//is this better at the end of the loop?
+		_host->waitForTargetFps();
+
+		if (_host->shouldQuit()) break; // break in order to return to hbmenu
+		//this should probably be handled just in the host class
+		_host->changeStretch();
+
+		//update buttons needs to be callable from the cart, and also flip
+		//it should update call the pico part of scanInput and set the values in memory
+		//then we don't need to pass them in here
+		UpdateAndDraw();
+
+		uint8_t* picoFb = GetPicoInteralFb();
+		uint8_t* screenPaletteMap = GetScreenPaletteMap();
+
+		_host->drawFrame(picoFb, screenPaletteMap);
+
+		if (_host->shouldFillAudioBuff()) {
+			FillAudioBuffer(_host->getAudioBufferPointer(), 0, _host->getAudioBufferSize());
+
+			_host->playFilledAudioBuffer();
+		}
+	}
 }
 
 bool Vm::ExecuteLua(string luaString, string callbackFunction){
@@ -511,7 +578,7 @@ void Vm::vm_dset(uint8_t n, int32_t value){
 }
 
 void Vm::vm_reload(int destaddr, int sourceaddr, int len, Cart* cart){
-    memcpy(&_memory->data[destaddr], &cart->CartRom.data[sourceaddr], sizeof(cart->CartRom));
+    memcpy(&_memory->data[destaddr], &cart->CartRom.data[sourceaddr], len);
 }
 
 void Vm::vm_reload(int destaddr, int sourceaddr, int len, string filename){
@@ -568,4 +635,83 @@ void Vm::vm_memcpy(int destaddr, int sourceaddr, int len){
     }
 
     memcpy(&_memory->data[destaddr], &_memory->data[sourceaddr], len);
+}
+
+void Vm::update_prng()
+{
+    auto rngState = _memory->hwState.rngState;
+    rngState[1] = rngState[0] + ((rngState[1] >> 16) | (rngState[1] << 16));
+    rngState[0] += rngState[1];
+}
+
+fix32 Vm::api_rnd()
+{
+    return api_rnd((fix32)1);
+}
+
+fix32 Vm::api_rnd(fix32 in_range)
+{
+    update_prng();
+    uint32_t b = _memory->hwState.rngState[1];
+    uint32_t range = in_range.bits();
+    return fix32::frombits(range > 0 ? b % range : 0);
+}
+
+void Vm::api_srand(fix32 seed)
+{
+    auto rngState = _memory->hwState.rngState;
+    rngState[0] = seed ? seed.bits() : 0xdeadbeef;
+    rngState[1] = rngState[0] ^ 0xbead29ba;
+    for (int i = 0; i < 32; ++i)
+        update_prng();
+}
+
+void Vm::update_buttons() {
+    //get button states from hardware
+    auto inputState = _host->scanInput();
+    _input->SetState(inputState.KDown, inputState.KHeld);
+}
+
+void Vm::vm_flip() {
+    if (!_host->shouldRunMainLoop()){
+        abortLua = true;
+        if (abortLua){
+            longjmp(place, 1);
+        }
+    }
+
+    if (!_host->shouldQuit() && !_cartChangeQueued) {
+        update_buttons();
+
+        _picoFrameCount++;
+
+        //todo: pause menu here, but for now just load bios
+        if (_input->btnp(6)) {
+            QueueCartChange("__FAKE08-BIOS.p8");
+            abortLua = true;
+            if (abortLua){
+                longjmp(place, 1);
+            }
+            //shouldn't get here
+            return;
+        }
+
+        _host->changeStretch();
+
+        _host->setTargetFps(_targetFps);
+
+		uint8_t* picoFb = GetPicoInteralFb();
+		uint8_t* screenPaletteMap = GetScreenPaletteMap();
+
+		_host->drawFrame(picoFb, screenPaletteMap);
+
+        //is this better at the end of the loop?
+		_host->waitForTargetFps();
+    }
+}
+
+void Vm::vm_run() {
+    if (_loadedCart) {
+        loadCart(_loadedCart);
+    }
 }

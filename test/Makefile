@@ -17,7 +17,7 @@ testrunner.a: testroot.o \
 	cartPatcher.o cartpatchertests.o \
 	cart.o carttests.o nooplogger.o lodepng.o emojiconversion.o filehelpers.o utf8-util.o \
 	vm.o endtoendtests.o picoluaapi.o Input.o \
-	vmtests.o \
+	vmtests.o stubhost.o \
 	nibblehelpers.o nibblehelperstests.o \
 	-llua -ldl \
 	-o testrunner.a
@@ -31,13 +31,14 @@ fontdatatests.o: fontdatatests.cpp ../source/fontdata.cpp ../source/fontdata.h
 nibblehelperstests.o: nibblehelperstests.cpp ../source/nibblehelpers.cpp ../source/nibblehelpers.h
 	g++ $(CFLAGS) nibblehelperstests.cpp ../source/nibblehelpers.cpp
 
-graphicstests.o: fontdatatests.o graphicstests.cpp ../source/graphics.cpp ../source/graphics.h \
+graphicstests.o: liblua.a fontdatatests.o graphicstests.cpp ../source/graphics.cpp ../source/graphics.h \
 	../source/fontdata.cpp ../source/fontdata.h \
 	../source/PicoRam.h ../source/hostVmShared.h \
 	../source/stringToDataHelpers.h ../source/stringToDataHelpers.cpp \
 	../source/nibblehelpers.h ../source/nibblehelpers.cpp
-	g++ $(CFLAGS) graphicstests.cpp ../source/graphics.cpp \
-		../source/stringToDataHelpers.cpp ../source/nibblehelpers.cpp
+	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \
+	graphicstests.cpp ../source/graphics.cpp \
+	../source/stringToDataHelpers.cpp ../source/nibblehelpers.cpp
 
 audiotests.o: audiotests.cpp ../source/Audio.cpp ../source/Audio.h \
 	../source/synth.cpp ../source/synth.h \
@@ -50,16 +51,17 @@ cartpatchertests.o: liblua.a cartpatchertests.cpp ../source/cartPatcher.cpp ../s
 	
 liblua.a: 
 	@echo 'starting lua build\n' &&\
-	cd ../libs/lua-5.3.2 && make linux && \
+	cd ../libs/z8lua && make a && \
 	cd ../../test && \
 	mkdir -p lib && \
 	mkdir -p include && \
-	cp ../libs/lua-5.3.2/src/liblua.a lib/liblua.a && \
-	cp ../libs/lua-5.3.2/src/lua.h include/lua.h && \
-	cp ../libs/lua-5.3.2/src/luaconf.h include/luaconf.h && \
-	cp ../libs/lua-5.3.2/src/lualib.h include/lualib.h && \
-	cp ../libs/lua-5.3.2/src/lauxlib.h include/lauxlib.h 
-#make lua (cd ../libs/lua-5.3.2/src make linux, cp liblua.a, lua.h luaconf.h lualib.h lauxlib.h
+	cp ../libs/z8lua/liblua.a lib/liblua.a && \
+	cp ../libs/z8lua/lua.h include/lua.h && \
+	cp ../libs/z8lua/luaconf.h include/luaconf.h && \
+	cp ../libs/z8lua/lualib.h include/lualib.h && \
+	cp ../libs/z8lua/lauxlib.h include/lauxlib.h && \
+	cp ../libs/z8lua/fix32.h include/fix32.h 
+#make lua (cd ../libs/z8lua make linux, cp liblua.a, lua.h luaconf.h lualib.h lauxlib.h
 
 carttests.o: carttests.cpp ../source/cart.cpp ../source/cart.h \
 	../libs/lodepng/lodepng.cpp ../libs/lodepng/lodepng.h \
@@ -75,15 +77,16 @@ carttests.o: carttests.cpp ../source/cart.cpp ../source/cart.h \
 endtoendtests.o: cartpatchertests.o carttests.o graphicstests.o audiotests.o \
 	endtoendtests.cpp \
 	../source/vm.cpp ../source/vm.h \
+	stubhost.cpp stubhost.h ../source/host.h \
 	../source/Input.cpp ../source/Input.h \
 	../source/picoluaapi.cpp ../source/picoluaapi.h
 	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \
-	endtoendtests.cpp ../source/vm.cpp  ../source/picoluaapi.cpp ../source/Input.cpp
+	endtoendtests.cpp stubhost.cpp ../source/vm.cpp  ../source/picoluaapi.cpp ../source/Input.cpp
 
 vmtests.o: endtoendtests.o \
-	vmtests.cpp
+	vmtests.cpp stubhost.cpp
 	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \
-	vmtests.cpp ../source/vm.cpp  ../source/picoluaapi.cpp ../source/Input.cpp
+	vmtests.cpp stubhost.cpp ../source/vm.cpp  ../source/picoluaapi.cpp ../source/Input.cpp
 	
 
 
@@ -92,7 +95,9 @@ runtests: testrunner.a
 
 clean:
 	-rm -f testrunner.a *.o && \
-	cd ../libs/lua-5.3.2 && make clean
+	rm -rf lib && \
+	rm -rf include && \
+	cd ../libs/z8lua && make clean
 
 echo:
 	@echo "CURDIR= $(CURDIR)"

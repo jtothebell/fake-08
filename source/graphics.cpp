@@ -13,6 +13,9 @@
 
 #include "logger.h"
 
+#include <fix32.h>
+using namespace z8;
+
 const uint8_t PicoScreenWidth = 128;
 const uint8_t PicoScreenHeight = 128;
 
@@ -519,6 +522,99 @@ void Graphics::line(int x0, int y0, int x1, int y1, uint8_t col) {
 	}
 }
 
+
+void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my){
+	tline(
+		x0,
+		y0,
+		x1,
+		y1,
+		mx,
+		my,
+		fix32::frombits(0x2000), // 1/8
+		fix32(0)
+	);
+}
+
+//proted from zepto 8 impl
+void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 mdx, fix32 mdy){
+	applyCameraToPoint(&x0, &y0);
+	applyCameraToPoint(&x1, &y1);
+
+	//determine whether x or y coordinates need to get incremented
+	bool xDifGreater = std::abs(x1 - x0) >= std::abs(y1 - y0);
+	int dx = xDifGreater ? x0 <= x1 ? 1 : -1 : 0;
+    int dy = xDifGreater ? 0 : y0 <= y1 ? 1 : -1;
+
+	bool vertical = x0 == x1;
+
+	int x = clampCoordToScreenDims(x0);
+	int xend = clampCoordToScreenDims(x1);
+	int y = clampCoordToScreenDims(y0);
+	int yend = clampCoordToScreenDims(y1);
+
+	auto &ds = _memory->drawState;
+
+	// Retrieve masks for wrap-around and subtract 0x0.0001
+	fix32 xmask = fix32(ds.tlineMapWidth) - fix32::frombits(1);
+    fix32 ymask = fix32(ds.tlineMapHeight) - fix32::frombits(1);
+
+	// Advance texture coordinates; do it in steps to avoid overflows
+    int delta = abs(xDifGreater ? x - x0 : y - y0);
+    while (delta) {
+        int step = std::min(8192, delta);
+        mx = (mx & ~xmask) | ((mx + mdx * fix32(step)) & xmask);
+        my = (my & ~ymask) | ((my + mdy * fix32(step)) & ymask);
+        delta -= step;
+    }
+
+	for (;;) {
+        // Find sprite in map memory
+        int sx = (ds.tlineMapXOffset + int(mx)) & 0x7f;
+        int sy = (ds.tlineMapYOffset + int(my)) & 0x3f;
+		uint8_t sprite = mget(sx, sy);
+        //uint8_t bits = fget(sprite);
+
+		int spr_x = (sprite % 16) * 8;
+		int spr_y = (sprite / 16) * 8;
+
+        // If found, draw pixel //todo layer param
+		//if (cell && ((layer == 0) || (fget(cell) & layer))) {
+        if (sprite) {
+            //uint8_t col = _memory->spriteSheetData.gfx.get(spr_x + (int(mx << 3) & 0x7),
+            //                        spr_y + (int(my << 3) & 0x7));
+			uint8_t col = getPixelNibble(
+				spr_x + (int(mx << 3) & 0x7),
+				spr_y + (int(my << 3) & 0x7),
+				_memory->spriteSheetData);
+
+            if (!isColorTransparent(col)) {
+                _private_pset(x, y, getDrawPalMappedColor(col));
+            }
+        }
+
+        // Advance source coordinates
+        mx = (mx & ~xmask) | ((mx + mdx) & xmask);
+        my = (my & ~ymask) | ((my + mdy) & ymask);
+
+        // Advance destination coordinates
+        if (xDifGreater) {
+            if (x == xend)
+                break;
+            x += dx;
+            y = y0 + ((float)(x - x0) / (x1 - x0)) * (y1 - y0);
+        }
+        else {
+            if (y == yend)
+                break;
+            y += dy;
+			if (! vertical) {
+            	x = x0 + ((float)(y - y0) / (y1 - y0)) * (x1 - x0);
+			}
+		}
+	}
+}
+
 void Graphics::circ(int ox, int oy){
 	this->circ(ox, oy, 4);
 }
@@ -592,7 +688,198 @@ void Graphics::circfill(int ox, int oy, int r, uint8_t col){
 				err += ++y * 2 + 1;
 		} while (x < 0);
 	}
-	
+}
+
+void Graphics::oval(int x0, int y0, int x1, int y1) {
+	this->oval(x0, y0, x1, y1, _memory->drawState.color);
+}
+
+//https://stackoverflow.com/a/8448181
+void Graphics::oval(int x0, int y0, int x1, int y1, uint8_t col) {
+	color(col);
+
+	applyCameraToPoint(&x0, &y0);
+	applyCameraToPoint(&x1, &y1);
+
+	sortCoordsForRect(&x0, &y0, &x1, &y1);
+
+	//x radius and y radius
+	int xr = (x1 - x0) / 2;
+	int yr = (y1 - y0) / 2;
+
+	//center location
+	int xc = x0 + xr;
+	int yc = y0 + yr;
+
+	int wx, wy;
+    int thresh;
+    int asq = xr * xr;
+    int bsq = yr * yr;
+    int xa, ya;
+
+	_private_safe_pset(xc, yc+yr, col);
+    _private_safe_pset(xc, yc-yr, col);
+
+    wx = 0;
+    wy = yr;
+    xa = 0;
+    ya = asq * 2 * yr;
+    thresh = asq / 4 - asq * yr;
+
+    for (;;) {
+        thresh += xa + bsq;
+
+        if (thresh >= 0) {
+            ya -= asq * 2;
+            thresh -= ya;
+            wy--;
+        }
+
+        xa += bsq * 2;
+        wx++;
+
+        if (xa >= ya)
+          break;
+
+
+        _private_safe_pset(xc+wx, yc-wy, col);
+        _private_safe_pset(xc-wx, yc-wy, col);
+        _private_safe_pset(xc+wx, yc+wy, col);
+        _private_safe_pset(xc-wx, yc+wy, col);
+    }
+
+    _private_safe_pset(xc+xr, yc, col);
+    _private_safe_pset(xc-xr, yc, col);
+
+    wx = xr;
+    wy = 0;
+    xa = bsq * 2 * xr;
+
+    ya = 0;
+    thresh = bsq / 4 - bsq * xr;
+
+    for (;;) {
+        thresh += ya + asq;
+
+        if (thresh >= 0) {
+            xa -= bsq * 2;
+            thresh = thresh - xa;
+            wx--;
+        }
+
+        ya += asq * 2;
+        wy++;
+
+        if (ya > xa)
+          break;
+
+        _private_safe_pset(xc+wx, yc-wy, col);
+        _private_safe_pset(xc-wx, yc-wy, col);
+        _private_safe_pset(xc+wx, yc+wy, col);
+        _private_safe_pset(xc-wx, yc+wy, col);
+    }
+}
+
+void Graphics::ovalfill(int x0, int y0, int x1, int y1) {
+	this->ovalfill(x0, y0, x1, y1, _memory->drawState.color);
+}
+
+//https://stackoverflow.com/a/8448181
+void Graphics::ovalfill(int x0, int y0, int x1, int y1, uint8_t col){
+	color(col);
+
+	applyCameraToPoint(&x0, &y0);
+	applyCameraToPoint(&x1, &y1);
+
+	sortCoordsForRect(&x0, &y0, &x1, &y1);
+
+	//x radius and y radius
+	int xr = (x1 - x0) / 2;
+	int yr = (y1 - y0) / 2;
+
+	//center location
+	int xc = x0 + xr;
+	int yc = y0 + yr;
+
+	int wx, wy;
+    int thresh;
+    int asq = xr * xr;
+    int bsq = yr * yr;
+    int xa, ya;
+
+	_private_v_line(yc+yr, yc-yr, xc, col);
+
+    wx = 0;
+    wy = yr;
+    xa = 0;
+    ya = asq * 2 * yr;
+    thresh = asq / 4 - asq * yr;
+
+    for (;;) {
+        thresh += xa + bsq;
+
+        if (thresh >= 0) {
+            ya -= asq * 2;
+            thresh -= ya;
+            wy--;
+        }
+
+        xa += bsq * 2;
+        wx++;
+
+        if (xa >= ya)
+          break;
+
+		_private_h_line(xc+wx, xc-wx, yc-wy, col);
+		_private_h_line(xc+wx, xc-wx, yc+wy, col);
+    }
+
+	_private_h_line(xc+xr, xc-xr, yc, col);
+
+    wx = xr;
+    wy = 0;
+    xa = bsq * 2 * xr;
+
+    ya = 0;
+    thresh = bsq / 4 - bsq * xr;
+
+    for (;;) {
+        thresh += ya + asq;
+
+        if (thresh >= 0) {
+            xa -= bsq * 2;
+            thresh = thresh - xa;
+            wx--;
+        }
+
+        ya += asq * 2;
+        wy++;
+
+        if (ya > xa)
+          break;
+
+		_private_h_line(xc+wx, xc-wx, yc-wy, col);
+		_private_h_line(xc+wx, xc-wx, yc+wy, col);
+    }
+	/*
+	//this algo doesn't like up correctly
+	//center line
+	_private_h_line(xc - xr, xc + xr, yc, col);
+
+	for (int y = 1; y <= yr; y++) {
+		int x = currWidth - (dx - 1);  // try slopes of dx - 1 or more
+		for ( ; x > 0; x--) {
+			if (x*x*hh + y*y*ww <= hhww) {
+				break;
+			}
+		}
+		dx = currWidth - x;  // current approximation of the slope
+		currWidth = x;
+
+		_private_h_line(xc - currWidth, xc + currWidth, yc + y, col);
+		_private_h_line(xc - currWidth, xc + currWidth, yc - y, col);
+	}
+	*/
 }
 
 void Graphics::rect(int x1, int y1, int x2, int y2) {
@@ -688,14 +975,16 @@ void Graphics::spr(
 	int n,
 	int x,
 	int y,
-	double w = 1.0,
-	double h = 1.0,
+	fix32 w = 1.0,
+	fix32 h = 1.0,
 	bool flip_x = false,
 	bool flip_y = false) 
 {
 	int spr_x = (n % 16) * 8;
 	int spr_y = (n / 16) * 8;
-	copySpriteToScreen(_memory->spriteSheetData, x, y, spr_x, spr_y, w * 8, h * 8, flip_x, flip_y);
+	int16_t spr_w = (int16_t)(w * (fix32)8);
+	int16_t spr_h = (int16_t)(h * (fix32)8);
+	copySpriteToScreen(_memory->spriteSheetData, x, y, spr_x, spr_y, spr_w, spr_h, flip_x, flip_y);
 }
 
 void Graphics::sspr(
@@ -813,7 +1102,8 @@ void Graphics::pal() {
 void Graphics::pal(uint8_t c0, uint8_t c1, uint8_t p){
 	if (c0 < 16 && c1 < 16) {
 		if (p == 0) {
-			_memory->drawState.drawPaletteMap[c0] = c1;
+			//for draw palette we have to preserve the transparency bit
+			_memory->drawState.drawPaletteMap[c0] = (_memory->drawState.drawPaletteMap[c0] & 0x10) | (c1 & 0xf);
 		} else if (p == 1) {
 			_memory->drawState.screenPaletteMap[c0] = c1;
 		}

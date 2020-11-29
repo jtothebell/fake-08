@@ -1,0 +1,41 @@
+// std
+#include <stdio.h>
+
+// sdl
+#include <SDL2/SDL.h>
+
+#define SCREEN_SIZE_X 512
+#define SCREEN_SIZE_Y 512
+#define WINDOW_WIDTH 512
+
+SDL_Event event;
+SDL_Renderer *renderer;
+SDL_Window *window;
+
+
+//example of rendering to texture then copying to screen:
+//https://github.com/cirosantilli/cpp-cheat/blob/0607da1236030d2e1ec56256a0d12cadb6924a41/sdl/plot2d.c
+int test_main (int argc, char* argv[])
+{
+    
+    int i;
+
+    SDL_Init(SDL_INIT_VIDEO);
+    SDL_CreateWindowAndRenderer(SCREEN_SIZE_X, SCREEN_SIZE_Y, 0, &window, &renderer);
+    
+    while (1) {
+        if (SDL_PollEvent(&event) && event.type == SDL_QUIT)
+            break;
+
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+        SDL_RenderClear(renderer);
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        for (i = 0; i < WINDOW_WIDTH; ++i)
+            SDL_RenderDrawPoint(renderer, i, i);
+        SDL_RenderPresent(renderer);
+    }
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    return EXIT_SUCCESS;
+}

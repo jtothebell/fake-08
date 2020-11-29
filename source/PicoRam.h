@@ -150,7 +150,7 @@ struct drawState_t {
 struct hwState_t {
     uint8_t audioHardwareState[4];
 
-    uint8_t rngState[8];
+    uint32_t rngState[2];
 
     uint8_t buttonStates[8];
 

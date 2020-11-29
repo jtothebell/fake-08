@@ -449,6 +449,43 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("oval({x0}, {x1}, {y0}, {y1}, {c}) draws an ellipse") {
+        graphics->cls();
+        graphics->oval(40, 40, 45, 42, 13);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {40,41,13},
+            {41,40,13},
+            {41,42,13},
+            {42,40,13},
+            {42,42,13},
+            {43,40,13},
+            {43,42,13},
+            {44,41,13}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("ovalfill({x0}, {x1}, {y0}, {y1}, {c}) fills an ellipse") {
+        graphics->cls();
+        graphics->ovalfill(40, 40, 45, 42, 13);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {40,41,13},
+            {41,40,13},
+            {41,41,13},
+            {41,42,13},
+            {42,40,13},
+            {42,41,13},
+            {42,42,13},
+            {43,40,13},
+            {43,41,13},
+            {43,42,13},
+            {44,41,13}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
     SUBCASE("rect({x1}, {y1}, {x2}, {y2}) uses pen color") {
         graphics->cls();
         graphics->color(15);
@@ -1579,6 +1616,17 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("pal({c0}, {c1}, {p}) doesn't change default transparency") {
+        graphics->pal(0, 0, 0);
+
+        CHECK(graphics->isColorTransparent(0) == true);
+    }
+    SUBCASE("pal({c0}, {c1}, {p}) doesn't change transparency") {
+        graphics->palt(4, true);
+        graphics->pal(4, 7, 0);
+
+        CHECK(graphics->isColorTransparent(4) == true);
+    }
     SUBCASE("cursor({x}, {y}) sets cursor loc in memory"){
         graphics->cursor(4, 13);
 
@@ -1599,6 +1647,33 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(picoRam.drawState.text_x, 0);
         CHECK_EQ(picoRam.drawState.text_y, 0);
         CHECK_EQ(picoRam.drawState.color, 3);
+    }
+    SUBCASE("tline draws sprites from map"){
+        for(int i = 0; i < 128; i++) {
+            for (int j = 0; j < 32; j++)
+            graphics->sset(i, j, i%16);
+        }
+        for(int x = 0; x < 128; x++) {
+            for (int y = 0; y < 32; y++) {
+                graphics->mset(x, y, (x + y) % 16);
+            }
+        }
+
+        graphics->tline(27, 34, 34, 41, 3, 4);
+
+        //diagonal across screen- 2x2 cells, 16x16 pixels
+        std::vector<coloredPoint> expectedPoints = {
+            {27,34,8},
+            {28,35,9},
+            {29,36,10},
+            {30,37,11},
+            {31,38,12},
+            {32,39,13},
+            {33,40,14},
+            {34,41,15}
+        };
+
+        checkPoints(graphics, expectedPoints);
     }
     
 

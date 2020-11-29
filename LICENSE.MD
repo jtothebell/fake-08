@@ -41,6 +41,9 @@
 - Website: https://github.com/switchbrew/libnx
 - License: ISC
 
+# oval drawing implementation:
+- Website: //https://stackoverflow.com/a/8448181
+- License: (CC BY-SA 3.0) https://creativecommons.org/licenses/by-sa/3.0/
 # **License Text**
 
 ## MIT license

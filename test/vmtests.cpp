@@ -5,17 +5,20 @@
 
 #include "../source/vm.h"
 #include "../source/hostVmShared.h"
+#include "../source/host.h"
+#include "stubhost.h"
 
 #include "../source/fontdata.h"
 
 
 TEST_CASE("Vm memory functions") {
+    StubHost* stubHost = new StubHost();
     PicoRam* memory = new PicoRam();
     Graphics* graphics = new Graphics(get_font_data(), memory);
     Input* input = new Input(memory);
     Audio* audio = new Audio(memory);
 
-    Vm* vm = new Vm(memory, graphics, input, audio);
+    Vm* vm = new Vm(stubHost, memory, graphics, input, audio);
 
     SUBCASE("memory data stats with 0"){
         CHECK(memory->data[0] == 0);
@@ -235,6 +238,8 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(memory->hwState.audioHardwareState[0], 3);
     }
     SUBCASE("poking rng state") {
+        //rng gets seeded, we need to zero it out to test this easier
+        memory->hwState.rngState[0] = 0;
         vm->vm_poke(0x5f44, 20);
 
         CHECK_EQ(memory->hwState.rngState[0], 20);
@@ -383,6 +388,54 @@ TEST_CASE("Vm memory functions") {
         vm->vm_dset(34, 1923);
 
         CHECK_EQ(vm->vm_dget(34), 1923);
+    }
+    SUBCASE("pico driller style input"){
+        vm->LoadCart("carts/drillerinputtest.p8");
+
+        SUBCASE("no buttons gives 0"){
+            vm->UpdateAndDraw();
+            bool btnbits = vm->ExecuteLua(
+                "function btnbitstest0()\n"
+                " return btnbits == 0\n"
+                "end\n",
+                "btnbitstest0");
+
+            CHECK(btnbits);
+        }
+        SUBCASE("left pushed returns 1"){
+            stubHost->stubInput(1, 1);
+            vm->UpdateAndDraw();
+            bool btnbits = vm->ExecuteLua(
+                "function btnbitstest1()\n"
+                " return btnbits == 1\n"
+                "end\n",
+                "btnbitstest1");
+
+            CHECK(btnbits);
+        }
+        SUBCASE("right pushed returns 2"){
+            stubHost->stubInput(2, 2);
+            vm->UpdateAndDraw();
+            bool btnbits = vm->ExecuteLua(
+                "function btnbitstest2()\n"
+                " return btnbits == 2\n"
+                "end\n",
+                "btnbitstest2");
+
+            CHECK(btnbits);
+        }
+        SUBCASE("right pushed detected by band op"){
+            stubHost->stubInput(2, 2);
+            vm->UpdateAndDraw();
+            bool btnbits = vm->ExecuteLua(
+                "function rightbandtest()\n"
+                " return rightband == 2\n"
+                "end\n",
+                "rightbandtest");
+
+            CHECK(btnbits);
+        }
+        vm->CloseCart();
     }
 
     

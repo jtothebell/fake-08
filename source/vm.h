@@ -7,14 +7,19 @@ using namespace std;
 #include "cart.h"
 #include "Input.h"
 #include "Audio.h"
+#include "host.h"
 
-extern "C" {
+//extern "C" {
   #include <lua.h>
   #include <lualib.h>
   #include <lauxlib.h>
-}
+  #include <fix32.h>
+//}
+
+using namespace z8;
 
 class Vm {
+    Host* _host;
     PicoRam* _memory;
 
     Graphics* _graphics;
@@ -45,7 +50,9 @@ class Vm {
     void vm_reload(int destaddr, int sourceaddr, int len, Cart* cart);
 
     public:
-    Vm(PicoRam* memory = nullptr,
+    Vm(
+       Host* host,
+       PicoRam* memory = nullptr,
        Graphics* graphics = nullptr,
        Input* input = nullptr,
        Audio* audio = nullptr);
@@ -55,9 +62,7 @@ class Vm {
 
     void LoadCart(string filename);
 
-    void UpdateAndDraw(
-      uint8_t kdown,
-      uint8_t kheld);
+    void UpdateAndDraw();
 
     uint8_t* GetPicoInteralFb();
     uint8_t* GetScreenPaletteMap();
@@ -72,6 +77,8 @@ class Vm {
     int GetTargetFps();
 
     int GetFrameCount();
+
+    void GameLoop();
 
     void SetCartList(vector<string> cartList);
     vector<string> GetCartList();
@@ -97,5 +104,16 @@ class Vm {
 
     void vm_memset(int destaddr, uint8_t val, int len);
     void vm_memcpy(int destaddr, int sourceaddr, int len);
+
+    void update_prng();
+
+    fix32 api_rnd();
+    fix32 api_rnd(fix32 inRange);
+    void api_srand(fix32 seed);
+
+    void update_buttons();
+
+    void vm_flip();
+    void vm_run();
 };
 
