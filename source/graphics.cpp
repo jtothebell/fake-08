@@ -451,10 +451,7 @@ void Graphics::line (int x1, int y1, int x2, int y2){
 }
 
 void Graphics::_private_h_line (int x1, int x2, int y, uint8_t col){
-	if (!isYWithinClip(y) || 
-		(!isXWithinClip(x1) && !isXWithinClip(x2))
-	)
-	{
+	if (!isYWithinClip(y)){
 		return;
 	}
 
@@ -468,8 +465,7 @@ void Graphics::_private_h_line (int x1, int x2, int y, uint8_t col){
 
 void Graphics::_private_v_line (int y1, int y2, int x, uint8_t col){
 	//save draw calls if its out
-	if (!isXWithinClip(x)|| 
-		(!isYWithinClip(y1) && !isYWithinClip(y2))){
+	if (!isXWithinClip(x)){
 		return;
 	}
 
