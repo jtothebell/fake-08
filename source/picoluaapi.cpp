@@ -503,15 +503,29 @@ int mset(lua_State *L) {
 }
 
 int map(lua_State *L) {
-    int celx = lua_tonumber(L,1);
-    int cely = lua_tonumber(L,2);
-    int sx = lua_tonumber(L,3);
-    int sy = lua_tonumber(L,4);
-    int celw = lua_tonumber(L,5);
-    int celh = lua_tonumber(L,6);
+    int celx = 0, cely = 0, sx = 0, sy = 0, celw = 16, celh = 16, argc;
+    argc = lua_gettop(L);
+    if (argc > 0) {
+        celx = lua_tonumber(L,1);
+    }
+    if (argc > 1) {
+        cely = lua_tonumber(L,2);
+    }
+    if (argc > 2) {
+        sx = lua_tonumber(L,3);
+    }
+    if (argc > 3) {
+        sy = lua_tonumber(L,4);
+    }
+    if (argc > 4) {
+        celw = lua_tonumber(L,5);
+    }
+    if (argc > 5) {
+        celh = lua_tonumber(L,6);
+    }
     uint8_t layer = 0;
 
-    if (lua_gettop(L) > 6){
+    if (argc > 6){
         layer = lua_tonumber(L,7);
     }
 
