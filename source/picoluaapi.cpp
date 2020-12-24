@@ -529,7 +529,10 @@ int pal(lua_State *L) {
 
 
     uint8_t c0 = lua_tonumber(L,1);
-    uint8_t c1 = lua_tonumber(L,2);
+    uint8_t c1 = c0;
+    if (lua_gettop(L) > 1) {
+        c1 = lua_tonumber(L,2);
+    }
     uint8_t p = 0;
 
     if (lua_gettop(L) > 2){
