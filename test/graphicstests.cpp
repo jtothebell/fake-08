@@ -313,6 +313,31 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("overdrawn line() still draws (horizontal)") {
+        graphics->cls();
+        graphics->line(-10, 1, 138, 1, 5);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 1, 5},
+            {1, 1, 5},
+            {2, 1, 5}//etc
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("overdrawn line() still draws (vertical)") {
+        graphics->cls();
+        graphics->line(1, -10, 1, 138, 5);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {1, 0, 5},
+            {1, 1, 5},
+            {1, 2, 5}//etc
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+
     SUBCASE("circ({ox}, {oy}) uses pen color and radius of 4") {
         graphics->cls();
         graphics->circ(40, 40);
