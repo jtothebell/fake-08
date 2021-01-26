@@ -35,9 +35,8 @@ APP_TITLE        := FAKE-08
 APP_AUTHOR       := jtothebell
 APP_DESCRIPTION  := A Pico 8 Emulator
 
-UNIQUE_ID        := 0xF8F08
-PRODUCT_CODE     := CTR-P-FK08
-RSF_PATH         := app.rsf
+APP_UNIQUE_ID    := 0xF8F08
+APP_PRODUCT_CODE := CTR-P-FK08
 
 TARGET		:=	FAKE-08
 BUILD		:=	build
@@ -209,7 +208,8 @@ $(TARGET)-cia.smdh: banner/$(TARGET)-icon.png
 	@bannertool makesmdh -s "$(TARGET)" -l "$(APP_TITLE)" -p "$(APP_AUTHOR)" -i banner/$(TARGET)-icon.png -o $(TARGET)-cia.smdh -r regionfree
 #---------------------------------------------------------------------------------
 cia: $(TARGET)-strip.elf $(TARGET)-cia.bnr $(TARGET)-cia.smdh banner/$(TARGET).rsf
-	@makerom -f cia -elf $(TARGET)-strip.elf -icon $(TARGET)-cia.smdh -banner $(TARGET)-cia.bnr -desc app:4 -v -o $(TARGET).cia -target t -exefslogo -rsf banner/$(TARGET).rsf
+	@makerom -f cia -elf $(TARGET)-strip.elf -icon $(TARGET)-cia.smdh -banner $(TARGET)-cia.bnr -desc app:4 -v -o $(TARGET).cia -target t -exefslogo -rsf banner/$(TARGET).rsf \
+	-DAPP_TITLE="$(APP_TITLE)" -DAPP_PRODUCT_CODE="$(APP_PRODUCT_CODE)" -DAPP_UNIQUE_ID="$(APP_UNIQUE_ID)"
 	@echo "built cia"
 #---------------------------------------------------------------------------------
 
