@@ -37,7 +37,7 @@ function _init()
 	cursor(0, 6*3)
 	print("welcome to fake-08")
 	print("a homebrew pico-8 emulator")
-	print("currently in alpha (v0.0.2)")
+	print("currently in alpha (v0.0.2.2)")
 	print("")
 	print("place p8 carts in sdmc:/p8carts/")
 	if numcarts < 1 then
@@ -79,7 +79,12 @@ function _update60()
 	
 	if cidx > 0 and cidx <= numcarts then
 		carttoload = carts[cidx]
-		linebuffer = "load " .. carttoload
+		local lastslashidx = string.find(carttoload, "/[^/]*$")
+		local dispstr = carttoload
+		if lastslashidx > 0 then
+			dispstr = sub(dispstr, lastslashidx + 1)
+		end
+		linebuffer = "load " .. dispstr
 	else
 		carttoload = ""
 	end

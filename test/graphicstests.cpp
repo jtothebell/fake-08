@@ -1579,6 +1579,20 @@ TEST_CASE("graphics class behaves as expected") {
 
         CHECK_EQ(4, result);
     }
+    SUBCASE("pal({c0}, {c1}, {p}) 17 remapped to 1") {
+        graphics->pal(13, 17, 1);
+
+        auto result = graphics->getScreenPalMappedColor(13);
+
+        CHECK_EQ(1, result);
+    }
+    SUBCASE("pal({c0}, {c1}, {p}) extended palette allowed") {
+        graphics->pal(7, 143, 1);
+
+        auto result = graphics->getScreenPalMappedColor(7);
+
+        CHECK_EQ(143, result);
+    }
     SUBCASE("palt({c}, {t}) sets transparency value for color") {
         graphics->palt(2, true);
 

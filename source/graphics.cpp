@@ -45,6 +45,27 @@ Graphics::Graphics(std::string fontdata, PicoRam* memory) {
 	_paletteColors[14] = COLOR_14;
 	_paletteColors[15] = COLOR_15;
 
+	for (int i = 16; i < 128; i++) {
+		_paletteColors[i] = {0, 0, 0, 0};
+	}
+
+	_paletteColors[128] = COLOR_128;
+	_paletteColors[129] = COLOR_129;
+	_paletteColors[130] = COLOR_130;
+	_paletteColors[131] = COLOR_131;
+	_paletteColors[132] = COLOR_132;
+	_paletteColors[133] = COLOR_133;
+	_paletteColors[134] = COLOR_134;
+	_paletteColors[135] = COLOR_135;
+	_paletteColors[136] = COLOR_136;
+	_paletteColors[137] = COLOR_137;
+	_paletteColors[138] = COLOR_138;
+	_paletteColors[139] = COLOR_139;
+	_paletteColors[140] = COLOR_140;
+	_paletteColors[141] = COLOR_141;
+	_paletteColors[142] = COLOR_142;
+	_paletteColors[143] = COLOR_143;
+
 	//set default clip
 	clip();
 	pal();
@@ -306,18 +327,18 @@ bool Graphics::isOnScreen(int x, int y) {
 }
 
 bool Graphics::isColorTransparent(uint8_t color) {
-	color = color & 15;
+	color = color & 0x0f;
 	return (_memory->drawState.drawPaletteMap[color] >> 4) & 1U; //4th bit is transparency
 }
 
 uint8_t Graphics::getDrawPalMappedColor(uint8_t color) {
-	color = color & 15;
-	return _memory->drawState.drawPaletteMap[color] & 15; //bits 0-3 are color
+	color = color & 0x0f;
+	return _memory->drawState.drawPaletteMap[color] & 0x0f; //bits 0-3 are color
 }
 
 uint8_t Graphics::getScreenPalMappedColor(uint8_t color) {
-	color = color & 15;
-	return _memory->drawState.screenPaletteMap[color] & 15;
+	color = color & 0x0f;
+	return _memory->drawState.screenPaletteMap[color] & 0x8f;
 }
 
 bool Graphics::isWithinClip(int x, int y) {
@@ -1096,13 +1117,15 @@ void Graphics::pal() {
 }
 
 void Graphics::pal(uint8_t c0, uint8_t c1, uint8_t p){
-	if (c0 < 16 && c1 < 16) {
-		if (p == 0) {
-			//for draw palette we have to preserve the transparency bit
-			_memory->drawState.drawPaletteMap[c0] = (_memory->drawState.drawPaletteMap[c0] & 0x10) | (c1 & 0xf);
-		} else if (p == 1) {
-			_memory->drawState.screenPaletteMap[c0] = c1;
-		}
+	//0-15 alowed
+	c0 &= 0x0f;
+	if (p == 0) {
+		//for draw palette we have to preserve the transparency bit
+		_memory->drawState.drawPaletteMap[c0] = (_memory->drawState.drawPaletteMap[c0] & 0x10) | (c1 & 0xf);
+	} else if (p == 1) {
+		//0-15, or 127-143 allowed
+		c1 &= 0x8f;
+		_memory->drawState.screenPaletteMap[c0] = c1;
 	}
 }
 

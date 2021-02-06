@@ -23,13 +23,31 @@ using namespace z8;
 #define COLOR_14 {255, 119, 168, 255}
 #define COLOR_15 {255, 204, 170, 255}
 
+//alt palette
+#define COLOR_128 { 41,  24,  20, 255}
+#define COLOR_129 { 17,  29,  53, 255}
+#define COLOR_130 { 66,  33,  54, 255}
+#define COLOR_131 { 18,  83,  89, 255}
+#define COLOR_132 {116,  47,  41, 255}
+#define COLOR_133 { 73,  51,  59, 255}
+#define COLOR_134 {162, 136, 121, 255}
+#define COLOR_135 {243, 239, 125, 255}
+#define COLOR_136 {190,  18,  80, 255}
+#define COLOR_137 {255, 108,  36, 255}
+#define COLOR_138 {168, 231,  46, 255}
+#define COLOR_139 {  0, 181,  67, 255}
+#define COLOR_140 {  6,  90, 181, 255}
+#define COLOR_141 {117,  70, 101, 255}
+#define COLOR_142 {255, 110,  89, 255}
+#define COLOR_143 {255, 157, 129, 255}
+
 #define BG_GRAY_COLOR {128, 128, 128, 255}
 
 
 class Graphics {
 	uint8_t fontSpriteData[128 * 64];
 
-	Color _paletteColors[16];
+	Color _paletteColors[144];
 
 	PicoRam* _memory;
 
