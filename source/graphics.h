@@ -47,7 +47,7 @@ using namespace z8;
 class Graphics {
 	uint8_t fontSpriteData[128 * 64];
 
-	Color _paletteColors[16];
+	Color _paletteColors[144];
 
 	PicoRam* _memory;
 
