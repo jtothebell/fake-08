@@ -79,7 +79,12 @@ function _update60()
 	
 	if cidx > 0 and cidx <= numcarts then
 		carttoload = carts[cidx]
-		linebuffer = "load " .. carttoload
+		local lastslashidx = string.find(carttoload, "/[^/]*$")
+		local dispstr = carttoload
+		if lastslashidx > 0 then
+			dispstr = sub(dispstr, lastslashidx + 1)
+		end
+		linebuffer = "load " .. dispstr
 	else
 		carttoload = ""
 	end
