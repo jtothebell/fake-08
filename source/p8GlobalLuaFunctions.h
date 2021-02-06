@@ -3,56 +3,77 @@
 #include <string>
 
 
-//from PicoLove api.lua
+//from zepto 8 bios.p8
 
 const char * p8GlobalLuaFunctions = R"#(
 -- The functions below are normally attached to the program code, but are here for simplicity
 ---------------------------------
 --Table Helpers
 ---------------------------------
-function all(a)
-	if a==nil or #a==0 then
-		return function() end
-	end
-	local i, li=1
-	return function()
-		if (a[i]==li) then i=i+1 end
-		while(a[i]==nil and i<=#a) do i=i+1 end
-		li=a[i]
-		return a[i]
-	end
+
+--from zepto 8 bios.p8
+-- PicoLove functions did not return values added/deleted
+
+function all(c)
+    if (c==nil or #c==0) return function() end
+    local i,prev = 1,nil
+    return function()
+        -- increment unless the current value changed
+        if (c[i]==prev) i+=1
+        -- skip until non-nil or end of table
+        while (i<=#c and c[i]==nil) i+=1
+        prev=c[i]
+        return prev
+    end
 end
 
-function foreach(a, f)
-	for v in all(a) do
-		f(v)
-	end
+function foreach(c, f)
+     for v in all(c) do f(v) end
 end
 
-function count(a)
-	local count=0
-	for i=1, #a do
-		if a[i]~=nil then count=count+1 end
-	end
-	return count
+sub = string.sub
+pack = table.pack
+unpack = table.unpack
+
+-- Experimenting with count() on PICO-8 shows that it returns the number
+-- of non-nil elements between c[1] and c[#c], which is slightly different
+-- from returning #c in cases where the table is no longer an array. See
+-- the tables.p8 unit test cart for more details.
+--
+-- We also try to mimic the PICO-8 error messages:
+--  count(nil) → attempt to get length of local 'c' (a nil value)
+--  count("x") → attempt to index local 'c' (a string value)
+function count(c)
+    local cnt,max = 0,#c
+    for i=1,max do if (c[i] != nil) cnt+=1 end
+    return cnt
 end
 
-function add(a, v)
-	if a==nil then return end
-	a[#a+1]=v
+-- It looks like table.insert() would work here but we also try to mimic
+-- the PICO-8 error messages:
+--  add("") → attempt to index local 'c' (a string value)
+function add(c, x, i)
+    if c != nil then
+        -- insert at i if specified, otherwise append
+        i=i and mid(1,i\1,#c+1) or #c+1
+        for j=#c,i,-1 do c[j+1]=c[j] end
+        c[i]=x
+        return x
+    end
 end
 
-function del(a, dv)
-	if a==nil then return end
-	for i=1, #a do
-		if a[i]==dv then
-			table.remove(a, i)
-			return
-		end
-	end
+function del(c,v)
+    if c != nil then
+        local max = #c
+        for i=1,max do
+            if c[i]==v then
+                for j=i,max do c[j]=c[j+1] end
+                return v
+            end
+        end
+    end
 end
 
-//from zepto 8 bios.p8
 function deli(c,i)
     if c != nil then
         -- delete at i if specified, otherwise at the end
