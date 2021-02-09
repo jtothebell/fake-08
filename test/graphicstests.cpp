@@ -1714,6 +1714,18 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("fillp(pat) sets values in memory"){
+        //0011001111001100 - checkerboard
+        graphics->fillp(0x33cc);
+
+        CHECK_EQ(picoRam.drawState.fillPattern[0], 0xcc);
+        CHECK_EQ(picoRam.drawState.fillPattern[1], 0x33);
+        CHECK_EQ(picoRam.drawState.fillPatternTransparencyBit, 0);
+
+        CHECK_EQ(picoRam.data[0x5f31], 0xcc);
+        CHECK_EQ(picoRam.data[0x5f32], 0x33);
+        CHECK_EQ(picoRam.data[0x5f33], 0);
+    }
     
 
     //general teardown

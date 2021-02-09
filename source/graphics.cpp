@@ -935,6 +935,18 @@ void Graphics::rectfill(int x1, int y1, int x2, int y2, uint8_t col) {
 	}
 }
 
+void Graphics::fillp(fix32 pat) {
+	uint8_t patByte0 = pat.bits() >> 16;
+	uint8_t patByte1 = pat.bits() >> 24;
+
+	uint8_t patTranspByte = pat.bits() >> 15;
+
+	_memory->drawState.fillPattern[0] = patByte0;
+	_memory->drawState.fillPattern[1] = patByte1;
+
+	_memory->drawState.fillPatternTransparencyBit = patTranspByte & 1;
+}
+
 int Graphics::print(std::string str) {
 	int result = this->print(str, _memory->drawState.text_x, _memory->drawState.text_y);
 

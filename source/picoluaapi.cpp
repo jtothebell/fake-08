@@ -591,7 +591,12 @@ int cursor(lua_State *L) {
 }
 
 int fillp(lua_State *L) {
-    return noop("fillp");
+    fix32 pat = 0;
+    if (lua_gettop(L) > 0) {
+        pat = lua_tonumber(L, 1);
+    }
+
+    _graphicsForLuaApi->fillp(pat);
 }
 
 int flip(lua_State *L) {
