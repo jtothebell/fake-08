@@ -1847,6 +1847,50 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    //TODO: allow this shorthand to work
+    /*
+    SUBCASE("fill pattern shorthand works"){
+        graphics->cls(0);
+        picoRam.drawState.colorSettingFlag = 1;
+        //0x104e.abcd
+        graphics->rectfill(0, 0, 3, 3, 0x104eabcd);
+
+        CHECK_EQ(picoRam.drawState.fillPattern[0], 0xcd);
+        CHECK_EQ(picoRam.drawState.fillPattern[1], 0xab);
+        CHECK_EQ(picoRam.drawState.fillPatternTransparencyBit, 0);
+
+        //black and yellow 4x4 checkerboard, with pink elsewhere
+        std::vector<coloredPoint> expectedPoints = {
+            { 0, 0, 4},
+            { 1, 0,14},
+            { 2, 0, 4},
+            { 3, 0,14},
+            { 4, 0, 0},
+            { 0, 1, 4},
+            { 1, 1,14},
+            { 2, 1, 4},
+            { 3, 1, 4},
+            { 4, 1, 0},
+            { 0, 2, 4},
+            { 1, 2, 4},
+            { 2, 2,14},
+            { 3, 2,14},
+            { 4, 2, 0},
+            { 0, 3, 4},
+            { 1, 3, 4},
+            { 2, 3,14},
+            { 3, 3, 4},
+            { 4, 3, 0},
+            { 0, 4, 0},
+            { 1, 4, 0},
+            { 2, 4, 0},
+            { 3, 4, 0},
+            { 4, 4, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    */
     
 
     //general teardown
