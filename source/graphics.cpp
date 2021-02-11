@@ -162,7 +162,7 @@ void Graphics::copySpriteToScreen(
 					: bothPix >> 4;  //just last 4 bits
 					
 				if (isColorTransparent(c) == false) { //if not transparent. Come back later to add palt() support by checking tranparency palette
-					_private_pset(scr_x + x, scr_y + y, c); //set color on framebuffer. Come back later and add pal() by translating color
+					_setPixelFromSprite(scr_x + x, scr_y + y, c); //set color on framebuffer. Come back later and add pal() by translating color
 				}
 			}
 		} else {
@@ -176,7 +176,7 @@ void Graphics::copySpriteToScreen(
 					: bothPix & 0x0f;  //just last 4 bits
 					
 				if (isColorTransparent(c) == false) { //if not transparent. Come back later to add palt() support by checking tranparency palette
-					_private_pset(scr_x + x, scr_y + y, c); //set color on framebuffer. Come back later and add pal() by translating color
+					_setPixelFromSprite(scr_x + x, scr_y + y, c); //set color on framebuffer. Come back later and add pal() by translating color
 				}
 			}
 		}
@@ -269,7 +269,7 @@ void Graphics::copyStretchSpriteToScreen(
 					? bothPix & 0x0f //just first 4 bits
 					: bothPix >> 4;  //just last 4 bits
 				if (isColorTransparent(c) == false) {
-					_private_pset(scr_x + x, scr_y + y, c);
+					_setPixelFromSprite(scr_x + x, scr_y + y, c);
 				}
 			}
 		} else {
@@ -282,7 +282,7 @@ void Graphics::copyStretchSpriteToScreen(
 					? bothPix >> 4 //just first 4 bits
 					: bothPix & 0x0f;  //just last 4 bits
 				if (isColorTransparent(c) == false) {
-					_private_pset(scr_x + x, scr_y + y, c);
+					_setPixelFromSprite(scr_x + x, scr_y + y, c);
 				}
 			}
 		}
@@ -395,6 +395,45 @@ void Graphics::_private_pset(int x, int y, uint8_t col) {
 
 	setPixelNibble(x, y, col, _memory->screenBuffer);
 }
+
+void Graphics::_setPixelFromSprite(int x, int y, uint8_t col) {
+	x = x & 127;
+	y = y & 127;
+
+	col = getDrawPalMappedColor(col);
+
+	setPixelNibble(x, y, col, _memory->screenBuffer);
+}
+
+void Graphics::_setPixelFromPen(int x, int y) {
+	x = x & 127;
+	y = y & 127;
+
+	uint8_t col = _memory->drawState.color;
+
+	uint8_t col0 = col & 0x0f;
+	uint8_t col1 = (col & 0xf0) >> 4;
+
+	uint8_t finalC = col0;
+
+
+	uint8_t gridX = x % 4;
+	uint8_t gridY = y % 4;
+	uint8_t bitPlace = gridY * 4 + gridX;
+
+	uint16_t fillp = ((uint16_t)_memory->drawState.fillPattern[1] << 8) + _memory->drawState.fillPattern[0];
+	bool altColor = fillp >> bitPlace & 1;
+	if (altColor) {
+		if (_memory->drawState.fillPatternTransparencyBit & 1){
+			return;
+		}
+
+		finalC = col1;
+	}
+
+	setPixelNibble(x, y, getDrawPalMappedColor(finalC), _memory->screenBuffer);
+	
+}
 //end helper methods
 
 void Graphics::cls() {
@@ -471,7 +510,7 @@ void Graphics::line (int x1, int y1, int x2, int y2){
 	this->line(x1, y1, x2, y2, _memory->drawState.color);
 }
 
-void Graphics::_private_h_line (int x1, int x2, int y, uint8_t col){
+void Graphics::_private_h_line(int x1, int x2, int y, uint8_t col){
 	if (!isYWithinClip(y)){
 		return;
 	}
@@ -480,7 +519,7 @@ void Graphics::_private_h_line (int x1, int x2, int y, uint8_t col){
 	int minx = clampXCoordToClip(std::min(x1, x2));
 
 	for (int x = minx; x <= maxx; x++){
-		_private_pset(x, y, col);
+		_setPixelFromPen(x, y);
 	}
 }
 
@@ -606,7 +645,7 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 m
 				_memory->spriteSheetData);
 
             if (!isColorTransparent(col)) {
-                _private_pset(x, y, getDrawPalMappedColor(col));
+                _setPixelFromSprite(x, y, col);
             }
         }
 

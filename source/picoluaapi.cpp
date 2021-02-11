@@ -597,6 +597,8 @@ int fillp(lua_State *L) {
     }
 
     _graphicsForLuaApi->fillp(pat);
+
+    return 0;
 }
 
 int flip(lua_State *L) {
