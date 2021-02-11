@@ -1804,6 +1804,49 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("fill pattern oriented correctly"){
+        //311 = 0b0000000100110111
+        //0000
+        //0001
+        //0011
+        //0111
+        graphics->cls(0);
+        graphics->fillp(311);
+
+        //e8: light pink alt color, pink normal color
+        graphics->rectfill(0, 0, 3, 3, 0xe8);
+
+        //black and yellow 4x4 checkerboard, with pink elsewhere
+        std::vector<coloredPoint> expectedPoints = {
+            { 0, 0, 8},
+            { 1, 0, 8},
+            { 2, 0, 8},
+            { 3, 0, 8},
+            { 4, 0, 0},
+            { 0, 1, 8},
+            { 1, 1, 8},
+            { 2, 1, 8},
+            { 3, 1,14},
+            { 4, 1, 0},
+            { 0, 2, 8},
+            { 1, 2, 8},
+            { 2, 2,14},
+            { 3, 2,14},
+            { 4, 2, 0},
+            { 0, 3, 8},
+            { 1, 3,14},
+            { 2, 3,14},
+            { 3, 3,14},
+            { 4, 3, 0},
+            { 0, 4, 0},
+            { 1, 4, 0},
+            { 2, 4, 0},
+            { 3, 4, 0},
+            { 4, 4, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
     
 
     //general teardown

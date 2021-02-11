@@ -381,19 +381,10 @@ int Graphics::clampYCoordToCLip(int y) {
 }
 
 
-void Graphics::_private_safe_pset(int x, int y, uint8_t col) {
+void Graphics::_safeSetPixelFromPen(int x, int y) {
 	if (isWithinClip(x, y)){
-		_private_pset(x, y, col);
+		_setPixelFromPen(x, y);
 	}
-}
-
-void Graphics::_private_pset(int x, int y, uint8_t col) {
-	x = x & 127;
-	y = y & 127;
-
-	col = getDrawPalMappedColor(col);
-
-	setPixelNibble(x, y, col, _memory->screenBuffer);
 }
 
 void Graphics::_setPixelFromSprite(int x, int y, uint8_t col) {
@@ -417,12 +408,13 @@ void Graphics::_setPixelFromPen(int x, int y) {
 	uint8_t finalC = col0;
 
 
-	uint8_t gridX = x % 4;
-	uint8_t gridY = y % 4;
-	uint8_t bitPlace = gridY * 4 + gridX;
+	//uint8_t gridX = x % 4;
+	//uint8_t gridY = y % 4;
+	//uint8_t bitPlace = gridY * 4 + gridX;
+	uint8_t bitPlace = 15 - ((x & 3) + 4 * (y & 3));
 
 	uint16_t fillp = ((uint16_t)_memory->drawState.fillPattern[1] << 8) + _memory->drawState.fillPattern[0];
-	bool altColor = fillp >> bitPlace & 1;
+	bool altColor = (fillp >> bitPlace) & 0x1;
 	if (altColor) {
 		if (_memory->drawState.fillPatternTransparencyBit & 1){
 			return;
@@ -432,7 +424,6 @@ void Graphics::_setPixelFromPen(int x, int y) {
 	}
 
 	setPixelNibble(x, y, getDrawPalMappedColor(finalC), _memory->screenBuffer);
-	
 }
 //end helper methods
 
@@ -459,7 +450,7 @@ void Graphics::pset(int x, int y, uint8_t col){
 	applyCameraToPoint(&x, &y);
 
 	if (isWithinClip(x, y)){
-		_private_pset(x, y, col);
+		_setPixelFromPen(x, y);
 	}
 }
 
@@ -510,7 +501,7 @@ void Graphics::line (int x1, int y1, int x2, int y2){
 	this->line(x1, y1, x2, y2, _memory->drawState.color);
 }
 
-void Graphics::_private_h_line(int x1, int x2, int y, uint8_t col){
+void Graphics::_private_h_line(int x1, int x2, int y){
 	if (!isYWithinClip(y)){
 		return;
 	}
@@ -523,7 +514,7 @@ void Graphics::_private_h_line(int x1, int x2, int y, uint8_t col){
 	}
 }
 
-void Graphics::_private_v_line (int y1, int y2, int x, uint8_t col){
+void Graphics::_private_v_line (int y1, int y2, int x){
 	//save draw calls if its out
 	if (!isXWithinClip(x)){
 		return;
@@ -533,7 +524,7 @@ void Graphics::_private_v_line (int y1, int y2, int x, uint8_t col){
 	int miny = clampYCoordToCLip(std::min(y1, y2));
 
 	for (int y = miny; y <= maxy; y++){
-		_private_pset(x, y, col);
+		_setPixelFromPen(x, y);
 	}
 }
 
@@ -549,10 +540,10 @@ void Graphics::line(int x0, int y0, int x1, int y1, uint8_t col) {
 
 	//vertical line
 	if (x0 == x1) {
-		_private_v_line(y0, y1, x0, col);
+		_private_v_line(y0, y1, x0);
 	} 
 	else if (y0 == y1) {
-		_private_h_line(x0, x1, y0, col);
+		_private_h_line(x0, x1, y0);
 	}
 	else {
 		//tac08 line impl for diagonals (this should work for horizontal and vertical as well,
@@ -562,7 +553,7 @@ void Graphics::line(int x0, int y0, int x1, int y1, uint8_t col) {
 		int err = dx + dy, e2; /* error value e_xy */
 
 		for (;;) { /* loop */
-			_private_safe_pset(x0, y0, col);
+			_safeSetPixelFromPen(x0, y0);
 			if (x0 == x1 && y0 == y1)
 				break;
 			e2 = 2 * err;
@@ -689,15 +680,15 @@ void Graphics::circ(int ox, int oy, int r, uint8_t col){
 	int decisionOver2 = 1-x;
 
 	while (y <= x) {
-		_private_safe_pset(ox + x, oy + y, col);
-		_private_safe_pset(ox + y, oy + x, col);
-		_private_safe_pset(ox - x, oy + y, col);
-		_private_safe_pset(ox - y, oy + x, col);
+		_safeSetPixelFromPen(ox + x, oy + y);
+		_safeSetPixelFromPen(ox + y, oy + x);
+		_safeSetPixelFromPen(ox - x, oy + y);
+		_safeSetPixelFromPen(ox - y, oy + x);
 
-		_private_safe_pset(ox - x, oy - y, col);
-		_private_safe_pset(ox - y, oy - x, col);
-		_private_safe_pset(ox + x, oy - y, col);
-		_private_safe_pset(ox + y, oy - x, col);
+		_safeSetPixelFromPen(ox - x, oy - y);
+		_safeSetPixelFromPen(ox - y, oy - x);
+		_safeSetPixelFromPen(ox + x, oy - y);
+		_safeSetPixelFromPen(ox + y, oy - x);
 
 		y += 1;
 		if (decisionOver2 < 0) {
@@ -725,18 +716,18 @@ void Graphics::circfill(int ox, int oy, int r, uint8_t col){
 	applyCameraToPoint(&ox, &oy);
 
 	if (r == 0) {
-		_private_safe_pset(ox, oy, col);
+		_safeSetPixelFromPen(ox, oy);
 	}
 	else if (r == 1) {
-		_private_safe_pset(ox, oy - 1, col);
-		_private_h_line(ox-1, ox+1, oy, col);
-		_private_safe_pset(ox, oy + 1, col);
+		_safeSetPixelFromPen(ox, oy - 1);
+		_private_h_line(ox-1, ox+1, oy);
+		_safeSetPixelFromPen(ox, oy + 1);
 	}
 	else if (r > 0) {
 		int x = -r, y = 0, err = 2 - 2 * r;
 		do {
-			_private_h_line(ox - x, ox + x, oy + y, col);
-			_private_h_line(ox - x, ox + x, oy - y, col);
+			_private_h_line(ox - x, ox + x, oy + y);
+			_private_h_line(ox - x, ox + x, oy - y);
 			r = err;
 			if (r > x)
 				err += ++x * 2 + 1;
@@ -773,8 +764,8 @@ void Graphics::oval(int x0, int y0, int x1, int y1, uint8_t col) {
     int bsq = yr * yr;
     int xa, ya;
 
-	_private_safe_pset(xc, yc+yr, col);
-    _private_safe_pset(xc, yc-yr, col);
+	_safeSetPixelFromPen(xc, yc+yr);
+    _safeSetPixelFromPen(xc, yc-yr);
 
     wx = 0;
     wy = yr;
@@ -798,14 +789,14 @@ void Graphics::oval(int x0, int y0, int x1, int y1, uint8_t col) {
           break;
 
 
-        _private_safe_pset(xc+wx, yc-wy, col);
-        _private_safe_pset(xc-wx, yc-wy, col);
-        _private_safe_pset(xc+wx, yc+wy, col);
-        _private_safe_pset(xc-wx, yc+wy, col);
+        _safeSetPixelFromPen(xc+wx, yc-wy);
+        _safeSetPixelFromPen(xc-wx, yc-wy);
+        _safeSetPixelFromPen(xc+wx, yc+wy);
+        _safeSetPixelFromPen(xc-wx, yc+wy);
     }
 
-    _private_safe_pset(xc+xr, yc, col);
-    _private_safe_pset(xc-xr, yc, col);
+    _safeSetPixelFromPen(xc+xr, yc);
+    _safeSetPixelFromPen(xc-xr, yc);
 
     wx = xr;
     wy = 0;
@@ -829,10 +820,10 @@ void Graphics::oval(int x0, int y0, int x1, int y1, uint8_t col) {
         if (ya > xa)
           break;
 
-        _private_safe_pset(xc+wx, yc-wy, col);
-        _private_safe_pset(xc-wx, yc-wy, col);
-        _private_safe_pset(xc+wx, yc+wy, col);
-        _private_safe_pset(xc-wx, yc+wy, col);
+        _safeSetPixelFromPen(xc+wx, yc-wy);
+        _safeSetPixelFromPen(xc-wx, yc-wy);
+        _safeSetPixelFromPen(xc+wx, yc+wy);
+        _safeSetPixelFromPen(xc-wx, yc+wy);
     }
 }
 
@@ -863,7 +854,7 @@ void Graphics::ovalfill(int x0, int y0, int x1, int y1, uint8_t col){
     int bsq = yr * yr;
     int xa, ya;
 
-	_private_v_line(yc+yr, yc-yr, xc, col);
+	_private_v_line(yc+yr, yc-yr, xc);
 
     wx = 0;
     wy = yr;
@@ -886,11 +877,11 @@ void Graphics::ovalfill(int x0, int y0, int x1, int y1, uint8_t col){
         if (xa >= ya)
           break;
 
-		_private_h_line(xc+wx, xc-wx, yc-wy, col);
-		_private_h_line(xc+wx, xc-wx, yc+wy, col);
+		_private_h_line(xc+wx, xc-wx, yc-wy);
+		_private_h_line(xc+wx, xc-wx, yc+wy);
     }
 
-	_private_h_line(xc+xr, xc-xr, yc, col);
+	_private_h_line(xc+xr, xc-xr, yc);
 
     wx = xr;
     wy = 0;
@@ -914,8 +905,8 @@ void Graphics::ovalfill(int x0, int y0, int x1, int y1, uint8_t col){
         if (ya > xa)
           break;
 
-		_private_h_line(xc+wx, xc-wx, yc-wy, col);
-		_private_h_line(xc+wx, xc-wx, yc+wy, col);
+		_private_h_line(xc+wx, xc-wx, yc-wy);
+		_private_h_line(xc+wx, xc-wx, yc+wy);
     }
 	/*
 	//this algo doesn't like up correctly
@@ -950,11 +941,11 @@ void Graphics::rect(int x1, int y1, int x2, int y2, uint8_t col) {
 
 	sortCoordsForRect(&x1, &y1, &x2, &y2);
 
-	_private_h_line(x1, x2, y1, col);
-	_private_h_line(x1, x2, y2, col);
+	_private_h_line(x1, x2, y1);
+	_private_h_line(x1, x2, y2);
 
-	_private_v_line(y1, y2, x1, col);
-	_private_v_line(y1, y2, x2, col);
+	_private_v_line(y1, y2, x1);
+	_private_v_line(y1, y2, x2);
 }
 
 void Graphics::rectfill(int x1, int y1, int x2, int y2) {
@@ -970,7 +961,7 @@ void Graphics::rectfill(int x1, int y1, int x2, int y2, uint8_t col) {
 	sortCoordsForRect(&x1, &y1, &x2, &y2);
 
 	for (int y = y1; y <= y2; y++) {
-		_private_h_line(x1, x2, y, col);
+		_private_h_line(x1, x2, y);
 	}
 }
 

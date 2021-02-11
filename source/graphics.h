@@ -89,12 +89,11 @@ class Graphics {
 	int clampXCoordToClip(int x);
 	int clampYCoordToCLip(int y);
 
-	void _private_pset(int x, int y, uint8_t col);
 	void _setPixelFromSprite(int x, int y, uint8_t col);
 	void _setPixelFromPen(int x, int y);
-	void _private_safe_pset(int x, int y, uint8_t col);
-	void _private_h_line (int x1, int x2, int y, uint8_t col);
-	void _private_v_line (int y1, int y2, int x, uint8_t col);
+	void _safeSetPixelFromPen(int x, int y);
+	void _private_h_line (int x1, int x2, int y);
+	void _private_v_line (int y1, int y2, int x);
 
 	public:
 	Graphics(std::string fontdata, PicoRam* memory);
