@@ -921,3 +921,15 @@ int loadbioscart(lua_State *L) {
 
     return 0;
 }
+
+int togglepausemenu(lua_State *L) {
+    _vmForLuaApi->togglePauseMenu();
+
+    return 0;
+}
+
+int resetcart(lua_State *L) {
+    _vmForLuaApi->QueueCartChange(_vmForLuaApi->CurrentCartFilename());
+
+    return 0;
+}

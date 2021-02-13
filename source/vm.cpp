@@ -146,18 +146,6 @@ bool Vm::loadCart(Cart* cart) {
     luaL_openlibs(_luaState);
     lua_pushglobaltable(_luaState);
 
-    //load in global lua fuctions for pico 8
-    auto convertedGlobalLuaFunctions = convert_emojis(p8GlobalLuaFunctions);
-    int loadedGlobals = luaL_dostring(_luaState, convertedGlobalLuaFunctions.c_str());
-
-    if (loadedGlobals != LUA_OK) {
-        _cartLoadError = "ERROR loading pico 8 lua globals";
-        Logger::Write("ERROR loading pico 8 lua globals\n");
-        Logger::Write("Error: %s\n", lua_tostring(_luaState, -1));
-        lua_pop(_luaState, 1);
-
-        return false;
-    }
 
     //graphics
     lua_register(_luaState, "cls", cls);
@@ -237,6 +225,21 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "__loadcart", loadcart);
     lua_register(_luaState, "__getbioserror", getbioserror);
     lua_register(_luaState, "__loadbioscart", loadbioscart);
+    lua_register(_luaState, "__togglepausemenu", togglepausemenu);
+    lua_register(_luaState, "__resetcart", resetcart);
+
+     //load in global lua fuctions for pico 8
+    auto convertedGlobalLuaFunctions = convert_emojis(p8GlobalLuaFunctions);
+    int loadedGlobals = luaL_dostring(_luaState, convertedGlobalLuaFunctions.c_str());
+
+    if (loadedGlobals != LUA_OK) {
+        _cartLoadError = "ERROR loading pico 8 lua globals";
+        Logger::Write("ERROR loading pico 8 lua globals\n");
+        Logger::Write("Error: %s\n", lua_tostring(_luaState, -1));
+        lua_pop(_luaState, 1);
+
+        return false;
+    }
 
 
     int loadedCart = luaL_loadstring(_luaState, cart->LuaString.c_str());
@@ -330,6 +333,10 @@ void Vm::LoadCart(std::string filename){
     }
 }
 
+void Vm::togglePauseMenu(){
+    _pauseMenu = !_pauseMenu;
+}
+
 
 void Vm::UpdateAndDraw() {
     update_buttons();
@@ -338,35 +345,70 @@ void Vm::UpdateAndDraw() {
 
     //todo: pause menu here, but for now just load bios
     if (_input->btnp(6)) {
-        QueueCartChange("__FAKE08-BIOS.p8");
+        togglePauseMenu();
     }
 
     if (_cartChangeQueued) {
         LoadCart(_nextCartKey);
     }
 
-    if (_hasUpdate){
-        // Push the _update function on the top of the lua stack
-        if (_targetFps == 60) {
-            lua_getglobal(_luaState, "_update60");
-        } else {
-            lua_getglobal(_luaState, "_update");
+    if (_pauseMenu){
+        //3 item menu (default) 82x34
+        //23, 47, 23 + 82, 47 + 34
+        //pause menu handled in lua firmware now
+        /*
+        uint8_t preColor = _memory->drawState.color;
+        uint8_t fillp0 = _memory->drawState.fillPattern[0];
+        uint8_t fillp1 = _memory->drawState.fillPattern[1];
+        _memory->drawState.fillPattern[0] = 0;
+        _memory->drawState.fillPattern[1] = 0;
+        _graphics->rectfill(23, 47, 23 + 82, 47 + 34, 0);
+        _graphics->rect(24, 48, 24 + 80, 48 + 32, 7);
+        _graphics->print("paused", 30, 55, 7);
+        
+        if (_input->btnp(4)) {
+            togglePauseMenu();
+            QueueCartChange("__FAKE08-BIOS.p8");
         }
 
-        //we already checked that its a function, so we should be able to call it
+        _memory->drawState.fillPattern[0] = fillp0;
+        _memory->drawState.fillPattern[1] = fillp1;
+        _memory->drawState.color = preColor;
+        */
+       
+        //todo: fix crash here
+        lua_getglobal(_luaState, "__f08_menu_update");
         lua_call(_luaState, 0, 0);
+        lua_pop(_luaState, 0);
 
-        //pop the update fuction off the stack now that we're done with it
+        lua_getglobal(_luaState, "__f08_menu_draw");
+        lua_call(_luaState, 0, 0);
         lua_pop(_luaState, 0);
     }
+    else{
+        if (_hasUpdate){
+            // Push the _update function on the top of the lua stack
+            if (_targetFps == 60) {
+                lua_getglobal(_luaState, "_update60");
+            } else {
+                lua_getglobal(_luaState, "_update");
+            }
 
-    if (_hasDraw) {
-        lua_getglobal(_luaState, "_draw");
+            //we already checked that its a function, so we should be able to call it
+            lua_call(_luaState, 0, 0);
 
-        lua_call(_luaState, 0, 0);
-        
-        //pop the update fuction off the stack now that we're done with it
-        lua_pop(_luaState, 0);
+            //pop the update fuction off the stack now that we're done with it
+            lua_pop(_luaState, 0);
+        }
+
+        if (_hasDraw) {
+            lua_getglobal(_luaState, "_draw");
+
+            lua_call(_luaState, 0, 0);
+            
+            //pop the update fuction off the stack now that we're done with it
+            lua_pop(_luaState, 0);
+        }
     }
 
 }
@@ -411,10 +453,19 @@ void Vm::CloseCart() {
 void Vm::QueueCartChange(std::string filename){
     _nextCartKey = filename;
     _cartChangeQueued = true;
+    _pauseMenu = false;
 }
 
 int Vm::GetTargetFps() {
     return _targetFps;
+}
+
+std::string Vm::CurrentCartFilename(){
+    if (_loadedCart){
+        return _loadedCart->Filename;
+    }
+
+    return "";
 }
 
 int Vm::GetFrameCount() {

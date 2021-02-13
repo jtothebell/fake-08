@@ -38,6 +38,7 @@ class Vm {
     bool _hasDraw;
 
     bool _cartChangeQueued;
+    bool _pauseMenu;
     string _nextCartKey;
 
     string _cartLoadError;
@@ -48,6 +49,7 @@ class Vm {
 
     bool loadCart(Cart* cart);
     void vm_reload(int destaddr, int sourceaddr, int len, Cart* cart);
+    
 
     public:
     Vm(
@@ -87,6 +89,10 @@ class Vm {
     bool ExecuteLua(string luaString, string callbackFunction);
 
     PicoRam* getPicoRam();
+
+    string CurrentCartFilename();
+
+    void togglePauseMenu();
 
     uint8_t vm_peek(int addr);
     int16_t vm_peek2(int addr);
