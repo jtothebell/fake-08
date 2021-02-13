@@ -109,13 +109,27 @@ unpack = table.unpack
 🅾️ = 4
 ❎ = 5
 
-function menuitem()
---noop placeholder for now
+function menuitem(index, label, callback)
+    --only 5 open slots
+    if index < 1 or index > 5 then return end
+
+    if not label or not callback then
+        label = nil
+        callback = nil
+    end
+
+    __f08_menu_items[index + 1][1] = label
+    __f08_menu_items[index + 1][2] = callback
 end
 
 
 __f08_menu_items = {
     {"continue", __togglepausemenu},
+    {nil, nil},
+    {nil, nil},
+    {nil, nil},
+    {nil, nil},
+    {nil, nil},
     {"reset cart", __resetcart},
     {"exit to menu", __loadbioscart}
 }
@@ -124,11 +138,15 @@ __f08_menu_selected = 1
 
 function __f08_menu_update()
     if btnp(3) and __f08_menu_selected < #__f08_menu_items then
-        __f08_menu_selected = __f08_menu_selected + 1
+        repeat
+            __f08_menu_selected = __f08_menu_selected + 1
+        until __f08_menu_items[__f08_menu_selected][1] ~= nil
     end
 
     if btnp(2) and __f08_menu_selected > 1 then
-        __f08_menu_selected = __f08_menu_selected - 1
+        repeat
+            __f08_menu_selected = __f08_menu_selected - 1
+        until __f08_menu_items[__f08_menu_selected][1] ~= nil
     end
 
     if btnp(4) or btnp(5) then
@@ -142,7 +160,13 @@ end
 
 function __f08_menu_draw()
     local menuwidth = 82
-    local menuheight = 8 + (#__f08_menu_items)*10
+    local itemcount = 0
+    for item in all(__f08_menu_items) do
+        if item[1] and item[2] then
+            itemcount = itemcount + 1
+        end
+    end
+    local menuheight = 8 + itemcount*10
     local menux = (128 - menuwidth) / 2
     local menuy = (128 - menuheight) / 2
 
@@ -153,16 +177,19 @@ function __f08_menu_draw()
     local itemidx = 1
 
     for item in all(__f08_menu_items) do
-        print(item[1], itemx, itemy, 7)
-        
-        --draw selection indicator
-        if itemidx == __f08_menu_selected then
-            line(itemx-5, itemy, itemx-5, itemy+4, 7)
-            line(itemx-4, itemy+1, itemx-4, itemy+3, 7)
-            pset(itemx-3, itemy+2, 7)
+        if item[1] and item[2] then
+            print(item[1], itemx, itemy, 7)
+            
+            --draw selection indicator
+            if itemidx == __f08_menu_selected then
+                line(itemx-5, itemy, itemx-5, itemy+4, 7)
+                line(itemx-4, itemy+1, itemx-4, itemy+3, 7)
+                pset(itemx-3, itemy+2, 7)
+            end
+
+            itemy = itemy + 10
         end
 
-        itemy = itemy + 10
         itemidx = itemidx + 1
     end
 end

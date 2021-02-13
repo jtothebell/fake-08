@@ -305,7 +305,6 @@ bool Vm::loadCart(Cart* cart) {
 
 void Vm::LoadBiosCart(){
     CloseCart();
-    
 
     Cart *cart = new Cart("__FAKE08-BIOS.p8");
 
