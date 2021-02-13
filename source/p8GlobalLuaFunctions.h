@@ -116,7 +116,8 @@ end
 
 __f08_menu_items = {
     {"continue", __togglepausemenu},
-    {"reset cart", __resetcart}
+    {"reset cart", __resetcart},
+    {"exit to menu", __loadbioscart}
 }
 
 __f08_menu_selected = 1
@@ -148,16 +149,17 @@ function __f08_menu_draw()
     rectfill(menux, menuy, menux + menuwidth, menuy + menuheight, 0)
     rect(menux+1, menuy+1, menux + menuwidth-1, menuy + menuheight-1, 7)
     local itemx = menux + 8
-    local itemy = menuy + 8
+    local itemy = menuy + 6
     local itemidx = 1
 
     for item in all(__f08_menu_items) do
         print(item[1], itemx, itemy, 7)
         
+        --draw selection indicator
         if itemidx == __f08_menu_selected then
-            line(itemx-8, itemy, itemx-8, itemy+5, 7)
-            line(itemx-7, itemy+1, itemx-7, itemy+4, 7)
-            pset(itemx-6, itemy+3, 7)
+            line(itemx-5, itemy, itemx-5, itemy+4, 7)
+            line(itemx-4, itemy+1, itemx-4, itemy+3, 7)
+            pset(itemx-3, itemy+2, 7)
         end
 
         itemy = itemy + 10

@@ -305,6 +305,7 @@ bool Vm::loadCart(Cart* cart) {
 
 void Vm::LoadBiosCart(){
     CloseCart();
+    
 
     Cart *cart = new Cart("__FAKE08-BIOS.p8");
 
@@ -454,6 +455,7 @@ void Vm::QueueCartChange(std::string filename){
     _nextCartKey = filename;
     _cartChangeQueued = true;
     _pauseMenu = false;
+
 }
 
 int Vm::GetTargetFps() {
