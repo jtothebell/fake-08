@@ -438,7 +438,51 @@ TEST_CASE("Vm memory functions") {
         vm->CloseCart();
     }
 
-    
+    SUBCASE("togglepausemenu resets and restores draw state") {
+        graphics->pal(10, 12, 0);
+        graphics->fillp(25);
+        graphics->clip(11, 12, 21, 22);
+        graphics->camera(1, 2);
+        graphics->color(3);
+
+        SUBCASE("togglepausemenu resets draw state"){
+            vm->togglePauseMenu();
+            
+            CHECK_EQ(10, graphics->getDrawPalMappedColor(10));
+
+            CHECK_EQ(0, memory->drawState.fillPattern[0]);
+
+            CHECK_EQ(0, memory->drawState.clip_xb);
+            CHECK_EQ(0, memory->drawState.clip_yb);
+            CHECK_EQ(128, memory->drawState.clip_xe);
+            CHECK_EQ(128, memory->drawState.clip_ye);
+
+            CHECK_EQ(0, memory->drawState.camera_x);
+            CHECK_EQ(0, memory->drawState.camera_y);
+
+            CHECK_EQ(6, memory->drawState.color);
+        }
+        SUBCASE("togglepausemenu second time restores draw state"){
+            vm->togglePauseMenu();
+            vm->togglePauseMenu();
+            
+            CHECK_EQ(12, graphics->getDrawPalMappedColor(10));
+
+            CHECK_EQ(25, memory->drawState.fillPattern[0]);
+
+            CHECK_EQ(11, memory->drawState.clip_xb);
+            CHECK_EQ(12, memory->drawState.clip_yb);
+            CHECK_EQ(32, memory->drawState.clip_xe);
+            CHECK_EQ(34, memory->drawState.clip_ye);
+
+            CHECK_EQ(1, memory->drawState.camera_x);
+            CHECK_EQ(2, memory->drawState.camera_y);
+
+            CHECK_EQ(3, memory->drawState.color);
+        }
+    }
+
+    delete stubHost;
     delete graphics;
     delete input;
     delete audio;

@@ -438,4 +438,5 @@ TEST_CASE("Loading and running carts") {
     }
     
     delete vm;
+    delete host;
 }

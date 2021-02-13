@@ -52,6 +52,7 @@ Vm::Vm(
     }
     _memory = memory;
 
+    _pauseMenu = false;
     memset(_drawStateCopy, 0, sizeof(drawState_t));
     
     if (graphics == nullptr) {
