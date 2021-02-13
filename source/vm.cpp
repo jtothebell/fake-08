@@ -51,6 +51,8 @@ Vm::Vm(
         _cleanupDeps = true;
     }
     _memory = memory;
+
+    memset(_drawStateCopy, 0, sizeof(drawState_t));
     
     if (graphics == nullptr) {
         graphics = new Graphics(get_font_data(), _memory);
@@ -335,6 +337,23 @@ void Vm::LoadCart(std::string filename){
 
 void Vm::togglePauseMenu(){
     _pauseMenu = !_pauseMenu;
+
+    if (_pauseMenu){
+        //save old draw state
+        //0x5f00-0x5f3f - 64 bytes
+        memcpy(_drawStateCopy, &_memory->drawState, 64);
+
+        _graphics->pal();
+        _graphics->fillp(0);
+        _graphics->clip();
+        _graphics->camera();
+        _graphics->color();
+    }
+    else{
+        //restore old draw state
+        memcpy(&_memory->drawState, _drawStateCopy, 64);
+    }
+    
 }
 
 

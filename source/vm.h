@@ -21,6 +21,7 @@ using namespace z8;
 class Vm {
     Host* _host;
     PicoRam* _memory;
+    uint8_t _drawStateCopy[64];
 
     Graphics* _graphics;
     Audio* _audio;
