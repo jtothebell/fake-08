@@ -14,32 +14,32 @@
 
 int main(int argc, char* argv[])
 {
-	Logger::Initialize();
+	Logger_Initialize();
 
 	Host *host = new Host();
 	Vm *vm = new Vm(host);
 	
 	host->oneTimeSetup(vm->GetPaletteColors());
 	
-	Logger::Write("initialized Vm and host\n");
+	Logger_Write("initialized Vm and host\n");
 
-	Logger::Write("Setting cart list on vm\n");
+	Logger_Write("Setting cart list on vm\n");
 	vm->SetCartList(host->listcarts());
 
-	Logger::Write("Loading Bios cart\n");
+	Logger_Write("Loading Bios cart\n");
 	vm->LoadBiosCart();
-	Logger::Write("Bios Cart Loaded\n");
+	Logger_Write("Bios Cart Loaded\n");
 
 	// Main loop
-	Logger::Write("Starting main loop\n");
+	Logger_Write("Starting main loop\n");
 
 	vm->GameLoop();
 
-	Logger::Write("Turning off vm and exiting logger\n");
+	Logger_Write("Turning off vm and exiting logger\n");
 	vm->CloseCart();
 	delete vm;
 	
-	Logger::Exit();
+	Logger_Exit();
 
 	host->oneTimeCleanup();
 	delete host;

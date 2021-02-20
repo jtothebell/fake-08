@@ -74,7 +74,7 @@ Vm::Vm(
     _audio = audio;
 
     //this can probably go away when I'm loading actual carts and just have to expose api to lua
-    Logger::Write("Initializing global api\n");
+    Logger_Write("Initializing global api\n");
     initPicoApi(_graphics, _input, this, _audio);
     //initGlobalApi(_graphics);
 
@@ -126,7 +126,7 @@ bool Vm::loadCart(Cart* cart) {
         if (_cartLoadError == "") {
             _cartLoadError = "No Lua to load. Aborting cart load";
         }
-        Logger::Write("%s\n", _cartLoadError.c_str());
+        Logger_Write("%s\n", _cartLoadError.c_str());
 
         return false;
     }
@@ -149,6 +149,18 @@ bool Vm::loadCart(Cart* cart) {
     luaL_openlibs(_luaState);
     lua_pushglobaltable(_luaState);
 
+    //load in global lua fuctions for pico 8
+    auto convertedGlobalLuaFunctions = convert_emojis(p8GlobalLuaFunctions);
+    int loadedGlobals = luaL_dostring(_luaState, convertedGlobalLuaFunctions.c_str());
+
+    if (loadedGlobals != LUA_OK) {
+        _cartLoadError = "ERROR loading pico 8 lua globals";
+        Logger_Write("ERROR loading pico 8 lua globals\n");
+        Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
+        lua_pop(_luaState, 1);
+
+        return false;
+    }
 
     //graphics
     lua_register(_luaState, "cls", cls);
@@ -231,25 +243,12 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "__togglepausemenu", togglepausemenu);
     lua_register(_luaState, "__resetcart", resetcart);
 
-     //load in global lua fuctions for pico 8
-    auto convertedGlobalLuaFunctions = convert_emojis(p8GlobalLuaFunctions);
-    int loadedGlobals = luaL_dostring(_luaState, convertedGlobalLuaFunctions.c_str());
-
-    if (loadedGlobals != LUA_OK) {
-        _cartLoadError = "ERROR loading pico 8 lua globals";
-        Logger::Write("ERROR loading pico 8 lua globals\n");
-        Logger::Write("Error: %s\n", lua_tostring(_luaState, -1));
-        lua_pop(_luaState, 1);
-
-        return false;
-    }
-
 
     int loadedCart = luaL_loadstring(_luaState, cart->LuaString.c_str());
     if (loadedCart != LUA_OK) {
         _cartLoadError = "Error loading cart lua";
-        Logger::Write("ERROR loading cart\n");
-        Logger::Write("Error: %s\n", lua_tostring(_luaState, -1));
+        Logger_Write("ERROR loading cart\n");
+        Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
         lua_pop(_luaState, 1);
 
         return false;
@@ -258,8 +257,8 @@ bool Vm::loadCart(Cart* cart) {
     if (setjmp(place) == 0) {
         if (lua_pcall(_luaState, 0, 0, 0)){
             _cartLoadError = "Runtime error";
-            Logger::Write("ERROR running cart\n");
-            Logger::Write("Error: %s\n", lua_tostring(_luaState, -1));
+            Logger_Write("ERROR running cart\n");
+            Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
             lua_pop(_luaState, 1);
         }
     }
@@ -319,10 +318,10 @@ void Vm::LoadBiosCart(){
 }
 
 void Vm::LoadCart(std::string filename){
-    Logger::Write("Loading cart %s\n", filename.c_str());
+    Logger_Write("Loading cart %s\n", filename.c_str());
     CloseCart();
 
-    Logger::Write("Calling Cart Constructor\n");
+    Logger_Write("Calling Cart Constructor\n");
     Cart *cart = new Cart(filename);
 
     _cartLoadError = cart->LoadError;
@@ -452,18 +451,18 @@ void Vm::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
 
 void Vm::CloseCart() {
     if (_loadedCart){
-        Logger::Write("deleting cart\n");
+        Logger_Write("deleting cart\n");
         delete _loadedCart;
         _loadedCart = nullptr;
     }
     
     if (_luaState) {
-        Logger::Write("closing lua state\n");
+        Logger_Write("closing lua state\n");
         lua_close(_luaState);
         _luaState = nullptr;
     }
 
-    Logger::Write("resetting state\n");
+    Logger_Write("resetting state\n");
     _hasUpdate = false;
     _hasDraw = false;
     _targetFps = 30;
@@ -541,7 +540,7 @@ bool Vm::ExecuteLua(string luaString, string callbackFunction){
 
     if (! success == LUA_OK){
         //bad lua passed
-        Logger::Write("Error: %s\n", lua_tostring(_luaState, -1));
+        Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
         lua_pop(_luaState, 1);
 
         return false;

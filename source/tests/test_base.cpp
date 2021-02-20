@@ -13,13 +13,13 @@ bool assertStringsEqual(std::string expected, std::string actual, std::string te
     printTestOuput(testName, equal);
 
     if (!equal){
-        Logger::Write("start expected: \n");
-        Logger::Write(expected.c_str());
-        Logger::Write("end expected: \n");
+        Logger_Write("start expected: \n");
+        Logger_Write(expected.c_str());
+        Logger_Write("end expected: \n");
 
-        Logger::Write("start actual: \n");
-        Logger::Write(actual.c_str());
-        Logger::Write("end actual: \n");
+        Logger_Write("start actual: \n");
+        Logger_Write(actual.c_str());
+        Logger_Write("end actual: \n");
     }
     
     return equal;

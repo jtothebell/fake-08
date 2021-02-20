@@ -1,6 +1,6 @@
 #match flags from 3ds and switch makefiles. This may not all be necessary
 CFLAGS := -Wall -g -c -O2 \
-		  -fno-rtti -fexceptions -std=gnu++17
+		  -fno-rtti -fexceptions -std=gnu++11
 
 
 all: runtests
@@ -12,7 +12,7 @@ testrunner.a: testroot.o \
 	g++ -I$(CURDIR)/include -L$(CURDIR)/lib \
 	testroot.o \
 	fontdata.o fontdatatests.o \
-	graphics.o graphicstests.o stringToDataHelpers.o \
+	graphics.o graphicstests.o stringToDataHelpers.o mathhelpers.o \
 	Audio.o synth.o audiotests.o \
 	cartPatcher.o cartpatchertests.o \
 	cart.o carttests.o nooplogger.o lodepng.o emojiconversion.o filehelpers.o utf8-util.o \
@@ -35,15 +35,17 @@ graphicstests.o: liblua.a fontdatatests.o graphicstests.cpp ../source/graphics.c
 	../source/fontdata.cpp ../source/fontdata.h \
 	../source/PicoRam.h ../source/hostVmShared.h \
 	../source/stringToDataHelpers.h ../source/stringToDataHelpers.cpp \
+	../source/mathhelpers.h ../source/mathhelpers.cpp \
 	../source/nibblehelpers.h ../source/nibblehelpers.cpp
 	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \
 	graphicstests.cpp ../source/graphics.cpp \
-	../source/stringToDataHelpers.cpp ../source/nibblehelpers.cpp
+	../source/stringToDataHelpers.cpp ../source/nibblehelpers.cpp ../source/mathhelpers.cpp
 
 audiotests.o: audiotests.cpp ../source/Audio.cpp ../source/Audio.h \
 	../source/synth.cpp ../source/synth.h \
+	../source/mathhelpers.h ../source/mathhelpers.cpp \
 	../source/PicoRam.h ../source/hostVmShared.h
-	g++ $(CFLAGS) audiotests.cpp ../source/Audio.cpp ../source/synth.cpp
+	g++ $(CFLAGS) audiotests.cpp ../source/Audio.cpp ../source/synth.cpp ../source/mathhelpers.cpp
 
 cartpatchertests.o: liblua.a cartpatchertests.cpp ../source/cartPatcher.cpp ../source/cartPatcher.h
 	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \

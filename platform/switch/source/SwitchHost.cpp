@@ -6,9 +6,7 @@
 
 #include <fstream>
 #include <iostream>
-#include <filesystem>
 using namespace std;
-namespace fs = std::filesystem;
 
 #include "../../../source/host.h"
 #include "../../../source/hostVmShared.h"
@@ -320,16 +318,15 @@ vector<string> Host::listcarts(){
     vector<string> carts;
 
     DIR* dir = opendir("/p8carts");
+    struct dirent *ent;
+    std::string fullCartDir = "/p8carts/";
 
     if (dir) {
-        for(auto& p: fs::directory_iterator("/p8carts")){
-            auto ext = p.path().extension().string();
-            if (ext == ".p8" || ext == ".png"){
-                carts.push_back(p.path().string());
-            }
+        /* print all the files and directories within directory */
+        while ((ent = readdir (dir)) != NULL) {
+            carts.push_back(fullCartDir + ent->d_name);
         }
-
-        closedir(dir);
+        closedir (dir);
     }
 
     
