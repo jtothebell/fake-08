@@ -37,12 +37,16 @@ int main(int argc, char* argv[])
 
 	Logger_Write("Turning off vm and exiting logger\n");
 	vm->CloseCart();
+	Logger_Write("deleting vm\n");
 	delete vm;
-	
-	Logger_Exit();
 
+	Logger_Write("calling one time cleanup\n");
 	host->oneTimeCleanup();
+	Logger_Write("deleting host\n");
 	delete host;
+	
+	Logger_Write("exiting logger\n");
+	Logger_Exit();
 
 	return 0;
 }

@@ -9,6 +9,8 @@
 *.nso
 *.pfs0
 
+*.rpx
+
 bin/
 .vscode/
 build/
