@@ -69,8 +69,28 @@ jobs:
           path: |
             platform/wiiu/*.elf
             platform/wiiu/*.rpx
-            
+
   fourth:
+    name: Vita
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir vitasdk/vitasdk /bin/sh -ex /build_dir/.github/workflows/buildVita.sh
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: PS Vita
+          path: |
+            platform/vita/*.vpk
+            
+  fifth:
     name: Tests
     runs-on: ubuntu-latest
 

@@ -6,11 +6,11 @@ ROOT_INCLUDES	?= include
 export SOURCES   = ../../source ../../libs/z8lua ../../libs/utf8-util ../../libs/lodepng
 export INCLUDES  = ../../include ../../libs/z8lua ../../libs/utf8-util ../../libs/lodepng
 
-.PHONY: all 3ds switch wiiu sdl2 clean clean-3ds clean-switch clean-wiiu clean-sdl2
+.PHONY: all 3ds switch wiiu vita sdl2 clean clean-3ds clean-switch clean-wiiu clean-vita clean-sdl2
 
 all: 3ds switch wiiu sdl2
 
-clean: clean-tests clean-3ds clean-switch clean-wiiu clean-sdl2
+clean: clean-tests clean-3ds clean-switch clean-wiiu clean-vita clean-sdl2
 
 clean-3ds:
 	@$(MAKE) -C platform/3ds clean
@@ -20,6 +20,9 @@ clean-switch:
 
 clean-wiiu:
 	@$(MAKE) -C platform/wiiu clean
+
+clean-vita:
+	@$(MAKE) -C platform/vita clean
 
 clean-sdl2:
 	@$(MAKE) -C platform/SDL2 clean
@@ -35,6 +38,9 @@ switch:
 
 wiiu:
 	@$(MAKE) -C platform/wiiu
+
+vita:
+	@$(MAKE) -C platform/vita
 
 sdl2:
 	@$(MAKE) -C platform/SDL2

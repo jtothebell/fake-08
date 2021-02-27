@@ -149,6 +149,15 @@ bool Vm::loadCart(Cart* cart) {
     luaL_openlibs(_luaState);
     lua_pushglobaltable(_luaState);
 
+    //system
+    //must be registered before loading globals for pause menu to work
+    lua_register(_luaState, "__listcarts", listcarts);
+    lua_register(_luaState, "__loadcart", loadcart);
+    lua_register(_luaState, "__getbioserror", getbioserror);
+    lua_register(_luaState, "__loadbioscart", loadbioscart);
+    lua_register(_luaState, "__togglepausemenu", togglepausemenu);
+    lua_register(_luaState, "__resetcart", resetcart);
+
     //load in global lua fuctions for pico 8
     auto convertedGlobalLuaFunctions = convert_emojis(p8GlobalLuaFunctions);
     int loadedGlobals = luaL_dostring(_luaState, convertedGlobalLuaFunctions.c_str());
@@ -234,15 +243,7 @@ bool Vm::loadCart(Cart* cart) {
     //rng
     lua_register(_luaState, "rnd", rnd);
     lua_register(_luaState, "srand", srand);
-
-    //system
-    lua_register(_luaState, "__listcarts", listcarts);
-    lua_register(_luaState, "__loadcart", loadcart);
-    lua_register(_luaState, "__getbioserror", getbioserror);
-    lua_register(_luaState, "__loadbioscart", loadbioscart);
-    lua_register(_luaState, "__togglepausemenu", togglepausemenu);
-    lua_register(_luaState, "__resetcart", resetcart);
-
+    
 
     int loadedCart = luaL_loadstring(_luaState, cart->LuaString.c_str());
     if (loadedCart != LUA_OK) {
@@ -372,30 +373,7 @@ void Vm::UpdateAndDraw() {
     }
 
     if (_pauseMenu){
-        //3 item menu (default) 82x34
-        //23, 47, 23 + 82, 47 + 34
-        //pause menu handled in lua firmware now
-        /*
-        uint8_t preColor = _memory->drawState.color;
-        uint8_t fillp0 = _memory->drawState.fillPattern[0];
-        uint8_t fillp1 = _memory->drawState.fillPattern[1];
-        _memory->drawState.fillPattern[0] = 0;
-        _memory->drawState.fillPattern[1] = 0;
-        _graphics->rectfill(23, 47, 23 + 82, 47 + 34, 0);
-        _graphics->rect(24, 48, 24 + 80, 48 + 32, 7);
-        _graphics->print("paused", 30, 55, 7);
-        
-        if (_input->btnp(4)) {
-            togglePauseMenu();
-            QueueCartChange("__FAKE08-BIOS.p8");
-        }
 
-        _memory->drawState.fillPattern[0] = fillp0;
-        _memory->drawState.fillPattern[1] = fillp1;
-        _memory->drawState.color = preColor;
-        */
-       
-        //todo: fix crash here
         lua_getglobal(_luaState, "__f08_menu_update");
         lua_call(_luaState, 0, 0);
         lua_pop(_luaState, 0);

@@ -8,7 +8,11 @@ bool m_enabled = false;
 
 void Logger_Initialize()
 {
+    #if __VITA__
+    m_file = freopen("ux0:/pico.log", "w", stderr);
+    #else
     m_file = freopen("pico.log", "w", stderr);
+    #endif
     m_enabled = true;
 }
 
