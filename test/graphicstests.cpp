@@ -1714,6 +1714,183 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("fillp(pat) sets values in memory"){
+        //0011001111001100 - 2x2 checkerboard
+        graphics->fillp(0x33cc);
+
+        CHECK_EQ(picoRam.drawState.fillPattern[0], 0xcc);
+        CHECK_EQ(picoRam.drawState.fillPattern[1], 0x33);
+        CHECK_EQ(picoRam.drawState.fillPatternTransparencyBit, 0);
+
+        CHECK_EQ(picoRam.data[0x5f31], 0xcc);
+        CHECK_EQ(picoRam.data[0x5f32], 0x33);
+        CHECK_EQ(picoRam.data[0x5f33], 0);
+    }
+    SUBCASE("fill pattern affects rectfill"){
+        //0b0101101001011010 - 1x1 checkerboard
+        graphics->fillp(0x5A5A);
+        graphics->cls(8);
+
+        graphics->rectfill(0, 0, 4, 4, 10);
+
+        //black and yellow 4x4 checkerboard, with pink elsewhere
+        std::vector<coloredPoint> expectedPoints = {
+            { 0, 0,10},
+            { 1, 0, 0},
+            { 2, 0,10},
+            { 3, 0, 0},
+            { 4, 0,10},
+            { 5, 0, 8},
+            { 0, 1, 0},
+            { 1, 1,10},
+            { 2, 1, 0},
+            { 3, 1,10},
+            { 4, 1, 0},
+            { 5, 1, 8},
+            { 0, 2,10},
+            { 1, 2, 0},
+            { 2, 2,10},
+            { 3, 2, 0},
+            { 4, 2,10},
+            { 5, 2, 8},
+            { 0, 3, 0},
+            { 1, 3,10},
+            { 2, 3, 0},
+            { 3, 3,10},
+            { 4, 3, 0},
+            { 5, 3, 8},
+            { 0, 4,10},
+            { 1, 4, 0},
+            { 2, 4,10},
+            { 3, 4, 0},
+            { 4, 4,10},
+            { 5, 4, 8},
+            { 0, 5, 8},
+            { 1, 5, 8},
+            { 2, 5, 8},
+            { 3, 5, 8},
+            { 4, 5, 8},
+            { 5, 5, 8},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("fill pattern with transparency"){
+        //0b0101101001011010.1 - 1x1 checkerboard with transparency
+        graphics->fillp(23130.5);
+        graphics->cls(3);
+
+        graphics->rectfill(0, 0, 2, 2, 11);
+        
+        //3x3 checkerboard, with alt set to transparent
+        std::vector<coloredPoint> expectedPoints = {
+            { 0, 0,11},
+            { 1, 0, 3},
+            { 2, 0,11},
+            { 3, 0, 3},
+            { 0, 1, 3},
+            { 1, 1,11},
+            { 2, 1, 3},
+            { 3, 1, 3},
+            { 0, 2,11},
+            { 1, 2, 3},
+            { 2, 2,11},
+            { 3, 2, 3},
+            { 0, 3, 3},
+            { 1, 3, 3},
+            { 2, 3, 3},
+            { 3, 3, 3}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("fill pattern oriented correctly"){
+        //311 = 0b0000000100110111
+        //0000
+        //0001
+        //0011
+        //0111
+        graphics->cls(0);
+        graphics->fillp(311);
+
+        //e8: light pink alt color, pink normal color
+        graphics->rectfill(0, 0, 3, 3, 0xe8);
+
+        //black and yellow 4x4 checkerboard, with pink elsewhere
+        std::vector<coloredPoint> expectedPoints = {
+            { 0, 0, 8},
+            { 1, 0, 8},
+            { 2, 0, 8},
+            { 3, 0, 8},
+            { 4, 0, 0},
+            { 0, 1, 8},
+            { 1, 1, 8},
+            { 2, 1, 8},
+            { 3, 1,14},
+            { 4, 1, 0},
+            { 0, 2, 8},
+            { 1, 2, 8},
+            { 2, 2,14},
+            { 3, 2,14},
+            { 4, 2, 0},
+            { 0, 3, 8},
+            { 1, 3,14},
+            { 2, 3,14},
+            { 3, 3,14},
+            { 4, 3, 0},
+            { 0, 4, 0},
+            { 1, 4, 0},
+            { 2, 4, 0},
+            { 3, 4, 0},
+            { 4, 4, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    //TODO: allow this shorthand to work
+    /*
+    SUBCASE("fill pattern shorthand works"){
+        graphics->cls(0);
+        picoRam.drawState.colorSettingFlag = 1;
+        //0x104e.abcd
+        graphics->rectfill(0, 0, 3, 3, 0x104eabcd);
+
+        CHECK_EQ(picoRam.drawState.fillPattern[0], 0xcd);
+        CHECK_EQ(picoRam.drawState.fillPattern[1], 0xab);
+        CHECK_EQ(picoRam.drawState.fillPatternTransparencyBit, 0);
+
+        //black and yellow 4x4 checkerboard, with pink elsewhere
+        std::vector<coloredPoint> expectedPoints = {
+            { 0, 0, 4},
+            { 1, 0,14},
+            { 2, 0, 4},
+            { 3, 0,14},
+            { 4, 0, 0},
+            { 0, 1, 4},
+            { 1, 1,14},
+            { 2, 1, 4},
+            { 3, 1, 4},
+            { 4, 1, 0},
+            { 0, 2, 4},
+            { 1, 2, 4},
+            { 2, 2,14},
+            { 3, 2,14},
+            { 4, 2, 0},
+            { 0, 3, 4},
+            { 1, 3, 4},
+            { 2, 3,14},
+            { 3, 3, 4},
+            { 4, 3, 0},
+            { 0, 4, 0},
+            { 1, 4, 0},
+            { 2, 4, 0},
+            { 3, 4, 0},
+            { 4, 4, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    */
     
 
     //general teardown

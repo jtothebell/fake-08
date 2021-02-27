@@ -591,7 +591,14 @@ int cursor(lua_State *L) {
 }
 
 int fillp(lua_State *L) {
-    return noop("fillp");
+    fix32 pat = 0;
+    if (lua_gettop(L) > 0) {
+        pat = lua_tonumber(L, 1);
+    }
+
+    _graphicsForLuaApi->fillp(pat);
+
+    return 0;
 }
 
 int flip(lua_State *L) {
@@ -910,7 +917,19 @@ int getbioserror(lua_State *L) {
 }
 
 int loadbioscart(lua_State *L) {
-    //_vmForLuaApi->LoadBiosCart();
+    _vmForLuaApi->QueueCartChange("__FAKE08-BIOS.p8");
+
+    return 0;
+}
+
+int togglepausemenu(lua_State *L) {
+    _vmForLuaApi->togglePauseMenu();
+
+    return 0;
+}
+
+int resetcart(lua_State *L) {
+    _vmForLuaApi->QueueCartChange(_vmForLuaApi->CurrentCartFilename());
 
     return 0;
 }

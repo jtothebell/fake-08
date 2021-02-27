@@ -422,6 +422,21 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
     }
+    SUBCASE("Fill pattern test cart"){
+        vm->LoadCart("carts/fillptest.p8");
+
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("sceen matches screenshot"){
+            vm->UpdateAndDraw();
+
+            CHECK(verifyScreenshot(vm, "carts/screenshots/fillptest_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
     
     delete vm;
+    delete host;
 }
