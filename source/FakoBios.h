@@ -20,6 +20,14 @@ local line
 local bgcolor=5
 local runcmd=false
 
+--start customizable per platform
+cartpath = "sdmc:/p8carts/"
+selectbtn = "a"
+pausebtn = "start"
+versionstr = "v0.0.2.3"
+exitbtn = "l + r"
+sizebtn = "r to cycle screen sizes"
+--end customizable per platform
 
 function _init()
 	if __listcarts then
@@ -37,18 +45,18 @@ function _init()
 	cursor(0, 6*3)
 	print("welcome to fake-08")
 	print("a homebrew pico-8 emulator")
-	print("currently in alpha (v0.0.2.2)")
+	print("currently in alpha (" .. versionstr .. ")")
 	print("")
-	print("place p8 carts in sdmc:/p8carts/")
+	print("place p8 carts in " .. cartpath)
 	if numcarts < 1 then
 		print("--no carts found--")
 	else
 		print("⬅️➡️ to navigate carts")
-		print("🅾️ (a) to load selected cart")
-		print("start to close current cart")
+		print("🅾️ (" .. selectbtn .. ") to load selected cart")
+		print(pausebtn .. " to close current cart")
 	end
-	print("r to cycle screen sizes")
-	print("l + r to exit")
+	print(sizebtn)
+	print(exitbtn .. " to exit")
 	print("")
 	-- 18 pixels from cursor() call, then 
 	-- 24 more from 4 print calls

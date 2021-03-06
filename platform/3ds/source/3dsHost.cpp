@@ -49,6 +49,7 @@ u32 currKHeld;
 
 Color* _paletteColors;
 Bgr24Col _bgrColors[16];
+Audio* _audio;
 
 uint8_t ConvertInputToP8(u32 input){
 	uint8_t result = 0;
@@ -176,9 +177,10 @@ void audioSetup(){
 Host::Host() { }
 
 
-void Host::oneTimeSetup(Color* paletteColors){
+void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     osSetSpeedupEnable(true);
 
+    _audio = audio;
     audioSetup();
 
     gfxInitDefault();

@@ -15,12 +15,14 @@
 int main(int argc, char* argv[])
 {
 	Host *host = new Host();
+	PicoRam *memory = new PicoRam();
+	Audio *audio = new Audio(memory);
 
 	Logger_Initialize(host->logFilePrefix());
 	
-	Vm *vm = new Vm(host);
+	Vm *vm = new Vm(host, memory, nullptr, nullptr, audio);
 	
-	host->oneTimeSetup(vm->GetPaletteColors());
+	host->oneTimeSetup(vm->GetPaletteColors(), audio);
 	
 	Logger_Write("initialized Vm and host\n");
 

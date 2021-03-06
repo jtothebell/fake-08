@@ -38,6 +38,7 @@ u32 currKHeld;
 Framebuffer fb;
 
 Color* _paletteColors;
+Audio* _audio;
 
 uint8_t ConvertInputToP8(u32 input){
 	uint8_t result = 0;
@@ -83,83 +84,15 @@ void postFlipFunction(){
 }
 
 
-void init_fill_buffer(void *audioBuffer,size_t offset, size_t size) {
-
-	u32 *dest = (u32*)audioBuffer;
-
-	for (size_t i=0; i<size; i++) {
-		dest[i] = 0;
-	}
-
-	//DSP_FlushDataCache(audioBuffer,size);
-
-}
-
 bool audioInitialized = false;
-u32 *audioBuffer;
-u32 audioBufferSize;
-//ndspWaveBuf waveBuf[2];
-bool fillBlock = false;
-u32 currPos;
 
 
 void audioCleanup(){
     audioInitialized = false;
-
-    //ndspExit();
-
-    if(audioBuffer != nullptr) {
-        //linearFree(audioBuffer);
-        audioBuffer = nullptr;
-    }
 }
 
 void audioSetup(){
-    /*
-    if(R_FAILED(ndspInit())) {
-        return;
-    }
-
-	//audio setup
-	audioBufferSize = SAMPLESPERBUF * NUM_BUFFERS * sizeof(u32);
-	audioBuffer = (u32*)linearAlloc(audioBufferSize);
-	if(audioBuffer == nullptr) {
-        audioCleanup();
-        return;
-    }
-	
-
-	ndspSetOutputMode(NDSP_OUTPUT_STEREO);
-
-	ndspChnSetInterp(0, NDSP_INTERP_LINEAR);
-	ndspChnSetRate(0, SAMPLERATE);
-	ndspChnSetFormat(0, NDSP_FORMAT_STEREO_PCM16);
-
-	float mix[12];
-	memset(mix, 0, sizeof(mix));
-	mix[0] = 1.0;
-	mix[1] = 1.0;
-	ndspChnSetMix(0, mix);
-
-	memset(waveBuf,0,sizeof(waveBuf));
-	waveBuf[0].data_vaddr = &audioBuffer[0];
-	waveBuf[0].nsamples = SAMPLESPERBUF;
-	waveBuf[1].data_vaddr = &audioBuffer[SAMPLESPERBUF];
-	waveBuf[1].nsamples = SAMPLESPERBUF;
-
-
-	size_t stream_offset = 0;
-
-	//not sure if this is necessary? if it is, memset might be better?
-	init_fill_buffer(audioBuffer,stream_offset, SAMPLESPERBUF * 2);
-
-	stream_offset += SAMPLESPERBUF;
-
-	ndspChnWaveBufAdd(0, &waveBuf[0]);
-	ndspChnWaveBufAdd(0, &waveBuf[1]);
-
-	audioInitialized = true;
-    */
+    
 }
 
 
@@ -167,14 +100,15 @@ void audioSetup(){
 Host::Host() { }
 
 
-void Host::oneTimeSetup(Color* paletteColors){
-
-    audioSetup();
+void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 
     NWindow* win = nwindowGetDefault();
 
     framebufferCreate(&fb, win, FB_WIDTH, FB_HEIGHT, PIXEL_FORMAT_RGBA_8888, 2);
     framebufferMakeLinear(&fb);
+
+    _audio = audio;
+    audioSetup();
     
     last_time = 0;
     now_time = 0;
@@ -288,26 +222,18 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
 }
 
 bool Host::shouldFillAudioBuff(){
-    //return waveBuf[fillBlock].status == NDSP_WBUF_DONE;
     return false;
 }
 
 void* Host::getAudioBufferPointer(){
-    //return waveBuf[fillBlock].data_pcm16;
     return nullptr;
 }
 
 size_t Host::getAudioBufferSize(){
-    //return waveBuf[fillBlock].nsamples;
     return 0;
 }
 
 void Host::playFilledAudioBuffer(){
-    //DSP_FlushDataCache(waveBuf[fillBlock].data_pcm16, waveBuf[fillBlock].nsamples);
-
-	//ndspChnWaveBufAdd(0, &waveBuf[fillBlock]);
-
-	fillBlock = !fillBlock;
 }
 
 bool Host::shouldRunMainLoop(){

@@ -11,6 +11,7 @@ using namespace std;
 #include "../../../source/host.h"
 #include "../../../source/hostVmShared.h"
 #include "../../../source/nibblehelpers.h"
+#include "../../../source/logger.h"
 
 // sdl
 #include <SDL2/SDL.h>
@@ -40,22 +41,24 @@ uint8_t currKDown;
 uint8_t currKHeld;
 
 Color* _paletteColors;
+Audio* _audio;
 
 SDL_Window* window;
 SDL_Event event;
 SDL_Renderer *renderer;
 SDL_Texture *texture = NULL;
 SDL_bool done = SDL_FALSE;
+SDL_AudioSpec want, have;
+SDL_AudioDeviceID dev;
 void *pixels;
 uint8_t *base;
 int pitch;
 
+bool audioInitialized = false;
+
 
 void postFlipFunction(){
-    //flush switch frame buffers
     // We're done rendering, so we end the frame here.
-    
-
     SDL_UnlockTexture(texture);
     SDL_RenderCopy(renderer, texture, NULL, NULL);
 
@@ -63,56 +66,55 @@ void postFlipFunction(){
 }
 
 
-void init_fill_buffer(void *audioBuffer,size_t offset, size_t size) {
 
-	uint32_t *dest = (uint32_t*)audioBuffer;
-
-	for (size_t i=0; i<size; i++) {
-		dest[i] = 0;
-	}
-
-	//DSP_FlushDataCache(audioBuffer,size);
-
-}
-
-bool audioInitialized = false;
-uint32_t *audioBuffer;
-uint32_t audioBufferSize;
-//ndspWaveBuf waveBuf[2];
-bool fillBlock = false;
-uint32_t currPos;
 
 
 void audioCleanup(){
     audioInitialized = false;
 
-    //ndspExit();
+    SDL_CloseAudioDevice(dev);
+}
 
-    if(audioBuffer != nullptr) {
-        //linearFree(audioBuffer);
-        audioBuffer = nullptr;
-    }
+
+void FillAudioDeviceBuffer(void* UserData, Uint8* DeviceBuffer, int Length)
+{
+    _audio->FillAudioBuffer(DeviceBuffer, 0, Length / 4);
 }
 
 void audioSetup(){
+    //modifed from SDL docs: https://wiki.libsdl.org/SDL_OpenAudioDevice
 
+    SDL_memset(&want, 0, sizeof(want)); /* or SDL_zero(want) */
+    want.freq = SAMPLERATE;
+    want.format = AUDIO_S16;
+    want.channels = 2;
+    want.samples = 4096;
+    want.callback = FillAudioDeviceBuffer;
+    
+
+    dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
+    if (dev == 0) {
+        Logger_Write("Failed to open audio: %s", SDL_GetError());
+    } else {
+        if (have.format != want.format) { /* we let this one thing change. */
+            Logger_Write("We didn't get requested audio format.");
+        }
+        SDL_PauseAudioDevice(dev, 0); /* start audio playing. */
+        audioInitialized = true;
+    }
 }
+
 
 Host::Host() { }
 
 
-void Host::oneTimeSetup(Color* paletteColors){
-
-    audioSetup();
-
-    // ----- Initialize SDL
+void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
         fprintf(stderr, "SDL could not initialize\n");
         return;
     }
 
-    // ----- Create window
     SDL_CreateWindowAndRenderer(SCREEN_SIZE_X, SCREEN_SIZE_Y, 0, &window, &renderer);
     if (!window)
     {
@@ -126,6 +128,9 @@ void Host::oneTimeSetup(Color* paletteColors){
         fprintf(stderr, "Error creating texture.\n");
         return;
     }
+
+    _audio = audio;
+    audioSetup();
     
     last_time = 0;
     now_time = 0;
@@ -251,26 +256,18 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
 }
 
 bool Host::shouldFillAudioBuff(){
-    //return waveBuf[fillBlock].status == NDSP_WBUF_DONE;
     return false;
 }
 
 void* Host::getAudioBufferPointer(){
-    //return waveBuf[fillBlock].data_pcm16;
     return nullptr;
 }
 
 size_t Host::getAudioBufferSize(){
-    //return waveBuf[fillBlock].nsamples;
     return 0;
 }
 
 void Host::playFilledAudioBuffer(){
-    //DSP_FlushDataCache(waveBuf[fillBlock].data_pcm16, waveBuf[fillBlock].nsamples);
-
-	//ndspChnWaveBufAdd(0, &waveBuf[fillBlock]);
-
-	fillBlock = !fillBlock;
 }
 
 bool Host::shouldRunMainLoop(){
