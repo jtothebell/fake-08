@@ -14,9 +14,10 @@
 
 int main(int argc, char* argv[])
 {
-	Logger_Initialize();
-
 	Host *host = new Host();
+
+	Logger_Initialize(host->logFilePrefix());
+	
 	Vm *vm = new Vm(host);
 	
 	host->oneTimeSetup(vm->GetPaletteColors());

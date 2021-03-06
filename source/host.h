@@ -41,5 +41,6 @@ class Host {
     double deltaTMs();
 
     std::vector<std::string> listcarts();
-   
+
+    const char* logFilePrefix();
 };

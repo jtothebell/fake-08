@@ -1,18 +1,17 @@
 #include <strings.h>
 #include <stdarg.h>
+#include <string>
 
 #include "logger.h"
 
 FILE * m_file = nullptr;
 bool m_enabled = false;
 
-void Logger_Initialize()
+void Logger_Initialize(const char* pathPrefix)
 {
-    #if __VITA__
-    m_file = freopen("ux0:/pico.log", "w", stderr);
-    #else
-    m_file = freopen("pico.log", "w", stderr);
-    #endif
+    std::string buf(pathPrefix);
+    buf.append("pico.log");
+    m_file = freopen(buf.c_str(), "w", stderr);
     m_enabled = true;
 }
 

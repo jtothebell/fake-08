@@ -332,3 +332,7 @@ vector<string> Host::listcarts(){
     
     return carts;
 }
+
+const char* Host::logFilePrefix() {
+    return "";
+}

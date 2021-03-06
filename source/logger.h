@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-void Logger_Initialize();
+void Logger_Initialize(const char* pathPrefix);
 void Logger_Exit();
 void Logger_LogOutput(const char * func, size_t line, const char * format, ...);
 void Logger_Write(const char * format, ...);
