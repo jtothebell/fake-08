@@ -1,27 +1,13 @@
-/*
-LovePotion logger
-** logger.h
-** @brief   : Logs shit when enabled
-*/
 
 #pragma once
 
 #include <stdio.h>
 
-namespace Logger
-{
-    void Initialize();
+void Logger_Initialize(const char* pathPrefix);
+void Logger_Exit();
+void Logger_LogOutput(const char * func, size_t line, const char * format, ...);
+void Logger_Write(const char * format, ...);
+void Logger_WriteUnformatted(const char * message);
 
-    void Exit();
 
-    void LogOutput(const char * func, size_t line, const char * format, ...);
-
-    void Write(const char * format, ...);
-
-    void WriteUnformatted(const char * message);
-
-    inline FILE * m_file = nullptr;
-    inline bool m_enabled = false;
-}
-
-#define LOG(format, ...) Logger::LogOutput(__PRETTY_FUNCTION__, __LINE__, format, ## __VA_ARGS__)
+#define LOG(format, ...) Logger_LogOutput(__PRETTY_FUNCTION__, __LINE__, format, ## __VA_ARGS__)

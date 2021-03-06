@@ -8,6 +8,7 @@
 #include "graphics.h"
 #include "hostVmShared.h"
 #include "nibblehelpers.h"
+#include "mathhelpers.h"
 
 #include "stringToDataHelpers.h"
 
@@ -361,20 +362,19 @@ bool Graphics::isYWithinClip(int y) {
 		y < _memory->drawState.clip_ye;
 }
 
-
 int clampCoordToScreenDims(int val) {
-	return std::clamp(val, 0, 128);
+	return clamp(val, 0, 128);
 }
 
 int Graphics::clampXCoordToClip(int x) {
-	return std::clamp(
+	return clamp(
 		x,
 		(int)_memory->drawState.clip_xb,
 		(int)_memory->drawState.clip_xe - 1);
 }
 
 int Graphics::clampYCoordToCLip(int y) {
-	return std::clamp(
+	return clamp(
 		y,
 		(int)_memory->drawState.clip_yb,
 		(int)_memory->drawState.clip_ye - 1);

@@ -1,8 +1,13 @@
-
+/*
+Wii U port todo:
+1) sound messed up (turned off)
+2) Fix buttons being very confusing
+*/
 #include <stdio.h>
 #include <string.h>
 #include <dirent.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include <fstream>
 #include <iostream>
@@ -15,9 +20,13 @@ using namespace std;
 
 // sdl
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_events.h>
 
-#define SCREEN_SIZE_X 512
-#define SCREEN_SIZE_Y 512
+#define SCREEN_SIZE_X 640
+#define SCREEN_SIZE_Y 640
+
+#define WIN_WIDTH 1280
+#define WIN_HEIGHT 720
 
 
 #define SAMPLERATE 22050
@@ -41,40 +50,41 @@ uint8_t currKDown;
 uint8_t currKHeld;
 
 Color* _paletteColors;
+
 Audio* _audio;
 
 SDL_Window* window;
 SDL_Event event;
 SDL_Renderer *renderer;
 SDL_Texture *texture = NULL;
-SDL_bool done = SDL_FALSE;
 SDL_AudioSpec want, have;
 SDL_AudioDeviceID dev;
+int quit = 0;
 void *pixels;
 uint8_t *base;
 int pitch;
 
-bool audioInitialized = false;
-
+SDL_Rect DestR;
 
 void postFlipFunction(){
+    //flush switch frame buffers
     // We're done rendering, so we end the frame here.
+    
+
     SDL_UnlockTexture(texture);
-    SDL_RenderCopy(renderer, texture, NULL, NULL);
+    SDL_RenderCopy(renderer, texture, NULL, &DestR);
 
     SDL_RenderPresent(renderer);
 }
 
 
-
-
+bool audioInitialized = false;
 
 void audioCleanup(){
     audioInitialized = false;
 
-    SDL_CloseAudioDevice(dev);
+    //SDL_CloseAudioDevice(dev);
 }
-
 
 void FillAudioDeviceBuffer(void* UserData, Uint8* DeviceBuffer, int Length)
 {
@@ -84,9 +94,12 @@ void FillAudioDeviceBuffer(void* UserData, Uint8* DeviceBuffer, int Length)
 void audioSetup(){
     //modifed from SDL docs: https://wiki.libsdl.org/SDL_OpenAudioDevice
 
-    SDL_memset(&want, 0, sizeof(want)); /* or SDL_zero(want) */
+    //Audio plays but is wrong. maybe a problem with sample rate or endian-ness? haven't investigated thoroughly
+
+/*
+    SDL_memset(&want, 0, sizeof(want)); // or SDL_zero(want)
     want.freq = SAMPLERATE;
-    want.format = AUDIO_S16;
+    want.format = AUDIO_U16;
     want.channels = 2;
     want.samples = 4096;
     want.callback = FillAudioDeviceBuffer;
@@ -96,14 +109,15 @@ void audioSetup(){
     if (dev == 0) {
         Logger_Write("Failed to open audio: %s", SDL_GetError());
     } else {
-        if (have.format != want.format) { /* we let this one thing change. */
+        if (have.format != want.format) {
             Logger_Write("We didn't get requested audio format.");
         }
-        SDL_PauseAudioDevice(dev, 0); /* start audio playing. */
+        SDL_PauseAudioDevice(dev, 0); // start audio playing.
+
         audioInitialized = true;
     }
+    */
 }
-
 
 Host::Host() { }
 
@@ -112,25 +126,48 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
         fprintf(stderr, "SDL could not initialize\n");
+        quit = 1;
         return;
     }
 
-    SDL_CreateWindowAndRenderer(SCREEN_SIZE_X, SCREEN_SIZE_Y, 0, &window, &renderer);
-    if (!window)
-    {
-        fprintf(stderr, "Error creating window.\n");
+	window = SDL_CreateWindow(nullptr, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 0, 0, SDL_WINDOW_FULLSCREEN_DESKTOP);
+	if (!window) 
+    { 
+        quit = 1;
+        return; 
+    }
+	
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	if (!renderer) 
+    { 
+        quit = 1;
         return;
     }
 
-    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, PicoScreenWidth, PicoScreenHeight);
-    if (!texture)
+	texture  = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, PicoScreenWidth, PicoScreenHeight);
+	if (texture == NULL) 
     {
-        fprintf(stderr, "Error creating texture.\n");
+		quit = 1;
         return;
-    }
+	}
+
+    atexit(SDL_Quit);
+
+    DestR.x = WIN_WIDTH / 2 - SCREEN_SIZE_X / 2;
+    DestR.y = WIN_HEIGHT / 2 - SCREEN_SIZE_Y / 2;
+    DestR.w = SCREEN_SIZE_X;
+    DestR.h = SCREEN_SIZE_Y;
 
     _audio = audio;
     audioSetup();
+
+    for (int i = 0; i < SDL_NumJoysticks(); i++) {
+		if (SDL_JoystickOpen(i) == NULL) {
+			printf("Failed to open joystick %d!\n", i);
+			quit = 1;
+		}
+    }
+
     
     last_time = 0;
     now_time = 0;
@@ -143,6 +180,7 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 void Host::oneTimeCleanup(){
     audioCleanup();
 
+    SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -154,64 +192,69 @@ void Host::setTargetFps(int targetFps){
 
 void Host::changeStretch(){
 }
-InputState_t Host::scanInput(){
+
+InputState_t Host::scanInput(){ 
     currKDown = 0;
-    currKHeld = 0;
+    uint8_t kUp = 0;
+//For some reason these buttons are all out of whack
+//check input here (call open joystick):
+//https://github.com/ulquiorra-dev/Simple_SDL_Snake_WiiU_Port/blob/master/source/main.c
+//tetris calls open joystick:
+//https://github.com/ulquiorra-dev/SDL_TETRIS_WiiU_Port/blob/master/src/main.c
 
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
-            case SDL_KEYDOWN:
-                switch (event.key.keysym.sym)
+            case SDL_JOYBUTTONDOWN :
+                switch (event.jbutton.button)
                 {
-                    case SDLK_ESCAPE:currKDown |= P8_KEY_PAUSE; break;
-                    case SDLK_LEFT:  currKDown |= P8_KEY_LEFT; break;
-                    case SDLK_RIGHT: currKDown |= P8_KEY_RIGHT; break;
-                    case SDLK_UP:    currKDown |= P8_KEY_UP; break;
-                    case SDLK_DOWN:  currKDown |= P8_KEY_DOWN; break;
-                    case SDLK_z:     currKDown |= P8_KEY_X; break;
-                    case SDLK_x:     currKDown |= P8_KEY_O; break;
-                    case SDLK_c:     currKDown |= P8_KEY_X; break;
+                    case SDL_CONTROLLER_BUTTON_BACK:
+                    case SDL_CONTROLLER_BUTTON_GUIDE:
+                    case SDL_CONTROLLER_BUTTON_X:
+                    case SDL_CONTROLLER_BUTTON_START:currKDown |= P8_KEY_PAUSE; break;
+                    case SDL_CONTROLLER_BUTTON_DPAD_DOWN:  currKDown |= P8_KEY_LEFT; break;
+                    case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: currKDown |= P8_KEY_RIGHT; break;
+                    case SDL_CONTROLLER_BUTTON_DPAD_LEFT:    currKDown |= P8_KEY_UP; break;
+                    case SDL_CONTROLLER_BUTTON_MAX:  currKDown |= P8_KEY_DOWN; break;
+                    case SDL_CONTROLLER_BUTTON_A:     currKDown |= P8_KEY_X; break;
+                    case SDL_CONTROLLER_BUTTON_B:     currKDown |= P8_KEY_O; break;
+                    case SDL_CONTROLLER_BUTTON_Y: quit = 1; break;
                 }
                 break;
+
+            case SDL_JOYBUTTONUP :
+                switch (event.jbutton.button)
+                {
+                    case SDL_CONTROLLER_BUTTON_BACK:
+                    case SDL_CONTROLLER_BUTTON_GUIDE:
+                    case SDL_CONTROLLER_BUTTON_X:
+                    case SDL_CONTROLLER_BUTTON_START:kUp |= P8_KEY_PAUSE; break;
+                    case SDL_CONTROLLER_BUTTON_DPAD_DOWN:  kUp |= P8_KEY_LEFT; break;
+                    case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: kUp |= P8_KEY_RIGHT; break;
+                    case SDL_CONTROLLER_BUTTON_DPAD_LEFT:    kUp |= P8_KEY_UP; break;
+                    case SDL_CONTROLLER_BUTTON_MAX:  kUp |= P8_KEY_DOWN; break;
+                    case SDL_CONTROLLER_BUTTON_A:     kUp |= P8_KEY_X; break;
+                    case SDL_CONTROLLER_BUTTON_B:     kUp |= P8_KEY_O; break;
+                }
+               break;
+
             case SDL_QUIT:
-                done = SDL_TRUE;
+                quit = 1;
                 break;
         }
     }
 
-    const Uint8* keystate = SDL_GetKeyboardState(NULL);
+    currKHeld |= currKDown;
+    currKHeld ^= kUp;
 
-    //continuous-response keys
-    if(keystate[SDL_SCANCODE_LEFT]){
-        currKHeld |= P8_KEY_LEFT;
-    }
-    if(keystate[SDL_SCANCODE_RIGHT]){
-        currKHeld |= P8_KEY_RIGHT;;
-    }
-    if(keystate[SDL_SCANCODE_UP]){
-        currKHeld |= P8_KEY_UP;
-    }
-    if(keystate[SDL_SCANCODE_DOWN]){
-        currKHeld |= P8_KEY_DOWN;
-    }
-    if(keystate[SDL_SCANCODE_Z]){
-        currKHeld |= P8_KEY_X;
-    }
-    if(keystate[SDL_SCANCODE_X]){
-        currKHeld |= P8_KEY_O;
-    }
-    if(keystate[SDL_SCANCODE_C]){
-        currKHeld |= P8_KEY_X;
-    }
-    
     return InputState_t {
         currKDown,
         currKHeld
     };
+    
 }
 
 bool Host::shouldQuit() {
-    return done == SDL_TRUE;
+    return quit > 0;
 }
 
 void Host::waitForTargetFps(){
@@ -244,9 +287,9 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
             Color col = _paletteColors[screenPaletteMap[c]];
 
             base = ((Uint8 *)pixels) + (4 * ( y * PicoScreenHeight + x));
-            base[0] = col.Blue;
+            base[0] = col.Red;
             base[1] = col.Green;
-            base[2] = col.Red;
+            base[2] = col.Blue;
             base[3] = col.Alpha;
         }
     }
@@ -271,22 +314,21 @@ void Host::playFilledAudioBuffer(){
 }
 
 bool Host::shouldRunMainLoop(){
-    if (shouldQuit()){
-        return false;
-    }
-
-    return true;
+    return !quit;
 }
 
 vector<string> Host::listcarts(){
     vector<string> carts;
 
-    DIR *dir;
+    
+    std::string cartDir = "p8carts";
+    std::string container = "fs:/vol/external01/";
+    std::string fullCartDir = container + cartDir;
+
+    chdir(container.c_str());
+    DIR* dir = opendir(cartDir.c_str());
     struct dirent *ent;
-    std::string home = getenv("HOME");
-    std::string cartDir = "/p8carts";
-    std::string fullCartDir = home + cartDir;
-    if ((dir = opendir (fullCartDir.c_str())) != NULL) {
+    if (dir != NULL) {
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
             carts.push_back(fullCartDir + "/" + ent->d_name);
@@ -304,3 +346,4 @@ vector<string> Host::listcarts(){
 const char* Host::logFilePrefix() {
     return "";
 }
+

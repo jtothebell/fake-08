@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include "hostVmShared.h"
+#include "Audio.h"
 
 enum StretchOption {
   PixelPerfect,
@@ -16,7 +17,7 @@ class Host {
     public:
     Host();
 
-    void oneTimeSetup(Color* paletteColors);
+    void oneTimeSetup(Color* paletteColors, Audio* audio);
 
     void setTargetFps(int targetFps);
 
@@ -41,5 +42,6 @@ class Host {
     double deltaTMs();
 
     std::vector<std::string> listcarts();
-   
+
+    const char* logFilePrefix();
 };

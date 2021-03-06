@@ -9,6 +9,10 @@
 *.nso
 *.pfs0
 
+*.rpx
+
+*.o 
+
 bin/
 .vscode/
 build/
@@ -27,3 +31,7 @@ platform/SDL2/*.d
 platform/SDL2/fake08
 platform/SDL2/FAKE08
 pico.log
+platform/vita/eboot.bin
+platform/vita/*.velf
+platform/vita/*.vpk
+platform/vita/param.sfo

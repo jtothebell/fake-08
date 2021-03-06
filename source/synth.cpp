@@ -20,7 +20,8 @@ namespace z8
 
 float synth::waveform(int instrument, float advance)
 {
-    using std::fabs, std::fmod;
+    using std::fabs;
+    using std::fmod;
 
     float t = fmod(advance, 1.f);
     float ret = 0.f;

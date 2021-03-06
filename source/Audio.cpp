@@ -1,6 +1,7 @@
 #include "Audio.h"
 #include "synth.h"
 #include "hostVmShared.h"
+#include "mathhelpers.h"
 
 #include <string>
 #include <sstream>
@@ -18,12 +19,23 @@ Audio::Audio(PicoRam* memory){
 }
 
 void Audio::resetAudioState() {
-    _audioState = {0};
-
     for(int i = 0; i < 4; i++) {
         _audioState._sfxChannels[i].sfxId = -1;
+        _audioState._sfxChannels[i].offset = 0;
+        _audioState._sfxChannels[i].phi = 0;
+        _audioState._sfxChannels[i].can_loop = true;
+        _audioState._sfxChannels[i].is_music = false;
+        _audioState._sfxChannels[i].prev_key = 0;
+        _audioState._sfxChannels[i].prev_vol = 0;
     }
+    _audioState._musicChannel.count = 0;
     _audioState._musicChannel.pattern = -1;
+    _audioState._musicChannel.master = -1;
+    _audioState._musicChannel.mask = 0xf;
+    _audioState._musicChannel.speed = 0;
+    _audioState._musicChannel.volume = 0.f;
+    _audioState._musicChannel.volume_step = 0.f;
+    _audioState._musicChannel.offset = 0.f;
 }
 
 audioState* Audio::getAudioState() {
@@ -204,7 +216,10 @@ static float key_to_freq(float key)
 
 //adapted from zepto8 sfx.cpp (wtfpl license)
 int16_t Audio::getSampleForChannel(int channel){
-    using std::fabs, std::fmod, std::floor, std::max;
+    using std::fabs;
+    using std::fmod;
+    using std::floor;
+    using std::max;
 
     int const samples_per_second = 22050;
 
@@ -219,7 +234,7 @@ int16_t Audio::getSampleForChannel(int channel){
         float const offset_per_sample = offset_per_second / samples_per_second;
         _audioState._musicChannel.offset += offset_per_sample;
         _audioState._musicChannel.volume += _audioState._musicChannel.volume_step / samples_per_second;
-        _audioState._musicChannel.volume = std::clamp(_audioState._musicChannel.volume, 0.f, 1.f);
+        _audioState._musicChannel.volume = clamp(_audioState._musicChannel.volume, 0.f, 1.f);
 
         if (_audioState._musicChannel.volume_step < 0 && _audioState._musicChannel.volume <= 0)
         {

@@ -20,6 +20,13 @@ jobs:
       - name: Build
         run: |
           docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir devkitpro/devkitarm /bin/bash -ex /build_dir/.github/workflows/build3ds.sh
+      
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Nintendo 3DS
+          path: |
+            platform/3ds/*.elf
+            platform/3ds/*.3dsx
 
   second:
     name: Switch
@@ -35,7 +42,55 @@ jobs:
         run: |
           docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir devkitpro/devkita64 /bin/bash -ex /build_dir/.github/workflows/buildSwitch.sh
 
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Nintendo Switch
+          path: |
+            platform/switch/*.elf
+            platform/switch/*.nro
+
   third:
+    name: WiiU
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir jondbell/devkitppc-wiiu-sdl2 /bin/bash -ex /build_dir/.github/workflows/buildWiiU.sh
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Nintendo Wii U
+          path: |
+            platform/wiiu/*.elf
+            platform/wiiu/*.rpx
+
+  fourth:
+    name: Vita
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir vitasdk/vitasdk /bin/sh -ex /build_dir/.github/workflows/buildVita.sh
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: PS Vita
+          path: |
+            platform/vita/*.vpk
+            
+  fifth:
     name: Tests
     runs-on: ubuntu-latest
 

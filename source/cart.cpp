@@ -100,13 +100,13 @@ bool Cart::loadCartFromPng(std::string filename){
     //if there's an error, display it
     if(error) {
         LoadError = "png decoder error " + std::string(lodepng_error_text(error));
-        Logger::Write("%s%s", LoadError.c_str(), "\n");
+        Logger_Write("%s%s", LoadError.c_str(), "\n");
         return false;
     }
 
     if (width != 160 || height != 205) {
         LoadError = "Invalid png dimensions";
-        Logger::Write("invalid dimensions\n");
+        Logger_Write("invalid dimensions\n");
         return false;
     }
 
@@ -173,7 +173,7 @@ bool Cart::loadCartFromPng(std::string filename){
         compression = 1;
     }
 
-    Logger::Write("Version: %d Compression %d", version, compression);
+    Logger_Write("Version: %d Compression %d", version, compression);
 
     if (compression == 0) {
         auto codeBlockLength = 0x8000 - 0x4300;
@@ -244,7 +244,7 @@ bool Cart::loadCartFromPng(std::string filename){
 
         move_to_front mtf;
 
-        //Logger::Write("# Size: %d (%04x)\n", int(compressed), int(compressed));
+        //Logger_Write("# Size: %d (%04x)\n", int(compressed), int(compressed));
 
         while (LuaString.size() < length && pos < compressed * 8)
         {
@@ -259,7 +259,7 @@ bool Cart::loadCartFromPng(std::string filename){
                 uint8_t ch = mtf.get(n);
                 if (!ch)
                     break;
-                //Logger::Write("%04x [%d] $%d\n", int(LuaString.size()), int(pos-oldpos), ch);
+                //Logger_Write("%04x [%d] $%d\n", int(LuaString.size()), int(pos-oldpos), ch);
                 LuaString.push_back(char(ch));
             }
             else
@@ -272,7 +272,7 @@ bool Cart::loadCartFromPng(std::string filename){
                     len += (n = get_bits(3));
                 while (n == 7);
 
-                //Logger::Write("%04x [%d] %d@-%d\n", int(LuaString.size()), int(pos-oldpos), len, offset);
+                //Logger_Write("%04x [%d] %d@-%d\n", int(LuaString.size()), int(pos-oldpos), len, offset);
                 for (int i = 0; i < len; ++i)
                     LuaString.push_back(LuaString[LuaString.size() - offset]);
             }
@@ -290,7 +290,7 @@ Cart::Cart(std::string filename){
     //zero out cart rom so no garbage is left over
     initCartRom();
 
-    Logger::Write("getting file contents\n");
+    Logger_Write("getting file contents\n");
     
     if (hasEnding(filename, ".p8")){
         std::string cartStr; 
@@ -301,7 +301,7 @@ Cart::Cart(std::string filename){
         else {
             cartStr = get_file_contents(filename.c_str());
         }
-        Logger::Write("Got file contents... parsing cart\n");
+        Logger_Write("Got file contents... parsing cart\n");
 
         fullCartText = cartStr;
 
@@ -336,12 +336,12 @@ Cart::Cart(std::string filename){
             }
         }
 
-        Logger::Write("Setting cart graphics rom data from strings\n");
+        Logger_Write("Setting cart graphics rom data from strings\n");
         setSpriteSheet(SpriteSheetString);
         setSpriteFlags(SpriteFlagsString);
         setMapData(MapString);
 
-        Logger::Write("Setting cart audio rom data from strings\n");
+        Logger_Write("Setting cart audio rom data from strings\n");
         setSfx(SfxString);
         setMusic(MusicString);
     }
@@ -353,7 +353,7 @@ Cart::Cart(std::string filename){
         }
 
         LoadError = "";
-        Logger::Write("got valid png cart\n");
+        Logger_Write("got valid png cart\n");
     }
     else {
         return;
@@ -384,17 +384,17 @@ void Cart::initCartRom(){
 }
 
 void Cart::setSpriteSheet(std::string spritesheetstring){
-	Logger::Write("Copying data to spritesheet\n");
+	Logger_Write("Copying data to spritesheet\n");
 	copy_string_to_sprite_memory(CartRom.SpriteSheetData, spritesheetstring);
 }
 
 void Cart::setSpriteFlags(std::string spriteFlagsstring){
-	Logger::Write("Copying data to sprite flags\n");
+	Logger_Write("Copying data to sprite flags\n");
 	copy_string_to_memory(CartRom.SpriteFlagsData, spriteFlagsstring);
 }
 
 void Cart::setMapData(std::string mapDataString){
-	Logger::Write("Copying data to map data\n");
+	Logger_Write("Copying data to map data\n");
 	copy_string_to_memory(CartRom.MapData, mapDataString);
 }
 

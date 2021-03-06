@@ -1,22 +1,21 @@
 #include <strings.h>
 #include <stdarg.h>
+#include <string>
 
 #include "logger.h"
 
+FILE * m_file = nullptr;
+bool m_enabled = false;
 
-void Logger::Initialize()
+void Logger_Initialize(const char* pathPrefix)
 {
-    Logger::m_file = freopen("pico.log", "w", stderr);
-    Logger::m_enabled = true;
+    std::string buf(pathPrefix);
+    buf.append("pico.log");
+    m_file = freopen(buf.c_str(), "w", stderr);
+    m_enabled = true;
 }
 
-/*
-** {Function Name}:{Line}
-** {Resolved printf stuff}
-** {Newline}
-** {Start of next Output}
-*/
-void Logger::LogOutput(const char * func, size_t line, const char * format, ...)
+void Logger_LogOutput(const char * func, size_t line, const char * format, ...)
 {
     if (!m_enabled || !m_file)
         return;
@@ -31,7 +30,7 @@ void Logger::LogOutput(const char * func, size_t line, const char * format, ...)
     fflush(m_file);
 }
 
-void Logger::Write(const char * format, ...)
+void Logger_Write(const char * format, ...)
 {
     if (!m_enabled || !m_file)
         return;
@@ -44,17 +43,17 @@ void Logger::Write(const char * format, ...)
     fflush(m_file);
 }
 
-void Logger::WriteUnformatted(const char * message)
+void Logger_WriteUnformatted(const char * message)
 {
     if (!m_enabled || !m_file)
         return;
         
-    fprintf(m_file, message);
+    fprintf(m_file, "%s", message);
 
     fflush(m_file);
 }
 
-void Logger::Exit()
+void Logger_Exit()
 {
     if (!m_enabled || !m_file)
         return;

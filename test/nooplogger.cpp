@@ -4,22 +4,22 @@
 #include "logger.h"
 
 
-void Logger::Initialize()
+void Logger_Initialize()
 {
 }
 
-void Logger::LogOutput(const char * func, size_t line, const char * format, ...)
+void Logger_LogOutput(const char * func, size_t line, const char * format, ...)
 {
 }
 
-void Logger::Write(const char * format, ...)
+void Logger_Write(const char * format, ...)
 {
 }
 
-void Logger::WriteUnformatted(const char * message)
+void Logger_WriteUnformatted(const char * message)
 {
 }
 
-void Logger::Exit()
+void Logger_Exit()
 {
 }
