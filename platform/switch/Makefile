@@ -30,6 +30,11 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - icon.jpg
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
+
+APP_TITLE	:= $(APP_TITLE)
+APP_AUTHOR	:= $(APP_AUTHOR)
+APP_VERSION	:= $(APP_VERSION)
+
 TARGET		:=	FAKE-08
 BUILD		:=	build
 SOURCES		:=	${SOURCES} source

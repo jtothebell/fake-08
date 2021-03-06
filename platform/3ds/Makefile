@@ -31,8 +31,10 @@ include $(DEVKITARM)/3ds_rules
 #     - icon.png
 #     - <libctru folder>/default_icon.png
 #---------------------------------------------------------------------------------
-APP_TITLE        := FAKE-08
-APP_AUTHOR       := jtothebell
+APP_TITLE	:= $(APP_TITLE)
+APP_AUTHOR	:= $(APP_AUTHOR)
+APP_VERSION	:= $(APP_VERSION)
+
 APP_DESCRIPTION  := A Pico 8 Emulator
 
 APP_UNIQUE_ID    := 0xF8F08
