@@ -11,88 +11,115 @@ using namespace std;
 #include "../../../source/host.h"
 #include "../../../source/hostVmShared.h"
 #include "../../../source/nibblehelpers.h"
+#include "../../../source/logger.h"
 
-#define FB_WIDTH  1280
-#define FB_HEIGHT 720
+// sdl
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_events.h>
+
+#define SCREEN_SIZE_X 640
+#define SCREEN_SIZE_Y 640
+
+#define WIN_WIDTH 1280
+#define WIN_HEIGHT 720
 
 #define SAMPLERATE 22050
 #define SAMPLESPERBUF (SAMPLERATE / 30)
 #define NUM_BUFFERS 2
 
-const int __screenWidth = FB_WIDTH;
-const int __screenHeight = FB_HEIGHT;
+#define JOY_A     0
+#define JOY_B     1
+#define JOY_X     2
+#define JOY_Y     3
+#define LSTICK    4
+#define RSTICK    5
+#define JOY_L     6
+#define JOY_R     7
+#define JOY_ZL    8
+#define JOY_ZR    9
+#define JOY_PLUS  10
+#define JOY_MINUS 11
+#define JOY_LEFT  12
+#define JOY_UP    13
+#define JOY_RIGHT 14
+#define JOY_DOWN  15
+
+uint8_t currKDown;
+uint8_t currKHeld;
+bool lDown = false;
+bool rDown = false;
 
 const int PicoScreenWidth = 128;
 const int PicoScreenHeight = 128;
 
-
-StretchOption stretch = PixelPerfectStretch;
 u64 last_time;
 u64 now_time;
 u64 frame_time;
 double targetFrameTimeMs;
 
-u32 currKDown;
-u32 currKHeld;
-
-Framebuffer fb;
-
 Color* _paletteColors;
 Audio* _audio;
 
-uint8_t ConvertInputToP8(u32 input){
-	uint8_t result = 0;
-	if (input & KEY_LEFT){
-		result |= P8_KEY_LEFT;
-	}
+SDL_Window* window;
+SDL_Event event;
+SDL_Renderer *renderer;
+SDL_Texture *texture = NULL;
+SDL_Rect DestR;
+SDL_AudioSpec want, have;
+SDL_AudioDeviceID dev;
+int quit = 0;
+void *pixels;
+uint8_t *base;
+int pitch;
 
-	if (input & KEY_RIGHT){
-		result |= P8_KEY_RIGHT;
-	}
-
-	if (input & KEY_UP){
-		result |= P8_KEY_UP;
-	}
-
-	if (input & KEY_DOWN){
-		result |= P8_KEY_DOWN;
-	}
-
-	if (input & KEY_B){
-		result |= P8_KEY_O;
-	}
-
-	if (input & KEY_A){
-		result |= P8_KEY_X;
-	}
-
-	if (input & KEY_PLUS){
-		result |= P8_KEY_PAUSE;
-	}
-
-	if (input & KEY_MINUS){
-		result |= P8_KEY_7;
-	}
-
-	return result;
-}
 
 void postFlipFunction(){
     //flush switch frame buffers
     // We're done rendering, so we end the frame here.
-    framebufferEnd(&fb);
+    SDL_UnlockTexture(texture);
+    SDL_RenderCopy(renderer, texture, NULL, &DestR);
+
+    SDL_RenderPresent(renderer);
 }
 
 
 bool audioInitialized = false;
 
-
 void audioCleanup(){
     audioInitialized = false;
+
+    //SDL_CloseAudioDevice(dev);
+}
+
+void FillAudioDeviceBuffer(void* UserData, Uint8* DeviceBuffer, int Length)
+{
+    _audio->FillAudioBuffer(DeviceBuffer, 0, Length / 4);
 }
 
 void audioSetup(){
+    //modifed from SDL docs: https://wiki.libsdl.org/SDL_OpenAudioDevice
+
+    //Audio plays but is wrong. maybe a problem with sample rate or endian-ness? haven't investigated thoroughly
+
+    SDL_memset(&want, 0, sizeof(want)); // or SDL_zero(want)
+    want.freq = SAMPLERATE;
+    want.format = AUDIO_S16;
+    want.channels = 2;
+    want.samples = 4096;
+    want.callback = FillAudioDeviceBuffer;
     
+
+    dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
+    if (dev == 0) {
+        Logger_Write("Failed to open audio: %s", SDL_GetError());
+    } else {
+        if (have.format != want.format) {
+            Logger_Write("We didn't get requested audio format.");
+        }
+        SDL_PauseAudioDevice(dev, 0); // start audio playing.
+
+        audioInitialized = true;
+    } 
 }
 
 
@@ -101,14 +128,50 @@ Host::Host() { }
 
 
 void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
+    {
+        fprintf(stderr, "SDL could not initialize\n");
+        quit = 1;
+        return;
+    }
 
-    NWindow* win = nwindowGetDefault();
+	window = SDL_CreateWindow("fake-08", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIN_WIDTH, WIN_HEIGHT, SDL_WINDOW_SHOWN);
+	if (!window) 
+    { 
+        quit = 1;
+        return; 
+    }
+	
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	if (!renderer) 
+    { 
+        quit = 1;
+        return;
+    }
 
-    framebufferCreate(&fb, win, FB_WIDTH, FB_HEIGHT, PIXEL_FORMAT_RGBA_8888, 2);
-    framebufferMakeLinear(&fb);
+	texture  = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, PicoScreenWidth, PicoScreenHeight);
+	if (texture == NULL) 
+    {
+		quit = 1;
+        return;
+	}
+
+    atexit(SDL_Quit);
+
+    DestR.x = WIN_WIDTH / 2 - SCREEN_SIZE_X / 2;
+    DestR.y = WIN_HEIGHT / 2 - SCREEN_SIZE_Y / 2;
+    DestR.w = SCREEN_SIZE_X;
+    DestR.h = SCREEN_SIZE_Y;
 
     _audio = audio;
     audioSetup();
+
+    for (int i = 0; i < SDL_NumJoysticks(); i++) {
+		if (SDL_JoystickOpen(i) == NULL) {
+			printf("Failed to open joystick %d!\n", i);
+			quit = 1;
+		}
+    }
     
     last_time = 0;
     now_time = 0;
@@ -121,7 +184,10 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 void Host::oneTimeCleanup(){
     audioCleanup();
 
-	framebufferClose(&fb);
+	SDL_DestroyTexture(texture);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 }
 
 void Host::setTargetFps(int targetFps){
@@ -129,34 +195,70 @@ void Host::setTargetFps(int targetFps){
 }
 
 void Host::changeStretch(){
-    if (currKDown & KEY_R) {
-        if (stretch == PixelPerfect) {
-            stretch = PixelPerfectStretch;
-        }
-        else if (stretch == PixelPerfectStretch) {
-            stretch = PixelPerfect;
-        }
-    }
+
 }
 
 InputState_t Host::scanInput(){
-    hidScanInput();
+    currKDown = 0;
+    uint8_t kUp = 0;
 
-    currKDown = hidKeysDown(CONTROLLER_P1_AUTO);
-    currKHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
+    while (SDL_PollEvent(&event)) {
+        switch (event.type) {
+            case SDL_JOYBUTTONDOWN :
+                switch (event.jbutton.button)
+                {
+                    case JOY_PLUS:  currKDown |= P8_KEY_PAUSE; break;
+                    case JOY_LEFT:  currKDown |= P8_KEY_LEFT; break;
+                    case JOY_RIGHT: currKDown |= P8_KEY_RIGHT; break;
+                    case JOY_UP:    currKDown |= P8_KEY_UP; break;
+                    case JOY_DOWN:  currKDown |= P8_KEY_DOWN; break;
+                    case JOY_A:     currKDown |= P8_KEY_X; break;
+                    case JOY_B:     currKDown |= P8_KEY_O; break;
+
+                    case JOY_L: lDown = true; break;
+                    case JOY_R: rDown = true; break;
+                }
+                break;
+
+            case SDL_JOYBUTTONUP :
+                switch (event.jbutton.button)
+                {
+                    case JOY_PLUS:  kUp |= P8_KEY_PAUSE; break;
+                    case JOY_LEFT:  kUp |= P8_KEY_LEFT; break;
+                    case JOY_RIGHT: kUp |= P8_KEY_RIGHT; break;
+                    case JOY_UP:    kUp |= P8_KEY_UP; break;
+                    case JOY_DOWN:  kUp |= P8_KEY_DOWN; break;
+                    case JOY_A:     kUp |= P8_KEY_X; break;
+                    case JOY_B:     kUp |= P8_KEY_O; break;
+
+                    case JOY_L: lDown = false; break;
+                    case JOY_R: rDown = false; break;
+                }
+               break;
+
+            case SDL_QUIT:
+                quit = 1;
+                break;
+        }
+    }
+
+    if (lDown && rDown){
+        quit = 1;
+    }
+
+    currKHeld |= currKDown;
+    currKHeld ^= kUp;
 
     return InputState_t {
-        ConvertInputToP8(currKDown),
-        ConvertInputToP8(currKHeld)
+        currKDown,
+        currKHeld
     };
 }
 
 
 bool Host::shouldQuit() {
-    bool lpressed = currKHeld & KEY_L;
-	bool rpressed = currKDown & KEY_R;
 
-	return lpressed && rpressed;
+	return quit > 0;
 }
 
 const double NANOSECONDS_TO_MILLISECONDS = 1.0 / 1000000.0;
@@ -182,39 +284,22 @@ void Host::waitForTargetFps(){
 
 
 void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
-	u32 stride;
-    u32* framebuf = (u32*) framebufferBegin(&fb, &stride);
+	//clear screen to all black
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    SDL_RenderClear(renderer);
 
-	//clear frame buf
-	memset(framebuf, 0, __screenHeight*__screenWidth*4);
+    SDL_LockTexture(texture, NULL, &pixels, &pitch);
 
-
-    u32 renderWidth = PicoScreenWidth;
-    u32 renderHeight = PicoScreenHeight;
-    u32 ratio = 1;
-
-    if (stretch == PixelPerfectStretch){
-        ratio = FB_HEIGHT / PicoScreenHeight; //should be 5
-        renderWidth = PicoScreenWidth * ratio;
-        renderHeight = PicoScreenHeight * ratio;
-    }
-
-    u32 xOffset = (FB_WIDTH - renderWidth) / 2;
-    u32 yOffset = (FB_HEIGHT - renderHeight) / 2;
-
-    for (u32 y = 0; y < renderHeight; y ++)
-    {
-        for (u32 x = 0; x < renderWidth; x ++)
-        {
-            int picoX = (int)(x / ratio);
-            int picoY = (int)(y / ratio);
-            uint8_t c = getPixelNibble(picoX, picoY, picoFb);
-            //uint8_t c = picoFb[x*128 + y];
+    for (int y = 0; y < PicoScreenHeight; y ++){
+        for (int x = 0; x < PicoScreenWidth; x ++){
+            uint8_t c = getPixelNibble(x, y, picoFb);
             Color col = _paletteColors[screenPaletteMap[c]];
 
-            u32 pos = (yOffset + y) * stride / sizeof(u32) + (xOffset + x);
-            framebuf[pos] = RGBA8_MAXALPHA(col.Red, col.Green, col.Blue);
-
+            base = ((Uint8 *)pixels) + (4 * ( y * PicoScreenHeight + x));
+            base[0] = col.Blue;
+            base[1] = col.Green;
+            base[2] = col.Red;
+            base[3] = col.Alpha;
         }
     }
 

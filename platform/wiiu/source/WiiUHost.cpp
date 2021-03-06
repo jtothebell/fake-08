@@ -57,6 +57,7 @@ SDL_Window* window;
 SDL_Event event;
 SDL_Renderer *renderer;
 SDL_Texture *texture = NULL;
+SDL_Rect DestR;
 SDL_AudioSpec want, have;
 SDL_AudioDeviceID dev;
 int quit = 0;
@@ -64,7 +65,7 @@ void *pixels;
 uint8_t *base;
 int pitch;
 
-SDL_Rect DestR;
+
 
 void postFlipFunction(){
     //flush switch frame buffers
