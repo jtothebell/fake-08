@@ -22,7 +22,7 @@ Host::Host() { }
 StubHost::StubHost() { }
 
 
-void Host::oneTimeSetup(Color* paletteColors){
+void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 
 }
 
