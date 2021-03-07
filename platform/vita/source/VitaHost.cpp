@@ -90,6 +90,11 @@ int pitch;
 
 SDL_Rect DestR;
 
+//Analog joystick dead zone
+const int JOYSTICK_DEAD_ZONE = 8000;
+int jxDir = 0;
+int jyDir = 0;
+
 void postFlipFunction(){
     // We're done rendering, so we end the frame here.
     SDL_UnlockTexture(texture);
@@ -215,6 +220,9 @@ void Host::changeStretch(){
 InputState_t Host::scanInput(){ 
     currKDown = 0;
     uint8_t kUp = 0;
+    int prevJxDir = jxDir;
+    int prevJyDir = jyDir;
+
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
             case SDL_JOYBUTTONDOWN :
@@ -235,7 +243,7 @@ InputState_t Host::scanInput(){
             case SDL_JOYBUTTONUP :
                 switch (event.jbutton.button)
                 {
-                    case SDLK_VITA_START:kUp |= P8_KEY_PAUSE; break;
+                    case SDLK_VITA_START: kUp |= P8_KEY_PAUSE; break;
                     case SDLK_VITA_LEFT:  kUp |= P8_KEY_LEFT; break;
                     case SDLK_VITA_RIGHT: kUp |= P8_KEY_RIGHT; break;
                     case SDLK_VITA_UP:    kUp |= P8_KEY_UP; break;
@@ -244,6 +252,48 @@ InputState_t Host::scanInput(){
                     case SDLK_VITA_CIRCLE:     kUp |= P8_KEY_O; break;
                     case SDLK_VITA_LTRIGGER: lDown = false; break;
                     case SDLK_VITA_RTRIGGER: rDown = false; break;
+                }
+               break;
+
+            case SDL_JOYAXISMOTION :
+                if (event.jaxis.which == 0)
+                {
+                    //X axis motion
+                    if( event.jaxis.axis == 0 )
+                    {
+                        //Left of dead zone
+                        if( event.jaxis.value < -JOYSTICK_DEAD_ZONE )
+                        {
+                            jxDir = -1;
+                        }
+                        //Right of dead zone
+                        else if( event.jaxis.value > JOYSTICK_DEAD_ZONE )
+                        {
+                            jxDir =  1;
+                        }
+                        else
+                        {
+                            jxDir = 0;
+                        }
+                    }
+                    //Y axis motion
+                    else if( event.jaxis.axis == 1 )
+                    {
+                        //Below of dead zone
+                        if( event.jaxis.value < -JOYSTICK_DEAD_ZONE )
+                        {
+                            jyDir = -1;
+                        }
+                        //Above of dead zone
+                        else if( event.jaxis.value > JOYSTICK_DEAD_ZONE )
+                        {
+                            jyDir =  1;
+                        }
+                        else
+                        {
+                            jyDir = 0;
+                        }
+                    }
                 }
                break;
 
@@ -259,6 +309,56 @@ InputState_t Host::scanInput(){
 
     currKHeld |= currKDown;
     currKHeld ^= kUp;
+
+
+    //Convert joystick direction to kHeld and kDown values
+    if (jxDir > 0) {
+        currKHeld |= P8_KEY_RIGHT;
+        currKHeld &= ~(P8_KEY_LEFT);
+
+        if (prevJxDir != jxDir){
+            currKDown |= P8_KEY_RIGHT;
+        }
+    }
+    else if (jxDir < 0) {
+        currKHeld |= P8_KEY_LEFT;
+        currKHeld &= ~(P8_KEY_RIGHT);
+
+        if (prevJxDir != jxDir){
+            currKDown |= P8_KEY_LEFT;
+        }
+    }
+    else if (prevJxDir != 0){
+        currKHeld &= ~(P8_KEY_RIGHT);
+        currKHeld &= ~(P8_KEY_LEFT);
+        currKDown &= ~(P8_KEY_RIGHT);
+        currKDown &= ~(P8_KEY_LEFT);
+    }
+    
+    if (jyDir > 0) {
+        currKHeld |= P8_KEY_DOWN;
+        currKHeld &= ~(P8_KEY_UP);
+
+        if (prevJyDir != jyDir){
+            currKDown |= P8_KEY_DOWN;
+        }
+    }
+    else if (jyDir < 0) {
+        currKHeld |= P8_KEY_UP;
+        currKHeld &= ~(P8_KEY_DOWN);
+
+        if (prevJyDir != jyDir){
+            currKDown |= P8_KEY_UP;
+        }
+    }
+    else if (prevJyDir != 0){
+        currKHeld &= ~(P8_KEY_UP);
+        currKHeld &= ~(P8_KEY_DOWN);
+        currKDown &= ~(P8_KEY_UP);
+        currKDown &= ~(P8_KEY_DOWN);
+    }
+    
+
 
     return InputState_t {
         currKDown,
