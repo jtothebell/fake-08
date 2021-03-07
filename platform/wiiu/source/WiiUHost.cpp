@@ -28,6 +28,22 @@ using namespace std;
 #define WIN_WIDTH 1280
 #define WIN_HEIGHT 720
 
+#define JOY_A     0
+#define JOY_B     1
+#define JOY_X     2
+#define JOY_Y     3
+#define LSTICK    4
+#define RSTICK    5
+#define JOY_L     6
+#define JOY_R     7
+#define JOY_ZL    8
+#define JOY_ZR    9
+#define JOY_PLUS  10
+#define JOY_MINUS 11
+#define JOY_LEFT  12
+#define JOY_UP    13
+#define JOY_RIGHT 14
+#define JOY_DOWN  15
 
 #define SAMPLERATE 22050
 #define SAMPLESPERBUF (SAMPLERATE / 30)
@@ -48,6 +64,8 @@ uint32_t targetFrameTimeMs;
 
 uint8_t currKDown;
 uint8_t currKHeld;
+bool lDown = false;
+bool rDown = false;
 
 Color* _paletteColors;
 
@@ -96,11 +114,10 @@ void audioSetup(){
     //modifed from SDL docs: https://wiki.libsdl.org/SDL_OpenAudioDevice
 
     //Audio plays but is wrong. maybe a problem with sample rate or endian-ness? haven't investigated thoroughly
-
 /*
     SDL_memset(&want, 0, sizeof(want)); // or SDL_zero(want)
     want.freq = SAMPLERATE;
-    want.format = AUDIO_U16;
+    want.format = AUDIO_S16SYS;
     want.channels = 2;
     want.samples = 4096;
     want.callback = FillAudioDeviceBuffer;
@@ -197,44 +214,38 @@ void Host::changeStretch(){
 InputState_t Host::scanInput(){ 
     currKDown = 0;
     uint8_t kUp = 0;
-//For some reason these buttons are all out of whack
-//check input here (call open joystick):
-//https://github.com/ulquiorra-dev/Simple_SDL_Snake_WiiU_Port/blob/master/source/main.c
-//tetris calls open joystick:
-//https://github.com/ulquiorra-dev/SDL_TETRIS_WiiU_Port/blob/master/src/main.c
 
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
             case SDL_JOYBUTTONDOWN :
                 switch (event.jbutton.button)
                 {
-                    case SDL_CONTROLLER_BUTTON_BACK:
-                    case SDL_CONTROLLER_BUTTON_GUIDE:
-                    case SDL_CONTROLLER_BUTTON_X:
-                    case SDL_CONTROLLER_BUTTON_START:currKDown |= P8_KEY_PAUSE; break;
-                    case SDL_CONTROLLER_BUTTON_DPAD_DOWN:  currKDown |= P8_KEY_LEFT; break;
-                    case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: currKDown |= P8_KEY_RIGHT; break;
-                    case SDL_CONTROLLER_BUTTON_DPAD_LEFT:    currKDown |= P8_KEY_UP; break;
-                    case SDL_CONTROLLER_BUTTON_MAX:  currKDown |= P8_KEY_DOWN; break;
-                    case SDL_CONTROLLER_BUTTON_A:     currKDown |= P8_KEY_X; break;
-                    case SDL_CONTROLLER_BUTTON_B:     currKDown |= P8_KEY_O; break;
-                    case SDL_CONTROLLER_BUTTON_Y: quit = 1; break;
+                    case JOY_PLUS:  currKDown |= P8_KEY_PAUSE; break;
+                    case JOY_LEFT:  currKDown |= P8_KEY_LEFT; break;
+                    case JOY_RIGHT: currKDown |= P8_KEY_RIGHT; break;
+                    case JOY_UP:    currKDown |= P8_KEY_UP; break;
+                    case JOY_DOWN:  currKDown |= P8_KEY_DOWN; break;
+                    case JOY_A:     currKDown |= P8_KEY_X; break;
+                    case JOY_B:     currKDown |= P8_KEY_O; break;
+
+                    case JOY_L: lDown = true; break;
+                    case JOY_R: rDown = true; break;
                 }
                 break;
 
             case SDL_JOYBUTTONUP :
                 switch (event.jbutton.button)
                 {
-                    case SDL_CONTROLLER_BUTTON_BACK:
-                    case SDL_CONTROLLER_BUTTON_GUIDE:
-                    case SDL_CONTROLLER_BUTTON_X:
-                    case SDL_CONTROLLER_BUTTON_START:kUp |= P8_KEY_PAUSE; break;
-                    case SDL_CONTROLLER_BUTTON_DPAD_DOWN:  kUp |= P8_KEY_LEFT; break;
-                    case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: kUp |= P8_KEY_RIGHT; break;
-                    case SDL_CONTROLLER_BUTTON_DPAD_LEFT:    kUp |= P8_KEY_UP; break;
-                    case SDL_CONTROLLER_BUTTON_MAX:  kUp |= P8_KEY_DOWN; break;
-                    case SDL_CONTROLLER_BUTTON_A:     kUp |= P8_KEY_X; break;
-                    case SDL_CONTROLLER_BUTTON_B:     kUp |= P8_KEY_O; break;
+                    case JOY_PLUS:  kUp |= P8_KEY_PAUSE; break;
+                    case JOY_LEFT:  kUp |= P8_KEY_LEFT; break;
+                    case JOY_RIGHT: kUp |= P8_KEY_RIGHT; break;
+                    case JOY_UP:    kUp |= P8_KEY_UP; break;
+                    case JOY_DOWN:  kUp |= P8_KEY_DOWN; break;
+                    case JOY_A:     kUp |= P8_KEY_X; break;
+                    case JOY_B:     kUp |= P8_KEY_O; break;
+
+                    case JOY_L: lDown = false; break;
+                    case JOY_R: rDown = false; break;
                 }
                break;
 
@@ -242,6 +253,10 @@ InputState_t Host::scanInput(){
                 quit = 1;
                 break;
         }
+    }
+
+    if (lDown && rDown){
+        quit = 1;
     }
 
     currKHeld |= currKDown;
