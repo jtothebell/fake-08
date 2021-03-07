@@ -135,6 +135,27 @@ TEST_CASE("graphics class behaves as expected") {
         }
         CHECK(isAllColor);
     }
+    SUBCASE("cls() resets cursor") {
+        picoRam.drawState.text_x = 42;
+        picoRam.drawState.text_y = 99;
+        graphics->cls();
+        graphics->cursor();
+
+        CHECK_EQ(picoRam.drawState.text_x, 0);
+        CHECK_EQ(picoRam.drawState.text_y, 0);
+    }
+    SUBCASE("cls() resets clip") {
+        picoRam.drawState.clip_xb = 10;
+        picoRam.drawState.clip_yb = 12;
+        picoRam.drawState.clip_xe = 100;
+        picoRam.drawState.clip_ye = 102;
+        graphics->cls();
+
+        CHECK_EQ(picoRam.drawState.clip_xb, 0);
+        CHECK_EQ(picoRam.drawState.clip_yb, 0);
+        CHECK_EQ(picoRam.drawState.clip_xe, 128);
+        CHECK_EQ(picoRam.drawState.clip_ye, 128);
+    }
     SUBCASE("pset() sets color at coord") {
         const uint8_t testColor = 15;
         graphics->pset(72, 31, testColor);
@@ -897,6 +918,34 @@ TEST_CASE("graphics class behaves as expected") {
             {102, 52, 5},
             {102, 53, 5},
             
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("sspr(...) negative screen dimensions flip image") {
+        graphics->cls();
+        
+        for(uint8_t i = 0; i < 16; i++) {
+            for(uint8_t j = 0; j < 16; j++) {
+                graphics->sset(i, j, i);
+            }
+        }
+
+        graphics->sspr(3, 2, 3, 4, 100, 50, 3, -4, false, false);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {100, 50, 5},
+            {100, 51, 5},
+            {100, 52, 5},
+            {100, 53, 5},
+            {101, 50, 4},
+            {101, 51, 4},
+            {101, 52, 4},
+            {101, 53, 4},
+            {102, 50, 3},
+            {102, 51, 3},
+            {102, 52, 3},
+            {102, 53, 3},
         };
 
         checkPoints(graphics, expectedPoints);
