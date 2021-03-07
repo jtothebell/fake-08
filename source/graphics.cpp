@@ -199,6 +199,9 @@ void Graphics::copyStretchSpriteToScreen(
 	bool flip_x,
 	bool flip_y) 
 {
+	if (scr_w == 0 || scr_h == 0)
+		return;
+
 	if (spr_h == scr_h && spr_w == scr_w) {
 		// use faster non stretch blitter if sprite is not stretched
 		copySpriteToScreen(spritebuffer, scr_x, scr_y, spr_x, spr_y, scr_w, scr_h, flip_x, flip_y);
@@ -206,6 +209,17 @@ void Graphics::copyStretchSpriteToScreen(
 	}
 
 	applyCameraToPoint(&scr_x, &scr_y);
+
+	if (scr_w < 0){
+		flip_x = !flip_x;
+		scr_w = -scr_w;
+		scr_x -= scr_w;
+	}
+	if (scr_h < 0) {
+		flip_y = !flip_y;
+		scr_h = -scr_h;
+		scr_y -= scr_h;
+	}
 
 	//shift bits to avoid floating point math
 	spr_x = spr_x << 16;
