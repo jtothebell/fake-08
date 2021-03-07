@@ -109,6 +109,28 @@ unpack = table.unpack
 🅾️ = 4
 ❎ = 5
 
+--fiilp emoji variables
+█ = 0
+▒ = 0x5a5a.8
+🐱 = 0x511f.8
+░ = 0x7d7d.8
+✽ = 0xb81d.8
+● = 0xf99f.8
+♥ = 0x51bf.8
+☉ = 0xb5bf.8
+웃 = 0x999f.8
+⌂ = 0xb11f.8
+😐 = 0xa0e0.8
+♪ = 0x9b3f.8
+◆ = 0xb1bf.8
+… = 0xf5ff.8
+★ = 0xb15f.8
+⧗ = 0x1b1f.8
+ˇ = 0xf5bf.8
+∧ = 0x7adf.8
+▤ = 0x0f0f.8
+▥ = 0x5555.8
+
 function menuitem(index, label, callback)
     --only 5 open slots
     if index < 1 or index > 5 then return end
