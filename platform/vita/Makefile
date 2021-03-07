@@ -8,7 +8,7 @@ PHONY := all package clean
 SOURCES	:=	${SOURCES} source
 INCLUDES	:=	${INCLUDES}
 
-LIBS = -lSDL2 -lvita2d -lSceDisplay_stub -lSceCtrl_stub -lSceAudio_stub \
+LIBS = -lSDL2 -lSceDisplay_stub -lSceCtrl_stub -lSceAudio_stub \
 		-lSceSysmodule_stub -lSceGxm_stub -lSceCommonDialog_stub \
 		-lSceAppMgr_stub -lSceTouch_stub -lSceHid_stub -lSceMotion_stub -lm
 
