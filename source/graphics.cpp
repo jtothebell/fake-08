@@ -438,6 +438,11 @@ void Graphics::cls(uint8_t color) {
 
 	_memory->drawState.text_x = 0;
 	_memory->drawState.text_y = 0;
+
+	_memory->drawState.clip_xb = 0;
+	_memory->drawState.clip_yb = 0;
+	_memory->drawState.clip_xe = 128;
+	_memory->drawState.clip_ye = 128;
 }
 
 void Graphics::pset(int x, int y){
