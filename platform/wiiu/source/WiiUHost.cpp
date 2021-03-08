@@ -49,14 +49,14 @@ using namespace std;
 #define SAMPLESPERBUF (SAMPLERATE / 30)
 #define NUM_BUFFERS 2
 
-const int __screenWidth = SCREEN_SIZE_X;
-const int __screenHeight = SCREEN_SIZE_Y;
+int screenWidth = SCREEN_SIZE_X;
+int screenHeight = SCREEN_SIZE_Y;
 
 const int PicoScreenWidth = 128;
 const int PicoScreenHeight = 128;
 
 
-StretchOption stretch;
+StretchOption stretch = PixelPerfectStretch;
 uint32_t last_time;
 uint32_t now_time;
 uint32_t frame_time;
@@ -66,6 +66,7 @@ uint8_t currKDown;
 uint8_t currKHeld;
 bool lDown = false;
 bool rDown = false;
+bool stretchKeyPressed = false;
 
 Color* _paletteColors;
 
@@ -209,6 +210,33 @@ void Host::setTargetFps(int targetFps){
 }
 
 void Host::changeStretch(){
+    if (stretchKeyPressed) {
+        if (stretch == PixelPerfectStretch) {
+            stretch = PixelPerfect;
+            screenWidth = PicoScreenWidth;
+            screenHeight = PicoScreenHeight;
+        }
+        else if (stretch == PixelPerfect) {
+            stretch = StretchToFit;
+            screenWidth = WIN_HEIGHT;
+            screenHeight = WIN_HEIGHT;
+        }
+        else if (stretch == StretchToFit) {
+            stretch = StretchToFill;
+            screenWidth = WIN_WIDTH;
+            screenHeight = WIN_HEIGHT; 
+        }
+        else if (stretch == StretchToFill) {
+            stretch = PixelPerfectStretch;
+            screenWidth = SCREEN_SIZE_X;
+            screenHeight = SCREEN_SIZE_Y; 
+        }
+
+        DestR.x = WIN_WIDTH / 2 - screenWidth / 2;
+        DestR.y = WIN_HEIGHT / 2 - screenHeight / 2;
+        DestR.w = screenWidth;
+        DestR.h = screenHeight;
+    }
 }
 
 InputState_t Host::scanInput(){ 
@@ -229,7 +257,7 @@ InputState_t Host::scanInput(){
                     case JOY_B:     currKDown |= P8_KEY_O; break;
 
                     case JOY_L: lDown = true; break;
-                    case JOY_R: rDown = true; break;
+                    case JOY_R: rDown = true; stretchKeyPressed = true; break;
                 }
                 break;
 

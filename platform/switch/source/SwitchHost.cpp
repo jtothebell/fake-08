@@ -48,10 +48,15 @@ uint8_t currKDown;
 uint8_t currKHeld;
 bool lDown = false;
 bool rDown = false;
+bool stretchKeyPressed = false;
 
 const int PicoScreenWidth = 128;
 const int PicoScreenHeight = 128;
 
+int screenWidth = SCREEN_SIZE_X;
+int screenHeight = SCREEN_SIZE_Y;
+
+StretchOption stretch = PixelPerfectStretch;
 u64 last_time;
 u64 now_time;
 u64 frame_time;
@@ -195,12 +200,39 @@ void Host::setTargetFps(int targetFps){
 }
 
 void Host::changeStretch(){
+    if (stretchKeyPressed) {
+        if (stretch == PixelPerfectStretch) {
+            stretch = PixelPerfect;
+            screenWidth = PicoScreenWidth;
+            screenHeight = PicoScreenHeight;
+        }
+        else if (stretch == PixelPerfect) {
+            stretch = StretchToFit;
+            screenWidth = WIN_HEIGHT;
+            screenHeight = WIN_HEIGHT;
+        }
+        else if (stretch == StretchToFit) {
+            stretch = StretchToFill;
+            screenWidth = WIN_WIDTH;
+            screenHeight = WIN_HEIGHT; 
+        }
+        else if (stretch == StretchToFill) {
+            stretch = PixelPerfectStretch;
+            screenWidth = SCREEN_SIZE_X;
+            screenHeight = SCREEN_SIZE_Y; 
+        }
 
+        DestR.x = WIN_WIDTH / 2 - screenWidth / 2;
+        DestR.y = WIN_HEIGHT / 2 - screenHeight / 2;
+        DestR.w = screenWidth;
+        DestR.h = screenHeight;
+    }
 }
 
 InputState_t Host::scanInput(){
     currKDown = 0;
     uint8_t kUp = 0;
+    stretchKeyPressed = false;
 
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
@@ -216,7 +248,7 @@ InputState_t Host::scanInput(){
                     case JOY_B:     currKDown |= P8_KEY_O; break;
 
                     case JOY_L: lDown = true; break;
-                    case JOY_R: rDown = true; break;
+                    case JOY_R: rDown = true; stretchKeyPressed = true; break;
                 }
                 break;
 

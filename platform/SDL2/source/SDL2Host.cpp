@@ -16,22 +16,24 @@ using namespace std;
 // sdl
 #include <SDL2/SDL.h>
 
-#define SCREEN_SIZE_X 512
-#define SCREEN_SIZE_Y 512
+#define WINDOW_SIZE_X 1280
+#define WINDOW_SIZE_Y 720
+
+#define SCREEN_SIZE_X 640
+#define SCREEN_SIZE_Y 640
 
 
 #define SAMPLERATE 22050
 #define SAMPLESPERBUF (SAMPLERATE / 30)
 #define NUM_BUFFERS 2
 
-const int __screenWidth = SCREEN_SIZE_X;
-const int __screenHeight = SCREEN_SIZE_Y;
+int screenWidth = SCREEN_SIZE_X;
+int screenHeight = SCREEN_SIZE_Y;
 
 const int PicoScreenWidth = 128;
 const int PicoScreenHeight = 128;
 
-
-StretchOption stretch;
+StretchOption stretch = PixelPerfectStretch;
 uint32_t last_time;
 uint32_t now_time;
 uint32_t frame_time;
@@ -39,6 +41,7 @@ uint32_t targetFrameTimeMs;
 
 uint8_t currKDown;
 uint8_t currKHeld;
+bool stretchKeyPressed = false;
 
 Color* _paletteColors;
 Audio* _audio;
@@ -54,20 +57,18 @@ void *pixels;
 uint8_t *base;
 int pitch;
 
+SDL_Rect DestR;
+
 bool audioInitialized = false;
 
 
 void postFlipFunction(){
     // We're done rendering, so we end the frame here.
     SDL_UnlockTexture(texture);
-    SDL_RenderCopy(renderer, texture, NULL, NULL);
+    SDL_RenderCopy(renderer, texture, NULL, &DestR);
 
     SDL_RenderPresent(renderer);
 }
-
-
-
-
 
 void audioCleanup(){
     audioInitialized = false;
@@ -115,7 +116,7 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
         return;
     }
 
-    SDL_CreateWindowAndRenderer(SCREEN_SIZE_X, SCREEN_SIZE_Y, 0, &window, &renderer);
+    SDL_CreateWindowAndRenderer(WINDOW_SIZE_X, WINDOW_SIZE_Y, 0, &window, &renderer);
     if (!window)
     {
         fprintf(stderr, "Error creating window.\n");
@@ -131,6 +132,11 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 
     _audio = audio;
     audioSetup();
+
+    DestR.x = WINDOW_SIZE_X / 2 - SCREEN_SIZE_X / 2;
+    DestR.y = WINDOW_SIZE_Y / 2 - SCREEN_SIZE_Y / 2;
+    DestR.w = SCREEN_SIZE_X;
+    DestR.h = SCREEN_SIZE_Y;
     
     last_time = 0;
     now_time = 0;
@@ -143,6 +149,7 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 void Host::oneTimeCleanup(){
     audioCleanup();
 
+    SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -153,10 +160,39 @@ void Host::setTargetFps(int targetFps){
 }
 
 void Host::changeStretch(){
+    if (stretchKeyPressed) {
+        if (stretch == PixelPerfectStretch) {
+            stretch = PixelPerfect;
+            screenWidth = PicoScreenWidth;
+            screenHeight = PicoScreenHeight;
+        }
+        else if (stretch == PixelPerfect) {
+            stretch = StretchToFit;
+            screenWidth = WINDOW_SIZE_Y;
+            screenHeight = WINDOW_SIZE_Y;
+        }
+        else if (stretch == StretchToFit) {
+            stretch = StretchToFill;
+            screenWidth = WINDOW_SIZE_X;
+            screenHeight = WINDOW_SIZE_Y; 
+        }
+        else if (stretch == StretchToFill) {
+            stretch = PixelPerfectStretch;
+            screenWidth = SCREEN_SIZE_X;
+            screenHeight = SCREEN_SIZE_Y; 
+        }
+
+        DestR.x = WINDOW_SIZE_X / 2 - screenWidth / 2;
+        DestR.y = WINDOW_SIZE_Y / 2 - screenHeight / 2;
+        DestR.w = screenWidth;
+        DestR.h = screenHeight;
+    }
 }
+
 InputState_t Host::scanInput(){
     currKDown = 0;
     currKHeld = 0;
+    stretchKeyPressed = false;
 
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
@@ -171,6 +207,7 @@ InputState_t Host::scanInput(){
                     case SDLK_z:     currKDown |= P8_KEY_X; break;
                     case SDLK_x:     currKDown |= P8_KEY_O; break;
                     case SDLK_c:     currKDown |= P8_KEY_X; break;
+                    case SDLK_r:     stretchKeyPressed = true; break;
                 }
                 break;
             case SDL_QUIT:

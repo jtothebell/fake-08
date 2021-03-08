@@ -10,6 +10,7 @@ enum StretchOption {
   PixelPerfect,
   PixelPerfectStretch,
   StretchToFit,
+  StretchToFill,
   StretchAndOverflow
 };
 
@@ -18,7 +19,7 @@ class Host {
     Host();
 
     void oneTimeSetup(Color* paletteColors, Audio* audio);
-
+    
     void setTargetFps(int targetFps);
 
     bool shouldRunMainLoop();
