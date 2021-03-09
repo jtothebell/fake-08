@@ -48,3 +48,23 @@ I make no specific claims of compatibility at the present time. I think many car
 
 Feel free to write up any issues you come across, and attach or link to a cart that reproduces the issue. My main goal is to improve compatibility with Pico 8, and then improve speed of carts that are too slow on New 3DS systems.
 
+## Postcard Image Sprite Credits:
+Rabu Rabu Monster (https://www.lexaloffle.com/bbs/?pid=13897#p) by pedroavelar (No License)
+Rainy Day Friends (https://www.lexaloffle.com/bbs/?pid=16886#p) by electricgryphon (CC4-BY-NC-SA License)
+chrysopoeia (https://www.lexaloffle.com/bbs/?pid=44647#p) by benjamin_soule (No License)
+warehouse panic (https://www.lexaloffle.com/bbs/?pid=46990#p) by benjamin_soule (No License)
+Barp the Balldragon (https://www.lexaloffle.com/bbs/?pid=54395#p) by Saffith (CC4-BY-NC-SA)
+Celeste Classic 2 (https://www.lexaloffle.com/bbs/?pid=celeste_classic_2-5#p) by noel (CC4-BY-NC-SA)
+Solais (https://www.lexaloffle.com/bbs/?pid=d16solais-0#p) by DragonXVI (CC4-BY-NC-SA)
+Demon Castle (https://www.lexaloffle.com/bbs/?pid=demon_castle-1#p) by Mush (CC4-BY-NC-SA)
+Fuz (https://www.lexaloffle.com/bbs/?pid=fuz_v1-1.p8#p) by Jusiv (No License)
+Islander (https://www.lexaloffle.com/bbs/?pid=islander-4.p8#p) by CarsonK (No License)
+Little Necromancer (https://www.lexaloffle.com/bbs/?pid=littlenecromancer-4.p8#p) by Fred_Osterero (CC4-BY-NC-SA)
+Villager (https://www.lexaloffle.com/bbs/?pid=nano_villager-0.p8#p) by partnano (CC4-BY-NC-SA)
+Pico Driller (https://www.lexaloffle.com/bbs/?pid=picodriller-0.p8#p) by johanp (No License)
+pigments (https://www.lexaloffle.com/bbs/?pid=pigments-0.p8#p) by benjamin_soule (CC4-BY-NC-SA)
+Polar Panic (https://www.lexaloffle.com/bbs/?pid=polarpanic-0.p8#p) by johanp (No License)
+Little Architect (https://www.lexaloffle.com/bbs/?pid=ruwukawisa-0.p8#p) by benjamin_soule (No License)
+Scrap Boy (https://www.lexaloffle.com/bbs/?pid=scrap_boy-4.p8#p) by BoneVole (CC4-BY-NC-SA)
+Shelled Shinobi (https://www.lexaloffle.com/bbs/?pid=shelledshinobi1-7.p8#p) by noppa (No License)
+UFO Swamp Odyssey (https://www.lexaloffle.com/bbs/?pid=ufo-0.p8#p) by paranoidcactus (CC4-BY-NC-SA)
