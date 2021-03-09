@@ -301,6 +301,21 @@ bool Vm::loadCart(Cart* cart) {
     }
     lua_pop(_luaState, 0);
 
+    //customize bios per host's requirements
+    if (cart->Filename == "__FAKE08-BIOS.p8") {
+        std::string customBiosLua = _host->customBiosLua();
+
+        if (customBiosLua.length() > 0) {
+            int doStrRes = luaL_dostring(_luaState, customBiosLua.c_str());
+
+            if (! doStrRes == LUA_OK){
+                //bad lua passed
+                Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
+                lua_pop(_luaState, 1);
+            }
+        }
+    }
+
     _cartLoadError = "";
 
     return true;

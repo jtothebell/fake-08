@@ -304,3 +304,11 @@ vector<string> Host::listcarts(){
 const char* Host::logFilePrefix() {
     return "";
 }
+
+std::string Host::customBiosLua() {
+    return "cartpath = \"~/p8carts/\"\n"
+        "selectbtn = \"z\"\n"
+        "pausebtn = \"esc\""
+        "exitbtn = \"close window\""
+        "sizebtn = \"\"";
+}

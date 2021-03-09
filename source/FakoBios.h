@@ -38,29 +38,6 @@ function _init()
 	if __getbioserror then
 		linebuffer = __getbioserror()
 	end
-
-	cls(bgcolor)
-	spr(0, 1, 5, 6, 1)
-	color(6)
-	cursor(0, 6*3)
-	print("welcome to fake-08")
-	print("a homebrew pico-8 emulator")
-	print("currently in alpha (" .. versionstr .. ")")
-	print("")
-	print("place p8 carts in " .. cartpath)
-	if numcarts < 1 then
-		print("--no carts found--")
-	else
-		print("⬅️➡️ to navigate carts")
-		print("🅾️ (" .. selectbtn .. ") to load selected cart")
-		print(pausebtn .. " to close current cart")
-	end
-	print(sizebtn)
-	print(exitbtn .. " to exit")
-	print("")
-	-- 18 pixels from cursor() call, then 
-	-- 24 more from 4 print calls
-	line=84
 end
 
 function _update60()
@@ -109,6 +86,30 @@ function _update60()
 end
 
 function _draw()
+	cls(bgcolor)
+	spr(0, 1, 5, 6, 1)
+	color(6)
+	cursor(0, 6*3)
+	print("welcome to fake-08")
+	print("a homebrew pico-8 emulator")
+	print("currently in alpha (" .. versionstr .. ")")
+	print("")
+	print("place p8 carts in " .. cartpath)
+	if numcarts < 1 then
+		print("--no carts found--")
+	else
+		print("⬅️➡️ to navigate carts")
+		print("🅾️ (" .. selectbtn .. ") to load selected cart")
+		print(pausebtn .. " to close current cart")
+	end
+	print(sizebtn)
+	print(exitbtn .. " to exit")
+	print("")
+	-- 18 pixels from cursor() call, then 
+	-- 24 more from 4 print calls
+	line=84
+
+
 	rectfill(0, line, 128, line+5, bgcolor)
 	color(7)
 	print("> "..linebuffer, 0, line)

@@ -44,4 +44,6 @@ class Host {
     std::vector<std::string> listcarts();
 
     const char* logFilePrefix();
+
+    std::string customBiosLua();
 };
