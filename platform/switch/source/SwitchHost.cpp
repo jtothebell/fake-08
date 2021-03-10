@@ -347,3 +347,7 @@ vector<string> Host::listcarts(){
 const char* Host::logFilePrefix() {
     return "";
 }
+
+std::string Host::customBiosLua() {
+    return "";
+}

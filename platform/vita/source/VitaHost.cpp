@@ -469,3 +469,11 @@ const char* Host::logFilePrefix() {
     return "ux0:/";
 }
 
+std::string Host::customBiosLua() {
+    return "cartpath = \"ux0:/p8carts/\"\n"
+        "selectbtn = \"x\"\n"
+        "pausebtn = \"start\""
+        "exitbtn = \"l + r\""
+        "sizebtn = \"r\"";
+}
+

@@ -363,3 +363,8 @@ const char* Host::logFilePrefix() {
     return "";
 }
 
+std::string Host::customBiosLua() {
+    return "cartpath = \"sd:/p8carts/\"\n"
+        "pausebtn = \"+\"";
+}
+

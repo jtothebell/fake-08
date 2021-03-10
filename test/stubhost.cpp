@@ -89,3 +89,7 @@ vector<string> Host::listcarts(){
 
     return carts;
 }
+
+std::string Host::customBiosLua() {
+    return "";
+}
