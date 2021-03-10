@@ -17,6 +17,8 @@ sudo cp output/linux-x86_64/bannertool /usr/bin/
 
 chmod +x /usr/bin/makerom && chmod +x /usr/bin/bannertool
 
+cd /build_dir
+
 #Build 3dsx
 make 3ds
 
