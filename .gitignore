@@ -35,3 +35,4 @@ platform/vita/eboot.bin
 platform/vita/*.velf
 platform/vita/*.vpk
 platform/vita/param.sfo
+platform/SDL1_2/FAKE08
