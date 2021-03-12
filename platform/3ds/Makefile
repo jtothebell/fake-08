@@ -55,9 +55,18 @@ GFXBUILD	:=	$(BUILD)
 #---------------------------------------------------------------------------------
 CC = $(CXX)
 
+#Optimization/perf notes:
+#fast-math doesn't seem to help. -O3 seems to help a little. no exceptions doesn't make a difference in perf
+#-Ofast doesn't seem to improve beyond -O3 (but I'm leaving it anyway)
+#optimization notes: lots of time setting pixels. Tried making uiunt4_t type, and unioning ram, didn't seem to help
+#tried optimizing set pixel nibel by inlining more stuff. May have helped a tiny bit
+#looping on pico pixels instead of 3ds pixels seems to help
+#no definite difference with -funroll-loops
+#unroll templates: https://stackoverflow.com/a/28232338 don't seem any better than looping just 3ds pixels
+
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-CFLAGS	:=	-g -Wall -O2 -mword-relocations \
+CFLAGS	:=	-g -Wall -Ofast -mword-relocations \
 			-fomit-frame-pointer -ffunction-sections \
 			$(ARCH)
 
