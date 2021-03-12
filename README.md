@@ -1,54 +1,66 @@
 # fake-08
 
-A Pico 8 player for 3DS and other consoles (homebrew). Not related to or supported by Lexaloffle Software
+A Pico 8 player for homebrew consoles. Not related to or supported by Lexaloffle Software. [Latest release]https://github.com/jtothebell/fake-08/releases includes releases for Nintendo 3DS, Nintendo Switch, Sony PS Vita, and Nintendo Wii U.
 
 ## Usage:
-Place the executable file (.3DSx for 3DS or .nro for Switch) in a directory where it can be executed from your homebrew menu. Place pico 8 cart files (\*.p8 text or \*.p8.png files) in the `/p8carts/` directory on the SD card of your homebrew capable 3DS or Switch console (no support offered here for modifying your console, but you can look at https://3DS.hacks.guide/ for a guide to installing custom firmware on the 3DS).
+Installation will vary by console and executable type. If it is a console with a homebrew menu (Switch, Wii U, 3DS using .3dsx), place the executable file in the directory with other executables. If it is a console with installable hombrew (3ds with .cia, or PS Vita) install executable (VitaShell on Vita or FBI on 3DS).
 
-Launch the homebrew menu, then start Fake-08. Use left and right on the dpad or left stick to cycle through carts on the SD card. Choose a cart using the `A` button. To exit the currently running cart, press `Start` on 3DS or `+` on Switch. Press `R` to cycle between rendering sizes. Press `L` and `R` simultaneously to exit back to the homebrew menu.
+Pico 8 car files go in the `p8carts/` directory of your memory card (SD card on 3DS, Switch, and Wii U, memory card at `ux0:/` on Vita). `.p8` text file carts and `.p8.png` image file carts are supported.
+
+Launch FAKE-08 either via the homebrew menu or normal system UI (depending on how you installed). Use left and right to cycle through carts on the SD card. Choose a cart using the `A` (Nintendo consoles) or `X`(Vita) button. To exit the currently running cart, press `Start` or `+` to open the pause menu and select `Exit to Menu`. Press `R` to cycle between rendering sizes. Press `L` and `R` simultaneously to exit the appication. You can also close it via your console's operating system controls (home button etc).
 
 ## Building:
-Install devkitpro tool chains for 3DS and switch (see https://devkitpro.org/wiki/Getting_Started), then call `make` to make both, or `make 3DS` or `make switch` to make one or the other. 
+All platforms have automated builds set up via GitHub actions using docker images. You can see how those are set up in the `.github/workflows` directory of the repo.
+
+Building outside of a pre-setup docker container will require a toolchain installation for the platform that you want to build. 
+
+For the Nintendo consoles, install the appropriate toolchane from devkitpro (see https://devkitpro.org/wiki/Getting_Started). Switch and Wii U also require the platform specific SDL2 portlibs to be installed.
+
+Building for the Vita requires Vita SDK (see https://vitasdk.org/) to be installed.
+
+Once you have the appropriate toolchain(s) installed, call `make` followed by the platform name (`3ds`, `switch`, `vita`, or `wiiu`) to build that platform, or just `make` to build them all. `make clean` will clean all files from all platforms.
 
 Building tested on windows using devkitpro's msys2 and Ubuntu (WSL and standalone). Should work on other plaforms as well.
 
 ## Acknowledgements
  * Zep/Lexaloffle software for making pico 8. Buy a copy if you can. You won't regret it. https://www.lexaloffle.com/pico-8.php
- * Nintendo Homebrew Community, including but not limited to Smea, SciresM, yellows8, fincs, WinterMute, etc for making it possible for hobbyists like myself to make software for Nintendo's hardware
+ * Nintendo Homebrew Community
+ * Vita Homebrew Community
+ * zepto8 (https://github.com/samhocevar/zepto8) - Probably the best Pico 8 emulator. FAKE-08's audio, tline, and newer png decompression implementations were ported from zepto8, and other parts were heavily influenced. I also use a slightly modified z8lua (https://github.com/samhocevar/z8lua) for pico 8 specific features.
  * PicoLove (https://github.com/gamax92/picolove) - basis for my previous project - PicoLovePotion - and where I first learned the basics of Pico 8's API
  * tac08 (https://github.com/0xcafed00d/tac08) - a Pico 8 emulator that I leared a lot from. FAKE-08's sprite rendering and cart parsing is heavily based on tac08, and it uses 0xcafed00d's utf8-util to handle special characters in pico 8 carts
- * zepto8 (https://github.com/samhocevar/zepto8) - Probably the best Pico 8 emulator. FAKE-08's audio and tline implementations were both ported from zepto8, and other parts were heavily influenced. I also use zetpo8's lua version (https://github.com/samhocevar/z8lua) for pico 8 specific features.
- * LovePotion (https://github.com/TurtleP/LovePotion) - an implementation of Love2d for 3DS and switch that served as the runtime for PicoLovePotion, and a great way to make homebrew games for the 3DS and switch. I also use their static Logger implementation
+ * LovePotion (https://github.com/TurtleP/LovePotion) - an implementation of Love2d for 3DS and switch that served as the runtime for PicoLovePotion, and a great way to make homebrew games for the 3DS and switch. I also use a modified version of their static Logger implementation
 
 See LICENSE.MD for FAKE-08 license (MIT) as well as licenses of all other software used
 
 ## Known Issues:
 
-Several functions not implemented yet (`fillp()`, `menuitem()`, possibly others)
+Latest Pico 8 version v0.2.2 features (sprite fill patterns, text control codes, custom fonts, etc) not implemented yet
 
 Games using `flip()` (like tweetcarts) have intermittent problems exiting back to the menu, and may crash the console. Use with caution.
 
 Sound emulation is missing effects, and the noise implementation is wildly inaccurrate. Most of my sound implementation was ported over from Zepto 8 (a much more accurrate emulator) but I didn't want to bring over dependencies that were needed for those parts, and haven't otherwise implemented them yet
 
-Sound currently not supported at all on Switch. Should be doable, but my switch isn't currently available for debugging so I haven't been able to iron out the details.
+Sound currently not supported on Wii U. I also suspect there may be some bugs with peeking and poking multibyte values on the Wii U given its Big Endian architecture, but have not confirmed
 
-Games with lots of lua calls per frame will have slowdowns on old 3DS consoles, some on New 3DS consoles as well. It appears there was. I think more optimizations are possible, but keep in mind that Pico 8 lists a raspberry pi 1 with a 700 MHz ARM11 professor as minimum spec, and the old 3DS's CPU is 268 MHz ARM11. Many games should be playable regardless. 
+Performance is not great on Old 3ds systems. Some games may experience slowdowns on the faster consoles as well. More optimizations are probably possible, but keep in mind that Pico 8 lists a raspberry pi 1 with a 700 MHz ARM11 professor as minimum spec, and the old 3DS's CPU is 268 MHz ARM11. Many games should be playable regardless. 
 
+See [Issues](https://github.com/jtothebell/fake-08/issues) page for more specifics
 
 
 ## Carts
 
 You browse and download carts by using the `SPLORE()` function in Pico 8 (again, if you have $15 to spend, and you are interested in game dev, it is well worth your money). Once you have loaded a cart that you want to try on FAKE-08, type `save {{cartname}}.p8` to save the cart as a text file, then copy that file to your device's SD card.
 
-You can also browse carts on the Pico-8 BBS website, but can only download complete carts in png format. As of pre release v0.0.1.1 Fake-08 should load and play png carts provided they don't use any other unsupported features. You can download p8.png carts from the `Cart` link in the lower left of the game view, and save it into your sdmc:/p8carts directory.
+You can also browse carts on the Pico-8 BBS website, but can only download complete carts in png format. As of pre release v0.0.1.1 Fake-08 should load and play png carts provided they don't use any other unsupported features. You can download p8.png carts from the `Cart` link in the lower left of the game view, and save it into your `p8carts` directory.
 
 ## Other Notes
 
-I make no specific claims of compatibility at the present time. I think many carts _should_ work, but this is still a project in the very early stages, and it is my first real foray into C or C++ development and low level game dev in general. I'm mostly doing this project as a fun way to learn.
+Compatibility is improving, but not perfect. I think many carts _should_ work, but this is still a project in the early stages, and it is my first real foray into C or C++ development and low level game dev in general. I'm mostly doing this project as a fun way to learn.
 
 Feel free to write up any issues you come across, and attach or link to a cart that reproduces the issue. My main goal is to improve compatibility with Pico 8, and then improve speed of carts that are too slow on New 3DS systems.
 
-## Postcard Image Sprite Credits:
+## Postcard Image From Vita Sprite Credits:
 * Rabu Rabu Monster (https://www.lexaloffle.com/bbs/?pid=13897#p) by pedroavelar (No License)
 * Rainy Day Friends (https://www.lexaloffle.com/bbs/?pid=16886#p) by electricgryphon (CC4-BY-NC-SA License)
 * chrysopoeia (https://www.lexaloffle.com/bbs/?pid=44647#p) by benjamin_soule (No License)

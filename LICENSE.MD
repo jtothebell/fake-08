@@ -4,8 +4,11 @@
 
 **Note: this software is related to Pico-8, or othwerwise related to or supported by Lexaloffle Software
 
-## Lua 5.3
-- Website: https://www.lua.org/
+
+## Z8lua
+## Lua
+- Website (base lua): https://www.lua.org/
+- Website (z8lua): https://github.com/samhocevar/z8lua
 - License: MIT
 
 ## Zepto 8
@@ -24,16 +27,20 @@
 - Website: https://github.com/gamax92/picolove
 - License: zlib
 
+## SDL 2
+- Website: https://www.libsdl.org/
+- License: zlib
+
+## LodePNG
+- Website: https://lodev.org/lodepng/
+- License: custom
+
 ## LovePotion
 - Website: https://github.com/TurtleP/LovePotion
 - License: MIT
 
 ## libctru
 - Website: https://github.com/smealum/ctrulib
-- License: zlib
-
-## citro2d
-- Website: https://github.com/fincs/citro2d
 - License: zlib
 
 # libnx
@@ -44,6 +51,7 @@
 # oval drawing implementation:
 - Website: //https://stackoverflow.com/a/8448181
 - License: (CC BY-SA 3.0) https://creativecommons.org/licenses/by-sa/3.0/
+
 # **License Text**
 
 ## MIT license
@@ -111,4 +119,28 @@ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH RE
    TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
 
   0. You just DO WHAT THE FUCK YOU WANT TO.
+```
+
+## LodePNG License
+```
+Copyright (c) 2005-2018 Lode Vandevenne
+
+This software is provided 'as-is', without any express or implied
+warranty. In no event will the authors be held liable for any damages
+arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+
+    1. The origin of this software must not be misrepresented; you must not
+    claim that you wrote the original software. If you use this software
+    in a product, an acknowledgment in the product documentation would be
+    appreciated but is not required.
+
+    2. Altered source versions must be plainly marked as such, and must not be
+    misrepresented as being the original software.
+
+    3. This notice may not be removed or altered from any source
+    distribution.
 ```
