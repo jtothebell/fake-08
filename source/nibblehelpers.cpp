@@ -19,6 +19,11 @@ void setPixelNibble(int x, int y, uint8_t value, uint8_t* targetBuffer) {
 	value = mask == 0xf0 ? value << 4 : value;
 
 	targetBuffer[combinedIdx] = (currentByte & ~mask) | (value & mask);
+
+	//potentially slightly optimized by inlining - don't have measurements to back it up
+	//(BITMASK(0) & x) == 0 
+	//	? targetBuffer[(y << 6) + (x >> 1)] = (targetBuffer[(y << 6) + (x >> 1)] & 0xf0) | (value & 0x0f)
+	//	: targetBuffer[(y << 6) + (x >> 1)] = (targetBuffer[(y << 6) + (x >> 1)] & 0x0f) | (value << 4 & 0xf0);
 }
 
 uint8_t getPixelNibble(int x, int y, uint8_t* targetBuffer) {
