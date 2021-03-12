@@ -1,6 +1,6 @@
 # fake-08
 
-A Pico 8 player for homebrew consoles. Not related to or supported by Lexaloffle Software. [Latest release]https://github.com/jtothebell/fake-08/releases includes releases for Nintendo 3DS, Nintendo Switch, Sony PS Vita, and Nintendo Wii U.
+A Pico 8 player for homebrew consoles. Not related to or supported by Lexaloffle Software. [Latest release](https://github.com/jtothebell/fake-08/releases) includes releases for Nintendo 3DS, Nintendo Switch, Sony PS Vita, and Nintendo Wii U.
 
 ## Usage:
 Installation will vary by console and executable type. If it is a console with a homebrew menu (Switch, Wii U, 3DS using .3dsx), place the executable file in the directory with other executables. If it is a console with installable hombrew (3ds with .cia, or PS Vita) install executable (VitaShell on Vita or FBI on 3DS).
