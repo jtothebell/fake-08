@@ -781,6 +781,15 @@ void Vm::vm_run() {
     }
 }
 
-void Vm::vm_extcmd(const char* cmd){
-
+void Vm::vm_extcmd(std::string cmd){
+    //screenshots, recording, and breadcrumb not supported
+    if (cmd == "reset"){
+        QueueCartChange(CurrentCartFilename());
+    }
+    else if (cmd == "pause") {
+        togglePauseMenu();
+    }
+    else if (cmd == "shutdown") {
+        QueueCartChange("__FAKE08-BIOS.p8");
+    }
 }
