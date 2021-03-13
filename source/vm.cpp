@@ -239,6 +239,7 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "stat", stat);
     lua_register(_luaState, "_update_buttons", _update_buttons);
     lua_register(_luaState, "run", run);
+    lua_register(_luaState, "extcmd", extcmd);
 
     //rng
     lua_register(_luaState, "rnd", rnd);
@@ -778,4 +779,8 @@ void Vm::vm_run() {
     if (_loadedCart) {
         loadCart(_loadedCart);
     }
+}
+
+void Vm::vm_extcmd(const char* cmd){
+
 }

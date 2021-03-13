@@ -122,5 +122,6 @@ class Vm {
 
     void vm_flip();
     void vm_run();
+    void vm_extcmd(const char* cmd);
 };
 
