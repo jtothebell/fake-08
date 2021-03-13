@@ -41,8 +41,6 @@ using namespace z8;
 #define COLOR_142 {255, 110,  89, 255}
 #define COLOR_143 {255, 157, 129, 255}
 
-#define BG_GRAY_COLOR {128, 128, 128, 255}
-
 
 class Graphics {
 	uint8_t fontSpriteData[128 * 64];

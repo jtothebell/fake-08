@@ -20,8 +20,6 @@ using namespace z8;
 const uint8_t PicoScreenWidth = 128;
 const uint8_t PicoScreenHeight = 128;
 
-const Color BgGray = BG_GRAY_COLOR;
-
 
 //call initialize to make sure defaults are correct
 Graphics::Graphics(std::string fontdata, PicoRam* memory) {
