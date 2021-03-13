@@ -48,7 +48,7 @@ u32 currKDown;
 u32 currKHeld;
 
 Color* _paletteColors;
-Bgr24Col _bgrColors[16];
+uint16_t _rgb565Colors[144];
 Audio* _audio;
 
 uint8_t ConvertInputToP8(u32 input){
@@ -191,13 +191,23 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     targetFrameTimeMs = 0;
 
     _paletteColors = paletteColors;
-    for(int i = 0; i < 16; i++){
-        _bgrColors[i] = {
-            _paletteColors[i].Blue,
-            _paletteColors[i].Green,
-            _paletteColors[i].Red
-        };
+    for(int i = 0; i < 144; i++){
+        _rgb565Colors[i] = (((_paletteColors[i].Red & 0xf8)<<8) + ((_paletteColors[i].Green & 0xfc)<<3)+(_paletteColors[i].Blue>>3));
     }
+
+    //set to RGB565 for 2 bytes per pixel instead of 3
+    gfxSetScreenFormat(GFX_TOP, GSP_RGB565_OES);
+    gfxSetScreenFormat(GFX_BOTTOM, GSP_RGB565_OES);
+
+    int bgcolor = 0;
+
+    uint16_t* fb = (uint16_t*)gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
+	//clear whole top framebuffer
+	memset(fb, bgcolor, __3ds_TopScreenWidth*__3ds_TopScreenHeight*2);
+
+	//clear bottom buffer in case overflow rendering is being used
+	uint16_t* fbb = (uint16_t*)gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
+	memset(fbb, bgcolor, __3ds_BottomScreenWidth*__3ds_BottomScreenHeight*2);
 }
 
 void Host::oneTimeCleanup(){
@@ -263,14 +273,11 @@ void Host::waitForTargetFps(){
 
 
 void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
-    int bgcolor = 0;
-	uint8_t* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
-	//clear whole top framebuffer
-	memset(fb, bgcolor, __3ds_TopScreenWidth*__3ds_TopScreenHeight*3);
+    
+	uint16_t* fb = (uint16_t*)gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
 
-	//clear bottom buffer in case overflow rendering is being used
-	uint8_t* fbb = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
-	memset(fbb, bgcolor, __3ds_BottomScreenWidth*__3ds_BottomScreenHeight*3);
+	//bottom buffer in case overflow rendering is being used
+	uint16_t* fbb = (uint16_t*)gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
 
     int x, y;
 
@@ -284,18 +291,18 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
                 int x1 = x << 1;
                 int x2 = x1 + 1;
                 uint8_t lc = getPixelNibble(x1, y, picoFb);
-                Bgr24Col lcol = _bgrColors[screenPaletteMap[lc]];
+                uint16_t lcol = _rgb565Colors[screenPaletteMap[lc]];
 
                 int pixIdx = (((x1 + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y + yOffset)));
 
-                ((Bgr24Col*)fb)[pixIdx] = lcol;
+                fb[pixIdx] = lcol;
 
                 uint8_t rc = getPixelNibble(x2, y, picoFb);
-                Bgr24Col rcol = _bgrColors[screenPaletteMap[rc]];
+                uint16_t rcol = _rgb565Colors[screenPaletteMap[rc]];
 
                 pixIdx = (((x2 + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y + yOffset)));
 
-                ((Bgr24Col*)fb)[pixIdx] = rcol;
+                fb[pixIdx] = rcol;
             }
         }
 	}
@@ -311,13 +318,11 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
                 int picoX = (int)(x / ratio);
                 int picoY = (int)(y / ratio);
                 uint8_t c = getPixelNibble(picoX, picoY, picoFb);
-                Color col = _paletteColors[screenPaletteMap[c]];
+                uint16_t col = _rgb565Colors[screenPaletteMap[c]];
 
-                int pixIdx = (((x + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y + yOffset)))*3;
+                int pixIdx = (((x + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y + yOffset)));
 
-                fb[pixIdx + 0] = col.Blue;
-                fb[pixIdx + 1] = col.Green;
-                fb[pixIdx + 2] = col.Red;
+                fb[pixIdx] = col;
             }
         }
 	}
@@ -335,31 +340,31 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
                 int picox1 = x << 1;
                 int picox2 = picox1 + 1;
                 uint8_t lc = getPixelNibble(picox1, y, picoFb);
-                Bgr24Col lcol = _bgrColors[screenPaletteMap[lc]];
+                uint16_t lcol = _rgb565Colors[screenPaletteMap[lc]];
 
                 int pixIdx = (((picox1*2 + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y*2 + yOffset)));
                 int pixIdx2 = (((picox1*2 + xOffset + 1)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y*2 + yOffset)));
                 int pixIdx3 = (((picox1*2 + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y*2 + yOffset + 1)));
                 int pixIdx4 = (((picox1*2 + xOffset + 1)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y*2 + yOffset + 1)));
 
-                ((Bgr24Col*)fb)[pixIdx] = lcol;
-                ((Bgr24Col*)fb)[pixIdx2] = lcol;
-                ((Bgr24Col*)fb)[pixIdx3] = lcol;
-                ((Bgr24Col*)fb)[pixIdx4] = lcol;
+                fb[pixIdx] = lcol;
+                fb[pixIdx2] = lcol;
+                fb[pixIdx3] = lcol;
+                fb[pixIdx4] = lcol;
                 
 
                 uint8_t rc = getPixelNibble(picox2, y, picoFb);
-                Bgr24Col rcol = _bgrColors[screenPaletteMap[rc]];
+                uint16_t rcol = _rgb565Colors[screenPaletteMap[rc]];
 
                 pixIdx = (((picox2*2 + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y*2 + yOffset)));
                 pixIdx2 = (((picox2*2 + xOffset + 1)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y*2 + yOffset)));
                 pixIdx3 = (((picox2*2 + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y*2 + yOffset + 1)));
                 pixIdx4 = (((picox2*2 + xOffset + 1)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y*2 + yOffset + 1)));
 
-                ((Bgr24Col*)fb)[pixIdx] = rcol;
-                ((Bgr24Col*)fb)[pixIdx2] = rcol;
-                ((Bgr24Col*)fb)[pixIdx3] = rcol;
-                ((Bgr24Col*)fb)[pixIdx4] = rcol;
+                fb[pixIdx] = rcol;
+                fb[pixIdx2] = rcol;
+                fb[pixIdx3] = rcol;
+                fb[pixIdx4] = rcol;
             }
         }
 
@@ -371,30 +376,30 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
                 int picox2 = picox1 + 1;
                 int picoY = 120 + y;
                 uint8_t lc = getPixelNibble(picox1, picoY, picoFb);
-                Bgr24Col lcol = _bgrColors[screenPaletteMap[lc]];
+                uint16_t lcol = _rgb565Colors[screenPaletteMap[lc]];
 
                 int pixIdx = (((picox1*2 + xOffset)*__3ds_BottomScreenHeight)+ ((__3ds_BottomScreenHeight - 1) - (y*2 + yOffset)));
                 int pixIdx2 = (((picox1*2 + xOffset + 1)*__3ds_BottomScreenHeight)+ ((__3ds_BottomScreenHeight - 1) - (y*2 + yOffset)));
                 int pixIdx3 = (((picox1*2 + xOffset)*__3ds_BottomScreenHeight)+ ((__3ds_BottomScreenHeight - 1) - (y*2 + yOffset + 1)));
                 int pixIdx4 = (((picox1*2 + xOffset + 1)*__3ds_BottomScreenHeight)+ ((__3ds_BottomScreenHeight - 1) - (y*2 + yOffset + 1)));
 
-                ((Bgr24Col*)fbb)[pixIdx] = lcol;
-                ((Bgr24Col*)fbb)[pixIdx2] = lcol;
-                ((Bgr24Col*)fbb)[pixIdx3] = lcol;
-                ((Bgr24Col*)fbb)[pixIdx4] = lcol;
+                fbb[pixIdx] = lcol;
+                fbb[pixIdx2] = lcol;
+                fbb[pixIdx3] = lcol;
+                fbb[pixIdx4] = lcol;
 
                 uint8_t rc = getPixelNibble(picox2, picoY, picoFb);
-                Bgr24Col rcol = _bgrColors[screenPaletteMap[rc]];
+                uint16_t rcol = _rgb565Colors[screenPaletteMap[rc]];
 
                 pixIdx = (((picox2*2 + xOffset)*__3ds_BottomScreenHeight)+ ((__3ds_BottomScreenHeight - 1) - (y*2 + yOffset)));
                 pixIdx2 = (((picox2*2 + xOffset + 1)*__3ds_BottomScreenHeight)+ ((__3ds_BottomScreenHeight - 1) - (y*2 + yOffset)));
                 pixIdx3 = (((picox2*2 + xOffset)*__3ds_BottomScreenHeight)+ ((__3ds_BottomScreenHeight - 1) - (y*2 + yOffset + 1)));
                 pixIdx4 = (((picox2*2 + xOffset + 1)*__3ds_BottomScreenHeight)+ ((__3ds_BottomScreenHeight - 1) - (y*2 + yOffset + 1)));
 
-                ((Bgr24Col*)fbb)[pixIdx] = rcol;
-                ((Bgr24Col*)fbb)[pixIdx2] = rcol;
-                ((Bgr24Col*)fbb)[pixIdx3] = rcol;
-                ((Bgr24Col*)fbb)[pixIdx4] = rcol;
+                fbb[pixIdx] = rcol;
+                fbb[pixIdx2] = rcol;
+                fbb[pixIdx3] = rcol;
+                fbb[pixIdx4] = rcol;
             }
         }
 	}
