@@ -239,6 +239,7 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "stat", stat);
     lua_register(_luaState, "_update_buttons", _update_buttons);
     lua_register(_luaState, "run", run);
+    lua_register(_luaState, "extcmd", extcmd);
 
     //rng
     lua_register(_luaState, "rnd", rnd);
@@ -777,5 +778,18 @@ void Vm::vm_flip() {
 void Vm::vm_run() {
     if (_loadedCart) {
         loadCart(_loadedCart);
+    }
+}
+
+void Vm::vm_extcmd(std::string cmd){
+    //screenshots, recording, and breadcrumb not supported
+    if (cmd == "reset"){
+        QueueCartChange(CurrentCartFilename());
+    }
+    else if (cmd == "pause") {
+        togglePauseMenu();
+    }
+    else if (cmd == "shutdown") {
+        QueueCartChange("__FAKE08-BIOS.p8");
     }
 }

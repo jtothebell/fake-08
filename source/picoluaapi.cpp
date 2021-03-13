@@ -880,6 +880,18 @@ int run(lua_State *L) {
     return 0;
 }
 
+int extcmd(lua_State *L){
+    const char * str = "";
+
+    if (lua_isstring(L, 1)){
+        str = lua_tolstring(L, 1, nullptr);
+    }
+
+    _vmForLuaApi->vm_extcmd(str);
+
+    return 0;
+}
+
 int listcarts(lua_State *L) {
     //get cart list from VM (who should get it from host)
     vector<string> carts = _vmForLuaApi->GetCartList();
