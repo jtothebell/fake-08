@@ -5,7 +5,7 @@ A Pico 8 player for homebrew consoles. Not related to or supported by Lexaloffle
 ## Usage:
 Installation will vary by console and executable type. If it is a console with a homebrew menu (Switch, Wii U, 3DS using .3dsx), place the executable file in the directory with other executables. If it is a console with installable hombrew (3ds with .cia, or PS Vita) install executable (VitaShell on Vita or FBI on 3DS).
 
-Pico 8 car files go in the `p8carts/` directory of your memory card (SD card on 3DS, Switch, and Wii U, memory card at `ux0:/` on Vita). `.p8` text file carts and `.p8.png` image file carts are supported.
+Pico 8 cart files go in the `p8carts/` directory of your memory card (SD card on 3DS, Switch, and Wii U, memory card at `ux0:/` on Vita). `.p8` text file carts and `.p8.png` image file carts are supported.
 
 Launch FAKE-08 either via the homebrew menu or normal system UI (depending on how you installed). Use left and right to cycle through carts on the SD card. Choose a cart using the `A` (Nintendo consoles) or `X`(Vita) button. To exit the currently running cart, press `Start` or `+` to open the pause menu and select `Exit to Menu`. Press `R` to cycle between rendering sizes. Press `L` and `R` simultaneously to exit the appication. You can also close it via your console's operating system controls (home button etc).
 
@@ -14,7 +14,7 @@ All platforms have automated builds set up via GitHub actions using docker image
 
 Building outside of a pre-setup docker container will require a toolchain installation for the platform that you want to build. 
 
-For the Nintendo consoles, install the appropriate toolchane from devkitpro (see https://devkitpro.org/wiki/Getting_Started). Switch and Wii U also require the platform specific SDL2 portlibs to be installed.
+For the Nintendo consoles, install the appropriate toolchain from devkitpro (see https://devkitpro.org/wiki/Getting_Started). Switch and Wii U also require the platform specific SDL2 portlibs to be installed.
 
 Building for the Vita requires Vita SDK (see https://vitasdk.org/) to be installed.
 
