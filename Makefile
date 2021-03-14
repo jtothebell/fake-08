@@ -7,8 +7,8 @@ export APP_AUTHOR	= jtothebell
 export APP_VERSION	= v0.0.2.5
 
 #paths are relative to platform folder
-export SOURCES   = ../../source ../../libs/z8lua ../../libs/utf8-util ../../libs/lodepng
-export INCLUDES  = ../../include ../../libs/z8lua ../../libs/utf8-util ../../libs/lodepng
+export SOURCES   = ../../source ../../libs/z8lua ../../libs/utf8-util ../../libs/lodepng ../../libs/simpleini
+export INCLUDES  = ../../include ../../libs/z8lua ../../libs/utf8-util ../../libs/lodepng ../../libs/simpleini
 
 .PHONY: all 3ds switch wiiu vita sdl2 clean clean-3ds clean-switch clean-wiiu clean-vita clean-sdl2
 
@@ -29,7 +29,7 @@ clean-vita:
 	@$(MAKE) -C platform/vita clean
 
 clean-sdl2:
-	@$(MAKE) -C platform/SDL2 clean
+	@$(MAKE) -C platform/SDL2Desktop clean
 
 3ds:
 	@$(MAKE) -C platform/3ds
@@ -47,7 +47,7 @@ vita:
 	@$(MAKE) -C platform/vita
 
 sdl2:
-	@$(MAKE) -C platform/SDL2
+	@$(MAKE) -C platform/SDL2Desktop
 
 clean-tests:
 	@$(MAKE) -C test clean

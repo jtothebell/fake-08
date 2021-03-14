@@ -8,6 +8,8 @@
 #include <iostream>
 using namespace std;
 
+#include "../../SDL2Common/source/sdl2basehost.h"
+
 #include "../../../source/host.h"
 #include "../../../source/hostVmShared.h"
 #include "../../../source/nibblehelpers.h"
@@ -17,15 +19,8 @@ using namespace std;
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
 
-#define SCREEN_SIZE_X 640
-#define SCREEN_SIZE_Y 640
-
-#define WIN_WIDTH 1280
-#define WIN_HEIGHT 720
-
-#define SAMPLERATE 22050
-#define SAMPLESPERBUF (SAMPLERATE / 30)
-#define NUM_BUFFERS 2
+#define WINDOW_SIZE_X 1280
+#define WINDOW_SIZE_Y 720
 
 #define JOY_A     0
 #define JOY_B     1
@@ -44,190 +39,43 @@ using namespace std;
 #define JOY_RIGHT 14
 #define JOY_DOWN  15
 
-uint8_t currKDown;
-uint8_t currKHeld;
-bool lDown = false;
-bool rDown = false;
-bool stretchKeyPressed = false;
+#define WINDOW_FLAGS SDL_WINDOW_SHOWN
 
-const int PicoScreenWidth = 128;
-const int PicoScreenHeight = 128;
+#define RENDERER_FLAGS SDL_RENDERER_ACCELERATED
+#define PIXEL_FORMAT SDL_PIXELFORMAT_ARGB8888
 
-int screenWidth = SCREEN_SIZE_X;
-int screenHeight = SCREEN_SIZE_Y;
-
-StretchOption stretch = PixelPerfectStretch;
-u64 last_time;
-u64 now_time;
-u64 frame_time;
-double targetFrameTimeMs;
-
-Color* _paletteColors;
-Audio* _audio;
-
-SDL_Window* window;
 SDL_Event event;
-SDL_Renderer *renderer;
-SDL_Texture *texture = NULL;
-SDL_Rect DestR;
-SDL_AudioSpec want, have;
-SDL_AudioDeviceID dev;
-int quit = 0;
-void *pixels;
-uint8_t *base;
-int pitch;
 
 
-void postFlipFunction(){
-    //flush switch frame buffers
-    // We're done rendering, so we end the frame here.
-    SDL_UnlockTexture(texture);
-    SDL_RenderCopy(renderer, texture, NULL, &DestR);
-
-    SDL_RenderPresent(renderer);
-}
+string _desktopSdl2SettingsDir = "switch/fake08";
+string _desktopSdl2SettingsPrefix = "switch/fake08/";
+string _desktopSdl2customBiosLua = "cartpath = \"sdmc:/switch/p8carts/\"\n";
 
 
-bool audioInitialized = false;
-
-void audioCleanup(){
-    audioInitialized = false;
-
-    //SDL_CloseAudioDevice(dev);
-}
-
-void FillAudioDeviceBuffer(void* UserData, Uint8* DeviceBuffer, int Length)
+Host::Host() 
 {
-    _audio->FillAudioBuffer(DeviceBuffer, 0, Length / 4);
-}
+    struct stat st = {0};
 
-void audioSetup(){
-    //modifed from SDL docs: https://wiki.libsdl.org/SDL_OpenAudioDevice
-
-    //Audio plays but is wrong. maybe a problem with sample rate or endian-ness? haven't investigated thoroughly
-
-    SDL_memset(&want, 0, sizeof(want)); // or SDL_zero(want)
-    want.freq = SAMPLERATE;
-    want.format = AUDIO_S16;
-    want.channels = 2;
-    want.samples = 4096;
-    want.callback = FillAudioDeviceBuffer;
-    
-
-    dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
-    if (dev == 0) {
-        Logger_Write("Failed to open audio: %s", SDL_GetError());
-    } else {
-        if (have.format != want.format) {
-            Logger_Write("We didn't get requested audio format.");
-        }
-        SDL_PauseAudioDevice(dev, 0); // start audio playing.
-
-        audioInitialized = true;
-    } 
-}
-
-
-
-Host::Host() { }
-
-
-void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
-    {
-        fprintf(stderr, "SDL could not initialize\n");
-        quit = 1;
-        return;
+    int res = chdir(getenv("sdmc:/"));
+    if (res == 0 && stat("switch", &st) == -1) {
+        res = mkdir("switch", 0777);
     }
 
-	window = SDL_CreateWindow("fake-08", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIN_WIDTH, WIN_HEIGHT, SDL_WINDOW_SHOWN);
-	if (!window) 
-    { 
-        quit = 1;
-        return; 
-    }
-	
-	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-	if (!renderer) 
-    { 
-        quit = 1;
-        return;
+    if (res == 0 && stat(_desktopSdl2SettingsDir.c_str(), &st) == -1) {
+        res = mkdir(_desktopSdl2SettingsDir.c_str(), 0777);
     }
 
-	texture  = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, PicoScreenWidth, PicoScreenHeight);
-	if (texture == NULL) 
-    {
-		quit = 1;
-        return;
-	}
-
-    atexit(SDL_Quit);
-
-    DestR.x = WIN_WIDTH / 2 - SCREEN_SIZE_X / 2;
-    DestR.y = WIN_HEIGHT / 2 - SCREEN_SIZE_Y / 2;
-    DestR.w = SCREEN_SIZE_X;
-    DestR.h = SCREEN_SIZE_Y;
-
-    _audio = audio;
-    audioSetup();
-
-    for (int i = 0; i < SDL_NumJoysticks(); i++) {
-		if (SDL_JoystickOpen(i) == NULL) {
-			printf("Failed to open joystick %d!\n", i);
-			quit = 1;
-		}
-    }
-    
-    last_time = 0;
-    now_time = 0;
-    frame_time = 0;
-    targetFrameTimeMs = 0;
-
-    _paletteColors = paletteColors;
+    setPlatformParams(
+        WINDOW_SIZE_X,
+        WINDOW_SIZE_Y,
+        WINDOW_FLAGS,
+        RENDERER_FLAGS,
+        PIXEL_FORMAT,
+        _desktopSdl2SettingsPrefix,
+        _desktopSdl2customBiosLua
+    );
 }
 
-void Host::oneTimeCleanup(){
-    audioCleanup();
-
-	SDL_DestroyTexture(texture);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-}
-
-void Host::setTargetFps(int targetFps){
-    targetFrameTimeMs = 1000.0 / (double)targetFps;
-}
-
-void Host::changeStretch(){
-    if (stretchKeyPressed) {
-        if (stretch == PixelPerfectStretch) {
-            stretch = PixelPerfect;
-            screenWidth = PicoScreenWidth;
-            screenHeight = PicoScreenHeight;
-        }
-        else if (stretch == PixelPerfect) {
-            stretch = StretchToFit;
-            screenWidth = WIN_HEIGHT;
-            screenHeight = WIN_HEIGHT;
-        }
-        else if (stretch == StretchToFit) {
-            stretch = StretchToFill;
-            screenWidth = WIN_WIDTH;
-            screenHeight = WIN_HEIGHT; 
-        }
-        else if (stretch == StretchToFill) {
-            stretch = PixelPerfectStretch;
-            screenWidth = SCREEN_SIZE_X;
-            screenHeight = SCREEN_SIZE_Y; 
-        }
-
-        DestR.x = WIN_WIDTH / 2 - screenWidth / 2;
-        DestR.y = WIN_HEIGHT / 2 - screenHeight / 2;
-        DestR.w = screenWidth;
-        DestR.h = screenHeight;
-    }
-}
 
 InputState_t Host::scanInput(){
     currKDown = 0;
@@ -288,81 +136,12 @@ InputState_t Host::scanInput(){
 }
 
 
-bool Host::shouldQuit() {
-
-	return quit > 0;
-}
-
-const double NANOSECONDS_TO_MILLISECONDS = 1.0 / 1000000.0;
-
-void Host::waitForTargetFps(){
-    now_time = armGetSystemTick();
-    frame_time = now_time - last_time;
-	last_time = now_time;
-
-    u64 frameTimeNs = armTicksToNs(frame_time);
-	double frameTimeMs = frameTimeNs * NANOSECONDS_TO_MILLISECONDS;
-
-	//sleep for remainder of time
-	if (frameTimeMs < targetFrameTimeMs) {
-		double msToSleep = targetFrameTimeMs - frameTimeMs;
-        u64 nsToSleep = msToSleep * 1000 * 1000;
-
-		svcSleepThread(nsToSleep);
-
-		last_time += armNsToTicks(nsToSleep);
-	}
-}
-
-
-void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
-	//clear screen to all black
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-    SDL_RenderClear(renderer);
-
-    SDL_LockTexture(texture, NULL, &pixels, &pitch);
-
-    for (int y = 0; y < PicoScreenHeight; y ++){
-        for (int x = 0; x < PicoScreenWidth; x ++){
-            uint8_t c = getPixelNibble(x, y, picoFb);
-            Color col = _paletteColors[screenPaletteMap[c]];
-
-            base = ((Uint8 *)pixels) + (4 * ( y * PicoScreenHeight + x));
-            base[0] = col.Blue;
-            base[1] = col.Green;
-            base[2] = col.Red;
-            base[3] = col.Alpha;
-        }
-    }
-
-    postFlipFunction();
-}
-
-bool Host::shouldFillAudioBuff(){
-    return false;
-}
-
-void* Host::getAudioBufferPointer(){
-    return nullptr;
-}
-
-size_t Host::getAudioBufferSize(){
-    return 0;
-}
-
-void Host::playFilledAudioBuffer(){
-}
-
-bool Host::shouldRunMainLoop(){
-    return appletMainLoop();
-}
-
 vector<string> Host::listcarts(){
     vector<string> carts;
 
-    DIR* dir = opendir("/p8carts");
+    DIR* dir = opendir("switch/p8carts");
     struct dirent *ent;
-    std::string fullCartDir = "/p8carts/";
+    std::string fullCartDir = "switch/p8carts/";
 
     if (dir) {
         /* print all the files and directories within directory */
@@ -376,10 +155,3 @@ vector<string> Host::listcarts(){
     return carts;
 }
 
-const char* Host::logFilePrefix() {
-    return "";
-}
-
-std::string Host::customBiosLua() {
-    return "";
-}

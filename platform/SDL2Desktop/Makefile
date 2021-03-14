@@ -8,7 +8,7 @@
 #---------------------------------------------------------------------------------
 TARGET		:=	FAKE08
 BUILD		:=	build
-SOURCES		:=	${SOURCES} source
+SOURCES		:=	${SOURCES} ../SDL2Common/source source
 INCLUDES	:=	${INCLUDES}
 
 #---------------------------------------------------------------------------------

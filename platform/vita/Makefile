@@ -5,7 +5,7 @@ PROJECT := fake_08
 
 PHONY := all package clean
 
-SOURCES	:=	${SOURCES} source
+SOURCES	:=	${SOURCES} ../SDL2Common/source source
 INCLUDES	:=	${INCLUDES}
 
 LIBS = -lSDL2 -lSceDisplay_stub -lSceCtrl_stub -lSceAudio_stub \

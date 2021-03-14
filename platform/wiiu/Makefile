@@ -22,7 +22,7 @@ PKGCONF		:=	$(PORTLIBS_PATH)/wiiu/bin/powerpc-eabi-pkg-config
 #-------------------------------------------------------------------------------
 TARGET		:=	FAKE-08
 BUILD		:=	build
-SOURCES		:=	${SOURCES} source
+SOURCES		:=	${SOURCES} ../SDL2Common/source source
 INCLUDES	:=	${INCLUDES}
 ROMFS		:=	romfs
 LIBRARIES	:=	SDL2_gfx SDL2_image SDL2_mixer SDL2_ttf sdl2 \

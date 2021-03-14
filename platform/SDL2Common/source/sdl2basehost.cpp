@@ -8,32 +8,36 @@
 #include <iostream>
 using namespace std;
 
-#include "../../../source/host.h"
+#include "sdl2basehost.h"
 #include "../../../source/hostVmShared.h"
 #include "../../../source/nibblehelpers.h"
 #include "../../../source/logger.h"
+#include "../../../source/filehelpers.h"
 
 // sdl
 #include <SDL2/SDL.h>
-
-#define WINDOW_SIZE_X 1280
-#define WINDOW_SIZE_Y 720
-
-#define SCREEN_SIZE_X 640
-#define SCREEN_SIZE_Y 640
-
 
 #define SAMPLERATE 22050
 #define SAMPLESPERBUF (SAMPLERATE / 30)
 #define NUM_BUFFERS 2
 
-int screenWidth = SCREEN_SIZE_X;
-int screenHeight = SCREEN_SIZE_Y;
+int _windowWidth = 128;
+int _windowHeight = 128;
+
+
+int _screenWidth = 128;
+int _screenHeight = 128;
+
+int _maxNoStretchWidth = 128;
+int _maxNoStretchHeight = 128;
 
 const int PicoScreenWidth = 128;
 const int PicoScreenHeight = 128;
 
-StretchOption stretch = PixelPerfectStretch;
+uint32_t _windowFlags;
+uint32_t _rendererFlags;
+uint32_t _pixelFormat;
+
 uint32_t last_time;
 uint32_t now_time;
 uint32_t frame_time;
@@ -47,10 +51,8 @@ Color* _paletteColors;
 Audio* _audio;
 
 SDL_Window* window;
-SDL_Event event;
 SDL_Renderer *renderer;
 SDL_Texture *texture = NULL;
-SDL_bool done = SDL_FALSE;
 SDL_AudioSpec want, have;
 SDL_AudioDeviceID dev;
 void *pixels;
@@ -58,6 +60,8 @@ uint8_t *base;
 int pitch;
 
 SDL_Rect DestR;
+
+int joystickCount = 0;
 
 bool audioInitialized = false;
 
@@ -105,8 +109,59 @@ void audioSetup(){
     }
 }
 
+void _changeStretch(StretchOption newStretch){
+    if (newStretch == PixelPerfect) {
+        _screenWidth = PicoScreenWidth;
+        _screenHeight = PicoScreenHeight;
+    }
+    else if (newStretch == StretchToFit) {
+        _screenWidth = _windowHeight;
+        _screenHeight = _windowHeight;
+    }
+    else if (newStretch == StretchToFill){
+        _screenWidth = _windowWidth;
+        _screenHeight = _windowHeight; 
+    }
+    else if (newStretch == PixelPerfectStretch) {
+        _screenWidth = _maxNoStretchWidth;
+        _screenHeight = _maxNoStretchHeight; 
+    }
+    
+    DestR.x = _windowWidth / 2 - _screenWidth / 2;
+    DestR.y = _windowHeight / 2 - _screenHeight / 2;
+    DestR.w = _screenWidth;
+    DestR.h = _screenHeight;
+}
 
-Host::Host() { }
+void Host::setPlatformParams(
+    int windowWidth,
+    int windowHeight,
+    uint32_t sdlWindowFlags,
+    uint32_t sdlRendererFlags,
+    uint32_t sdlPixelFormat,
+    std::string logFilePrefix,
+    std::string customBiosLua) 
+{
+    _windowWidth = windowWidth;
+    _windowHeight = windowHeight;
+    
+    //assume wide screen, height is limiting factor
+    int maxNoStretchFactor = _windowHeight / PicoScreenHeight;
+
+    _maxNoStretchWidth = maxNoStretchFactor * PicoScreenWidth;
+    _maxNoStretchHeight = maxNoStretchFactor * PicoScreenHeight;
+
+    _screenWidth = _maxNoStretchWidth;
+    _screenHeight = _maxNoStretchHeight;
+
+    _windowFlags = sdlWindowFlags;
+    _rendererFlags = sdlRendererFlags;
+    _pixelFormat = sdlPixelFormat;
+
+    _logFilePrefix = logFilePrefix;
+    _customBiosLua = customBiosLua;
+
+}
 
 
 void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
@@ -116,37 +171,56 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
         return;
     }
 
-    SDL_CreateWindowAndRenderer(WINDOW_SIZE_X, WINDOW_SIZE_Y, 0, &window, &renderer);
-    if (!window)
-    {
-        fprintf(stderr, "Error creating window.\n");
+    window = SDL_CreateWindow("FAKE-08", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, _windowWidth, _windowHeight, _windowFlags);
+	if (!window) 
+    { 
+        quit = 1;
+        return; 
+    }
+	
+	renderer = SDL_CreateRenderer(window, -1, _rendererFlags);
+	if (!renderer) 
+    { 
+        quit = 1;
         return;
     }
 
-    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, PicoScreenWidth, PicoScreenHeight);
+    texture = SDL_CreateTexture(renderer, _pixelFormat, SDL_TEXTUREACCESS_STREAMING, PicoScreenWidth, PicoScreenHeight);
     if (!texture)
     {
         fprintf(stderr, "Error creating texture.\n");
+        quit = 1;
         return;
     }
+
+    atexit(SDL_Quit);
 
     _audio = audio;
     audioSetup();
 
-    DestR.x = WINDOW_SIZE_X / 2 - SCREEN_SIZE_X / 2;
-    DestR.y = WINDOW_SIZE_Y / 2 - SCREEN_SIZE_Y / 2;
-    DestR.w = SCREEN_SIZE_X;
-    DestR.h = SCREEN_SIZE_Y;
-    
+    joystickCount = SDL_NumJoysticks();
+    for (int i = 0; i < joystickCount; i++) {
+		if (SDL_JoystickOpen(i) == NULL) {
+			printf("Failed to open joystick %d!\n", i);
+			quit = 1;
+		}
+    }
+
     last_time = 0;
     now_time = 0;
     frame_time = 0;
     targetFrameTimeMs = 0;
 
     _paletteColors = paletteColors;
+
+    loadSettingsIni();
+
+    _changeStretch(stretch);
 }
 
 void Host::oneTimeCleanup(){
+    saveSettingsIni();
+
     audioCleanup();
 
     SDL_DestroyTexture(texture);
@@ -161,94 +235,29 @@ void Host::setTargetFps(int targetFps){
 
 void Host::changeStretch(){
     if (stretchKeyPressed) {
+        StretchOption newStretch = stretch;
+
         if (stretch == PixelPerfectStretch) {
-            stretch = PixelPerfect;
-            screenWidth = PicoScreenWidth;
-            screenHeight = PicoScreenHeight;
+            newStretch = PixelPerfect;
         }
         else if (stretch == PixelPerfect) {
-            stretch = StretchToFit;
-            screenWidth = WINDOW_SIZE_Y;
-            screenHeight = WINDOW_SIZE_Y;
+            newStretch = StretchToFit;
         }
         else if (stretch == StretchToFit) {
-            stretch = StretchToFill;
-            screenWidth = WINDOW_SIZE_X;
-            screenHeight = WINDOW_SIZE_Y; 
+            newStretch = StretchToFill;
         }
         else if (stretch == StretchToFill) {
-            stretch = PixelPerfectStretch;
-            screenWidth = SCREEN_SIZE_X;
-            screenHeight = SCREEN_SIZE_Y; 
+            newStretch = PixelPerfectStretch;
         }
 
-        DestR.x = WINDOW_SIZE_X / 2 - screenWidth / 2;
-        DestR.y = WINDOW_SIZE_Y / 2 - screenHeight / 2;
-        DestR.w = screenWidth;
-        DestR.h = screenHeight;
-    }
-}
+        _changeStretch(newStretch);
 
-InputState_t Host::scanInput(){
-    currKDown = 0;
-    currKHeld = 0;
-    stretchKeyPressed = false;
-
-    while (SDL_PollEvent(&event)) {
-        switch (event.type) {
-            case SDL_KEYDOWN:
-                switch (event.key.keysym.sym)
-                {
-                    case SDLK_ESCAPE:currKDown |= P8_KEY_PAUSE; break;
-                    case SDLK_LEFT:  currKDown |= P8_KEY_LEFT; break;
-                    case SDLK_RIGHT: currKDown |= P8_KEY_RIGHT; break;
-                    case SDLK_UP:    currKDown |= P8_KEY_UP; break;
-                    case SDLK_DOWN:  currKDown |= P8_KEY_DOWN; break;
-                    case SDLK_z:     currKDown |= P8_KEY_X; break;
-                    case SDLK_x:     currKDown |= P8_KEY_O; break;
-                    case SDLK_c:     currKDown |= P8_KEY_X; break;
-                    case SDLK_r:     stretchKeyPressed = true; break;
-                }
-                break;
-            case SDL_QUIT:
-                done = SDL_TRUE;
-                break;
-        }
+        stretch = newStretch;
     }
-
-    const Uint8* keystate = SDL_GetKeyboardState(NULL);
-
-    //continuous-response keys
-    if(keystate[SDL_SCANCODE_LEFT]){
-        currKHeld |= P8_KEY_LEFT;
-    }
-    if(keystate[SDL_SCANCODE_RIGHT]){
-        currKHeld |= P8_KEY_RIGHT;;
-    }
-    if(keystate[SDL_SCANCODE_UP]){
-        currKHeld |= P8_KEY_UP;
-    }
-    if(keystate[SDL_SCANCODE_DOWN]){
-        currKHeld |= P8_KEY_DOWN;
-    }
-    if(keystate[SDL_SCANCODE_Z]){
-        currKHeld |= P8_KEY_X;
-    }
-    if(keystate[SDL_SCANCODE_X]){
-        currKHeld |= P8_KEY_O;
-    }
-    if(keystate[SDL_SCANCODE_C]){
-        currKHeld |= P8_KEY_X;
-    }
-    
-    return InputState_t {
-        currKDown,
-        currKHeld
-    };
 }
 
 bool Host::shouldQuit() {
-    return done == SDL_TRUE;
+    return quit == 1;
 }
 
 void Host::waitForTargetFps(){
@@ -315,37 +324,10 @@ bool Host::shouldRunMainLoop(){
     return true;
 }
 
-vector<string> Host::listcarts(){
-    vector<string> carts;
-
-    DIR *dir;
-    struct dirent *ent;
-    std::string home = getenv("HOME");
-    std::string cartDir = "/p8carts";
-    std::string fullCartDir = home + cartDir;
-    if ((dir = opendir (fullCartDir.c_str())) != NULL) {
-        /* print all the files and directories within directory */
-        while ((ent = readdir (dir)) != NULL) {
-            carts.push_back(fullCartDir + "/" + ent->d_name);
-        }
-        closedir (dir);
-    } else {
-        /* could not open directory */
-        perror ("");
-    }
-
-    
-    return carts;
-}
-
 const char* Host::logFilePrefix() {
-    return "";
+    return _logFilePrefix.c_str();
 }
 
 std::string Host::customBiosLua() {
-    return "cartpath = \"~/p8carts/\"\n"
-        "selectbtn = \"z\"\n"
-        "pausebtn = \"esc\""
-        "exitbtn = \"close window\""
-        "sizebtn = \"\"";
+    return _customBiosLua;
 }

@@ -627,6 +627,8 @@ void Vm::vm_poke4(int addr, fix32 value){
 
 void Vm::vm_cartdata(string key) {
     _cartdataKey = key;
+
+    //call host to get current cart data and init- set memory
 }
 
 fix32 Vm::vm_dget(uint8_t n) {
@@ -641,6 +643,8 @@ void Vm::vm_dset(uint8_t n, fix32 value){
     if (_cartdataKey.length() > 0 && n < 64) {
         vm_poke4(0x5e00 + 4 * n, value);
     }
+
+    //write to file via host
 }
 
 void Vm::vm_reload(int destaddr, int sourceaddr, int len, Cart* cart){

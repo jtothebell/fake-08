@@ -37,7 +37,7 @@ APP_VERSION	:= $(APP_VERSION)
 
 TARGET		:=	FAKE-08
 BUILD		:=	build
-SOURCES		:=	${SOURCES} source
+SOURCES		:=	${SOURCES} ../SDL2Common/source source
 DATA		:=	data
 INCLUDES	:=	${INCLUDES}
 EXEFS_SRC	:=	exefs_src
