@@ -611,15 +611,20 @@ int flip(lua_State *L) {
 
 //input api
 int btn(lua_State *L){
-    if (lua_gettop(L) == 0) {
+    int numArgs = lua_gettop(L);
+    if (numArgs == 0) {
         uint8_t btnstate = _inputForLuaApi->btn();
 
         lua_pushnumber(L, btnstate);
     }
     else {
         fix32 i = lua_tonumber(L,1);
+        int p = 0;
+        if (numArgs > 1){
+            p = lua_tonumber(L,2);
+        };
 
-        bool pressed = _inputForLuaApi->btn((int)i);
+        bool pressed = _inputForLuaApi->btn((int)i, p);
 
         lua_pushboolean(L, pressed);
     }
@@ -627,15 +632,20 @@ int btn(lua_State *L){
     return 1;
 }
 int btnp(lua_State *L){
-    if (lua_gettop(L) == 0) {
+    int numArgs = lua_gettop(L);
+    if (numArgs == 0) {
         uint8_t btnpstate = _inputForLuaApi->btnp();
 
         lua_pushnumber(L, btnpstate);
     }
     else {
         fix32 i = lua_tonumber(L,1);
+        int p = 0;
+        if (numArgs > 1){
+            p = lua_tonumber(L,2);
+        };
 
-        bool pressed = _inputForLuaApi->btnp((int)i);
+        bool pressed = _inputForLuaApi->btnp((int)i, p);
 
         lua_pushboolean(L, pressed);
     }

@@ -76,5 +76,5 @@ bool Input::btn(uint8_t i, uint8_t p){
 //todo: repetition behavior to match pico 8
 bool Input::btnp(uint8_t i, uint8_t p){
     //no multiplayer support for now
-    return p == 0 ? btn(i) : 0;
+    return p == 0 ? btnp(i) : 0;
 }
