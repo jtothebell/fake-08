@@ -341,7 +341,7 @@ bool Graphics::isOnScreen(int x, int y) {
 
 bool Graphics::isColorTransparent(uint8_t color) {
 	color = color & 0x0f;
-	return (_memory->drawState.drawPaletteMap[color] >> 4) & 1U; //4th bit is transparency
+	return (_memory->drawState.drawPaletteMap[color] >> 4) > 0; //upper bits indicate transparency
 }
 
 uint8_t Graphics::getDrawPalMappedColor(uint8_t color) {
