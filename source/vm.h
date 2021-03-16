@@ -97,15 +97,15 @@ class Vm {
 
     uint8_t vm_peek(int addr);
     int16_t vm_peek2(int addr);
-    int32_t vm_peek4(int addr); //note: this should return a 32 bit fixed point number
+    fix32 vm_peek4(int addr);
 
     void vm_poke(int addr, uint8_t value);
     void vm_poke2(int addr, int16_t value);
-    void vm_poke4(int addr, int32_t value); //note: this parameter should be a 32 bit fixed point number
+    void vm_poke4(int addr, fix32 value);
 
     void vm_cartdata(string key);
-    int32_t vm_dget(uint8_t n);
-    void vm_dset(uint8_t n, int32_t value); //note: this should return a 32 bit fixed point number
+    fix32 vm_dget(uint8_t n);
+    void vm_dset(uint8_t n, fix32 value);
 
     void vm_reload(int destaddr, int sourceaddr, int len, string filename);
 

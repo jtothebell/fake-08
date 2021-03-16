@@ -54,9 +54,9 @@ TEST_CASE("Vm memory functions") {
         CHECK(vm->vm_peek2(41) == -1031);
     }
     SUBCASE("simple peek4 and poke4"){
-        vm->vm_poke4(0x7123, 49249);
+        vm->vm_poke4(0x7123, 3584.0059);
 
-        CHECK(vm->vm_peek4(0x7123) == 49249);
+        CHECK(vm->vm_peek4(0x7123).bits() == ((z8::fix32)3584.0059).bits());
     }
     SUBCASE("poking spritesheet"){
         //147: 1001 0011
@@ -107,14 +107,14 @@ TEST_CASE("Vm memory functions") {
         vm->vm_cartdata("dummy");
         vm->vm_dset(13, 56);
 
-        CHECK_EQ(vm->vm_dget(13), 56);
+        CHECK_EQ(vm->vm_dget(13), (fix32)56);
     }
     SUBCASE("poking cart data"){
-        vm->vm_poke(0x5e00, 56);
+        vm->vm_poke(0x5e02, 56);
         vm->vm_cartdata("dummy");
 
-        CHECK_EQ(memory->cartData[0], 56);
-        CHECK_EQ(vm->vm_dget(0), 56);
+        CHECK_EQ(memory->cartData[2], 56);
+        CHECK_EQ(vm->vm_dget(0), (fix32)56);
     }
     SUBCASE("poking draw palette data"){
         //21 : 0001 0101 (transparet: true) (color mapped 5)
@@ -381,13 +381,13 @@ TEST_CASE("Vm memory functions") {
     SUBCASE("dget before setting cart data key does nothing") {
         vm->vm_dset(34, 1923);
 
-        CHECK_EQ(vm->vm_dget(34), 0);
+        CHECK_EQ(vm->vm_dget(34).bits(), 0);
     }
     SUBCASE("dget after setting cart data key stores value") {
         vm->vm_cartdata("uniquekey");
         vm->vm_dset(34, 1923);
 
-        CHECK_EQ(vm->vm_dget(34), 1923);
+        CHECK_EQ(vm->vm_dget(34), (fix32)1923);
     }
     SUBCASE("pico driller style input"){
         vm->LoadCart("carts/drillerinputtest.p8");
