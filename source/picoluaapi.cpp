@@ -770,18 +770,18 @@ int poke2(lua_State *L) {
 int peek4(lua_State *L) {
     int addr = lua_tonumber(L,1);
 
-    int32_t val = _vmForLuaApi->vm_peek4(addr);
+    fix32 val = _vmForLuaApi->vm_peek4(addr);
 
-    lua_pushinteger(L, val);
+    lua_pushnumber(L, val);
 
     return 1;
 }
 
 int poke4(lua_State *L) {
     int dest = lua_tonumber(L,1);
-    int val = lua_tonumber(L,2);
+    fix32 val = lua_tonumber(L,2);
 
-    _vmForLuaApi->vm_poke4(dest, (int32_t)val);
+    _vmForLuaApi->vm_poke4(dest, val);
 
     return 0;
 }
@@ -821,9 +821,9 @@ int cartdata(lua_State *L) {
 int dget(lua_State *L) {
     int addr = lua_tonumber(L,1);
 
-    int32_t val = _vmForLuaApi->vm_dget(addr);
+    fix32 val = _vmForLuaApi->vm_dget(addr);
 
-    lua_pushinteger(L, val);
+    lua_pushnumber(L, val);
 
     return 1;
 }

@@ -579,7 +579,7 @@ int16_t Vm::vm_peek2(int addr){
 }
 
 //note: this should return a 32 bit fixed point number
-int32_t Vm::vm_peek4(int addr){
+fix32 Vm::vm_peek4(int addr){
     //zepto8
     int32_t bits = 0;
     for (int i = 0; i < 4; ++i)
@@ -591,7 +591,7 @@ int32_t Vm::vm_peek4(int addr){
             bits |= _memory->data[addr + i - 0x8000] << (8 * i);
     }
 
-    return bits;
+    return fix32::frombits(bits);
 } 
 
 void Vm::vm_poke(int addr, uint8_t value){
@@ -613,22 +613,23 @@ void Vm::vm_poke2(int addr, int16_t value){
 
 }
 
-void Vm::vm_poke4(int addr, int32_t value){
+void Vm::vm_poke4(int addr, fix32 value){
     if (addr < 0 || addr > 0x8000 - 3){
         return;
     }
 
-    _memory->data[addr + 0] = (uint8_t)value;
-    _memory->data[addr + 1] = (uint8_t)(value >> 8);
-    _memory->data[addr + 2] = (uint8_t)(value >> 16);
-    _memory->data[addr + 3] = (uint8_t)(value >> 24);
+    uint32_t ubits = (uint32_t)value.bits();
+    _memory->data[addr + 0] = (uint8_t)ubits;
+    _memory->data[addr + 1] = (uint8_t)(ubits >> 8);
+    _memory->data[addr + 2] = (uint8_t)(ubits >> 16);
+    _memory->data[addr + 3] = (uint8_t)(ubits >> 24);
 }
 
 void Vm::vm_cartdata(string key) {
     _cartdataKey = key;
 }
 
-int32_t Vm::vm_dget(uint8_t n) {
+fix32 Vm::vm_dget(uint8_t n) {
     if (_cartdataKey.length() > 0 && n < 64) {
         return vm_peek4(0x5e00 + 4 * n);
     }
@@ -636,7 +637,7 @@ int32_t Vm::vm_dget(uint8_t n) {
     return 0;
 }
 
-void Vm::vm_dset(uint8_t n, int32_t value){
+void Vm::vm_dset(uint8_t n, fix32 value){
     if (_cartdataKey.length() > 0 && n < 64) {
         vm_poke4(0x5e00 + 4 * n, value);
     }

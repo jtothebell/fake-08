@@ -52,9 +52,9 @@ bool verifyScreenshot(Vm* vm, std::string screenshotFilename) {
 
         if (!pixelMatches) {
             
-            //printf("Non-matching pixel at idx %d (%d,%d): rgb: %d,%d,%d\n", pixIdx, x, y, r, g, b);
+            printf("Non-matching pixel at idx %d (%d,%d): rgb: %d,%d,%d\n", pixIdx, x, y, r, g, b);
 
-            //printf("fake 08 color is %d rgb: %d,%d,%d\n", c, col.Red, col.Green, col.Blue);
+            printf("fake 08 color is %d rgb: %d,%d,%d\n", c, col.Red, col.Green, col.Blue);
         }
 
         pixelsMatch &= pixelMatches;
@@ -432,6 +432,20 @@ TEST_CASE("Loading and running carts") {
             vm->UpdateAndDraw();
 
             CHECK(verifyScreenshot(vm, "carts/screenshots/fillptest_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
+    SUBCASE("Peek4/poke4 test cart"){
+        vm->LoadCart("carts/peek4test.p8");
+
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("sceen matches screenshot"){
+            vm->UpdateAndDraw();
+
+            CHECK(verifyScreenshot(vm, "carts/screenshots/peek4test_f01.png"));
         }
 
         vm->CloseCart();
