@@ -302,6 +302,9 @@ int print(lua_State *L){
     else if (lua_isboolean(L, 1)){
         str = lua_toboolean(L, 1) ? "true" : "false";
     }
+    else if (lua_isfunction(L, 1)){
+        str = "[function]";
+    }
 
     if (lua_gettop(L) < 3) {
         _graphicsForLuaApi->print(str);
@@ -841,7 +844,7 @@ int printh(lua_State *L) {
     if (lua_isstring(L, 1)){
         const char * str = "";
         str = lua_tolstring(L, 1, nullptr);
-        printf("%s", str);
+        printf("%s\n", str);
     }
     return 0;
 }
