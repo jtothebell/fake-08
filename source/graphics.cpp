@@ -1132,6 +1132,9 @@ void Graphics::clip(int x, int y, int w, int h) {
 
 //map methods heavily based on tac08 implementation
 uint8_t Graphics::mget(int celx, int cely){
+	if (celx < 0 || celx >= 128 || cely < 0 || cely >= 64)
+        return 0;
+
 	if (cely < 32) {
 		return _memory->mapData[cely * 128 + celx];
 	}
@@ -1143,6 +1146,9 @@ uint8_t Graphics::mget(int celx, int cely){
 }
 
 void Graphics::mset(int celx, int cely, uint8_t snum){
+	if (celx < 0 || celx >= 128 || cely < 0 || cely >= 64)
+        return;
+
 	if (cely < 32) {
 		_memory->mapData[cely * 128 + celx] = snum;
 	}

@@ -1519,6 +1519,17 @@ TEST_CASE("graphics class behaves as expected") {
 
         CHECK_EQ(71, result);
     }
+    SUBCASE("mget out of bounds returns 0"){
+        auto result1 = graphics->mget(-1, 16);
+        auto result2 = graphics->mget(129, 16);
+        auto result3 = graphics->mget(10, -1);
+        auto result4 = graphics->mget(10, 67);
+
+        CHECK_EQ(0, result1);
+        CHECK_EQ(0, result2);
+        CHECK_EQ(0, result3);
+        CHECK_EQ(0, result4);
+    }
     SUBCASE("mset from upper half of map data (non-shared)"){
         int x = 13;
         int y = 7;
