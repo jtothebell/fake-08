@@ -455,13 +455,13 @@ int sset(lua_State *L) {
 }
 
 int camera(lua_State *L) {
-    int x = 0;
-    int y = 0;
+    int16_t x = 0;
+    int16_t y = 0;
     if (lua_gettop(L) > 0) {
-        x = lua_tonumber(L,1);
+        x = lua_tointeger(L,1);
     }
     if (lua_gettop(L) > 1) {
-        y = lua_tonumber(L,2);
+        y = lua_tointeger(L,2);
     }
     
     _graphicsForLuaApi->camera(x, y);
@@ -506,7 +506,7 @@ int mset(lua_State *L) {
 }
 
 int map(lua_State *L) {
-    int celx = 0, cely = 0, sx = 0, sy = 0, celw = 16, celh = 16, argc;
+    int celx = 0, cely = 0, sx = 0, sy = 0, celw = 128, celh = 32, argc;
     argc = lua_gettop(L);
     if (argc > 0) {
         celx = lua_tonumber(L,1);
