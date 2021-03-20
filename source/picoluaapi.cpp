@@ -1,6 +1,7 @@
 
 #include <string>
 #include <vector>
+#include <tuple>
 using namespace std;
 
 #include "picoluaapi.h"
@@ -464,9 +465,12 @@ int camera(lua_State *L) {
         y = lua_tointeger(L,2);
     }
     
-    _graphicsForLuaApi->camera(x, y);
+    auto prev = _graphicsForLuaApi->camera(x, y);
 
-    return 0;
+    lua_pushnumber(L, get<0>(prev));
+    lua_pushnumber(L, get<1>(prev));
+
+    return 2;
 }
 
 int clip(lua_State *L) {

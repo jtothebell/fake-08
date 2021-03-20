@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <tuple>
 
 #include "doctest.h"
 #include "../source/graphics.h"
@@ -1093,6 +1094,16 @@ TEST_CASE("graphics class behaves as expected") {
 
        CHECK_EQ(picoRam.drawState.camera_x, 0);
        CHECK_EQ(picoRam.drawState.camera_y, 0);
+   }
+   SUBCASE("camera({x}, {y}) returns previous values")
+   {
+       uint8_t x = 33;
+       uint8_t y = 120;
+       graphics->camera(x, y);
+       auto prev = graphics->camera(120, 31);
+
+       CHECK_EQ(std::get<0>(prev), x);
+       CHECK_EQ(std::get<1>(prev), y);
    }
    SUBCASE("camera values applies to pget")
    {

@@ -1107,13 +1107,17 @@ void Graphics::sset(uint8_t x, uint8_t y, uint8_t c){
 	setPixelNibble(x, y, c, _memory->spriteSheetData);
 }
 
-void Graphics::camera() {
-	this->camera(0, 0);
+std::tuple<int16_t, int16_t> Graphics::camera() {
+	return this->camera(0, 0);
 }
 
-void Graphics::camera(int x, int y) {
+std::tuple<int16_t, int16_t> Graphics::camera(int16_t x, int16_t y) {
+	std::tuple<int16_t, int16_t> prev (_memory->drawState.camera_x, _memory->drawState.camera_y);
+
 	_memory->drawState.camera_x = x;
 	_memory->drawState.camera_y = y;
+
+	return prev;
 }
 
 void Graphics::clip() {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <tuple>
 #include "hostVmShared.h"
 #include "PicoRam.h"
 #include <fix32.h>
@@ -177,8 +178,8 @@ class Graphics {
 	uint8_t sget(uint8_t x, uint8_t y);
 	void sset(uint8_t x, uint8_t y, uint8_t c);
 
-	void camera();
-	void camera(int x, int y);
+	std::tuple<int16_t, int16_t> camera();
+	std::tuple<int16_t, int16_t> camera(int16_t x, int16_t y);
 
 	void clip();
 	void clip(int x, int y, int w, int h);
