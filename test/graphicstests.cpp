@@ -1313,6 +1313,20 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(picoRam.drawState.clip_yb, 75);
         CHECK_EQ(picoRam.drawState.clip_ye, 100);
     }
+    SUBCASE("clip() returns prev value")
+    {
+        picoRam.drawState.clip_xb = 28;
+        picoRam.drawState.clip_xe = 29;
+        picoRam.drawState.clip_yb = 50;
+        picoRam.drawState.clip_ye = 51;
+
+        auto prev = graphics->clip();
+
+        CHECK_EQ(std::get<0>(prev), 28);
+        CHECK_EQ(std::get<1>(prev), 29);
+        CHECK_EQ(std::get<2>(prev), 50);
+        CHECK_EQ(std::get<3>(prev), 51);
+    }
     SUBCASE("clip values applies to pset")
     {
        graphics->clip(100, 100, 28, 28);

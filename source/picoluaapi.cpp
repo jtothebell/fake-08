@@ -474,19 +474,27 @@ int camera(lua_State *L) {
 }
 
 int clip(lua_State *L) {
+
+    std::tuple<uint8_t, uint8_t, uint8_t, uint8_t> prev;
+    
     if (lua_gettop(L) >= 4) {
         int x = lua_tonumber(L,1);
         int y = lua_tonumber(L,2);
         int w = lua_tonumber(L,3);
         int h = lua_tonumber(L,4);
 
-        _graphicsForLuaApi->clip(x, y, w, h);
+        prev = _graphicsForLuaApi->clip(x, y, w, h);
     }
     else {
-        _graphicsForLuaApi->clip();
+        prev = _graphicsForLuaApi->clip();
     }
 
-    return 0;
+    lua_pushnumber(L, get<0>(prev));
+    lua_pushnumber(L, get<1>(prev));
+    lua_pushnumber(L, get<2>(prev));
+    lua_pushnumber(L, get<3>(prev));
+
+    return 4;
 }
 
 int mget(lua_State *L) {

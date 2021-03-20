@@ -181,8 +181,8 @@ class Graphics {
 	std::tuple<int16_t, int16_t> camera();
 	std::tuple<int16_t, int16_t> camera(int16_t x, int16_t y);
 
-	void clip();
-	void clip(int x, int y, int w, int h);
+	std::tuple<uint8_t, uint8_t, uint8_t, uint8_t> clip();
+	std::tuple<uint8_t, uint8_t, uint8_t, uint8_t> clip(int x, int y, int w, int h);
 
 	uint8_t mget(int celx, int cely);
 	void mset(int celx, int cely, uint8_t snum);

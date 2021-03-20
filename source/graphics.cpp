@@ -1120,17 +1120,26 @@ std::tuple<int16_t, int16_t> Graphics::camera(int16_t x, int16_t y) {
 	return prev;
 }
 
-void Graphics::clip() {
-	this->clip(0, 0, 128, 128);
+std::tuple<uint8_t, uint8_t, uint8_t, uint8_t> Graphics::clip() {
+	return this->clip(0, 0, 128, 128);
 }
 
-void Graphics::clip(int x, int y, int w, int h) {
+std::tuple<uint8_t, uint8_t, uint8_t, uint8_t> Graphics::clip(int x, int y, int w, int h) {
+	auto prev = std::make_tuple(
+		_memory->drawState.clip_xb,
+		_memory->drawState.clip_xe,
+		_memory->drawState.clip_yb,
+		_memory->drawState.clip_ye 
+	);
+
 	int xe = x + w;
 	int ye = y + h;
 	_memory->drawState.clip_xb = clampCoordToScreenDims(x);
 	_memory->drawState.clip_yb = clampCoordToScreenDims(y);
 	_memory->drawState.clip_xe = clampCoordToScreenDims(xe);
 	_memory->drawState.clip_ye = clampCoordToScreenDims(ye);
+
+	return prev;
 }
 
 
