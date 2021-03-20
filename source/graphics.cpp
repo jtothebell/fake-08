@@ -1216,18 +1216,22 @@ void Graphics::palt(uint8_t c, bool t){
 }
 
 
-void Graphics::cursor() {
-	this->cursor(0, 0);
+std::tuple<uint8_t, uint8_t> Graphics::cursor() {
+	return this->cursor(0, 0);
 }
 
-void Graphics::cursor(int x, int y) {
+std::tuple<uint8_t, uint8_t> Graphics::cursor(int x, int y) {
+	std::tuple<uint8_t, uint8_t> prev (_memory->drawState.text_x, _memory->drawState.text_y);
+
 	_memory->drawState.text_x = x;
 	_memory->drawState.text_y = y;
+
+	return prev;
 }
 
-void Graphics::cursor(int x, int y, uint8_t col) {
+std::tuple<uint8_t, uint8_t> Graphics::cursor(int x, int y, uint8_t col) {
 	color(col);
 
-	this->cursor(x, y);
+	return this->cursor(x, y);
 }
 

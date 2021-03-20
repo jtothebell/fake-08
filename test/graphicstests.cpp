@@ -1758,6 +1758,16 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(picoRam.drawState.text_y, 0);
         CHECK_EQ(picoRam.drawState.color, 3);
     }
+    SUBCASE("cursor() returns previous values")
+    {
+        uint8_t x = 33;
+        uint8_t y = 120;
+        graphics->cursor(x, y);
+        auto prev = graphics->cursor(11, 31);
+
+        CHECK_EQ(std::get<0>(prev), x);
+        CHECK_EQ(std::get<1>(prev), y);
+    }
     SUBCASE("tline draws sprites from map"){
         for(int i = 0; i < 128; i++) {
             for (int j = 0; j < 32; j++)

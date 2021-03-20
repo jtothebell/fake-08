@@ -195,9 +195,9 @@ class Graphics {
 	void palt();
 	void palt(uint8_t c0, bool t);
 
-	void cursor();
-	void cursor(int x, int y);
-	void cursor(int x, int y, uint8_t col);
+	std::tuple<uint8_t, uint8_t> cursor();
+	std::tuple<uint8_t, uint8_t> cursor(int x, int y);
+	std::tuple<uint8_t, uint8_t> cursor(int x, int y, uint8_t col);
 
 };
 

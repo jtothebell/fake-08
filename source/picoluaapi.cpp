@@ -584,17 +584,21 @@ int cursor(lua_State *L) {
     int x = lua_tonumber(L,1);
     int y = lua_tonumber(L,2);
 
-    if (lua_gettop(L) <= 2) {
-        _graphicsForLuaApi->cursor(x, y);
-        return 0;
+    std::tuple<uint8_t, uint8_t> prev;
+
+    if (lua_gettop(L) < 3) {
+        prev = _graphicsForLuaApi->cursor(x, y);
+    }
+    else{
+        uint8_t c = lua_tonumber(L,3);
+
+        prev =_graphicsForLuaApi->cursor(x, y, c);
     }
 
-    uint8_t c = lua_tonumber(L,3);
+    lua_pushnumber(L, get<0>(prev));
+    lua_pushnumber(L, get<1>(prev));
 
-    _graphicsForLuaApi->cursor(x, y, c);
-
-    return 0;
-
+    return 2;
 }
 
 int fillp(lua_State *L) {
