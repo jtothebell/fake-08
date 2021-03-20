@@ -173,6 +173,20 @@ TEST_CASE("graphics class behaves as expected") {
 
         CHECK(picoRam.drawState.color == 12);
     }
+    SUBCASE("color() resets color to 6") {
+        picoRam.drawState.color = 12;
+
+        graphics->color();
+
+        CHECK(picoRam.drawState.color == 6);
+    }
+    SUBCASE("color() returns previous") {
+        auto prev = picoRam.drawState.color = 13;
+
+        graphics->color(12);
+
+        CHECK(prev == 13);
+    }
     SUBCASE("line() clears line state") {
         picoRam.drawState.line_x = 10;
 	    picoRam.drawState.line_y = 30;

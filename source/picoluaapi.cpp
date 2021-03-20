@@ -82,11 +82,19 @@ int pget(lua_State *L){
 }
 
 int color(lua_State *L){
-    fix32 c = lua_tonumber(L,1);
+    uint8_t prev = 0;
+    uint8_t c = 0;
+    if (lua_gettop(L) > 0) {
+        c = lua_tonumber(L,1);
+        prev = _graphicsForLuaApi->color((uint8_t)c);
+    }
+    else {
+        prev = _graphicsForLuaApi->color();
+    }
 
-    _graphicsForLuaApi->color((uint8_t)c);
+    lua_pushinteger(L, prev);
 
-    return 0;
+    return 1;
 }
 
 int line (lua_State *L){
@@ -476,7 +484,7 @@ int camera(lua_State *L) {
 int clip(lua_State *L) {
 
     std::tuple<uint8_t, uint8_t, uint8_t, uint8_t> prev;
-    
+
     if (lua_gettop(L) >= 4) {
         int x = lua_tonumber(L,1);
         int y = lua_tonumber(L,2);

@@ -481,19 +481,23 @@ uint8_t Graphics::pget(int x, int y){
 	return 0;
 }
 
-void Graphics::color(){
-	color(6);
+uint8_t Graphics::color(){
+	return color(6);
 }
 
-void Graphics::color(uint8_t col){
-	this->_memory->drawState.color = col;
+uint8_t Graphics::color(uint8_t col){
+	uint8_t prev = _memory->drawState.color;
+
+	_memory->drawState.color = col;
+
+	return prev;
 }
 
 void Graphics::line () {
 	//just invalidate line state
-	this->_memory->drawState.line_x = 0;
-	this->_memory->drawState.line_y = 0;
-	this->_memory->drawState.lineInvalid = 1;
+	_memory->drawState.line_x = 0;
+	_memory->drawState.line_y = 0;
+	_memory->drawState.lineInvalid = 1;
 }
 
 void Graphics::line (uint8_t col){
