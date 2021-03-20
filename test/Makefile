@@ -7,14 +7,13 @@ all: runtests
 
 
 testrunner.a: testroot.o \
-	fontdatatests.o nibblehelperstests.o graphicstests.o audiotests.o cartpatchertests.o \
+	fontdatatests.o nibblehelperstests.o graphicstests.o audiotests.o \
 	carttests.o endtoendtests.o vmtests.o
 	g++ -I$(CURDIR)/include -L$(CURDIR)/lib \
 	testroot.o \
 	fontdata.o fontdatatests.o \
 	graphics.o graphicstests.o stringToDataHelpers.o mathhelpers.o \
 	Audio.o synth.o audiotests.o \
-	cartPatcher.o cartpatchertests.o \
 	cart.o carttests.o nooplogger.o lodepng.o emojiconversion.o filehelpers.o utf8-util.o \
 	vm.o endtoendtests.o picoluaapi.o Input.o \
 	vmtests.o stubhost.o \
@@ -46,10 +45,6 @@ audiotests.o: audiotests.cpp ../source/Audio.cpp ../source/Audio.h \
 	../source/mathhelpers.h ../source/mathhelpers.cpp \
 	../source/PicoRam.h ../source/hostVmShared.h
 	g++ $(CFLAGS) audiotests.cpp ../source/Audio.cpp ../source/synth.cpp ../source/mathhelpers.cpp
-
-cartpatchertests.o: liblua.a cartpatchertests.cpp ../source/cartPatcher.cpp ../source/cartPatcher.h
-	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \
-	cartpatchertests.cpp ../source/cartPatcher.cpp
 	
 liblua.a: 
 	@echo 'starting lua build\n' &&\
@@ -76,7 +71,7 @@ carttests.o: carttests.cpp ../source/cart.cpp ../source/cart.h \
 	nooplogger.cpp ../source/emojiconversion.cpp ../source/filehelpers.cpp \
 	../libs/utf8-util/utf8-util.cpp
 
-endtoendtests.o: cartpatchertests.o carttests.o graphicstests.o audiotests.o \
+endtoendtests.o: carttests.o graphicstests.o audiotests.o \
 	endtoendtests.cpp \
 	../source/vm.cpp ../source/vm.h \
 	stubhost.cpp stubhost.h ../source/host.h \
