@@ -1835,6 +1835,13 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(picoRam.data[0x5f32], 0x33);
         CHECK_EQ(picoRam.data[0x5f33], 0);
     }
+    SUBCASE("fillp(pat) returns previous"){
+        graphics->fillp(0x33cc);
+
+        auto prev = graphics->fillp(0x44dd);
+
+        CHECK_EQ(prev.bits(), 0x33cc0000);
+    }
     SUBCASE("fill pattern affects rectfill"){
         //0b0101101001011010 - 1x1 checkerboard
         graphics->fillp(0x5A5A);

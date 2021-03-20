@@ -143,7 +143,7 @@ class Graphics {
 	void rectfill(int x1, int y1, int x2, int y2);
 	void rectfill(int x1, int y1, int x2, int y2, uint8_t col);
 
-	void fillp(fix32 pat);
+	fix32 fillp(fix32 pat);
 
 	int print(std::string str);
 	int print(std::string str, int x, int y);

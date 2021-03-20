@@ -623,9 +623,11 @@ int fillp(lua_State *L) {
         pat = lua_tonumber(L, 1);
     }
 
-    _graphicsForLuaApi->fillp(pat);
+    fix32 prev = _graphicsForLuaApi->fillp(pat);
 
-    return 0;
+    lua_pushnumber(L, prev);
+
+    return 1;
 }
 
 int flip(lua_State *L) {
