@@ -994,12 +994,12 @@ fix32 Graphics::fillp(fix32 pat) {
 	uint8_t patByte0 = pat.bits() >> 16;
 	uint8_t patByte1 = pat.bits() >> 24;
 
-	uint8_t patTranspByte = pat.bits() >> 8;
+	uint8_t patTranspByte = pat.bits() >> 15;
 
 	_memory->drawState.fillPattern[0] = patByte0;
 	_memory->drawState.fillPattern[1] = patByte1;
 
-	_memory->drawState.fillPatternTransparencyBit = patTranspByte;
+	_memory->drawState.fillPatternTransparencyBit = patTranspByte & 1;
 
 	return z8::fix32::frombits(prev);
 }
