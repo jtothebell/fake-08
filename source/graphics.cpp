@@ -1204,17 +1204,22 @@ void Graphics::pal() {
 	this->palt();
 }
 
-void Graphics::pal(uint8_t c0, uint8_t c1, uint8_t p){
+uint8_t Graphics::pal(uint8_t c0, uint8_t c1, uint8_t p){
 	//0-15 alowed
 	c0 &= 0x0f;
+	uint8_t prev = 0;
 	if (p == 0) {
 		//for draw palette we have to preserve the transparency bit
+		prev = _memory->drawState.drawPaletteMap[c0] & 0xf;
 		_memory->drawState.drawPaletteMap[c0] = (_memory->drawState.drawPaletteMap[c0] & 0x10) | (c1 & 0xf);
 	} else if (p == 1) {
 		//0-15, or 127-143 allowed
+		prev = _memory->drawState.screenPaletteMap[c0] & 0xf;
 		c1 &= 0x8f;
 		_memory->drawState.screenPaletteMap[c0] = c1;
 	}
+
+	return prev;
 }
 
 void Graphics::palt() {
@@ -1224,14 +1229,17 @@ void Graphics::palt() {
 	}
 }
 
-void Graphics::palt(uint8_t c, bool t){
+bool Graphics::palt(uint8_t c, bool t){
 	c = c & 15;
+	bool prev = _memory->drawState.drawPaletteMap[c] & 0xf0;
 	if (t) {
 		_memory->drawState.drawPaletteMap[c] |= 1UL << 4;
 	}
 	else {
 		_memory->drawState.drawPaletteMap[c] &= ~(1UL << 4);
 	}
+
+	return prev;
 }
 
 

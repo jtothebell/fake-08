@@ -1678,6 +1678,18 @@ TEST_CASE("graphics class behaves as expected") {
 
         CHECK_EQ(4, result);
     }
+    SUBCASE("pal({c0}, {c1}, 0) returns previous") {
+        graphics->pal(14, 2, 0);
+        auto result = graphics->pal(14, 8, 0);
+
+        CHECK_EQ(2, result);
+    }
+    SUBCASE("pal({c0}, {c1}, 1) returns previous") {
+        graphics->pal(13, 4, 1);
+        auto result = graphics->pal(13, 6, 1);
+
+        CHECK_EQ(4, result);
+    }
     SUBCASE("pal({c0}, {c1}, {p}) 17 remapped to 1") {
         graphics->pal(13, 17, 1);
 

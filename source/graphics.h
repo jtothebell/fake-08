@@ -191,9 +191,9 @@ class Graphics {
 	void map(int celx, int cely, int sx, int sy, int celw, int celh, uint8_t layer);
 
 	void pal();
-	void pal(uint8_t c0, uint8_t c1, uint8_t p);
+	uint8_t pal(uint8_t c0, uint8_t c1, uint8_t p);
 	void palt();
-	void palt(uint8_t c0, bool t);
+	bool palt(uint8_t c0, bool t);
 
 	std::tuple<uint8_t, uint8_t> cursor();
 	std::tuple<uint8_t, uint8_t> cursor(int x, int y);

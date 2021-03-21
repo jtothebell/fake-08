@@ -561,8 +561,11 @@ int pal(lua_State *L) {
     int numArgs = lua_gettop(L);
     if (numArgs == 0) {
         _graphicsForLuaApi->pal();
+
+        //I think this always returns 0, not nil
+        lua_pushnumber(L, 0);
         
-        return 0;
+        return 1;
     }
 
     uint8_t p = 0;
@@ -600,9 +603,11 @@ int pal(lua_State *L) {
         p = lua_tonumber(L,3);
     }
 
-    _graphicsForLuaApi->pal(c0, c1, p);
+    uint8_t prev =_graphicsForLuaApi->pal(c0, c1, p);
 
-    return 0;
+    lua_pushnumber(L, prev);
+
+    return 1;
 }
 
 int palt(lua_State *L) {
@@ -615,9 +620,11 @@ int palt(lua_State *L) {
     uint8_t c = lua_tonumber(L,1);
     bool t = lua_toboolean(L,2);
 
-    _graphicsForLuaApi->palt(c, t);
+    uint8_t prev = _graphicsForLuaApi->palt(c, t);
 
-    return 0;
+    lua_pushnumber(L, prev);
+
+    return 1;
 }
 
 int cursor(lua_State *L) {
