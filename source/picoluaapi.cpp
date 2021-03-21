@@ -558,19 +558,43 @@ int map(lua_State *L) {
 }
 
 int pal(lua_State *L) {
-    if (lua_gettop(L) == 0) {
+    int numArgs = lua_gettop(L);
+    if (numArgs == 0) {
         _graphicsForLuaApi->pal();
         
         return 0;
     }
 
+    uint8_t p = 0;
+    uint8_t c0 = 0;
+    uint8_t c1 = 0;
 
-    uint8_t c0 = lua_tonumber(L,1);
-    uint8_t c1 = c0;
+    if (lua_istable(L, 1)){
+        if (numArgs > 1) {
+            p = lua_tonumber(L,2);
+        }
+
+        /* table is in the stack at index 't' */
+        lua_pushnil(L);  /* first key */
+        while (lua_next(L, 1) != 0) {
+            if (lua_isnumber(L, -2) && lua_isnumber(L, -1)) {
+                c0 = lua_tonumber(L, -2);
+                c1 = lua_tonumber(L, -1);
+
+                _graphicsForLuaApi->pal(c0, c1, p);
+            }
+            lua_pop(L, 1);
+        }
+
+        return 0;
+    }
+
+
+    c0 = lua_tonumber(L,1);
+    c1 = c0;
     if (lua_gettop(L) > 1) {
         c1 = lua_tonumber(L,2);
     }
-    uint8_t p = 0;
 
     if (lua_gettop(L) > 2){
         p = lua_tonumber(L,3);
