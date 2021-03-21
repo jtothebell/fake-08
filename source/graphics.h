@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <tuple>
 #include "hostVmShared.h"
 #include "PicoRam.h"
 #include <fix32.h>
@@ -111,8 +112,8 @@ class Graphics {
 	void pset(int x, int y, uint8_t col);
 	uint8_t pget(int x, int y);
 
-	void color();
-	void color(uint8_t c);
+	uint8_t color();
+	uint8_t color(uint8_t c);
 
 	void line ();
 	void line (uint8_t col);
@@ -142,7 +143,7 @@ class Graphics {
 	void rectfill(int x1, int y1, int x2, int y2);
 	void rectfill(int x1, int y1, int x2, int y2, uint8_t col);
 
-	void fillp(fix32 pat);
+	fix32 fillp(fix32 pat);
 
 	int print(std::string str);
 	int print(std::string str, int x, int y);
@@ -177,11 +178,11 @@ class Graphics {
 	uint8_t sget(uint8_t x, uint8_t y);
 	void sset(uint8_t x, uint8_t y, uint8_t c);
 
-	void camera();
-	void camera(int x, int y);
+	std::tuple<int16_t, int16_t> camera();
+	std::tuple<int16_t, int16_t> camera(int16_t x, int16_t y);
 
-	void clip();
-	void clip(int x, int y, int w, int h);
+	std::tuple<uint8_t, uint8_t, uint8_t, uint8_t> clip();
+	std::tuple<uint8_t, uint8_t, uint8_t, uint8_t> clip(int x, int y, int w, int h);
 
 	uint8_t mget(int celx, int cely);
 	void mset(int celx, int cely, uint8_t snum);
@@ -190,13 +191,13 @@ class Graphics {
 	void map(int celx, int cely, int sx, int sy, int celw, int celh, uint8_t layer);
 
 	void pal();
-	void pal(uint8_t c0, uint8_t c1, uint8_t p);
+	uint8_t pal(uint8_t c0, uint8_t c1, uint8_t p);
 	void palt();
-	void palt(uint8_t c0, bool t);
+	bool palt(uint8_t c0, bool t);
 
-	void cursor();
-	void cursor(int x, int y);
-	void cursor(int x, int y, uint8_t col);
+	std::tuple<uint8_t, uint8_t> cursor();
+	std::tuple<uint8_t, uint8_t> cursor(int x, int y);
+	std::tuple<uint8_t, uint8_t> cursor(int x, int y, uint8_t col);
 
 };
 

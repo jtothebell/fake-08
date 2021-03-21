@@ -4,7 +4,7 @@ ROOT_INCLUDES	?= include
 
 export APP_TITLE	= FAKE-08
 export APP_AUTHOR	= jtothebell
-export APP_VERSION	= v0.0.2.3
+export APP_VERSION	= v0.0.2.5
 
 #paths are relative to platform folder
 export SOURCES   = ../../source ../../libs/z8lua ../../libs/utf8-util ../../libs/lodepng

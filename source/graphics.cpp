@@ -481,19 +481,23 @@ uint8_t Graphics::pget(int x, int y){
 	return 0;
 }
 
-void Graphics::color(){
-	color(6);
+uint8_t Graphics::color(){
+	return color(6);
 }
 
-void Graphics::color(uint8_t col){
-	this->_memory->drawState.color = col;
+uint8_t Graphics::color(uint8_t col){
+	uint8_t prev = _memory->drawState.color;
+
+	_memory->drawState.color = col;
+
+	return prev;
 }
 
 void Graphics::line () {
 	//just invalidate line state
-	this->_memory->drawState.line_x = 0;
-	this->_memory->drawState.line_y = 0;
-	this->_memory->drawState.lineInvalid = 1;
+	_memory->drawState.line_x = 0;
+	_memory->drawState.line_y = 0;
+	_memory->drawState.lineInvalid = 1;
 }
 
 void Graphics::line (uint8_t col){
@@ -982,7 +986,11 @@ void Graphics::rectfill(int x1, int y1, int x2, int y2, uint8_t col) {
 	}
 }
 
-void Graphics::fillp(fix32 pat) {
+fix32 Graphics::fillp(fix32 pat) {
+	int32_t prev = (_memory->drawState.fillPattern[0] << 16)
+                 | (_memory->drawState.fillPattern[1] << 24)
+                 | (_memory->drawState.fillPatternTransparencyBit << 8);
+
 	uint8_t patByte0 = pat.bits() >> 16;
 	uint8_t patByte1 = pat.bits() >> 24;
 
@@ -992,6 +1000,8 @@ void Graphics::fillp(fix32 pat) {
 	_memory->drawState.fillPattern[1] = patByte1;
 
 	_memory->drawState.fillPatternTransparencyBit = patTranspByte & 1;
+
+	return z8::fix32::frombits(prev);
 }
 
 int Graphics::print(std::string str) {
@@ -1107,31 +1117,47 @@ void Graphics::sset(uint8_t x, uint8_t y, uint8_t c){
 	setPixelNibble(x, y, c, _memory->spriteSheetData);
 }
 
-void Graphics::camera() {
-	this->camera(0, 0);
+std::tuple<int16_t, int16_t> Graphics::camera() {
+	return this->camera(0, 0);
 }
 
-void Graphics::camera(int x, int y) {
+std::tuple<int16_t, int16_t> Graphics::camera(int16_t x, int16_t y) {
+	std::tuple<int16_t, int16_t> prev (_memory->drawState.camera_x, _memory->drawState.camera_y);
+
 	_memory->drawState.camera_x = x;
 	_memory->drawState.camera_y = y;
+
+	return prev;
 }
 
-void Graphics::clip() {
-	this->clip(0, 0, 128, 128);
+std::tuple<uint8_t, uint8_t, uint8_t, uint8_t> Graphics::clip() {
+	return this->clip(0, 0, 128, 128);
 }
 
-void Graphics::clip(int x, int y, int w, int h) {
+std::tuple<uint8_t, uint8_t, uint8_t, uint8_t> Graphics::clip(int x, int y, int w, int h) {
+	auto prev = std::make_tuple(
+		_memory->drawState.clip_xb,
+		_memory->drawState.clip_xe,
+		_memory->drawState.clip_yb,
+		_memory->drawState.clip_ye 
+	);
+
 	int xe = x + w;
 	int ye = y + h;
 	_memory->drawState.clip_xb = clampCoordToScreenDims(x);
 	_memory->drawState.clip_yb = clampCoordToScreenDims(y);
 	_memory->drawState.clip_xe = clampCoordToScreenDims(xe);
 	_memory->drawState.clip_ye = clampCoordToScreenDims(ye);
+
+	return prev;
 }
 
 
 //map methods heavily based on tac08 implementation
 uint8_t Graphics::mget(int celx, int cely){
+	if (celx < 0 || celx >= 128 || cely < 0 || cely >= 64)
+        return 0;
+
 	if (cely < 32) {
 		return _memory->mapData[cely * 128 + celx];
 	}
@@ -1143,6 +1169,9 @@ uint8_t Graphics::mget(int celx, int cely){
 }
 
 void Graphics::mset(int celx, int cely, uint8_t snum){
+	if (celx < 0 || celx >= 128 || cely < 0 || cely >= 64)
+        return;
+
 	if (cely < 32) {
 		_memory->mapData[cely * 128 + celx] = snum;
 	}
@@ -1175,17 +1204,22 @@ void Graphics::pal() {
 	this->palt();
 }
 
-void Graphics::pal(uint8_t c0, uint8_t c1, uint8_t p){
+uint8_t Graphics::pal(uint8_t c0, uint8_t c1, uint8_t p){
 	//0-15 alowed
 	c0 &= 0x0f;
+	uint8_t prev = 0;
 	if (p == 0) {
 		//for draw palette we have to preserve the transparency bit
+		prev = _memory->drawState.drawPaletteMap[c0] & 0xf;
 		_memory->drawState.drawPaletteMap[c0] = (_memory->drawState.drawPaletteMap[c0] & 0x10) | (c1 & 0xf);
 	} else if (p == 1) {
 		//0-15, or 127-143 allowed
+		prev = _memory->drawState.screenPaletteMap[c0] & 0xf;
 		c1 &= 0x8f;
 		_memory->drawState.screenPaletteMap[c0] = c1;
 	}
+
+	return prev;
 }
 
 void Graphics::palt() {
@@ -1195,29 +1229,36 @@ void Graphics::palt() {
 	}
 }
 
-void Graphics::palt(uint8_t c, bool t){
+bool Graphics::palt(uint8_t c, bool t){
 	c = c & 15;
+	bool prev = _memory->drawState.drawPaletteMap[c] & 0xf0;
 	if (t) {
 		_memory->drawState.drawPaletteMap[c] |= 1UL << 4;
 	}
 	else {
 		_memory->drawState.drawPaletteMap[c] &= ~(1UL << 4);
 	}
+
+	return prev;
 }
 
 
-void Graphics::cursor() {
-	this->cursor(0, 0);
+std::tuple<uint8_t, uint8_t> Graphics::cursor() {
+	return this->cursor(0, 0);
 }
 
-void Graphics::cursor(int x, int y) {
+std::tuple<uint8_t, uint8_t> Graphics::cursor(int x, int y) {
+	std::tuple<uint8_t, uint8_t> prev (_memory->drawState.text_x, _memory->drawState.text_y);
+
 	_memory->drawState.text_x = x;
 	_memory->drawState.text_y = y;
+
+	return prev;
 }
 
-void Graphics::cursor(int x, int y, uint8_t col) {
+std::tuple<uint8_t, uint8_t> Graphics::cursor(int x, int y, uint8_t col) {
 	color(col);
 
-	this->cursor(x, y);
+	return this->cursor(x, y);
 }
 

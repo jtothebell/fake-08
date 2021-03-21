@@ -84,6 +84,16 @@ function deli(c,i)
     end
 end
 
+--TODO: move this to lua impl
+origpairs = pairs
+pairs = function(x)
+ if x ~= nil then
+	return origpairs(x)
+ end
+ 
+ return function() end
+end
+
 ---------------------------------
 --Coroutines
 ---------------------------------

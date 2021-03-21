@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <tuple>
 
 #include "doctest.h"
 #include "../source/graphics.h"
@@ -171,6 +172,20 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->color(12);
 
         CHECK(picoRam.drawState.color == 12);
+    }
+    SUBCASE("color() resets color to 6") {
+        picoRam.drawState.color = 12;
+
+        graphics->color();
+
+        CHECK(picoRam.drawState.color == 6);
+    }
+    SUBCASE("color() returns previous") {
+        auto prev = picoRam.drawState.color = 13;
+
+        graphics->color(12);
+
+        CHECK(prev == 13);
     }
     SUBCASE("line() clears line state") {
         picoRam.drawState.line_x = 10;
@@ -1094,6 +1109,16 @@ TEST_CASE("graphics class behaves as expected") {
        CHECK_EQ(picoRam.drawState.camera_x, 0);
        CHECK_EQ(picoRam.drawState.camera_y, 0);
    }
+   SUBCASE("camera({x}, {y}) returns previous values")
+   {
+       uint8_t x = 33;
+       uint8_t y = 120;
+       graphics->camera(x, y);
+       auto prev = graphics->camera(120, 31);
+
+       CHECK_EQ(std::get<0>(prev), x);
+       CHECK_EQ(std::get<1>(prev), y);
+   }
    SUBCASE("camera values applies to pget")
    {
        uint8_t col = 13;
@@ -1301,6 +1326,20 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(picoRam.drawState.clip_xe, 75);
         CHECK_EQ(picoRam.drawState.clip_yb, 75);
         CHECK_EQ(picoRam.drawState.clip_ye, 100);
+    }
+    SUBCASE("clip() returns prev value")
+    {
+        picoRam.drawState.clip_xb = 28;
+        picoRam.drawState.clip_xe = 29;
+        picoRam.drawState.clip_yb = 50;
+        picoRam.drawState.clip_ye = 51;
+
+        auto prev = graphics->clip();
+
+        CHECK_EQ(std::get<0>(prev), 28);
+        CHECK_EQ(std::get<1>(prev), 29);
+        CHECK_EQ(std::get<2>(prev), 50);
+        CHECK_EQ(std::get<3>(prev), 51);
     }
     SUBCASE("clip values applies to pset")
     {
@@ -1519,6 +1558,17 @@ TEST_CASE("graphics class behaves as expected") {
 
         CHECK_EQ(71, result);
     }
+    SUBCASE("mget out of bounds returns 0"){
+        auto result1 = graphics->mget(-1, 16);
+        auto result2 = graphics->mget(129, 16);
+        auto result3 = graphics->mget(10, -1);
+        auto result4 = graphics->mget(10, 67);
+
+        CHECK_EQ(0, result1);
+        CHECK_EQ(0, result2);
+        CHECK_EQ(0, result3);
+        CHECK_EQ(0, result4);
+    }
     SUBCASE("mset from upper half of map data (non-shared)"){
         int x = 13;
         int y = 7;
@@ -1625,6 +1675,18 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->pal(13, 4, 1);
 
         auto result = graphics->getScreenPalMappedColor(13);
+
+        CHECK_EQ(4, result);
+    }
+    SUBCASE("pal({c0}, {c1}, 0) returns previous") {
+        graphics->pal(14, 2, 0);
+        auto result = graphics->pal(14, 8, 0);
+
+        CHECK_EQ(2, result);
+    }
+    SUBCASE("pal({c0}, {c1}, 1) returns previous") {
+        graphics->pal(13, 4, 1);
+        auto result = graphics->pal(13, 6, 1);
 
         CHECK_EQ(4, result);
     }
@@ -1736,6 +1798,16 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(picoRam.drawState.text_y, 0);
         CHECK_EQ(picoRam.drawState.color, 3);
     }
+    SUBCASE("cursor() returns previous values")
+    {
+        uint8_t x = 33;
+        uint8_t y = 120;
+        graphics->cursor(x, y);
+        auto prev = graphics->cursor(11, 31);
+
+        CHECK_EQ(std::get<0>(prev), x);
+        CHECK_EQ(std::get<1>(prev), y);
+    }
     SUBCASE("tline draws sprites from map"){
         for(int i = 0; i < 128; i++) {
             for (int j = 0; j < 32; j++)
@@ -1774,6 +1846,13 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(picoRam.data[0x5f31], 0xcc);
         CHECK_EQ(picoRam.data[0x5f32], 0x33);
         CHECK_EQ(picoRam.data[0x5f33], 0);
+    }
+    SUBCASE("fillp(pat) returns previous"){
+        graphics->fillp(0x33cc);
+
+        auto prev = graphics->fillp(0x44dd);
+
+        CHECK_EQ(prev.bits(), 0x33cc0000);
     }
     SUBCASE("fill pattern affects rectfill"){
         //0b0101101001011010 - 1x1 checkerboard

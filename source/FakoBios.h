@@ -24,7 +24,7 @@ local runcmd=false
 cartpath = "sdmc:/p8carts/"
 selectbtn = "a"
 pausebtn = "start"
-versionstr = "v0.0.2.3"
+versionstr = "v0.0.2.5"
 exitbtn = "l + r"
 sizebtn = "r to cycle screen sizes"
 --end customizable per platform

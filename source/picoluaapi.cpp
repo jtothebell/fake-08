@@ -1,6 +1,7 @@
 
 #include <string>
 #include <vector>
+#include <tuple>
 using namespace std;
 
 #include "picoluaapi.h"
@@ -81,11 +82,19 @@ int pget(lua_State *L){
 }
 
 int color(lua_State *L){
-    fix32 c = lua_tonumber(L,1);
+    uint8_t prev = 0;
+    uint8_t c = 0;
+    if (lua_gettop(L) > 0) {
+        c = lua_tonumber(L,1);
+        prev = _graphicsForLuaApi->color((uint8_t)c);
+    }
+    else {
+        prev = _graphicsForLuaApi->color();
+    }
 
-    _graphicsForLuaApi->color((uint8_t)c);
+    lua_pushinteger(L, prev);
 
-    return 0;
+    return 1;
 }
 
 int line (lua_State *L){
@@ -302,6 +311,9 @@ int print(lua_State *L){
     else if (lua_isboolean(L, 1)){
         str = lua_toboolean(L, 1) ? "true" : "false";
     }
+    else if (lua_isfunction(L, 1)){
+        str = "[function]";
+    }
 
     if (lua_gettop(L) < 3) {
         _graphicsForLuaApi->print(str);
@@ -452,34 +464,45 @@ int sset(lua_State *L) {
 }
 
 int camera(lua_State *L) {
-    int x = 0;
-    int y = 0;
+    int16_t x = 0;
+    int16_t y = 0;
     if (lua_gettop(L) > 0) {
-        x = lua_tonumber(L,1);
+        x = lua_tointeger(L,1);
     }
     if (lua_gettop(L) > 1) {
-        y = lua_tonumber(L,2);
+        y = lua_tointeger(L,2);
     }
     
-    _graphicsForLuaApi->camera(x, y);
+    auto prev = _graphicsForLuaApi->camera(x, y);
 
-    return 0;
+    lua_pushnumber(L, get<0>(prev));
+    lua_pushnumber(L, get<1>(prev));
+
+    return 2;
 }
 
 int clip(lua_State *L) {
+
+    std::tuple<uint8_t, uint8_t, uint8_t, uint8_t> prev;
+
     if (lua_gettop(L) >= 4) {
         int x = lua_tonumber(L,1);
         int y = lua_tonumber(L,2);
         int w = lua_tonumber(L,3);
         int h = lua_tonumber(L,4);
 
-        _graphicsForLuaApi->clip(x, y, w, h);
+        prev = _graphicsForLuaApi->clip(x, y, w, h);
     }
     else {
-        _graphicsForLuaApi->clip();
+        prev = _graphicsForLuaApi->clip();
     }
 
-    return 0;
+    lua_pushnumber(L, get<0>(prev));
+    lua_pushnumber(L, get<1>(prev));
+    lua_pushnumber(L, get<2>(prev));
+    lua_pushnumber(L, get<3>(prev));
+
+    return 4;
 }
 
 int mget(lua_State *L) {
@@ -503,7 +526,7 @@ int mset(lua_State *L) {
 }
 
 int map(lua_State *L) {
-    int celx = 0, cely = 0, sx = 0, sy = 0, celw = 16, celh = 16, argc;
+    int celx = 0, cely = 0, sx = 0, sy = 0, celw = 128, celh = 32, argc;
     argc = lua_gettop(L);
     if (argc > 0) {
         celx = lua_tonumber(L,1);
@@ -535,27 +558,56 @@ int map(lua_State *L) {
 }
 
 int pal(lua_State *L) {
-    if (lua_gettop(L) == 0) {
+    int numArgs = lua_gettop(L);
+    if (numArgs == 0) {
         _graphicsForLuaApi->pal();
+
+        //I think this always returns 0, not nil
+        lua_pushnumber(L, 0);
         
+        return 1;
+    }
+
+    uint8_t p = 0;
+    uint8_t c0 = 0;
+    uint8_t c1 = 0;
+
+    if (lua_istable(L, 1)){
+        if (numArgs > 1) {
+            p = lua_tonumber(L,2);
+        }
+
+        /* table is in the stack at index 't' */
+        lua_pushnil(L);  /* first key */
+        while (lua_next(L, 1) != 0) {
+            if (lua_isnumber(L, -2) && lua_isnumber(L, -1)) {
+                c0 = lua_tonumber(L, -2);
+                c1 = lua_tonumber(L, -1);
+
+                _graphicsForLuaApi->pal(c0, c1, p);
+            }
+            lua_pop(L, 1);
+        }
+
         return 0;
     }
 
 
-    uint8_t c0 = lua_tonumber(L,1);
-    uint8_t c1 = c0;
+    c0 = lua_tonumber(L,1);
+    c1 = c0;
     if (lua_gettop(L) > 1) {
         c1 = lua_tonumber(L,2);
     }
-    uint8_t p = 0;
 
     if (lua_gettop(L) > 2){
         p = lua_tonumber(L,3);
     }
 
-    _graphicsForLuaApi->pal(c0, c1, p);
+    uint8_t prev =_graphicsForLuaApi->pal(c0, c1, p);
 
-    return 0;
+    lua_pushnumber(L, prev);
+
+    return 1;
 }
 
 int palt(lua_State *L) {
@@ -568,26 +620,32 @@ int palt(lua_State *L) {
     uint8_t c = lua_tonumber(L,1);
     bool t = lua_toboolean(L,2);
 
-    _graphicsForLuaApi->palt(c, t);
+    uint8_t prev = _graphicsForLuaApi->palt(c, t);
 
-    return 0;
+    lua_pushnumber(L, prev);
+
+    return 1;
 }
 
 int cursor(lua_State *L) {
     int x = lua_tonumber(L,1);
     int y = lua_tonumber(L,2);
 
-    if (lua_gettop(L) <= 2) {
-        _graphicsForLuaApi->cursor(x, y);
-        return 0;
+    std::tuple<uint8_t, uint8_t> prev;
+
+    if (lua_gettop(L) < 3) {
+        prev = _graphicsForLuaApi->cursor(x, y);
+    }
+    else{
+        uint8_t c = lua_tonumber(L,3);
+
+        prev =_graphicsForLuaApi->cursor(x, y, c);
     }
 
-    uint8_t c = lua_tonumber(L,3);
+    lua_pushnumber(L, get<0>(prev));
+    lua_pushnumber(L, get<1>(prev));
 
-    _graphicsForLuaApi->cursor(x, y, c);
-
-    return 0;
-
+    return 2;
 }
 
 int fillp(lua_State *L) {
@@ -596,9 +654,11 @@ int fillp(lua_State *L) {
         pat = lua_tonumber(L, 1);
     }
 
-    _graphicsForLuaApi->fillp(pat);
+    fix32 prev = _graphicsForLuaApi->fillp(pat);
 
-    return 0;
+    lua_pushnumber(L, prev);
+
+    return 1;
 }
 
 int flip(lua_State *L) {
@@ -841,7 +901,7 @@ int printh(lua_State *L) {
     if (lua_isstring(L, 1)){
         const char * str = "";
         str = lua_tolstring(L, 1, nullptr);
-        printf("%s", str);
+        printf("%s\n", str);
     }
     return 0;
 }
