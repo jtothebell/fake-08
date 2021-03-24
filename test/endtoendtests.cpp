@@ -261,19 +261,17 @@ TEST_CASE("Loading and running carts") {
             
             CHECK(parsedCorrectly);
         }
-        /*
-        SUBCASE("too large int overflows") {
-            vm->UpdateAndDraw();
+        //SUBCASE("too large int overflows") {
+        //    vm->UpdateAndDraw();
 
-            bool parsedCorrectly = vm->ExecuteLua(
-                "function r7test()\n"
-                " return r7 == -32768\n"
-                "end\n",
-                "r7test");
+        //    bool parsedCorrectly = vm->ExecuteLua(
+        //        "function r7test()\n"
+        //        " return r7 == -32768\n"
+        //        "end\n",
+        //        "r7test");
 
-            CHECK(parsedCorrectly);
-        }
-        */
+        //    CHECK(parsedCorrectly);
+        ///}
 
         vm->CloseCart();
     }

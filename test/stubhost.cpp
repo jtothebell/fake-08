@@ -14,8 +14,8 @@ using namespace std;
 
 
 
-static uint8_t currKDown;
-static uint8_t currKHeld;
+static uint8_t stubCurrKDown;
+static uint8_t stubCurrKHeld;
 
 
 Host::Host() { }
@@ -39,12 +39,12 @@ void Host::changeStretch(){
 }
 
 void StubHost::stubInput(uint8_t kdown, uint8_t kheld) {
-    currKDown = kdown;
-    currKHeld = kheld;
+    stubCurrKDown = kdown;
+    stubCurrKHeld = kheld;
 }
 
 InputState_t Host::scanInput(){
-    return InputState_t {currKDown, currKHeld};
+    return InputState_t {stubCurrKDown, stubCurrKHeld};
 }
 
 bool Host::shouldQuit() {
