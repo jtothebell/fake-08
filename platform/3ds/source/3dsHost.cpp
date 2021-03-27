@@ -37,6 +37,7 @@ const int PicoScreenHeight = 128;
 
 const int PicoFbLength = 128 * 64;
 
+int numFramesToClear;
 
 StretchOption stretch = StretchAndOverflow;
 u64 last_time;
@@ -199,15 +200,7 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     gfxSetScreenFormat(GFX_TOP, GSP_RGB565_OES);
     gfxSetScreenFormat(GFX_BOTTOM, GSP_RGB565_OES);
 
-    int bgcolor = 0;
-
-    uint16_t* fb = (uint16_t*)gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
-	//clear whole top framebuffer
-	memset(fb, bgcolor, __3ds_TopScreenWidth*__3ds_TopScreenHeight*2);
-
-	//clear bottom buffer in case overflow rendering is being used
-	uint16_t* fbb = (uint16_t*)gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
-	memset(fbb, bgcolor, __3ds_BottomScreenWidth*__3ds_BottomScreenHeight*2);
+    numFramesToClear = 2;
 }
 
 void Host::oneTimeCleanup(){
@@ -231,6 +224,8 @@ void Host::changeStretch(){
         else if (stretch == StretchAndOverflow) {
             stretch = PixelPerfect;
         }
+
+        numFramesToClear = 2;
     }
 }
 
@@ -278,6 +273,14 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
 
 	//bottom buffer in case overflow rendering is being used
 	uint16_t* fbb = (uint16_t*)gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
+
+    if (numFramesToClear > 0) {
+        //clear framebuffers so we don't leave pixels around
+        memset(fb, 0, __3ds_TopScreenWidth*__3ds_TopScreenHeight*2);
+        memset(fbb, 0, __3ds_BottomScreenWidth*__3ds_BottomScreenHeight*2);
+
+        numFramesToClear--;
+    }
 
     int x, y;
 
