@@ -201,6 +201,7 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "mget", mget);
     lua_register(_luaState, "mset", mset);
     lua_register(_luaState, "map", map);
+    lua_register(_luaState, "mapdraw", map);
 
     //stubbed in graphics:
     lua_register(_luaState, "fillp", fillp);
