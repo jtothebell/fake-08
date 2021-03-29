@@ -94,6 +94,15 @@ pairs = function(x)
  return function() end
 end
 
+origipairs = ipairs
+ipairs = function(x)
+ if x ~= nil then
+	return origipairs(x)
+ end
+ 
+ return function() end
+end
+
 ---------------------------------
 --Coroutines
 ---------------------------------
