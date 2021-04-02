@@ -16,6 +16,7 @@ using namespace std;
 
 #include <psp2/kernel/processmgr.h>
 #include <psp2/io/fcntl.h>
+#include <psp2/power.h>
 
 // sdl
 #include <SDL2/SDL.h>
@@ -198,6 +199,11 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     targetFrameTimeMs = 0;
 
     _paletteColors = paletteColors;
+
+    scePowerSetArmClockFrequency( 444 );
+    scePowerSetBusClockFrequency( 222 );
+    scePowerSetGpuClockFrequency( 222 );
+    scePowerSetGpuXbarClockFrequency( 166 );
 }
 
 void Host::oneTimeCleanup(){
