@@ -3,6 +3,7 @@
 #include <chrono>
 #include <math.h>
 #include <setjmp.h>
+#include <algorithm>
 
 #include <string.h>
 
@@ -374,6 +375,58 @@ void Vm::togglePauseMenu(){
     
 }
 
+//https://codereview.stackexchange.com/a/78539
+constexpr char hexmap[] = {'0', '1', '2', '3', '4', '5', '6', '7',
+                           '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+std::string hexStr(unsigned char *data, int len)
+{
+  std::string s((len * 2), '0');
+  for (int i = 0; i < len; ++i) {
+    s[2 * i]     = hexmap[(data[i] & 0xF0) >> 4];
+    s[2 * i + 1] = hexmap[data[i] & 0x0F];
+  }
+  return s;
+}
+
+//https://stackoverflow.com/a/30606613
+std::vector<uint8_t> hexToBytes(std::string hex) {
+  std::vector<uint8_t> bytes;
+
+  hex.erase(std::remove(hex.begin(), hex.end(), '\n'), hex.end());
+
+  for (unsigned int i = 0; i < hex.length(); i += 2) {
+    std::string byteString = hex.substr(i, 2);
+    uint8_t byte = (uint8_t) strtol(byteString.c_str(), NULL, 16);
+    bytes.push_back(byte);
+  }
+
+  return bytes;
+}
+
+std::string Vm::getSerializedCartData() {
+    auto str = 
+        hexStr(_memory->cartData +   0, 32) + "\n" + 
+        hexStr(_memory->cartData +  32, 32) + "\n" + 
+        hexStr(_memory->cartData +  64, 32) + "\n" + 
+        hexStr(_memory->cartData +  96, 32) + "\n" + 
+        hexStr(_memory->cartData + 128, 32) + "\n" + 
+        hexStr(_memory->cartData + 160, 32) + "\n" + 
+        hexStr(_memory->cartData + 192, 32) + "\n" + 
+        hexStr(_memory->cartData + 224, 32) + "\n";
+
+    return str;
+}
+
+void Vm::deserializeCartDataToMemory(std::string cartDataStr) {
+    //populate from string (assume correct length? TODO: validation)
+    auto byteVector = hexToBytes(cartDataStr);
+
+    for(size_t i = 0; i < byteVector.size(); i++) {
+        _memory->cartData[i] = byteVector[i];
+    }
+
+}
 
 void Vm::UpdateAndDraw() {
     update_buttons();

@@ -95,6 +95,9 @@ class Vm {
 
     void togglePauseMenu();
 
+    std::string getSerializedCartData();
+    void deserializeCartDataToMemory(std::string cartDataStr);
+
     uint8_t vm_peek(int addr);
     int16_t vm_peek2(int addr);
     fix32 vm_peek4(int addr);
