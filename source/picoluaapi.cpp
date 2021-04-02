@@ -291,11 +291,13 @@ int rectfill(lua_State *L){
 }
 
 int print(lua_State *L){
-    if (lua_gettop(L) == 0){
+    int numArgs = lua_gettop(L);
+    if (numArgs == 0){
         return 0;
     }
 
     const char * str = "";
+    int newx = 0;
 
     //todo: handle other cases, maybe move this somewhere else
     //learned this from zepto8 https://github.com/samhocevar/zepto8/blob/27f83fe0626d4823fe2a33568d8310d8def84ae9/src/pico8/vm.cpp
@@ -315,14 +317,20 @@ int print(lua_State *L){
         str = "[function]";
     }
 
-    if (lua_gettop(L) < 3) {
-        _graphicsForLuaApi->print(str);
+    if (numArgs < 2) {
+        newx = _graphicsForLuaApi->print(str);
     }
-    else if (lua_gettop(L) == 3) {
+    else if (numArgs == 2) {
+        uint8_t c = lua_tonumber(L,2);
+
+        _graphicsForLuaApi->color(c);
+        newx = _graphicsForLuaApi->print(str);
+    }
+    else if (numArgs == 3) {
         int x = lua_tonumber(L,2);
         int y = lua_tonumber(L,3);
 
-        _graphicsForLuaApi->print(str, x, y);
+        newx = _graphicsForLuaApi->print(str, x, y);
     }
     else {
         int x = lua_tonumber(L,2);
@@ -330,10 +338,11 @@ int print(lua_State *L){
 
         uint8_t c = lua_tonumber(L,4);
 
-        _graphicsForLuaApi->print(str, x, y, c);
+        newx = _graphicsForLuaApi->print(str, x, y, c);
     }
 
-    return 0;
+    lua_pushinteger(L, newx);
+    return 1;
 }
 
 int spr(lua_State *L) {

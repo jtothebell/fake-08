@@ -48,10 +48,14 @@ bool verifyScreenshot(Vm* vm, std::string screenshotFilename) {
         uint8_t c = getPixelNibble(x, y, picoFb);
         Color col = paletteColors[screenPaletteMap[c]];
 
-        bool pixelMatches = r == col.Red && g == col.Green && b == col.Blue;
+        //black varies by pico 8 version. allow for either so I don't have to
+        //retake all the screenshots
+        bool pixelIsBlack = (r == 0 && g == 0 && b == 0) || (r == 2 && g == 4 && b == 8);
+        bool pixelMatches = 
+            (pixelIsBlack && c == 0) || 
+            (r == col.Red && g == col.Green && b == col.Blue);
 
         if (!pixelMatches) {
-            
             printf("Non-matching pixel at idx %d (%d,%d): rgb: %d,%d,%d\n", pixIdx, x, y, r, g, b);
 
             printf("fake 08 color is %d rgb: %d,%d,%d\n", c, col.Red, col.Green, col.Blue);
@@ -444,9 +448,11 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
+            //first frame doesn't have uniform colors
+            vm->UpdateAndDraw();
             vm->UpdateAndDraw();
 
-            CHECK(verifyScreenshot(vm, "carts/screenshots/peek4test_f01.png"));
+            CHECK(verifyScreenshot(vm, "carts/screenshots/peek4test_f02.png"));
         }
 
         vm->CloseCart();
@@ -461,6 +467,34 @@ TEST_CASE("Loading and running carts") {
             vm->UpdateAndDraw();
 
             CHECK(verifyScreenshot(vm, "carts/screenshots/paltabletest_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
+    SUBCASE("pairs() with nil arg test"){
+        vm->LoadCart("carts/nilpairstest.p8");
+
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("sceen matches screenshot"){
+            vm->UpdateAndDraw();
+
+            CHECK(verifyScreenshot(vm, "carts/screenshots/nilpairstest_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
+    SUBCASE("split() test"){
+        vm->LoadCart("carts/splittest.p8");
+
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("sceen matches screenshot"){
+            vm->UpdateAndDraw();
+
+            CHECK(verifyScreenshot(vm, "carts/screenshots/splittest_f01.png"));
         }
 
         vm->CloseCart();

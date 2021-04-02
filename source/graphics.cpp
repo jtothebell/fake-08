@@ -1017,20 +1017,24 @@ int Graphics::print(std::string str, int x, int y) {
 }
 
 //based on tac08 impl
-int Graphics::print(std::string str, int x, int y, uint16_t c) {
+int Graphics::print(std::string str, int x, int y, uint8_t c) {
 	color(c);
 
 	_memory->drawState.text_x = x;
 	_memory->drawState.text_y = y;
 
+	uint8_t effectiveC = getDrawPalMappedColor(c);
+
 	//font sprite sheet has text as color 7, with 0 as transparent. We need to override
 	//these values and restore them after
-	uint8_t prevCol7Map = _memory->drawState.drawPaletteMap[7];
-	bool prevCol0Transp = isColorTransparent(0);
+	uint8_t prevDrawPal[16];
+	for(uint8_t i = 0; i < 16; i++) {
+		prevDrawPal[i] = _memory->drawState.drawPaletteMap[i];
+		_memory->drawState.drawPaletteMap[i] = i;
+	}
 
-	pal(7, c, 0);
-	palt(7, false);
-	palt(0, true);
+	_memory->drawState.drawPaletteMap[7] = effectiveC;
+	_memory->drawState.drawPaletteMap[0] = 16; //transparent
 
 
 	for (size_t n = 0; n < str.length(); n++) {
@@ -1049,8 +1053,9 @@ int Graphics::print(std::string str, int x, int y, uint16_t c) {
 		}
 	}
 
-	_memory->drawState.drawPaletteMap[7] = prevCol7Map;
-	palt(0, prevCol0Transp);
+	for(int i = 0; i < 16; i++) {
+		_memory->drawState.drawPaletteMap[i] = prevDrawPal[i];
+	}
 
 	//todo: auto scrolling
 
