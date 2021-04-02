@@ -147,7 +147,7 @@ class Graphics {
 
 	int print(std::string str);
 	int print(std::string str, int x, int y);
-	int print(std::string str, int x, int y, uint16_t c);
+	int print(std::string str, int x, int y, uint8_t c);
 
 	void spr(
 		int n,

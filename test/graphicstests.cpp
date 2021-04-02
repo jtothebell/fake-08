@@ -703,6 +703,25 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK(picoRam.drawState.text_y == 18);
         CHECK(picoRam.drawState.color == 14);
     }
+    SUBCASE("print({str}) uses pal mapped color") {
+        graphics->cls();
+        graphics->color(2);
+        graphics->pal(2, 12, 0);
+
+        graphics->print("t");
+
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 0, 12},
+            {1, 0, 12},
+            {2, 0, 12},
+            {1, 1, 12},
+            {1, 2, 12},
+            {1, 3, 12},
+            {1, 4, 12}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
     SUBCASE("spr(...) draws to screen at location") {
         graphics->cls();
         for(uint8_t i = 0; i < 16; i++) {

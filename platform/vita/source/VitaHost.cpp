@@ -18,6 +18,7 @@ using namespace std;
 
 #include <psp2/kernel/processmgr.h>
 #include <psp2/io/fcntl.h>
+#include <psp2/power.h>
 
 // sdl
 #include <SDL2/SDL.h>
@@ -67,6 +68,11 @@ Host::Host() {
     //make sure directories exists
     sceIoMkdir("ux0:/data/", 0777);
     sceIoMkdir("ux0:/data/fake08/", 0777);
+
+    scePowerSetArmClockFrequency( 444 );
+    scePowerSetBusClockFrequency( 222 );
+    scePowerSetGpuClockFrequency( 222 );
+    scePowerSetGpuXbarClockFrequency( 166 );
 
     setPlatformParams(
         WINDOW_SIZE_X,

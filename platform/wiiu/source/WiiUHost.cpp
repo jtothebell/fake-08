@@ -80,6 +80,7 @@ Host::Host()
 InputState_t Host::scanInput(){ 
     currKDown = 0;
     uint8_t kUp = 0;
+    stretchKeyPressed = false;
 
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
