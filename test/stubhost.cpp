@@ -93,3 +93,14 @@ vector<string> Host::listcarts(){
 std::string Host::customBiosLua() {
     return "";
 }
+
+std::string Host::getCartDataFile(std::string cartDataKey) {
+    return "";
+}
+
+std::string Host::getCartDataFileContents(std::string cartDataKey) {
+    return "";
+}
+
+void Host::saveCartData(std::string cartDataKey, std::string contents) {
+}

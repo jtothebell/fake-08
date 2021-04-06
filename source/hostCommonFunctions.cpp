@@ -43,3 +43,23 @@ void Host::saveSettingsIni(){
         fclose(file);
 	}
 }
+
+std::string Host::getCartDataFile(std::string cartDataKey) {
+    return _logFilePrefix + "cdata/" + cartDataKey + ".p8d.txt";
+}
+
+std::string Host::getCartDataFileContents(std::string cartDataKey) {
+    return get_file_contents(getCartDataFile(cartDataKey));
+}
+
+void Host::saveCartData(std::string cartDataKey, std::string contents) {
+    FILE * file = freopen(getCartDataFile(cartDataKey).c_str(), "w", stderr);
+    if( file != NULL ) {
+		//Initialize data
+        fprintf(file, "%s", contents.c_str());
+		
+        fflush(file);
+        
+        fclose(file);
+	}
+}

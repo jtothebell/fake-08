@@ -882,7 +882,7 @@ int reload(lua_State *L) {
 int cartdata(lua_State *L) {
     const char * str = lua_tolstring(L, 1, nullptr);
 
-    _vmForLuaApi->vm_cartdata(str);
+    std::string result = _vmForLuaApi->vm_cartdata(str);
 
     return 0;
 }

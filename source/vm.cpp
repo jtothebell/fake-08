@@ -6,6 +6,9 @@
 #include <algorithm>
 
 #include <string.h>
+#include <sstream>
+#include <iostream>
+#include <iomanip>
 
 #include "vm.h"
 #include "graphics.h"
@@ -375,29 +378,16 @@ void Vm::togglePauseMenu(){
     
 }
 
-//https://codereview.stackexchange.com/a/78539
-constexpr char hexmap[] = {'0', '1', '2', '3', '4', '5', '6', '7',
-                           '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-
-std::string hexStr(unsigned char *data, int len)
-{
-  std::string s((len * 2), '0');
-  for (int i = 0; i < len; ++i) {
-    s[2 * i]     = hexmap[(data[i] & 0xF0) >> 4];
-    s[2 * i + 1] = hexmap[data[i] & 0x0F];
-  }
-  return s;
-}
 
 //https://stackoverflow.com/a/30606613
-std::vector<uint8_t> hexToBytes(std::string hex) {
-  std::vector<uint8_t> bytes;
+std::vector<int32_t> hexToInts(std::string hex) {
+  std::vector<int32_t> bytes;
 
   hex.erase(std::remove(hex.begin(), hex.end(), '\n'), hex.end());
 
-  for (unsigned int i = 0; i < hex.length(); i += 2) {
-    std::string byteString = hex.substr(i, 2);
-    uint8_t byte = (uint8_t) strtol(byteString.c_str(), NULL, 16);
+  for (unsigned int i = 0; i < hex.length(); i += 8) {
+    std::string intString = hex.substr(i, 8);
+    int32_t byte = (int32_t) strtol(intString.c_str(), NULL, 16);
     bytes.push_back(byte);
   }
 
@@ -405,25 +395,28 @@ std::vector<uint8_t> hexToBytes(std::string hex) {
 }
 
 std::string Vm::getSerializedCartData() {
-    auto str = 
-        hexStr(_memory->cartData +   0, 32) + "\n" + 
-        hexStr(_memory->cartData +  32, 32) + "\n" + 
-        hexStr(_memory->cartData +  64, 32) + "\n" + 
-        hexStr(_memory->cartData +  96, 32) + "\n" + 
-        hexStr(_memory->cartData + 128, 32) + "\n" + 
-        hexStr(_memory->cartData + 160, 32) + "\n" + 
-        hexStr(_memory->cartData + 192, 32) + "\n" + 
-        hexStr(_memory->cartData + 224, 32) + "\n";
+    std::stringstream outputstr;
 
-    return str;
+    for(int i = 0; i < 64; i++){
+        fix32 val = vm_dget((uint8_t)i);
+        int32_t bitsVal = val.bits();
+        
+        outputstr << std::setfill('0') << std::setw(8) << std::hex << bitsVal;
+
+        if ((i + 1) % 8 == 0) {
+            outputstr << "\n";
+        }
+    }
+
+    return outputstr.str();
 }
 
 void Vm::deserializeCartDataToMemory(std::string cartDataStr) {
     //populate from string (assume correct length? TODO: validation)
-    auto byteVector = hexToBytes(cartDataStr);
+    auto intsVector = hexToInts(cartDataStr);
 
-    for(size_t i = 0; i < byteVector.size(); i++) {
-        _memory->cartData[i] = byteVector[i];
+    for(size_t i = 0; i < intsVector.size(); i++) {
+        vm_dset(i, fix32::frombits(intsVector[i]));
     }
 
 }
@@ -521,7 +514,6 @@ void Vm::QueueCartChange(std::string filename){
     _nextCartKey = filename;
     _cartChangeQueued = true;
     _pauseMenu = false;
-
 }
 
 int Vm::GetTargetFps() {
@@ -679,10 +671,34 @@ void Vm::vm_poke4(int addr, fix32 value){
     _memory->data[addr + 3] = (uint8_t)(ubits >> 24);
 }
 
-void Vm::vm_cartdata(string key) {
+std::string Vm::vm_cartdata(string key) {
+    //match pico 8 errors
+    if (_cartdataKey != "") {
+        QueueCartChange("__FAKE08-BIOS.p8");
+        _cartLoadError = "cartdata() can only be called once";
+        return _cartLoadError;
+    }
+    if (key.length() == 0 || key.length() > 64) {
+        QueueCartChange("__FAKE08-BIOS.p8");
+        _cartLoadError = "cart data id too long";
+        return _cartLoadError;
+    }
+    //todo: validate chars
+
     _cartdataKey = key;
 
+    auto cartDataStr = _host->getCartDataFileContents(_cartdataKey);
+
+    //todo: validate hex format
+    if (cartDataStr.length() > 0) {
+        deserializeCartDataToMemory(cartDataStr);
+    }
+
+    return "";
+
     //call host to get current cart data and init- set memory
+    //file name should match pico 8: {key}.p8d.txt in the cdata directory
+    //call host to get that string if anything exists
 }
 
 fix32 Vm::vm_dget(uint8_t n) {
@@ -696,9 +712,12 @@ fix32 Vm::vm_dget(uint8_t n) {
 void Vm::vm_dset(uint8_t n, fix32 value){
     if (_cartdataKey.length() > 0 && n < 64) {
         vm_poke4(0x5e00 + 4 * n, value);
-    }
 
-    //write to file via host
+        //pico 8 seems to write immediately
+        if (_cartdataKey.length() > 0) {
+            _host->saveCartData(_cartdataKey, getSerializedCartData());
+        }
+    }
 }
 
 void Vm::vm_reload(int destaddr, int sourceaddr, int len, Cart* cart){

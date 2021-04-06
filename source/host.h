@@ -30,6 +30,7 @@ class Host {
     void loadSettingsIni();
     void saveSettingsIni();
 
+    std::string getCartDataFile(std::string cartDataKey);
 
     public:
     Host();
@@ -63,6 +64,10 @@ class Host {
     const char* logFilePrefix();
 
     std::string customBiosLua();
+
+    std::string getCartDataFileContents(std::string cartDataKey);
+
+    void saveCartData(std::string cartDataKey, std::string contents);
 
     void setPlatformParams(
         int windowWidth,

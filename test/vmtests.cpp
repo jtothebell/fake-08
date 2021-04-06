@@ -116,6 +116,13 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(memory->cartData[2], 56);
         CHECK_EQ(vm->vm_dget(0), (fix32)56);
     }
+    SUBCASE("poking and peeking cart data"){
+        vm->vm_poke4(0x5e80, (fix32)133);
+        vm->vm_cartdata("dummy");
+
+        CHECK_EQ(vm->vm_peek4(0x5e80), (fix32)133);
+        CHECK_EQ(vm->vm_dget(32), (fix32)133);
+    }
     SUBCASE("poking draw palette data"){
         //21 : 0001 0101 (transparet: true) (color mapped 5)
         vm->vm_poke(0x5f02, 21);
@@ -483,6 +490,7 @@ TEST_CASE("Vm memory functions") {
     }
 
     SUBCASE("getSerializedCartData for all zeroes"){
+        vm->vm_cartdata("serializeTest");
         for(int i = 0; i < 256; i++) {
             memory->cartData[i] = 0;
         }
@@ -502,6 +510,7 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(expected, result);
     }
     SUBCASE("getSerializedCartData with 0-255"){
+        vm->vm_cartdata("serializeTest");
         for(int i = 0; i < 256; i++) {
             memory->cartData[i] = (uint8_t)i;
         }
@@ -509,18 +518,19 @@ TEST_CASE("Vm memory functions") {
         auto result = vm->getSerializedCartData();
 
         std::string expected = 
-            "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f\n"
-            "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f\n"
-            "404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f\n"
-            "606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f\n"
-            "808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f\n"
-            "a0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebf\n"
-            "c0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedf\n"
-            "e0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff\n";
+            "03020100070605040b0a09080f0e0d0c13121110171615141b1a19181f1e1d1c\n"
+            "23222120272625242b2a29282f2e2d2c33323130373635343b3a39383f3e3d3c\n"
+            "43424140474645444b4a49484f4e4d4c53525150575655545b5a59585f5e5d5c\n"
+            "63626160676665646b6a69686f6e6d6c73727170777675747b7a79787f7e7d7c\n"
+            "83828180878685848b8a89888f8e8d8c93929190979695949b9a99989f9e9d9c\n"
+            "a3a2a1a0a7a6a5a4abaaa9a8afaeadacb3b2b1b0b7b6b5b4bbbab9b8bfbebdbc\n"
+            "c3c2c1c0c7c6c5c4cbcac9c8cfcecdccd3d2d1d0d7d6d5d4dbdad9d8dfdedddc\n"
+            "e3e2e1e0e7e6e5e4ebeae9e8efeeedecf3f2f1f0f7f6f5f4fbfaf9f8fffefdfc\n";
 
         CHECK_EQ(expected, result);
     }
     SUBCASE("deserializeCartDataToMemory for all zeroes"){
+        vm->vm_cartdata("serializeTest");
         for(int i = 0; i < 256; i++) {
             memory->cartData[i] = 1;
         }
@@ -545,19 +555,20 @@ TEST_CASE("Vm memory functions") {
         CHECK(matches);
     }
     SUBCASE("getDeserializedCartData with 0-255"){
+        vm->vm_cartdata("serializeTest");
         for(int i = 0; i < 256; i++) {
             memory->cartData[i] = 1;
         }
 
         std::string values = 
-            "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f\n"
-            "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f\n"
-            "404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f\n"
-            "606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f\n"
-            "808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f\n"
-            "a0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebf\n"
-            "c0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedf\n"
-            "e0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff\n";
+            "03020100070605040b0a09080f0e0d0c13121110171615141b1a19181f1e1d1c\n"
+            "23222120272625242b2a29282f2e2d2c33323130373635343b3a39383f3e3d3c\n"
+            "43424140474645444b4a49484f4e4d4c53525150575655545b5a59585f5e5d5c\n"
+            "63626160676665646b6a69686f6e6d6c73727170777675747b7a79787f7e7d7c\n"
+            "83828180878685848b8a89888f8e8d8c93929190979695949b9a99989f9e9d9c\n"
+            "a3a2a1a0a7a6a5a4abaaa9a8afaeadacb3b2b1b0b7b6b5b4bbbab9b8bfbebdbc\n"
+            "c3c2c1c0c7c6c5c4cbcac9c8cfcecdccd3d2d1d0d7d6d5d4dbdad9d8dfdedddc\n"
+            "e3e2e1e0e7e6e5e4ebeae9e8efeeedecf3f2f1f0f7f6f5f4fbfaf9f8fffefdfc\n";
 
         vm->deserializeCartDataToMemory(values);
 
@@ -567,6 +578,26 @@ TEST_CASE("Vm memory functions") {
         }
 
         CHECK(matches);
+    }
+    SUBCASE("dset then getSerializedCartData returns correct values"){
+        vm->vm_cartdata("serializeTest");
+        vm->vm_dset(32, 128);
+        vm->vm_dset(0, 1);
+        vm->vm_dset(1, 2);
+
+        auto actual = vm->getSerializedCartData();
+
+        std::string expected = 
+            "0001000000020000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0080000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n";
+
+        CHECK_EQ(expected, actual);
     }
 
     delete stubHost;
