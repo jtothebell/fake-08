@@ -173,9 +173,27 @@ void audioSetup(){
 	audioInitialized = true;
 }
 
+string settingsDir = "3ds/fake08";
 
 
-Host::Host() { }
+Host::Host() {
+    struct stat st = {0};
+
+    int res = chdir("sdmc:/");
+    
+    if (res == 0 && stat("3ds", &st) == -1) {
+        res = mkdir("3ds", 0777);
+    }
+
+    if (res == 0 && stat(settingsDir.c_str(), &st) == -1) {
+        res = mkdir(settingsDir.c_str(), 0777);
+    }
+
+    string cartdatadir = settingsDir + "/cdata";
+    if (res == 0 && stat(cartdatadir.c_str(), &st) == -1) {
+        res = mkdir(cartdatadir.c_str(), 0777);
+    }
+ }
 
 
 void Host::oneTimeSetup(Color* paletteColors, Audio* audio){

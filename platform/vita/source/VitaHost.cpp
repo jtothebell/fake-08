@@ -68,6 +68,7 @@ Host::Host() {
     //make sure directories exists
     sceIoMkdir("ux0:/data/", 0777);
     sceIoMkdir("ux0:/data/fake08/", 0777);
+    sceIoMkdir("ux0:/data/fake08/cdata", 0777);
 
     scePowerSetArmClockFrequency( 444 );
     scePowerSetBusClockFrequency( 222 );

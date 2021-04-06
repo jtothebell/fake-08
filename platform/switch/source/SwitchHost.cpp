@@ -56,13 +56,18 @@ Host::Host()
 {
     struct stat st = {0};
 
-    int res = chdir(getenv("sdmc:/"));
+    int res = chdir("sdmc:/");
     if (res == 0 && stat("switch", &st) == -1) {
         res = mkdir("switch", 0777);
     }
 
     if (res == 0 && stat(_desktopSdl2SettingsDir.c_str(), &st) == -1) {
         res = mkdir(_desktopSdl2SettingsDir.c_str(), 0777);
+    }
+
+    string cartdatadir = _desktopSdl2SettingsPrefix + "cdata";
+    if (res == 0 && stat(cartdatadir.c_str(), &st) == -1) {
+        res = mkdir(cartdatadir.c_str(), 0777);
     }
 
     setPlatformParams(

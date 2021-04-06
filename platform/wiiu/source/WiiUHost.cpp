@@ -64,6 +64,11 @@ Host::Host()
         res = mkdir("fake08", 0777);
     }
 
+    string cartdatadir =  "fake08/cdata";
+    if (res == 0 && stat(cartdatadir.c_str(), &st) == -1) {
+        res = mkdir(cartdatadir.c_str(), 0777);
+    }
+
 
     setPlatformParams(
         WINDOW_SIZE_X,
