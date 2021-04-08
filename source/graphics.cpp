@@ -806,8 +806,9 @@ void Graphics::oval(int x0, int y0, int x1, int y1, uint8_t col) {
         xa += bsq * 2;
         wx++;
 
-        if (xa >= ya)
-          break;
+        if (xa >= ya) {
+        	break;
+		}
 
 
         _safeSetPixelFromPen(xc+wx, yc-wy);
@@ -838,8 +839,12 @@ void Graphics::oval(int x0, int y0, int x1, int y1, uint8_t col) {
         ya += asq * 2;
         wy++;
 
-        if (ya > xa)
-          break;
+        if (ya > xa) {
+        	break;
+		}
+		if (ya == 0 && xa == 0) {
+			break;
+		}
 
         _safeSetPixelFromPen(xc+wx, yc-wy);
         _safeSetPixelFromPen(xc-wx, yc-wy);
@@ -895,8 +900,9 @@ void Graphics::ovalfill(int x0, int y0, int x1, int y1, uint8_t col){
         xa += bsq * 2;
         wx++;
 
-        if (xa >= ya)
-          break;
+        if (xa >= ya) {
+        	break;
+		}
 
 		_private_h_line(xc+wx, xc-wx, yc-wy);
 		_private_h_line(xc+wx, xc-wx, yc+wy);
@@ -923,8 +929,12 @@ void Graphics::ovalfill(int x0, int y0, int x1, int y1, uint8_t col){
         ya += asq * 2;
         wy++;
 
-        if (ya > xa)
-          break;
+        if (ya > xa) {
+        	break;
+		}
+		if (ya == 0 && xa == 0) {
+			break;
+		}
 
 		_private_h_line(xc+wx, xc-wx, yc-wy);
 		_private_h_line(xc+wx, xc-wx, yc+wy);
@@ -1007,8 +1017,6 @@ fix32 Graphics::fillp(fix32 pat) {
 int Graphics::print(std::string str) {
 	int result = this->print(str, _memory->drawState.text_x, _memory->drawState.text_y);
 
-	_memory->drawState.text_y += 6;
-
 	return result;
 }
 
@@ -1058,6 +1066,8 @@ int Graphics::print(std::string str, int x, int y, uint8_t c) {
 	}
 
 	//todo: auto scrolling
+	_memory->drawState.text_y += 6;
+
 
 	return x;
 }
