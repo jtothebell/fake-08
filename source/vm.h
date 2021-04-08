@@ -35,8 +35,8 @@ class Vm {
     int _targetFps;
 
     int _picoFrameCount;
-    bool _hasUpdate;
-    bool _hasDraw;
+    //bool _hasUpdate;
+    //bool _hasDraw;
 
     bool _cartChangeQueued;
     bool _pauseMenu;
@@ -126,5 +126,15 @@ class Vm {
     void vm_flip();
     void vm_run();
     void vm_extcmd(string  cmd);
+
+    int getFps();
+    int getTargetFps();
+
+    int getYear();
+    int getMonth();
+    int getDay();
+    int getHour();
+    int getMinute();
+    int getSecond();
 };
 

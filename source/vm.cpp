@@ -9,6 +9,7 @@
 #include <sstream>
 #include <iostream>
 #include <iomanip>
+#include <ctime>
 
 #include "vm.h"
 #include "graphics.h"
@@ -41,8 +42,6 @@ Vm::Vm(
         _cleanupDeps(false),
         _targetFps(30),
         _picoFrameCount(0),
-        _hasUpdate(false),
-        _hasDraw(false),
         _cartChangeQueued(false),
         _nextCartKey(""),
         _cartLoadError(""),
@@ -288,24 +287,13 @@ bool Vm::loadCart(Cart* cart) {
     //check for update, mark correct target fps
     lua_getglobal(_luaState, "_update60");
     if (lua_isfunction(_luaState, -1)) {
-        _hasUpdate = true;
         _targetFps = 60;
     }
-    lua_pop(_luaState, 0);
-    if (!_hasUpdate){
-        lua_getglobal(_luaState, "_update");
-        if (lua_isfunction(_luaState, -1)) {
-            _hasUpdate = true;
-            _targetFps = 30;
-        }
-        lua_pop(_luaState, 0);
+    else {
+        _targetFps = 30;
     }
+    lua_pop(_luaState, 0);
 
-    lua_getglobal(_luaState, "_draw");
-    if (lua_isfunction(_luaState, -1)) {
-        _hasDraw = true;
-    }
-    lua_pop(_luaState, 0);
 
     //customize bios per host's requirements
     if (cart->Filename == "__FAKE08-BIOS.p8") {
@@ -446,29 +434,24 @@ void Vm::UpdateAndDraw() {
         lua_pop(_luaState, 0);
     }
     else{
-        if (_hasUpdate){
-            // Push the _update function on the top of the lua stack
-            if (_targetFps == 60) {
-                lua_getglobal(_luaState, "_update60");
-            } else {
-                lua_getglobal(_luaState, "_update");
-            }
-
-            //we already checked that its a function, so we should be able to call it
-            lua_call(_luaState, 0, 0);
-
-            //pop the update fuction off the stack now that we're done with it
-            lua_pop(_luaState, 0);
+        // Push the _update function on the top of the lua stack
+        if (_targetFps == 60) {
+            lua_getglobal(_luaState, "_update60");
+        } else {
+            lua_getglobal(_luaState, "_update");
         }
 
-        if (_hasDraw) {
-            lua_getglobal(_luaState, "_draw");
-
+        if (lua_isfunction(_luaState, -1)) {
             lua_call(_luaState, 0, 0);
-            
-            //pop the update fuction off the stack now that we're done with it
-            lua_pop(_luaState, 0);
         }
+        //pop the update fuction off the stack now that we're done with it
+        lua_pop(_luaState, 0);
+
+        lua_getglobal(_luaState, "_draw");
+        if (lua_isfunction(_luaState, -1)) {
+            lua_call(_luaState, 0, 0);
+        }
+        lua_pop(_luaState, 0);
     }
 
 }
@@ -504,8 +487,6 @@ void Vm::CloseCart() {
     }
 
     Logger_Write("resetting state\n");
-    _hasUpdate = false;
-    _hasDraw = false;
     _targetFps = 30;
     _picoFrameCount = 0;
 }
@@ -721,10 +702,16 @@ void Vm::vm_dset(uint8_t n, fix32 value){
 }
 
 void Vm::vm_reload(int destaddr, int sourceaddr, int len, Cart* cart){
+    if (len <= 0) {
+        return;
+    }
     memcpy(&_memory->data[destaddr], &cart->CartRom.data[sourceaddr], len);
 }
 
 void Vm::vm_reload(int destaddr, int sourceaddr, int len, string filename){
+    if (len <= 0) {
+        return;
+    }
     if (destaddr < 0 || destaddr > (int)sizeof(PicoRam)) {
         //invalid dest address
         return;
@@ -762,6 +749,9 @@ void Vm::vm_reload(int destaddr, int sourceaddr, int len, string filename){
 }
 
 void Vm::vm_memset(int destaddr, uint8_t val, int len){
+    if (len <= 0) {
+        return;
+    }
     if (destaddr < 0 || destaddr + len > (int)sizeof(PicoRam)) {
         return;
     }
@@ -770,6 +760,9 @@ void Vm::vm_memset(int destaddr, uint8_t val, int len){
 
 }
 void Vm::vm_memcpy(int destaddr, int sourceaddr, int len){
+    if (len <= 0) {
+        return;
+    }
     if (sourceaddr < 0 || sourceaddr + len > (int)sizeof(PicoRam)) {
         return;
     }
@@ -870,4 +863,55 @@ void Vm::vm_extcmd(std::string cmd){
     else if (cmd == "shutdown") {
         QueueCartChange("__FAKE08-BIOS.p8");
     }
+}
+
+int Vm::getFps(){
+    //TODO: return actual fps (as fix32?)
+    return _targetFps;
+}
+
+int Vm::getTargetFps(){
+    return _targetFps;
+}
+
+int Vm::getYear(){
+    std::time_t t = std::time(0);
+    std::tm* now = std::localtime(&t);
+
+    return now->tm_year + 1900;
+}
+
+int Vm::getMonth(){
+    std::time_t t = std::time(0);
+    std::tm* now = std::localtime(&t);
+
+    return now->tm_mon + 1;
+}
+
+int Vm::getDay(){
+    std::time_t t = std::time(0);
+    std::tm* now = std::localtime(&t);
+
+    return now->tm_mday;
+}
+
+int Vm::getHour(){
+    std::time_t t = std::time(0);
+    std::tm* now = std::localtime(&t);
+
+    return now->tm_hour;
+}
+
+int Vm::getMinute(){
+    std::time_t t = std::time(0);
+    std::tm* now = std::localtime(&t);
+
+    return now->tm_min;
+}
+
+int Vm::getSecond(){
+    std::time_t t = std::time(0);
+    std::tm* now = std::localtime(&t);
+
+    return now->tm_sec;
 }
