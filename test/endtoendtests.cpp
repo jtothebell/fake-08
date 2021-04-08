@@ -497,6 +497,31 @@ TEST_CASE("Loading and running carts") {
 
         vm->CloseCart();
     }
+    SUBCASE("General use memory persists across cart loads"){
+        vm->LoadCart("carts/cartparsetest.p8");
+        auto origFirstByte = vm->vm_peek(0);
+        vm->vm_poke(0x0000, 12);
+        vm->vm_poke(0x42ff, 92);
+
+        vm->vm_poke(0x4300, 33);
+        vm->vm_poke(0x55ff, 129);
+
+        vm->vm_poke(0x5600, 71);
+        vm->vm_poke(0x7fff, 223);
+        vm->LoadCart("carts/cartparsetest.p8");
+
+        CHECK_EQ(vm->vm_peek(0x0000), origFirstByte);
+        CHECK_EQ(vm->vm_peek(0x42ff), 0);
+
+        CHECK_EQ(vm->vm_peek(0x4300), 33);
+        CHECK_EQ(vm->vm_peek(0x55ff), 129);
+
+        CHECK_EQ(vm->vm_peek(0x5600), 0);
+        CHECK_EQ(vm->vm_peek(0x7fff), 0);
+
+
+        vm->CloseCart();
+    }
     
     delete vm;
     delete host;
