@@ -207,7 +207,8 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 		}
     }
 
-    
+    stretch = PixelPerfectStretch;
+
     last_time = 0;
     now_time = 0;
     frame_time = 0;
