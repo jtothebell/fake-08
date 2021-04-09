@@ -138,7 +138,25 @@ void audioSetup(){
     */
 }
 
-Host::Host() { }
+Host::Host() {
+    struct stat st = {0};
+
+    int res = chdir("fs:/vol/external01");
+    if (res == 0 && stat("wiiu", &st) == -1) {
+        res = mkdir("wiiu", 0777);
+    }
+    if (res == 0 && stat("wiiu/apps", &st) == -1) {
+        res = mkdir("wiiu/apps", 0777);
+    }
+    if (res == 0 && stat("wiiu/apps/fake08", &st) == -1) {
+        res = mkdir("wiiu/apps/fake08", 0777);
+    }
+    if (res == 0 && stat("wiiu/apps/fake08/cdata", &st) == -1) {
+        res = mkdir("wiiu/apps/fake08/cdata", 0777);
+    }
+
+    _logFilePrefix = "wiiu/apps/fake08/";
+ }
 
 
 void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
@@ -194,9 +212,13 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     targetFrameTimeMs = 0;
 
     _paletteColors = paletteColors;
+
+    loadSettingsIni();
 }
 
 void Host::oneTimeCleanup(){
+    saveSettingsIni();
+    
     audioCleanup();
 
     SDL_DestroyTexture(texture);
@@ -389,7 +411,7 @@ vector<string> Host::listcarts(){
 }
 
 const char* Host::logFilePrefix() {
-    return "";
+    return _logFilePrefix.c_str();
 }
 
 std::string Host::customBiosLua() {

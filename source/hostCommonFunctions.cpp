@@ -10,7 +10,7 @@ using namespace std;
 CSimpleIniA settingsIni;
 
 void Host::loadSettingsIni(){
-    std::string settingsIniStr = get_file_contents(_logFilePrefix + "/settings.ini");
+    std::string settingsIniStr = get_file_contents(_logFilePrefix + "settings.ini");
 
 	//File does not exist, fill string with defaults
 	if(settingsIniStr.length() == 0 ){
@@ -31,7 +31,7 @@ void Host::saveSettingsIni(){
     std::string settingsIniStr = "";
     settingsIni.Save(settingsIniStr, false);
 
-    std::string iniPath = _logFilePrefix + "/settings.ini";
+    std::string iniPath = _logFilePrefix + "settings.ini";
 
     FILE * file = freopen(iniPath.c_str(), "w", stderr);
     if( file != NULL ) {
