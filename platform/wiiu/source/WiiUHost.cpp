@@ -56,17 +56,11 @@ const int PicoScreenWidth = 128;
 const int PicoScreenHeight = 128;
 
 
-StretchOption stretch = PixelPerfectStretch;
 uint32_t last_time;
 uint32_t now_time;
 uint32_t frame_time;
 uint32_t targetFrameTimeMs;
 
-uint8_t currKDown;
-uint8_t currKHeld;
-bool lDown = false;
-bool rDown = false;
-bool stretchKeyPressed = false;
 
 Color* _paletteColors;
 
@@ -79,7 +73,6 @@ SDL_Texture *texture = NULL;
 SDL_Rect DestR;
 SDL_AudioSpec want, have;
 SDL_AudioDeviceID dev;
-int quit = 0;
 void *pixels;
 uint8_t *base;
 int pitch;
@@ -155,8 +148,17 @@ Host::Host() {
         res = mkdir("wiiu/apps/fake08/cdata", 0777);
     }
 
-    _logFilePrefix = "wiiu/apps/fake08/";
+    _logFilePrefix = "fs:/vol/external01/wiiu/apps/fake08/";
  }
+
+  void Host::setPlatformParams(
+        int windowWidth,
+        int windowHeight,
+        uint32_t sdlWindowFlags,
+        uint32_t sdlRendererFlags,
+        uint32_t sdlPixelFormat,
+        std::string logFilePrefix,
+        std::string customBiosLua) {}
 
 
 void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
