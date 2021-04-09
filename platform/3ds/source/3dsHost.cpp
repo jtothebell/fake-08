@@ -38,15 +38,13 @@ const int PicoScreenHeight = 128;
 const int PicoFbLength = 128 * 64;
 
 int numFramesToClear;
-
-StretchOption stretch = StretchAndOverflow;
 u64 last_time;
 u64 now_time;
 u64 frame_time;
 double targetFrameTimeMs;
 
-u32 currKDown;
-u32 currKHeld;
+u32 currKDown32;
+u32 currKHeld32;
 
 Color* _paletteColors;
 uint16_t _rgb565Colors[144];
@@ -173,10 +171,12 @@ void audioSetup(){
 	audioInitialized = true;
 }
 
-string settingsDir = "3ds/fake08";
+
 
 
 Host::Host() {
+    _logFilePrefix = "sdmc:/3ds/fake08/";
+
     struct stat st = {0};
 
     int res = chdir("sdmc:/");
@@ -185,19 +185,30 @@ Host::Host() {
         res = mkdir("3ds", 0777);
     }
 
-    if (res == 0 && stat(settingsDir.c_str(), &st) == -1) {
-        res = mkdir(settingsDir.c_str(), 0777);
+    if (res == 0 && stat(_logFilePrefix.c_str(), &st) == -1) {
+        res = mkdir(_logFilePrefix.c_str(), 0777);
     }
 
-    string cartdatadir = settingsDir + "/cdata";
+    string cartdatadir = _logFilePrefix + "cdata";
     if (res == 0 && stat(cartdatadir.c_str(), &st) == -1) {
         res = mkdir(cartdatadir.c_str(), 0777);
     }
  }
 
+ void Host::setPlatformParams(
+        int windowWidth,
+        int windowHeight,
+        uint32_t sdlWindowFlags,
+        uint32_t sdlRendererFlags,
+        uint32_t sdlPixelFormat,
+        std::string logFilePrefix,
+        std::string customBiosLua) {}
+
 
 void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     osSetSpeedupEnable(true);
+
+    stretch = StretchAndOverflow;
 
     _audio = audio;
     audioSetup();
@@ -232,7 +243,7 @@ void Host::setTargetFps(int targetFps){
 }
 
 void Host::changeStretch(){
-    if (currKDown & KEY_R) {
+    if (currKDown32 & KEY_R) {
         if (stretch == PixelPerfect) {
             stretch = StretchToFit;
         }
@@ -250,18 +261,18 @@ void Host::changeStretch(){
 InputState_t Host::scanInput(){
     hidScanInput();
 
-    currKDown = hidKeysDown();
-    currKHeld = hidKeysHeld();
+    currKDown32 = hidKeysDown();
+    currKHeld32 = hidKeysHeld();
 
     return InputState_t {
-        ConvertInputToP8(currKDown),
-        ConvertInputToP8(currKHeld)
+        ConvertInputToP8(currKDown32),
+        ConvertInputToP8(currKHeld32)
     };
 }
 
 bool Host::shouldQuit() {
-    bool lpressed = currKHeld & KEY_L;
-	bool rpressed = currKDown & KEY_R;
+    bool lpressed = currKHeld32 & KEY_L;
+	bool rpressed = currKDown32 & KEY_R;
 
 	return lpressed && rpressed;
 }
