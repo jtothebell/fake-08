@@ -131,6 +131,31 @@ void audioSetup(){
     */
 }
 
+
+void _changeStretch(StretchOption newStretch){
+    if (newStretch == PixelPerfect) {
+        screenWidth = PicoScreenWidth;
+        screenHeight = PicoScreenHeight;
+    }
+    else if (newStretch == StretchToFit) {
+        screenWidth = WIN_HEIGHT;
+        screenHeight = WIN_HEIGHT;
+    }
+    else if (newStretch == StretchToFill) {
+        screenWidth = WIN_WIDTH;
+        screenHeight = WIN_HEIGHT; 
+    }
+    else if (newStretch == PixelPerfectStretch) {
+        screenWidth = SCREEN_SIZE_X;
+        screenHeight = SCREEN_SIZE_Y; 
+    }
+
+    DestR.x = WIN_WIDTH / 2 - screenWidth / 2;
+    DestR.y = WIN_HEIGHT / 2 - screenHeight / 2;
+    DestR.w = screenWidth;
+    DestR.h = screenHeight;
+}
+
 Host::Host() {
     struct stat st = {0};
 
@@ -217,6 +242,8 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     _paletteColors = paletteColors;
 
     loadSettingsIni();
+
+    _changeStretch(stretch);
 }
 
 void Host::oneTimeCleanup(){
@@ -238,29 +265,18 @@ void Host::changeStretch(){
     if (stretchKeyPressed) {
         if (stretch == PixelPerfectStretch) {
             stretch = PixelPerfect;
-            screenWidth = PicoScreenWidth;
-            screenHeight = PicoScreenHeight;
         }
         else if (stretch == PixelPerfect) {
             stretch = StretchToFit;
-            screenWidth = WIN_HEIGHT;
-            screenHeight = WIN_HEIGHT;
         }
         else if (stretch == StretchToFit) {
             stretch = StretchToFill;
-            screenWidth = WIN_WIDTH;
-            screenHeight = WIN_HEIGHT; 
         }
         else if (stretch == StretchToFill) {
             stretch = PixelPerfectStretch;
-            screenWidth = SCREEN_SIZE_X;
-            screenHeight = SCREEN_SIZE_Y; 
         }
 
-        DestR.x = WIN_WIDTH / 2 - screenWidth / 2;
-        DestR.y = WIN_HEIGHT / 2 - screenHeight / 2;
-        DestR.w = screenWidth;
-        DestR.h = screenHeight;
+        _changeStretch(stretch);
     }
 }
 

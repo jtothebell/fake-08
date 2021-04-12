@@ -230,6 +230,8 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     gfxSetScreenFormat(GFX_BOTTOM, GSP_RGB565_OES);
 
     numFramesToClear = 2;
+
+    loadSettingsIni();
 }
 
 void Host::oneTimeCleanup(){
@@ -358,7 +360,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
             }
         }
 	}
-	else if (stretch == StretchAndOverflow) {
+	else if (stretch == StretchAndOverflow || stretch == PixelPerfectStretch) {
 		//assume landscape, hardcoded double for now (3ds)
         int ratio = 2;
         int stretchedWidth = PicoScreenWidth * ratio;
