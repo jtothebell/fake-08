@@ -177,7 +177,9 @@ struct hwState_t {
 struct PicoRam
 {
     void Reset() {
-        memset(data, 0, 0x8000);
+        memset(data, 0, 0x4300);
+        //leave general use memory
+        memset(data + 0x5600, 0, 0x8000 - 0x5600);
     }
     
     union

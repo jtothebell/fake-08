@@ -265,19 +265,17 @@ TEST_CASE("Loading and running carts") {
             
             CHECK(parsedCorrectly);
         }
-        /*
-        SUBCASE("too large int overflows") {
-            vm->UpdateAndDraw();
+        //SUBCASE("too large int overflows") {
+        //    vm->UpdateAndDraw();
 
-            bool parsedCorrectly = vm->ExecuteLua(
-                "function r7test()\n"
-                " return r7 == -32768\n"
-                "end\n",
-                "r7test");
+        //    bool parsedCorrectly = vm->ExecuteLua(
+        //        "function r7test()\n"
+        //        " return r7 == -32768\n"
+        //        "end\n",
+        //        "r7test");
 
-            CHECK(parsedCorrectly);
-        }
-        */
+        //    CHECK(parsedCorrectly);
+        ///}
 
         vm->CloseCart();
     }
@@ -496,6 +494,31 @@ TEST_CASE("Loading and running carts") {
 
             CHECK(verifyScreenshot(vm, "carts/screenshots/splittest_f01.png"));
         }
+
+        vm->CloseCart();
+    }
+    SUBCASE("General use memory persists across cart loads"){
+        vm->LoadCart("carts/cartparsetest.p8");
+        auto origFirstByte = vm->vm_peek(0);
+        vm->vm_poke(0x0000, 12);
+        vm->vm_poke(0x42ff, 92);
+
+        vm->vm_poke(0x4300, 33);
+        vm->vm_poke(0x55ff, 129);
+
+        vm->vm_poke(0x5600, 71);
+        vm->vm_poke(0x7fff, 223);
+        vm->LoadCart("carts/cartparsetest.p8");
+
+        CHECK_EQ(vm->vm_peek(0x0000), origFirstByte);
+        CHECK_EQ(vm->vm_peek(0x42ff), 0);
+
+        CHECK_EQ(vm->vm_peek(0x4300), 33);
+        CHECK_EQ(vm->vm_peek(0x55ff), 129);
+
+        CHECK_EQ(vm->vm_peek(0x5600), 0);
+        CHECK_EQ(vm->vm_peek(0x7fff), 0);
+
 
         vm->CloseCart();
     }

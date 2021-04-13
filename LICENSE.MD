@@ -52,6 +52,10 @@
 - Website: //https://stackoverflow.com/a/8448181
 - License: (CC BY-SA 3.0) https://creativecommons.org/licenses/by-sa/3.0/
 
+# simpleini
+- Website: https://github.com/brofield/simpleini
+- License: MIT
+
 # **License Text**
 
 ## MIT license

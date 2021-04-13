@@ -35,8 +35,8 @@ class Vm {
     int _targetFps;
 
     int _picoFrameCount;
-    bool _hasUpdate;
-    bool _hasDraw;
+    //bool _hasUpdate;
+    //bool _hasDraw;
 
     bool _cartChangeQueued;
     bool _pauseMenu;
@@ -95,6 +95,9 @@ class Vm {
 
     void togglePauseMenu();
 
+    std::string getSerializedCartData();
+    void deserializeCartDataToMemory(std::string cartDataStr);
+
     uint8_t vm_peek(int addr);
     int16_t vm_peek2(int addr);
     fix32 vm_peek4(int addr);
@@ -103,7 +106,7 @@ class Vm {
     void vm_poke2(int addr, int16_t value);
     void vm_poke4(int addr, fix32 value);
 
-    void vm_cartdata(string key);
+    std::string vm_cartdata(string key);
     fix32 vm_dget(uint8_t n);
     void vm_dset(uint8_t n, fix32 value);
 
@@ -123,5 +126,15 @@ class Vm {
     void vm_flip();
     void vm_run();
     void vm_extcmd(string  cmd);
+
+    int getFps();
+    int getTargetFps();
+
+    int getYear();
+    int getMonth();
+    int getDay();
+    int getHour();
+    int getMinute();
+    int getSecond();
 };
 

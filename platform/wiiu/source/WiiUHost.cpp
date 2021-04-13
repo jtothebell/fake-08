@@ -56,17 +56,11 @@ const int PicoScreenWidth = 128;
 const int PicoScreenHeight = 128;
 
 
-StretchOption stretch = PixelPerfectStretch;
 uint32_t last_time;
 uint32_t now_time;
 uint32_t frame_time;
 uint32_t targetFrameTimeMs;
 
-uint8_t currKDown;
-uint8_t currKHeld;
-bool lDown = false;
-bool rDown = false;
-bool stretchKeyPressed = false;
 
 Color* _paletteColors;
 
@@ -79,7 +73,6 @@ SDL_Texture *texture = NULL;
 SDL_Rect DestR;
 SDL_AudioSpec want, have;
 SDL_AudioDeviceID dev;
-int quit = 0;
 void *pixels;
 uint8_t *base;
 int pitch;
@@ -138,7 +131,59 @@ void audioSetup(){
     */
 }
 
-Host::Host() { }
+
+void _changeStretch(StretchOption newStretch){
+    if (newStretch == PixelPerfect) {
+        screenWidth = PicoScreenWidth;
+        screenHeight = PicoScreenHeight;
+    }
+    else if (newStretch == StretchToFit) {
+        screenWidth = WIN_HEIGHT;
+        screenHeight = WIN_HEIGHT;
+    }
+    else if (newStretch == StretchToFill) {
+        screenWidth = WIN_WIDTH;
+        screenHeight = WIN_HEIGHT; 
+    }
+    else if (newStretch == PixelPerfectStretch) {
+        screenWidth = SCREEN_SIZE_X;
+        screenHeight = SCREEN_SIZE_Y; 
+    }
+
+    DestR.x = WIN_WIDTH / 2 - screenWidth / 2;
+    DestR.y = WIN_HEIGHT / 2 - screenHeight / 2;
+    DestR.w = screenWidth;
+    DestR.h = screenHeight;
+}
+
+Host::Host() {
+    struct stat st = {0};
+
+    int res = chdir("fs:/vol/external01");
+    if (res == 0 && stat("wiiu", &st) == -1) {
+        res = mkdir("wiiu", 0777);
+    }
+    if (res == 0 && stat("wiiu/apps", &st) == -1) {
+        res = mkdir("wiiu/apps", 0777);
+    }
+    if (res == 0 && stat("wiiu/apps/fake08", &st) == -1) {
+        res = mkdir("wiiu/apps/fake08", 0777);
+    }
+    if (res == 0 && stat("wiiu/apps/fake08/cdata", &st) == -1) {
+        res = mkdir("wiiu/apps/fake08/cdata", 0777);
+    }
+
+    _logFilePrefix = "fs:/vol/external01/wiiu/apps/fake08/";
+ }
+
+  void Host::setPlatformParams(
+        int windowWidth,
+        int windowHeight,
+        uint32_t sdlWindowFlags,
+        uint32_t sdlRendererFlags,
+        uint32_t sdlPixelFormat,
+        std::string logFilePrefix,
+        std::string customBiosLua) {}
 
 
 void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
@@ -187,16 +232,23 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 		}
     }
 
-    
+    stretch = PixelPerfectStretch;
+
     last_time = 0;
     now_time = 0;
     frame_time = 0;
     targetFrameTimeMs = 0;
 
     _paletteColors = paletteColors;
+
+    loadSettingsIni();
+
+    _changeStretch(stretch);
 }
 
 void Host::oneTimeCleanup(){
+    saveSettingsIni();
+    
     audioCleanup();
 
     SDL_DestroyTexture(texture);
@@ -213,29 +265,18 @@ void Host::changeStretch(){
     if (stretchKeyPressed) {
         if (stretch == PixelPerfectStretch) {
             stretch = PixelPerfect;
-            screenWidth = PicoScreenWidth;
-            screenHeight = PicoScreenHeight;
         }
         else if (stretch == PixelPerfect) {
             stretch = StretchToFit;
-            screenWidth = WIN_HEIGHT;
-            screenHeight = WIN_HEIGHT;
         }
         else if (stretch == StretchToFit) {
             stretch = StretchToFill;
-            screenWidth = WIN_WIDTH;
-            screenHeight = WIN_HEIGHT; 
         }
         else if (stretch == StretchToFill) {
             stretch = PixelPerfectStretch;
-            screenWidth = SCREEN_SIZE_X;
-            screenHeight = SCREEN_SIZE_Y; 
         }
 
-        DestR.x = WIN_WIDTH / 2 - screenWidth / 2;
-        DestR.y = WIN_HEIGHT / 2 - screenHeight / 2;
-        DestR.w = screenWidth;
-        DestR.h = screenHeight;
+        _changeStretch(stretch);
     }
 }
 
@@ -389,7 +430,7 @@ vector<string> Host::listcarts(){
 }
 
 const char* Host::logFilePrefix() {
-    return "";
+    return _logFilePrefix.c_str();
 }
 
 std::string Host::customBiosLua() {

@@ -37,7 +37,7 @@ APP_VERSION	:= $(APP_VERSION)
 
 TARGET		:=	FAKE-08
 BUILD		:=	build
-SOURCES		:=	${SOURCES} source
+SOURCES		:=	${SOURCES} ../SDL2Common/source source
 DATA		:=	data
 INCLUDES	:=	${INCLUDES}
 EXEFS_SRC	:=	exefs_src
@@ -50,7 +50,7 @@ CC = $(CXX)
 
 ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 
-CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
+CFLAGS	:=	-g -Wall -O2 -ffunction-sections -DVER_STR=\"$(APP_VERSION)\" \
 			$(ARCH) $(DEFINES)
 
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__

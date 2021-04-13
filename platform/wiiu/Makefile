@@ -33,7 +33,7 @@ LIBRARIES	:=	SDL2_gfx SDL2_image SDL2_mixer SDL2_ttf sdl2 \
 #-------------------------------------------------------------------------------
 CC = $(CXX)
 
-CFLAGS		:=	-g -Wall -O2 -ffunction-sections \
+CFLAGS		:=	-g -Wall -O2 -ffunction-sections -DVER_STR=\"$(APP_VERSION)\" \
 			-ffast-math \
 			$(MACHDEP)
 

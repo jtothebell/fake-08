@@ -15,6 +15,23 @@ enum StretchOption {
 };
 
 class Host {
+    uint8_t currKDown;
+    uint8_t currKHeld;
+    bool lDown = false;
+    bool rDown = false;
+    bool stretchKeyPressed = false;
+    StretchOption stretch = PixelPerfectStretch;
+    int quit = 0;
+
+
+    std::string _logFilePrefix;
+    std::string _customBiosLua;
+
+    void loadSettingsIni();
+    void saveSettingsIni();
+
+    std::string getCartDataFile(std::string cartDataKey);
+
     public:
     Host();
 
@@ -47,4 +64,17 @@ class Host {
     const char* logFilePrefix();
 
     std::string customBiosLua();
+
+    std::string getCartDataFileContents(std::string cartDataKey);
+
+    void saveCartData(std::string cartDataKey, std::string contents);
+
+    void setPlatformParams(
+        int windowWidth,
+        int windowHeight,
+        uint32_t sdlWindowFlags,
+        uint32_t sdlRendererFlags,
+        uint32_t sdlPixelFormat,
+        std::string logFilePrefix,
+        std::string customBiosLua);
 };

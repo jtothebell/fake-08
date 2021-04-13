@@ -2,6 +2,9 @@
 
 #include <string>
 
+#ifndef VER_STR
+#define VER_STR "v0.0.0.0"
+#endif
 
 //from PicoLove api.lua
 
@@ -24,7 +27,7 @@ local runcmd=false
 cartpath = "sdmc:/p8carts/"
 selectbtn = "a"
 pausebtn = "start"
-versionstr = "v0.0.2.5"
+versionstr = ")#" VER_STR  R"#("
 exitbtn = "l + r"
 sizebtn = "r to cycle screen sizes"
 --end customizable per platform

@@ -26,10 +26,10 @@ libs/lua-5.3.2/src/*.o
 libs/lua-5.3.2/src/liblua.a
 libs/z8lua/*.o
 libs/z8lua/liblua.a
-platform/SDL2/obj/*.o
-platform/SDL2/*.d
-platform/SDL2/fake08
-platform/SDL2/FAKE08
+platform/SDL2Desktop/obj/*.o
+platform/SDL2Desktop/*.d
+platform/SDL2Desktop/fake08
+platform/SDL2Desktop/FAKE08
 pico.log
 platform/vita/eboot.bin
 platform/vita/*.velf

@@ -735,6 +735,88 @@ int time(lua_State *L) {
 }
 
 int stat(lua_State *L) {
+    int n = (int)lua_tonumber(L, 1);
+
+    switch(n){
+        //0 memory usage
+        case 0:
+            //TODO: get from z8lua
+            lua_pushnumber(L, 1);
+            return 1;
+        break;
+        //cpu usage
+        case 1:
+            // stubbed to return 50%
+            lua_pushnumber(L, 0.5);
+            return 1;
+        break;
+        //cpu usage (without system calls)
+        case 2:
+            // stubbed to return 50%
+            lua_pushnumber(L, 0.5);
+            return 1;
+        break;
+        //clipboard contents
+        case 4:
+            // no clipboard support currently
+            lua_pushstring(L, "");
+            return 1;
+        break;
+        //version
+        case 5:
+            // no clipboard support currently
+            lua_pushnumber(L, 22);
+            return 1;
+        break;
+        //argument
+        case 6:
+            // no args or loading other cards currently supported
+            lua_pushstring(L, "");
+            return 1;
+        break;
+        //frame rate
+        case 7:
+            lua_pushnumber(L, _vmForLuaApi->getFps());
+            return 1;
+        break;
+        //target framerate
+        case 8:
+            lua_pushnumber(L, _vmForLuaApi->getTargetFps());
+            return 1;
+        break;
+        //Current Year
+        case 90:
+            lua_pushnumber(L, _vmForLuaApi->getYear());
+            return 1;
+        break;
+        //Current month
+        case 91:
+            lua_pushnumber(L, _vmForLuaApi->getMonth());
+            return 1;
+        break;
+        //Current day
+        case 92:
+            lua_pushnumber(L, _vmForLuaApi->getDay());
+            return 1;
+        break;
+        //Current Hour
+        case 93:
+            lua_pushnumber(L, _vmForLuaApi->getHour());
+            return 1;
+        break;
+        //Current Minute
+        case 94:
+            lua_pushnumber(L, _vmForLuaApi->getMinute());
+            return 1;
+        break;
+        //Current second
+        case 95:
+            lua_pushnumber(L, _vmForLuaApi->getSecond());
+            return 1;
+        break;
+    }
+
+
     return noopreturns(L, "stat");
 }
 
@@ -880,9 +962,10 @@ int reload(lua_State *L) {
 
 //cart data
 int cartdata(lua_State *L) {
-    const char * str = lua_tolstring(L, 1, nullptr);
-
-    _vmForLuaApi->vm_cartdata(str);
+    if (lua_gettop(L) > 0) {
+        std::string key = lua_tolstring(L, 1, nullptr);
+        _vmForLuaApi->vm_cartdata(key);
+    }
 
     return 0;
 }

@@ -527,6 +527,14 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("oval({x0}, {x1}, {y0}, {y1}, {c}) with zeroes doesn't infinite loop") {
+        graphics->cls();
+        graphics->oval(40, 40, 40, 40, 13);
+
+        std::vector<coloredPoint> expectedPoints = {};
+
+        checkPoints(graphics, expectedPoints);
+    }
     SUBCASE("ovalfill({x0}, {x1}, {y0}, {y1}, {c}) fills an ellipse") {
         graphics->cls();
         graphics->ovalfill(40, 40, 45, 42, 13);
@@ -544,6 +552,14 @@ TEST_CASE("graphics class behaves as expected") {
             {43,42,13},
             {44,41,13}
         };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("ovalfill({x0}, {x1}, {y0}, {y1}, {c}) with zeroes doesn't infinite loop") {
+        graphics->cls();
+        graphics->ovalfill(40, 40, 40, 40, 13);
+
+        std::vector<coloredPoint> expectedPoints = {};
 
         checkPoints(graphics, expectedPoints);
     }
@@ -689,7 +705,7 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->print("doesnt matter", 42, 99);
 
         CHECK(picoRam.drawState.text_x == 42);
-        CHECK(picoRam.drawState.text_y == 99);
+        CHECK(picoRam.drawState.text_y == 105);
     }
     SUBCASE("print({str}, {x}, {y}, {c}) updates text location and color") {
         graphics->cls();
@@ -700,7 +716,7 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->print("doesnt matter", 16, 18, 14);
         
         CHECK(picoRam.drawState.text_x == 16);
-        CHECK(picoRam.drawState.text_y == 18);
+        CHECK(picoRam.drawState.text_y == 24);
         CHECK(picoRam.drawState.color == 14);
     }
     SUBCASE("print({str}) uses pal mapped color") {

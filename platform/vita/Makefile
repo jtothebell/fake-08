@@ -5,7 +5,7 @@ PROJECT := fake_08
 
 PHONY := all package clean
 
-SOURCES	:=	${SOURCES} source
+SOURCES	:=	${SOURCES} ../SDL2Common/source source
 INCLUDES	:=	${INCLUDES}
 
 LIBS = -lSDL2 -lScePower_stub  -lSceDisplay_stub -lSceCtrl_stub -lSceAudio_stub \
@@ -24,7 +24,7 @@ PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
 CXX      = $(PREFIX)-g++
 STRIP := $(PREFIX)-strip
-CFLAGS  = -g -Wl,-q -O2 -ftree-vectorize -D__VITA__ $(INCLUDE)
+CFLAGS  = -g -Wl,-q -O2 -ftree-vectorize -D__VITA__ -DVER_STR=\"$(APP_VERSION)\" $(INCLUDE)
 CXXFLAGS  = $(CFLAGS) -fexceptions -std=gnu++11 -fpermissive
 ASFLAGS = $(CFLAGS)
 
