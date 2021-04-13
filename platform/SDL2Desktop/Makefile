@@ -19,7 +19,7 @@ CC = $(CXX)
 CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
 			$(DEFINES)
 
-CFLAGS	+=	$(INCLUDE)
+CFLAGS	+=	$(INCLUDE) -DVER_STR=\"$(APP_VERSION)\"
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++11
 
