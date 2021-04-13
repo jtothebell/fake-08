@@ -3,7 +3,7 @@
 #include <string>
 
 #ifndef VER_STR
-#define VER_STR = "v0.0.0.0"
+#define VER_STR "v0.0.0.0"
 #endif
 
 //from PicoLove api.lua
