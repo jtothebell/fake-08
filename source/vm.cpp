@@ -31,6 +31,8 @@
 
 using namespace z8;
 
+static const char BiosCartName[] = "__FAKE08-BIOS.p8";
+
 Vm::Vm(
     Host* host,
     PicoRam* memory,
@@ -266,6 +268,7 @@ bool Vm::loadCart(Cart* cart) {
             Logger_Write("ERROR running cart\n");
             Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
             lua_pop(_luaState, 1);
+            return false;
         }
     }
 
@@ -278,7 +281,13 @@ bool Vm::loadCart(Cart* cart) {
     lua_getglobal(_luaState, "_init");
 
     if (lua_isfunction(_luaState, -1)) {
-        lua_call(_luaState, 0, 0);
+        if (lua_pcall(_luaState, 0, 0, 0)){
+            _cartLoadError = lua_tostring(_luaState, -1);
+            Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
+            lua_pop(_luaState, 1);
+            QueueCartChange(BiosCartName);
+            return false;
+        }
     }
 
     //pop the _init fuction off the stack now that we're done with it
@@ -296,7 +305,7 @@ bool Vm::loadCart(Cart* cart) {
 
 
     //customize bios per host's requirements
-    if (cart->Filename == "__FAKE08-BIOS.p8") {
+    if (cart->Filename == BiosCartName) {
         std::string customBiosLua = _host->customBiosLua();
 
         if (customBiosLua.length() > 0) {
@@ -318,7 +327,7 @@ bool Vm::loadCart(Cart* cart) {
 void Vm::LoadBiosCart(){
     CloseCart();
 
-    Cart *cart = new Cart("__FAKE08-BIOS.p8");
+    Cart *cart = new Cart(BiosCartName);
 
     bool success = loadCart(cart);
 
@@ -442,14 +451,26 @@ void Vm::UpdateAndDraw() {
         }
 
         if (lua_isfunction(_luaState, -1)) {
-            lua_call(_luaState, 0, 0);
+            if (lua_pcall(_luaState, 0, 0, 0)){
+                _cartLoadError = lua_tostring(_luaState, -1);
+                Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
+                lua_pop(_luaState, 1);
+                QueueCartChange(BiosCartName);
+                return;
+            }
         }
         //pop the update fuction off the stack now that we're done with it
         lua_pop(_luaState, 0);
 
         lua_getglobal(_luaState, "_draw");
         if (lua_isfunction(_luaState, -1)) {
-            lua_call(_luaState, 0, 0);
+            if (lua_pcall(_luaState, 0, 0, 0)){
+                _cartLoadError = lua_tostring(_luaState, -1);
+                Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
+                lua_pop(_luaState, 1);
+                QueueCartChange(BiosCartName);
+                return;
+            }
         }
         lua_pop(_luaState, 0);
     }
@@ -655,12 +676,12 @@ void Vm::vm_poke4(int addr, fix32 value){
 std::string Vm::vm_cartdata(string key) {
     //match pico 8 errors
     if (_cartdataKey != "") {
-        QueueCartChange("__FAKE08-BIOS.p8");
+        QueueCartChange(BiosCartName);
         _cartLoadError = "cartdata() can only be called once";
         return _cartLoadError;
     }
     if (key.length() == 0 || key.length() > 64) {
-        QueueCartChange("__FAKE08-BIOS.p8");
+        QueueCartChange(BiosCartName);
         _cartLoadError = "cart data id too long";
         return _cartLoadError;
     }
@@ -720,7 +741,7 @@ void Vm::vm_reload(int destaddr, int sourceaddr, int len, string filename){
         //invalid source address
         return;
     }
-    if (len < 0 || destaddr + len > (int)sizeof(CartRomData)) {
+    if (len < 0 || destaddr + len > (int)sizeof(PicoRam)) {
         //invalid length address
         return;
     }
@@ -823,7 +844,7 @@ void Vm::vm_flip() {
 
         //todo: pause menu here, but for now just load bios
         if (_input->btnp(6)) {
-            QueueCartChange("__FAKE08-BIOS.p8");
+            QueueCartChange(BiosCartName);
             abortLua = true;
             if (abortLua){
                 longjmp(place, 1);
@@ -861,7 +882,7 @@ void Vm::vm_extcmd(std::string cmd){
         togglePauseMenu();
     }
     else if (cmd == "shutdown") {
-        QueueCartChange("__FAKE08-BIOS.p8");
+        QueueCartChange(BiosCartName);
     }
 }
 
