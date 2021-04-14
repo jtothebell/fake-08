@@ -53,5 +53,8 @@ class Cart {
     std::string MusicString;
 
     CartRomData CartRom;
-    uint8_t CartLuaData[15616];
+    
+    //used to be 15616
+    //32768 + 5 (6)
+    uint8_t CartLuaData[32774];
 };

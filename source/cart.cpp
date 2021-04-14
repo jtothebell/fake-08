@@ -49,7 +49,7 @@ struct move_to_front
         return state.front();
     }
 
-    // Find index of a given character
+    // Find index of a given byte in the structure
     int find(uint8_t ch)
     {
         auto val = std::find(state.begin(), state.end(), ch);
@@ -77,6 +77,75 @@ private:
     std::array<uint8_t, 256> state;
     std::stack<uint8_t> ops;
 };
+
+//implementation from zepto8 code.cpp, pxa_decompress
+//https://github.com/samhocevar/zepto8/blob/b1a13516945c49e47495c739e6a43a241ad99291/src/pico8/code.cpp        
+static std::string pxa_decompress(uint8_t const *input)
+{
+    size_t length = input[4] * 256 + input[5];
+    size_t compressed = input[6] * 256 + input[7];
+
+    size_t pos = size_t(8) * 8; // stream position in bits
+    auto get_bits = [&](size_t count) -> uint32_t
+    {
+        uint32_t n = 0;
+        for (size_t i = 0; i < count && pos < compressed * 8; ++i, ++pos)
+            n |= ((input[pos >> 3] >> (pos & 0x7)) & 0x1) << i;
+        return n;
+    };
+
+    move_to_front mtf;
+    std::string ret;
+
+    //TRACE("# Size: %d (%04x)\n", int(compressed), int(compressed));
+
+    while (ret.size() < length && pos < compressed * 8)
+    {
+        auto oldpos = pos; (void)oldpos;
+
+        if (get_bits(1))
+        {
+            int nbits = 4;
+            while (get_bits(1))
+                ++nbits;
+            int n = get_bits(nbits) + (1 << nbits) - 16;
+            uint8_t ch = mtf.get(n);
+            if (!ch)
+                break;
+            //TRACE("%04x [%d] %s\n", int(ret.size()), int(pos-oldpos), printable(ch).c_str());
+            ret.push_back(char(ch));
+        }
+        else
+        {
+            int nbits = get_bits(1) ? get_bits(1) ? 5 : 10 : 15;
+            int offset = get_bits(nbits) + 1;
+
+            if (nbits == 10 && offset == 1)
+            {
+                uint8_t ch = get_bits(8);
+                while (ch)
+                {
+                    ret.push_back(char(ch));
+                    ch = get_bits(8);
+                }
+                //TRACE("%04x [%d] #%d\n", int(ret.size()), int(pos-oldpos), int(pos-oldpos-21) / 8);
+            }
+            else
+            {
+                int n, len = 3;
+                do
+                    len += (n = get_bits(3));
+                while (n == 7);
+
+                //TRACE("%04x [%d] %d@-%d\n", int(ret.size()), int(pos-oldpos), len, offset);
+                for (int i = 0; i < len; ++i)
+                    ret.push_back(ret[ret.size() - offset]);
+                }
+        }
+    }
+
+    return ret;
+}
 
 bool hasEnding (std::string const &fullString, std::string const &ending) {
     if (fullString.length() >= ending.length()) {
@@ -228,56 +297,7 @@ bool Cart::loadCartFromPng(std::string filename){
 
     }
     else if (compression == 2){
-        //implementation from zepto8 code.cpp, pxa_decompress
-        //https://github.com/samhocevar/zepto8/blob/b1a13516945c49e47495c739e6a43a241ad99291/src/pico8/code.cpp
-        size_t length = CartLuaData[4] * 256 + CartLuaData[5];
-        size_t compressed = CartLuaData[6] * 256 + CartLuaData[7];
-
-        size_t pos = size_t(8) * 8; // stream position in bits
-        auto get_bits = [&](size_t count) -> uint32_t
-        {
-            uint32_t n = 0;
-            for (size_t i = 0; i < count; ++i, ++pos)
-                n |= ((CartLuaData[pos >> 3] >> (pos & 0x7)) & 0x1) << i;
-            return n;
-        };
-
-        move_to_front mtf;
-
-        //Logger_Write("# Size: %d (%04x)\n", int(compressed), int(compressed));
-
-        while (LuaString.size() < length && pos < compressed * 8)
-        {
-            auto oldpos = pos; (void)oldpos;
-
-            if (get_bits(1))
-            {
-                int nbits = 4;
-                while (get_bits(1))
-                    ++nbits;
-                int n = get_bits(nbits) + (1 << nbits) - 16;
-                uint8_t ch = mtf.get(n);
-                if (!ch)
-                    break;
-                //Logger_Write("%04x [%d] $%d\n", int(LuaString.size()), int(pos-oldpos), ch);
-                LuaString.push_back(char(ch));
-            }
-            else
-            {
-                int nbits = get_bits(1) ? get_bits(1) ? 5 : 10 : 15;
-                int offset = get_bits(nbits) + 1;
-
-                int n, len = 3;
-                do
-                    len += (n = get_bits(3));
-                while (n == 7);
-
-                //Logger_Write("%04x [%d] %d@-%d\n", int(LuaString.size()), int(pos-oldpos), len, offset);
-                for (int i = 0; i < len; ++i)
-                    LuaString.push_back(LuaString[LuaString.size() - offset]);
-            }
-        }
-
+        LuaString = pxa_decompress(CartLuaData);
     }    
 
     return true;
