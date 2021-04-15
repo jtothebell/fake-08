@@ -620,16 +620,29 @@ int pal(lua_State *L) {
 }
 
 int palt(lua_State *L) {
-    if (lua_gettop(L) == 0) {
-        _graphicsForLuaApi->palt();
-        
-        return 0;
+    int16_t prev = 0;
+    //only 0th color is set to transparent if called with no args
+    int16_t c = 0;
+    c |= 1UL << 15;
+    if (lua_gettop(L) < 2) {
+        if (lua_gettop(L) == 1){
+            c = lua_tonumber(L,1);
+        }
+        //c is a bitfield of what colors should be transparent
+        for (int i = 0; i < 16; i++){
+            //get single bit
+            bool bit = (c >> (15 - i)) & 1U;
+            auto singlePrev = _graphicsForLuaApi->palt(i, bit);
+            //update prev single bit
+            if (singlePrev) {
+                prev |= 1UL << (15 - i);
+            }
+        }
     }
-
-    uint8_t c = lua_tonumber(L,1);
-    bool t = lua_toboolean(L,2);
-
-    uint8_t prev = _graphicsForLuaApi->palt(c, t);
+    else {
+        bool t = lua_toboolean(L,2);
+        prev = _graphicsForLuaApi->palt(c, t);
+    }
 
     lua_pushnumber(L, prev);
 
