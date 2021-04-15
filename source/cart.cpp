@@ -6,8 +6,6 @@
 #include <array>
 #include <algorithm>
 
-//make sure 3ds and switch libpng are installed from devkitpro pacman
-//#include <png.h>
 #include "lodepng.h"
 
 #include "cart.h"
@@ -354,6 +352,9 @@ Cart::Cart(std::string filename){
             else if (currSec == "__music__"){
                 MusicString += line + "\n";
             }
+            else if (currSec == "__label__"){
+                LabelString += line + "\n";
+            }
         }
 
         Logger_Write("Setting cart graphics rom data from strings\n");
@@ -365,7 +366,7 @@ Cart::Cart(std::string filename){
         setSfx(SfxString);
         setMusic(MusicString);
     }
-    else if (hasEnding(filename, ".p8.png")) {
+    else if (hasEnding(filename, ".png")) {
         bool success = loadCartFromPng(filename);
 
         if (!success){
@@ -425,10 +426,15 @@ void Cart::setMusic(std::string musicString){
     int musicIdx = 0;
     
     while (std::getline(s, line)) {
+        if (line.length() < 11){
+            continue;
+        }
+
         buf[0] = line[0];
         buf[1] = line[1];
         uint8_t flagByte = (uint8_t)strtol(buf, NULL, 16);
 
+        uint8_t mode = (flagByte & 8) >> 3;
         uint8_t fstop = (flagByte & 4) >> 2;
         uint8_t frepeat = (flagByte & 2) >> 1;
         uint8_t fnext = flagByte & 1;
@@ -452,9 +458,12 @@ void Cart::setMusic(std::string musicString){
         CartRom.SongData[musicIdx].data[0] = channel1byte | fnext << 7;
         CartRom.SongData[musicIdx].data[1] = channel2byte | frepeat << 7;
         CartRom.SongData[musicIdx].data[2] = channel3byte | fstop << 7;
-        CartRom.SongData[musicIdx].data[3] = channel4byte;
+        CartRom.SongData[musicIdx].data[3] = channel4byte | mode << 7;
 
         musicIdx++;
+        if (musicIdx >= 64) {
+            break;
+        }
     }
 
 }

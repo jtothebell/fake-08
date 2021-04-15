@@ -51,6 +51,7 @@ class Cart {
     std::string MapString;
     std::string SfxString;
     std::string MusicString;
+    std::string LabelString;
 
     CartRomData CartRom;
     

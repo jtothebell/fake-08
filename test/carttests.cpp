@@ -61,7 +61,7 @@ TEST_CASE("Load simple p8 cart") {
             "001d00000d0300e0500e0500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n0010000036050310502a05019050192501925019250192501925019250192501925019250192501b2501b250192501b2501b2501b2501b2501b2501b2501b2501b2501925019250192501b250000000000000000\n");
     }
     SUBCASE("Music section is populated") {
-        CHECK(cart->MusicString == "00 01424344\n\n");
+        CHECK(cart->MusicString == "00 01424344\n0d 1b7d6f45\n\n");
     }
     SUBCASE("Gfx data is populated") {
         CHECK(cart->CartRom.SpriteSheetData[0] == 255);
@@ -91,7 +91,7 @@ TEST_CASE("Load simple p8 cart") {
         CHECK(cart->CartRom.SfxData[0].notes[0].data[0] == 13);
         CHECK(cart->CartRom.SfxData[0].notes[0].data[1] == 6);
     }
-    SUBCASE("Music data is populated") {
+    SUBCASE("Music song data is populated") {
         CHECK(cart->CartRom.SongData[0].sfx0 == 1);
         CHECK(cart->CartRom.SongData[0].start == 0);
         CHECK(cart->CartRom.SongData[0].sfx1 == 66);
@@ -100,7 +100,12 @@ TEST_CASE("Load simple p8 cart") {
         CHECK(cart->CartRom.SongData[0].stop == 0);
         CHECK(cart->CartRom.SongData[0].sfx3 == 68);
         CHECK(cart->CartRom.SongData[0].mode == 0);
-
+    }
+    SUBCASE("Music data union is populated correctly") {
+        CHECK(cart->CartRom.SongData[1].data[0] == 155);
+        CHECK(cart->CartRom.SongData[1].data[1] == 125);
+        CHECK(cart->CartRom.SongData[1].data[2] == 239);
+        CHECK(cart->CartRom.SongData[1].data[3] == 197);
     }
 
     delete cart;
