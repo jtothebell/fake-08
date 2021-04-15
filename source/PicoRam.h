@@ -47,7 +47,8 @@ struct note {
             uint16_t key : 6;
             uint16_t waveform : 3;
             uint16_t volume : 3;
-            uint16_t effect : 4;
+            uint16_t effect : 3;
+            uint16_t custom : 1;
         };
         
         uint8_t data[2];

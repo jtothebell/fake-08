@@ -502,10 +502,12 @@ void Cart::setSfx(std::string sfxString) {
             buf[0] = line[i];
             buf[1] = line[i + 1];
             uint16_t key = (uint16_t)strtol(buf, NULL, 16);
+            
 
             buf[0] = '0';
             buf[1] = line[i + 2];
             uint16_t waveform = (uint16_t)strtol(buf, NULL, 16);
+            uint16_t custom = waveform > 7 ? 1 : 0;
 
             buf[0] = '0';
             buf[1] = line[i + 3];
@@ -519,7 +521,8 @@ void Cart::setSfx(std::string sfxString) {
                 key,
                 waveform,
                 volume,
-                effect
+                effect,
+                custom
             };
         }
 
