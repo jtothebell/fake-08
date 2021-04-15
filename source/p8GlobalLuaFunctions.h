@@ -84,6 +84,11 @@ function deli(c,i)
     end
 end
 
+function serial(chan, address, len)
+    --stubbed out
+    --return len
+end
+
 
 ---------------------------------
 --Coroutines

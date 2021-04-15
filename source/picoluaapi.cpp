@@ -814,6 +814,11 @@ int stat(lua_State *L) {
             lua_pushnumber(L, _vmForLuaApi->getSecond());
             return 1;
         break;
+        //unknown? used by serial carts
+        case 108:
+            lua_pushnumber(L, 32);
+            return 1;
+        break;
     }
 
 
