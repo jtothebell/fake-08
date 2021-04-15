@@ -987,9 +987,9 @@ int dget(lua_State *L) {
 
 int dset(lua_State *L) {
     int dest = lua_tonumber(L,1);
-    int val = lua_tonumber(L,2);
+    fix32 val = lua_tonumber(L,2);
 
-    _vmForLuaApi->vm_dset(dest, (int32_t)val);
+    _vmForLuaApi->vm_dset(dest, val);
 
     return 0;
 }
