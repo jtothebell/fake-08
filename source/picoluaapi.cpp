@@ -967,12 +967,16 @@ int reload(lua_State *L) {
 
 //cart data
 int cartdata(lua_State *L) {
+    bool result = false;
+
     if (lua_gettop(L) > 0) {
         std::string key = lua_tolstring(L, 1, nullptr);
-        _vmForLuaApi->vm_cartdata(key);
+        result = _vmForLuaApi->vm_cartdata(key);
     }
 
-    return 0;
+    lua_pushboolean(L, result);
+
+    return 1;
 }
 
 int dget(lua_State *L) {

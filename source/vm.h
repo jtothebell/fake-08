@@ -106,7 +106,7 @@ class Vm {
     void vm_poke2(int addr, int16_t value);
     void vm_poke4(int addr, fix32 value);
 
-    std::string vm_cartdata(string key);
+    bool vm_cartdata(string key);
     fix32 vm_dget(uint8_t n);
     void vm_dset(uint8_t n, fix32 value);
 

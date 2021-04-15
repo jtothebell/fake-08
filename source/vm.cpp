@@ -673,17 +673,17 @@ void Vm::vm_poke4(int addr, fix32 value){
     _memory->data[addr + 3] = (uint8_t)(ubits >> 24);
 }
 
-std::string Vm::vm_cartdata(string key) {
+bool Vm::vm_cartdata(string key) {
     //match pico 8 errors
     if (_cartdataKey != "") {
         QueueCartChange(BiosCartName);
         _cartLoadError = "cartdata() can only be called once";
-        return _cartLoadError;
+        return false;
     }
     if (key.length() == 0 || key.length() > 64) {
         QueueCartChange(BiosCartName);
         _cartLoadError = "cart data id too long";
-        return _cartLoadError;
+        return false;
     }
     //todo: validate chars
 
@@ -696,7 +696,7 @@ std::string Vm::vm_cartdata(string key) {
         deserializeCartDataToMemory(cartDataStr);
     }
 
-    return "";
+    return true;
 
     //call host to get current cart data and init- set memory
     //file name should match pico 8: {key}.p8d.txt in the cdata directory
