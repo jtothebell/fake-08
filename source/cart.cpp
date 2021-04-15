@@ -473,6 +473,11 @@ void Cart::setSfx(std::string sfxString) {
     std::string line;
     char buf[3] = {0};
     int sfxIdx = 0;
+
+    //SFX speed defaults to 16. Everything else should be zeroed out
+    for (int i = 0; i < 64; i++) {
+        CartRom.SfxData[i].speed = 16;
+    }
     
     while (std::getline(s, line)) {
         buf[0] = line[0];

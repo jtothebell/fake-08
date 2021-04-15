@@ -108,7 +108,11 @@ TEST_CASE("Load simple p8 cart") {
         CHECK(cart->CartRom.SfxData[2].data[11] == 218);
         CHECK(cart->CartRom.SfxData[2].data[12] == 165);
         CHECK(cart->CartRom.SfxData[2].data[13] == 236);
-
+    }
+    SUBCASE("Sfx not set by string defaults correctly") {
+        //speed doesn't default to 0
+        CHECK(cart->CartRom.SfxData[63].speed == 16);
+        CHECK(cart->CartRom.SfxData[63].data[65] == 16);
     }
     SUBCASE("Music song data is populated") {
         CHECK(cart->CartRom.SongData[0].sfx0 == 1);
