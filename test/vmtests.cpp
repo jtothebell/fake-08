@@ -387,10 +387,10 @@ TEST_CASE("Vm memory functions") {
 
         CHECK_EQ(memory->spriteSheetData[1], 1);
     }
-    SUBCASE("dget before setting cart data key does nothing") {
-        vm->vm_dset(34, 1923);
+    SUBCASE("dget before setting cart data is allowed for backward compat") {
+        vm->vm_dset(34, 1925);
 
-        CHECK_EQ(vm->vm_dget(34).bits(), 0);
+        CHECK_EQ(vm->vm_dget(34), (fix32)1925);
     }
     SUBCASE("dget after setting cart data key stores value") {
         vm->vm_cartdata("uniquekey");

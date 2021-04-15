@@ -704,7 +704,7 @@ std::string Vm::vm_cartdata(string key) {
 }
 
 fix32 Vm::vm_dget(uint8_t n) {
-    if (_cartdataKey.length() > 0 && n < 64) {
+    if (n < 64) {
         return vm_peek4(0x5e00 + 4 * n);
     }
 
@@ -712,7 +712,7 @@ fix32 Vm::vm_dget(uint8_t n) {
 }
 
 void Vm::vm_dset(uint8_t n, fix32 value){
-    if (_cartdataKey.length() > 0 && n < 64) {
+    if (n < 64) {
         vm_poke4(0x5e00 + 4 * n, value);
 
         //pico 8 seems to write immediately
