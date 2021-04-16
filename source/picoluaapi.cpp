@@ -797,6 +797,21 @@ int stat(lua_State *L) {
             lua_pushnumber(L, _vmForLuaApi->getTargetFps());
             return 1;
         break;
+        //mouse x
+        case 32:
+            lua_pushnumber(L, _inputForLuaApi->getMouseX());
+            return 1;
+        break;
+        //mouse y
+        case 33:
+            lua_pushnumber(L, _inputForLuaApi->getMouseY());
+            return 1;
+        break;
+        //mouse btn state
+        case 34:
+            lua_pushnumber(L, _inputForLuaApi->getMouseBtnState());
+            return 1;
+        break;
         //Current Year
         case 90:
             lua_pushnumber(L, _vmForLuaApi->getYear());

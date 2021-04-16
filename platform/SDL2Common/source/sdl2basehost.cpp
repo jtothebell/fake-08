@@ -127,6 +127,7 @@ void _changeStretch(StretchOption newStretch){
         _screenHeight = _maxNoStretchHeight; 
     }
     
+
     DestR.x = _windowWidth / 2 - _screenWidth / 2;
     DestR.y = _windowHeight / 2 - _screenHeight / 2;
     DestR.w = _screenWidth;
@@ -216,6 +217,11 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     loadSettingsIni();
 
     _changeStretch(stretch);
+
+    scaleX = _screenWidth / (float)PicoScreenWidth;
+    scaleY = _screenHeight / (float)PicoScreenHeight;
+    mouseOffsetX = DestR.x;
+    mouseOffsetY = DestR.y;
 }
 
 void Host::oneTimeCleanup(){
@@ -253,6 +259,10 @@ void Host::changeStretch(){
         _changeStretch(newStretch);
 
         stretch = newStretch;
+        scaleX = _screenWidth / (float)PicoScreenWidth;
+        scaleY = _screenHeight / (float)PicoScreenHeight;
+        mouseOffsetX = DestR.x;
+        mouseOffsetY = DestR.y;
     }
 }
 

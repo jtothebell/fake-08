@@ -21,6 +21,10 @@ class Host {
     bool rDown = false;
     bool stretchKeyPressed = false;
     StretchOption stretch = PixelPerfectStretch;
+    float scaleX = 1.0;
+    float scaleY = 1.0;
+    int mouseOffsetX = 0;
+    int mouseOffsetY = 0;
     int quit = 0;
 
 

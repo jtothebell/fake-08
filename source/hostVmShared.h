@@ -31,4 +31,8 @@ struct Bgr24Col {
 struct InputState_t {
 	uint8_t KDown;
 	uint8_t KHeld;
+
+	int16_t mouseX;
+	int16_t mouseY;
+	uint8_t mouseBtnState;
 };

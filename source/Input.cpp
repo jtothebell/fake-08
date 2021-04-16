@@ -50,6 +50,12 @@ void Input::SetState(uint8_t kdown, uint8_t kheld){
     }
 }
 
+void Input::SetMouse(int16_t mouseX, int16_t mouseY, uint8_t mouseBtnState){
+    _mouseX = mouseX;
+    _mouseY = mouseY;
+    _mouseBtnState = _mouseBtnState;
+}
+
 uint8_t Input::btn(){
     return _memory->hwState.buttonStates[0];
 }
@@ -77,4 +83,16 @@ bool Input::btn(uint8_t i, uint8_t p){
 bool Input::btnp(uint8_t i, uint8_t p){
     //no multiplayer support for now
     return p == 0 ? btnp(i) : 0;
+}
+
+int16_t Input::getMouseX() {
+    return _mouseX;
+}
+
+int16_t Input::getMouseY() {
+    return _mouseY;
+}
+
+uint8_t Input::getMouseBtnState() {
+    return _mouseBtnState;
 }

@@ -827,6 +827,12 @@ void Vm::update_buttons() {
     //get button states from hardware
     auto inputState = _host->scanInput();
     _input->SetState(inputState.KDown, inputState.KHeld);
+    if (_memory->drawState.devkitMode) {
+        _input->SetMouse(inputState.mouseX, inputState.mouseY, inputState.mouseBtnState);
+    }
+    else {
+        _input->SetMouse(0, 0, 0);
+    }
 }
 
 void Vm::vm_flip() {
