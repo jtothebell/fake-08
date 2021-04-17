@@ -640,6 +640,7 @@ int palt(lua_State *L) {
         }
     }
     else {
+        c = lua_tonumber(L,1);
         bool t = lua_toboolean(L,2);
         prev = _graphicsForLuaApi->palt(c, t);
     }
