@@ -36,6 +36,10 @@ PadState pad;
 u64 currKDown_64;
 u64 currKHeld_64;
 
+int touchLocationX;
+int touchLocationY;
+uint8_t mouseBtnState;
+
 uint8_t ConvertInputToP8(u64 input){
 	uint8_t result = 0;
 	if (input & HidNpadButton_Left){
@@ -112,6 +116,7 @@ Host::Host()
 
 InputState_t Host::scanInput(){
     //SDL input doesn't seem to work correctly on the switch, so I've left the switch specific one
+    //the issue may be related to having multiple controllers?
     padUpdate(&pad);
 
     currKDown_64 = padGetButtonsDown(&pad);
@@ -126,9 +131,24 @@ InputState_t Host::scanInput(){
 
     stretchKeyPressed = rDown;
 
+    HidTouchScreenState state={0};
+    if (hidGetTouchScreenStates(&state, 1)) {
+        if (state.count >= 1){
+            touchLocationX = (state.touches[0].x - mouseOffsetX) / scaleX;
+            touchLocationY = (state.touches[0].y - mouseOffsetY) / scaleY;
+            mouseBtnState = 1;
+        }
+        else{
+            mouseBtnState = 0;
+        }
+    }
+
     return InputState_t {
         ConvertInputToP8(currKDown_64),
-        ConvertInputToP8(currKHeld_64)
+        ConvertInputToP8(currKHeld_64),
+        (int16_t)touchLocationX,
+        (int16_t)touchLocationY,
+        mouseBtnState
     };
 }
 
