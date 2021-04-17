@@ -55,6 +55,7 @@ int jxDir = 0;
 int jyDir = 0;
 
 SDL_Event event;
+SDL_Point touchLocation = { 128 / 2, 128 / 2 };
 
 
 string _desktopSdl2SettingsDir = "ux0:/data/fake08";
@@ -92,6 +93,8 @@ InputState_t Host::scanInput(){
     int prevJxDir = jxDir;
     int prevJyDir = jyDir;
     stretchKeyPressed = false;
+    
+    uint8_t mouseBtnState = 0;
 
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
@@ -167,6 +170,29 @@ InputState_t Host::scanInput(){
                 }
                break;
 
+            case SDL_FINGERDOWN:
+                //touchId 0 is front, 1 is back. ignore back touches
+                if (event.tfinger.touchId == 0) {
+                    touchLocation.x = ((event.tfinger.x * WINDOW_SIZE_X) - mouseOffsetX) / scaleX;
+                    touchLocation.y = ((event.tfinger.y * WINDOW_SIZE_Y) - mouseOffsetY) / scaleY;
+                    mouseBtnState = 1;
+                }
+                break;
+            
+            case SDL_FINGERMOTION:
+                //touchId 0 is front, 1 is back. ignore back touches
+                if (event.tfinger.touchId == 0) {
+                    touchLocation.x = ((event.tfinger.x * WINDOW_SIZE_X) - mouseOffsetX) / scaleX;
+                    touchLocation.y = ((event.tfinger.y * WINDOW_SIZE_Y) - mouseOffsetY) / scaleY;
+                    mouseBtnState = 1;
+                }
+                break;
+
+            case SDL_FINGERUP:
+                //do nothing for now?
+                mouseBtnState = 0;
+                break;
+
             case SDL_QUIT:
                 quit = 1;
                 break;
@@ -232,7 +258,10 @@ InputState_t Host::scanInput(){
 
     return InputState_t {
         currKDown,
-        currKHeld
+        currKHeld,
+        (int16_t)touchLocation.x,
+        (int16_t)touchLocation.y,
+        mouseBtnState
     };
     
 }
