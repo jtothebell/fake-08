@@ -77,6 +77,8 @@ void *pixels;
 uint8_t *base;
 int pitch;
 
+SDL_Point touchLocation = { 128 / 2, 128 / 2 };
+
 
 
 void postFlipFunction(){
@@ -244,6 +246,11 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     loadSettingsIni();
 
     _changeStretch(stretch);
+
+    scaleX = screenWidth / (float)PicoScreenWidth;
+    scaleY = screenHeight / (float)PicoScreenHeight;
+    mouseOffsetX = DestR.x;
+    mouseOffsetY = DestR.y;
 }
 
 void Host::oneTimeCleanup(){
@@ -277,6 +284,11 @@ void Host::changeStretch(){
         }
 
         _changeStretch(stretch);
+
+        scaleX = screenWidth / (float)PicoScreenWidth;
+        scaleY = screenHeight / (float)PicoScreenHeight;
+        mouseOffsetX = DestR.x;
+        mouseOffsetY = DestR.y;
     }
 }
 
@@ -284,6 +296,8 @@ InputState_t Host::scanInput(){
     currKDown = 0;
     uint8_t kUp = 0;
     stretchKeyPressed = false;
+
+    uint8_t mouseBtnState = 0;
 
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
@@ -318,6 +332,29 @@ InputState_t Host::scanInput(){
                     case JOY_R: rDown = false; break;
                 }
                break;
+            
+            case SDL_FINGERDOWN:
+                //touchId 0 is front, 1 is back. ignore back touches
+                if (event.tfinger.touchId == 0) {
+                    touchLocation.x = ((event.tfinger.x * WIN_WIDTH) - mouseOffsetX) / scaleX;
+                    touchLocation.y = ((event.tfinger.y * WIN_HEIGHT) - mouseOffsetY) / scaleY;
+                    mouseBtnState = 1;
+                }
+                break;
+            
+            case SDL_FINGERMOTION:
+                //touchId 0 is front, 1 is back. ignore back touches
+                if (event.tfinger.touchId == 0) {
+                    touchLocation.x = ((event.tfinger.x * WIN_WIDTH) - mouseOffsetX) / scaleX;
+                    touchLocation.y = ((event.tfinger.y * WIN_HEIGHT) - mouseOffsetY) / scaleY;
+                    mouseBtnState = 1;
+                }
+                break;
+
+            case SDL_FINGERUP:
+                //do nothing for now?
+                mouseBtnState = 0;
+                break;
 
             case SDL_QUIT:
                 quit = 1;
@@ -334,7 +371,10 @@ InputState_t Host::scanInput(){
 
     return InputState_t {
         currKDown,
-        currKHeld
+        currKHeld,
+        (int16_t)touchLocation.x,
+        (int16_t)touchLocation.y,
+        mouseBtnState 
     };
     
 }
