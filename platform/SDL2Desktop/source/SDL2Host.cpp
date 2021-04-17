@@ -102,13 +102,13 @@ InputState_t Host::scanInput(){
     mouseY /= scaleY;
     uint8_t picoMouseState = 0;
     if (sdlMouseBtnState & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-        picoMouseState &= 1;
+        picoMouseState |= 1;
     }
     if (sdlMouseBtnState & SDL_BUTTON(SDL_BUTTON_MIDDLE)) {
-        picoMouseState &= 4;
+        picoMouseState |= 4;
     }
     if (sdlMouseBtnState & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
-        picoMouseState &= 2;
+        picoMouseState |= 2;
     }
 
     const Uint8* keystate = SDL_GetKeyboardState(NULL);

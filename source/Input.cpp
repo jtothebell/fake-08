@@ -53,7 +53,7 @@ void Input::SetState(uint8_t kdown, uint8_t kheld){
 void Input::SetMouse(int16_t mouseX, int16_t mouseY, uint8_t mouseBtnState){
     _mouseX = mouseX;
     _mouseY = mouseY;
-    _mouseBtnState = _mouseBtnState;
+    _mouseBtnState = mouseBtnState;
 }
 
 uint8_t Input::btn(){
