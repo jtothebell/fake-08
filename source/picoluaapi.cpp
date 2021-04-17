@@ -797,6 +797,16 @@ int stat(lua_State *L) {
             lua_pushnumber(L, _vmForLuaApi->getTargetFps());
             return 1;
         break;
+        //was a key pressed (always false)
+        case 30:
+            lua_pushboolean(L, false);
+            return 1;
+        break;
+        //string of key pressed
+        case 31:
+            lua_pushstring(L, "");
+            return 1;
+        break;
         //mouse x
         case 32:
             lua_pushnumber(L, _inputForLuaApi->getMouseX());
@@ -986,6 +996,9 @@ int reload(lua_State *L) {
     }
     if (lua_gettop(L) > 3) {
         str = lua_tolstring(L, 4, nullptr);
+        if (str == nullptr) {
+            str = "";
+        }
     }
 
     _vmForLuaApi->vm_reload(dest, src, len, str);
