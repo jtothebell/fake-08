@@ -20,7 +20,7 @@ void Host::loadSettingsIni(){
     settingsIni.LoadData(settingsIniStr);
 
     long stretchSetting = settingsIni.GetLongValue("settings", "stretch", (long)PixelPerfectStretch);
-    if (stretchSetting <= (int)StretchToFill){
+    if (stretchSetting <= (int)AltScreenStretch){
         stretch = (StretchOption) stretchSetting;
     }
 }

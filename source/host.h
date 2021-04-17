@@ -11,7 +11,9 @@ enum StretchOption {
   PixelPerfectStretch,
   StretchToFit,
   StretchToFill,
-  StretchAndOverflow
+  StretchAndOverflow,
+  AltScreenPixelPerfect,
+  AltScreenStretch
 };
 
 class Host {

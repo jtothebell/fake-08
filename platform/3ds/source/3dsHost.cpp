@@ -41,10 +41,13 @@ int numFramesToClear;
 u64 last_time;
 u64 now_time;
 u64 frame_time;
-double targetFrameTimeMs;
+float targetFrameTimeMs;
 
 u32 currKDown32;
 u32 currKHeld32;
+int touchLocationX;
+int touchLocationY;
+uint8_t mouseBtnState;
 
 Color* _paletteColors;
 uint16_t _rgb565Colors[144];
@@ -232,6 +235,19 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     numFramesToClear = 2;
 
     loadSettingsIni();
+
+    if (stretch == AltScreenPixelPerfect) {
+        mouseOffsetX = (__3ds_BottomScreenWidth - PicoScreenWidth) / 2;
+        mouseOffsetY = (__3ds_BottomScreenHeight - PicoScreenHeight) / 2;
+        scaleX = 1.0;
+        scaleY = 1.0;
+    }
+    else{
+        mouseOffsetX = (__3ds_BottomScreenWidth - __3ds_BottomScreenHeight) / 2;
+        mouseOffsetY = 0;
+        scaleX = 0.53;
+        scaleY = 0.53;
+    }
 }
 
 void Host::oneTimeCleanup(){
@@ -243,19 +259,45 @@ void Host::oneTimeCleanup(){
 }
 
 void Host::setTargetFps(int targetFps){
-    targetFrameTimeMs = 1000.0 / (double)targetFps;
+    targetFrameTimeMs = 1000.0 / (float)targetFps;
 }
 
 void Host::changeStretch(){
     if (currKDown32 & KEY_R) {
         if (stretch == PixelPerfect) {
             stretch = StretchToFit;
+            mouseOffsetX = (__3ds_BottomScreenWidth - __3ds_BottomScreenHeight) / 2;
+            mouseOffsetY = 0;
+            scaleX = 0.53;
+            scaleY = 0.53;
         }
         else if (stretch == StretchToFit) {
             stretch = StretchAndOverflow;
+            mouseOffsetX = (__3ds_BottomScreenWidth - __3ds_BottomScreenHeight) / 2;
+            mouseOffsetY = 0;
+            scaleX = 0.53;
+            scaleY = 0.53;
+        }
+        else if (stretch == StretchAndOverflow) {
+            stretch = AltScreenPixelPerfect;
+            mouseOffsetX = (__3ds_BottomScreenWidth - PicoScreenWidth) / 2;
+            mouseOffsetY = (__3ds_BottomScreenHeight - PicoScreenHeight) / 2;
+            scaleX = 1.0;
+            scaleY = 1.0;
+        }
+        else if (stretch == AltScreenPixelPerfect) {
+            stretch = AltScreenStretch;
+            mouseOffsetX = (__3ds_BottomScreenWidth - __3ds_BottomScreenHeight) / 2;
+            mouseOffsetY = 0;
+            scaleX = 0.53;
+            scaleY = 0.53;
         }
         else {
             stretch = PixelPerfect;
+            mouseOffsetX = (__3ds_BottomScreenWidth - __3ds_BottomScreenHeight) / 2;
+            mouseOffsetY = 0;
+            scaleX = 0.53;
+            scaleY = 0.53;
         }
 
         numFramesToClear = 2;
@@ -268,9 +310,26 @@ InputState_t Host::scanInput(){
     currKDown32 = hidKeysDown();
     currKHeld32 = hidKeysHeld();
 
+    touchPosition touch;
+
+	//Read the touch screen coordinates
+	hidTouchRead(&touch);
+
+    if (touch.px > 0 && touch.py > 0) {
+        touchLocationX = (touch.px - mouseOffsetX) * scaleX;
+        touchLocationY = (touch.py - mouseOffsetY) * scaleY;
+        mouseBtnState = 1;
+    }
+    else {
+        mouseBtnState = 0;
+    }
+
     return InputState_t {
         ConvertInputToP8(currKDown32),
-        ConvertInputToP8(currKHeld32)
+        ConvertInputToP8(currKHeld32),
+        (int16_t)touchLocationX,
+        (int16_t)touchLocationY,
+        mouseBtnState
     };
 }
 
@@ -287,11 +346,11 @@ void Host::waitForTargetFps(){
     frame_time = now_time - last_time;
 	last_time = now_time;
 
-	double frameTimeMs = frame_time / CPU_TICKS_PER_MSEC;
+	float frameTimeMs = frame_time / CPU_TICKS_PER_MSEC;
 
 	//sleep for remainder of time
 	if (frameTimeMs < targetFrameTimeMs) {
-		double msToSleep = targetFrameTimeMs - frameTimeMs;
+		float msToSleep = targetFrameTimeMs - frameTimeMs;
 
 		svcSleepThread(msToSleep * 1000 * 1000);
 
@@ -343,7 +402,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
         }
 	}
 	else if (stretch == StretchToFit) {
-		double ratio = (double)__3ds_TopScreenHeight / (double)PicoScreenHeight;
+		float ratio = (float)__3ds_TopScreenHeight / (float)PicoScreenHeight;
         int stretchedWidth = PicoScreenWidth * ratio;
 
         int xOffset = __3ds_TopScreenWidth / 2 - stretchedWidth / 2;
@@ -359,6 +418,50 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
                 int pixIdx = (((x + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y + yOffset)));
 
                 fb[pixIdx] = col;
+            }
+        }
+	}
+    else if (stretch == AltScreenPixelPerfect) {
+		int xOffset = __3ds_BottomScreenWidth / 2 - PicoScreenWidth / 2;
+        int yOffset = __3ds_BottomScreenHeight / 2 - PicoScreenHeight / 2;
+
+       for(x = 0; x < 64; x++) {
+            for(y = 0; y < 128; y++) {
+                int x1 = x << 1;
+                int x2 = x1 + 1;
+                uint8_t lc = getPixelNibble(x1, y, picoFb);
+                uint16_t lcol = _rgb565Colors[screenPaletteMap[lc]];
+
+                int pixIdx = (((x1 + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y + yOffset)));
+
+                fbb[pixIdx] = lcol;
+
+                uint8_t rc = getPixelNibble(x2, y, picoFb);
+                uint16_t rcol = _rgb565Colors[screenPaletteMap[rc]];
+
+                pixIdx = (((x2 + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y + yOffset)));
+
+                fbb[pixIdx] = rcol;
+            }
+        }
+	}
+    else if (stretch == AltScreenStretch) {
+		float ratio = (float)__3ds_BottomScreenHeight / (float)PicoScreenHeight;
+        int stretchedWidth = PicoScreenWidth * ratio;
+
+        int xOffset = __3ds_BottomScreenWidth / 2 - stretchedWidth / 2;
+        int yOffset = 0;
+        
+        for(x = 0; x < stretchedWidth; x++) {
+            for(y = 0; y < __3ds_TopScreenHeight; y++) {
+                int picoX = (int)(x / ratio);
+                int picoY = (int)(y / ratio);
+                uint8_t c = getPixelNibble(picoX, picoY, picoFb);
+                uint16_t col = _rgb565Colors[screenPaletteMap[c]];
+
+                int pixIdx = (((x + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y + yOffset)));
+
+                fbb[pixIdx] = col;
             }
         }
 	}
