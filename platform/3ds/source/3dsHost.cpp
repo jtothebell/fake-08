@@ -54,6 +54,7 @@ uint8_t mouseBtnState;
 
 Color* _paletteColors;
 uint16_t _rgb565Colors[144];
+uint32_t _rgba8Colors[144];
 Audio* _audio;
 
 static C2D_Image pico_image;
@@ -64,12 +65,12 @@ Tex3DS_SubTexture *pico_subtex;
 C3D_RenderTarget* topTarget;
 C3D_RenderTarget* bottomTarget;
 
-u16* pico_pixel_buffer;
+u32* pico_pixel_buffer;
 
-const GPU_TEXCOLOR texColor = GPU_RGB565;
+const GPU_TEXCOLOR texColor = GPU_RGBA8;
 
 #define CLEAR_COLOR 0xFF000000
-#define BYTES_PER_PIXEL 2
+#define BYTES_PER_PIXEL 4
 size_t pico_rgba_buffer_size = 128*128*BYTES_PER_PIXEL;
 
 u32 clrRec1;
@@ -247,6 +248,7 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 
     _paletteColors = paletteColors;
     for(int i = 0; i < 144; i++){
+        _rgba8Colors[i] = 0xFF | (_paletteColors[i].Blue << 8) | (_paletteColors[i].Green << 16) | (_paletteColors[i].Red << 24);
         _rgb565Colors[i] = (((_paletteColors[i].Red & 0xf8)<<8) + ((_paletteColors[i].Green & 0xfc)<<3)+(_paletteColors[i].Blue>>3));
     }
 
@@ -268,7 +270,7 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 	pico_image.tex = pico_tex;
 	pico_image.subtex = pico_subtex;
 
-	pico_pixel_buffer = (u16*)linearAlloc(pico_rgba_buffer_size);
+	pico_pixel_buffer = (u32*)linearAlloc(pico_rgba_buffer_size);
 
     clrRec1 = C2D_Color32(0x9A, 0x6C, 0xB9, 0xFF);
 
@@ -406,29 +408,43 @@ void Host::waitForTargetFps(){
 
 void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
     int pixIdx = 0, x = 0, y = 0;
+
+    for (pixIdx = 0; pixIdx < pico_rgba_buffer_size; pixIdx++){
+        x = pixIdx % 128;
+        y = pixIdx / 128;
+        //uint8_t lc = getPixelNibble(x, y, picoFb);
+        //uint16_t lcol = _rgb565Colors[screenPaletteMap[lc]];
+        //u32 lcol = _rgba8Colors[screenPaletteMap[lc]];
+        pico_pixel_buffer[pixIdx] = _rgba8Colors[screenPaletteMap[getPixelNibble(x, y, picoFb)]];
+    }
+
+    /*
     for(x = 0; x < 64; x++) {
         for(y = 0; y < 128; y++) {
             int x1 = x << 1;
             int x2 = x1 + 1;
             uint8_t lc = getPixelNibble(x1, y, picoFb);
-            uint16_t lcol = _rgb565Colors[screenPaletteMap[lc]];
+            //uint16_t lcol = _rgb565Colors[screenPaletteMap[lc]];
+            u32 lcol = _rgba8Colors[screenPaletteMap[lc]];
 
             pico_pixel_buffer[pixIdx++] = lcol;
 
             uint8_t rc = getPixelNibble(x2, y, picoFb);
-            uint16_t rcol = _rgb565Colors[screenPaletteMap[rc]];
+            //uint16_t rcol = _rgb565Colors[screenPaletteMap[rc]];
+            u32 rcol = _rgba8Colors[screenPaletteMap[rc]];
 
             pico_pixel_buffer[pixIdx++] = rcol;
         }
     }
+    */
 
     GSPGPU_FlushDataCache(pico_pixel_buffer, pico_rgba_buffer_size);
 
 	C3D_SyncDisplayTransfer(
         (u32*)pico_pixel_buffer, GX_BUFFER_DIM(128, 128),
         (u32*)(pico_tex->data), GX_BUFFER_DIM(128, 128),
-		(GX_TRANSFER_FLIP_VERT(1) | GX_TRANSFER_OUT_TILED(1) | GX_TRANSFER_RAW_COPY(0) |
-        GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGB565) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGB565) |
+		(GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(1) | GX_TRANSFER_RAW_COPY(0) |
+        GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGBA8) |
         GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
     );
 
