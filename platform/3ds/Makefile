@@ -66,7 +66,7 @@ CC = $(CXX)
 
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-CFLAGS	:=	-g -Wall -O2 -mword-relocations \
+CFLAGS	:=	-g -Wall -Ofast -mword-relocations \
 			-fomit-frame-pointer -ffunction-sections \
 			$(ARCH)
 

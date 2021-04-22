@@ -65,12 +65,12 @@ Tex3DS_SubTexture *pico_subtex;
 C3D_RenderTarget* topTarget;
 C3D_RenderTarget* bottomTarget;
 
-u32* pico_pixel_buffer;
+u16* pico_pixel_buffer;
 
-const GPU_TEXCOLOR texColor = GPU_RGBA8;
+const GPU_TEXCOLOR texColor = GPU_RGB565;
 
 #define CLEAR_COLOR 0xFF000000
-#define BYTES_PER_PIXEL 4
+#define BYTES_PER_PIXEL 2
 size_t pico_rgba_buffer_size = 128*128*BYTES_PER_PIXEL;
 
 u32 clrRec1;
@@ -270,7 +270,7 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 	pico_image.tex = pico_tex;
 	pico_image.subtex = pico_subtex;
 
-	pico_pixel_buffer = (u32*)linearAlloc(pico_rgba_buffer_size);
+	pico_pixel_buffer = (u16*)linearAlloc(pico_rgba_buffer_size);
 
     clrRec1 = C2D_Color32(0x9A, 0x6C, 0xB9, 0xFF);
 
@@ -415,7 +415,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
         //uint8_t lc = getPixelNibble(x, y, picoFb);
         //uint16_t lcol = _rgb565Colors[screenPaletteMap[lc]];
         //u32 lcol = _rgba8Colors[screenPaletteMap[lc]];
-        pico_pixel_buffer[pixIdx] = _rgba8Colors[screenPaletteMap[getPixelNibble(x, y, picoFb)]];
+        pico_pixel_buffer[pixIdx] = _rgb565Colors[screenPaletteMap[getPixelNibble(x, y, picoFb)]];
     }
 
     /*
@@ -444,7 +444,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
         (u32*)pico_pixel_buffer, GX_BUFFER_DIM(128, 128),
         (u32*)(pico_tex->data), GX_BUFFER_DIM(128, 128),
 		(GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(1) | GX_TRANSFER_RAW_COPY(0) |
-        GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGBA8) |
+        GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGB565) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGB565) |
         GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
     );
 
