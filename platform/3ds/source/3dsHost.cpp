@@ -234,11 +234,20 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     audioSetup();
 
     gfxInitDefault();
-    C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
-	C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
+    //C3D_Init(C3D_DEFAULT_CMDBUF_SIZE); default is 0x40000
+    C3D_Init(0x10000);
+	//C2D_Init(C2D_DEFAULT_MAX_OBJECTS); //4096
+    C2D_Init(32); //need very few objects? this probably doesn't really help perf
 	C2D_Prepare();
 
-    topTarget = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
+    //topTarget = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
+    topTarget = C3D_RenderTargetCreate(GSP_SCREEN_WIDTH, GSP_SCREEN_HEIGHT_TOP, GPU_RB_RGBA8, GPU_RB_DEPTH16);
+	if (topTarget) {
+		C3D_RenderTargetSetOutput(topTarget, GFX_TOP, GFX_LEFT,
+			GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(0) | GX_TRANSFER_RAW_COPY(0) |
+			GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGB8) |
+			GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO));
+    }
     bottomTarget = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
     
     last_time = 0;
@@ -407,37 +416,13 @@ void Host::waitForTargetFps(){
 
 
 void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
-    int pixIdx = 0, x = 0, y = 0;
+    size_t pixIdx = 0;
 
     for (pixIdx = 0; pixIdx < pico_rgba_buffer_size; pixIdx++){
-        x = pixIdx % 128;
-        y = pixIdx / 128;
-        //uint8_t lc = getPixelNibble(x, y, picoFb);
-        //uint16_t lcol = _rgb565Colors[screenPaletteMap[lc]];
-        //u32 lcol = _rgba8Colors[screenPaletteMap[lc]];
-        pico_pixel_buffer[pixIdx] = _rgb565Colors[screenPaletteMap[getPixelNibble(x, y, picoFb)]];
+        pico_pixel_buffer[pixIdx] = _rgb565Colors[screenPaletteMap[getPixelNibble(pixIdx % 128, pixIdx / 128, picoFb)]];
     }
 
-    /*
-    for(x = 0; x < 64; x++) {
-        for(y = 0; y < 128; y++) {
-            int x1 = x << 1;
-            int x2 = x1 + 1;
-            uint8_t lc = getPixelNibble(x1, y, picoFb);
-            //uint16_t lcol = _rgb565Colors[screenPaletteMap[lc]];
-            u32 lcol = _rgba8Colors[screenPaletteMap[lc]];
-
-            pico_pixel_buffer[pixIdx++] = lcol;
-
-            uint8_t rc = getPixelNibble(x2, y, picoFb);
-            //uint16_t rcol = _rgb565Colors[screenPaletteMap[rc]];
-            u32 rcol = _rgba8Colors[screenPaletteMap[rc]];
-
-            pico_pixel_buffer[pixIdx++] = rcol;
-        }
-    }
-    */
-
+    //not sure if this is necessary?
     GSPGPU_FlushDataCache(pico_pixel_buffer, pico_rgba_buffer_size);
 
 	C3D_SyncDisplayTransfer(
