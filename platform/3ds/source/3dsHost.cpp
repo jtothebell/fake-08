@@ -493,7 +493,7 @@ void Host::waitForTargetFps(){
 }
 
 
-void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t screenMode){
+void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMode){
     size_t pixIdx = 0;
 
     for (pixIdx = 0; pixIdx < pico_pixel_buffer_size; pixIdx++){
@@ -517,7 +517,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t screenM
     flipHorizontal = 1;
     flipVertical = 1;
 
-    switch(screenMode){
+    switch(drawMode){
         case 1:
             screenModeScaleX = 2.0f;
             screenModeScaleY = 1.0f;

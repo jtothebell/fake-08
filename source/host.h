@@ -54,7 +54,7 @@ class Host {
     
     void waitForTargetFps();
 
-    void drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t screenMode);
+    void drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMode);
 
     bool shouldFillAudioBuff();
     void* getAudioBufferPointer();

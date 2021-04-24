@@ -298,7 +298,7 @@ void Host::waitForTargetFps(){
 }
 
 
-void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t screenMode){
+void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMode){
     //clear screen to all black
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
@@ -321,7 +321,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t screenM
     SrcR.x = 0;
     SrcR.y = 0;
 
-    switch(screenMode){
+    switch(drawMode){
         case 1:
             SrcR.w = 64;
             SrcR.h = PicoScreenHeight;
