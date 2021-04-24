@@ -5,6 +5,7 @@
 #include <stack>
 #include <array>
 #include <algorithm>
+#include <regex>
 
 #include "lodepng.h"
 
@@ -302,6 +303,8 @@ bool Cart::loadCartFromPng(std::string filename){
 
 }
 
+static std::regex _includeRegex = std::regex("\\s*#include\\s+([\\\\/\\w-\\.]+)");
+
 //tac08 based cart parsing and stripping of emoji
 Cart::Cart(std::string filename){
     Filename = filename;
@@ -326,6 +329,7 @@ Cart::Cart(std::string filename){
         std::istringstream s(cartStr);
         std::string line;
         std::string currSec = "";
+        std::smatch sm;
         
         while (std::getline(s, line)) {
             line = utils::trimright(line, " \n\r");
@@ -335,7 +339,24 @@ Cart::Cart(std::string filename){
                 currSec = line;
             }
             else if (currSec == "__lua__"){
-                LuaString += line + "\n";
+                if (std::regex_match(line, sm, _includeRegex)) {
+                    auto dir = getDirectory(filename);
+                    auto fullPath = dir + "/" + sm[1].str();
+
+                    auto includeContents = get_file_contents(fullPath);
+                    if (includeContents.length() > 0){
+                        //todo: handle emojis
+                        LuaString += includeContents + "\n";
+                    }
+                    else{
+                        //todo: report error
+                        //error: can't find included file
+                        return;
+                    }
+                }
+                else {
+                    LuaString += line + "\n";
+                }
             }
             else if (currSec == "__gfx__"){
                 SpriteSheetString += line + "\n";

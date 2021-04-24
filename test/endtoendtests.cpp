@@ -55,11 +55,13 @@ bool verifyScreenshot(Vm* vm, std::string screenshotFilename) {
             (pixelIsBlack && c == 0) || 
             (r == col.Red && g == col.Green && b == col.Blue);
 
+        /*
         if (!pixelMatches) {
             printf("Non-matching pixel at idx %d (%d,%d): rgb: %d,%d,%d\n", pixIdx, x, y, r, g, b);
 
             printf("fake 08 color is %d rgb: %d,%d,%d\n", c, col.Red, col.Green, col.Blue);
         }
+        */
 
         pixelsMatch &= pixelMatches;
     }

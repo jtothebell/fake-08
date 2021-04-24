@@ -28,3 +28,11 @@ std::vector<unsigned char> get_file_buffer(std::string filename){
   return buffer;
 }
 
+//https://stackoverflow.com/a/8518855
+std::string getDirectory(const std::string& fname){
+     size_t pos = fname.find_last_of("\\/");
+     return (std::string::npos == pos)
+         ? ""
+         : fname.substr(0, pos);
+}
+
