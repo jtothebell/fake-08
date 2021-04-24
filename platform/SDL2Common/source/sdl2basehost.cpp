@@ -60,6 +60,9 @@ uint8_t *base;
 int pitch;
 
 SDL_Rect DestR;
+SDL_Rect SrcR;
+double textureAngle;
+SDL_RendererFlip flip;
 
 int joystickCount = 0;
 
@@ -69,7 +72,7 @@ bool audioInitialized = false;
 void postFlipFunction(){
     // We're done rendering, so we end the frame here.
     SDL_UnlockTexture(texture);
-    SDL_RenderCopy(renderer, texture, NULL, &DestR);
+    SDL_RenderCopyEx(renderer, texture, &SrcR, &DestR, textureAngle, NULL, flip);
 
     SDL_RenderPresent(renderer);
 }
@@ -132,6 +135,14 @@ void _changeStretch(StretchOption newStretch){
     DestR.y = _windowHeight / 2 - _screenHeight / 2;
     DestR.w = _screenWidth;
     DestR.h = _screenHeight;
+
+    SrcR.x = 0;
+    SrcR.y = 0;
+    SrcR.w = PicoScreenWidth;
+    SrcR.h = PicoScreenHeight;
+
+    textureAngle = 0;
+    flip = SDL_FLIP_NONE;
 }
 
 void Host::setPlatformParams(
@@ -287,7 +298,7 @@ void Host::waitForTargetFps(){
 }
 
 
-void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
+void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMode){
     //clear screen to all black
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
@@ -305,6 +316,74 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
             base[2] = col.Red;
             base[3] = col.Alpha;
         }
+    }
+
+    SrcR.x = 0;
+    SrcR.y = 0;
+
+    switch(drawMode){
+        case 1:
+            SrcR.w = 64;
+            SrcR.h = PicoScreenHeight;
+            textureAngle = 0;
+            flip = SDL_FLIP_NONE;
+            break;
+        case 2:
+            SrcR.w = PicoScreenWidth;
+            SrcR.h = 64;
+            textureAngle = 0;
+            flip = SDL_FLIP_NONE;
+            break;
+        case 3:
+            SrcR.w = 64;
+            SrcR.h = 64;
+            textureAngle = 0;
+            flip = SDL_FLIP_NONE;
+            break;
+        //todo: mirroring
+        //case 4,6,7
+        case 129:
+            SrcR.w = PicoScreenWidth;
+            SrcR.h = PicoScreenHeight;
+            textureAngle = 0;
+            flip = SDL_FLIP_HORIZONTAL;
+            break;
+        case 130:
+            SrcR.w = PicoScreenWidth;
+            SrcR.h = PicoScreenHeight;
+            textureAngle = 0;
+            flip = SDL_FLIP_VERTICAL;
+            break;
+        case 131:
+            SrcR.w = PicoScreenWidth;
+            SrcR.h = PicoScreenHeight;
+            textureAngle = 0;
+            flip = (SDL_RendererFlip)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL);
+            break;
+        case 133:
+            SrcR.w = PicoScreenWidth;
+            SrcR.h = PicoScreenHeight;
+            textureAngle = 90;
+            flip = SDL_FLIP_NONE;
+            break;
+        case 134:
+            SrcR.w = PicoScreenWidth;
+            SrcR.h = PicoScreenHeight;
+            textureAngle = 180;
+            flip = SDL_FLIP_NONE;
+            break;
+        case 135:
+            SrcR.w = PicoScreenWidth;
+            SrcR.h = PicoScreenHeight;
+            textureAngle = 270;
+            flip = SDL_FLIP_NONE;
+            break;
+        default:
+            SrcR.w = PicoScreenWidth;
+            SrcR.h = PicoScreenHeight;
+            textureAngle = 0;
+            flip = SDL_FLIP_NONE;
+            break;
     }
     
 

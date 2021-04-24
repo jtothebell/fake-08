@@ -1,4 +1,8 @@
 #include <3ds.h>
+#include <citro3d.h>
+#include <citro2d.h>
+
+
 #include <stdio.h>
 #include <string.h>
 #include <dirent.h>
@@ -37,7 +41,6 @@ const int PicoScreenHeight = 128;
 
 const int PicoFbLength = 128 * 64;
 
-int numFramesToClear;
 u64 last_time;
 u64 now_time;
 u64 frame_time;
@@ -51,7 +54,42 @@ uint8_t mouseBtnState;
 
 Color* _paletteColors;
 uint16_t _rgb565Colors[144];
+uint32_t _rgba8Colors[144];
 Audio* _audio;
+
+static C2D_Image pico_image;
+
+C3D_Tex *pico_tex;
+Tex3DS_SubTexture *pico_subtex;
+
+C3D_RenderTarget* topTarget;
+C3D_RenderTarget* bottomTarget;
+
+u16* pico_pixel_buffer;
+
+const GPU_TEXCOLOR texColor = GPU_RGB565;
+
+#define CLEAR_COLOR 0xFF000000
+#define BYTES_PER_PIXEL 2
+size_t pico_pixel_buffer_size = 128*128*BYTES_PER_PIXEL;
+
+
+int topXOffset = 0;
+int topYOffset = 8;
+int topSubTexWidth = 256;
+int topSubTexHeight = 256;
+
+int bottomXOffset = 0;
+int bottomYOffset = -232;
+int bottomSubTexWidth = 256;
+int bottomSubTexHeight = 256;
+
+float screenModeScaleX = 1.0f;
+float screenModeScaleY = 1.0f;
+float screenModeAngle = 0;
+int flipHorizontal = 1;
+int flipVertical = 1;
+
 
 uint8_t ConvertInputToP8(u32 input){
 	uint8_t result = 0;
@@ -90,11 +128,64 @@ uint8_t ConvertInputToP8(u32 input){
 	return result;
 }
 
-void postFlipFunction(){
-    gfxFlushBuffers();
-	gfxSwapBuffers();
-	gspWaitForVBlank();
+void setRenderParamsFromStretch(StretchOption stretch) {
+    if (stretch == StretchToFit) {
+        topXOffset = 0;
+        topYOffset = 0;
+        topSubTexWidth = 240;
+        topSubTexHeight = 240;
+        
+        bottomXOffset = 0;
+        bottomYOffset = 0;
+        bottomSubTexWidth = 0;
+        bottomSubTexHeight = 0;
+    }
+    else if (stretch == StretchAndOverflow) {
+        topXOffset = 0;
+        topYOffset = 8;
+        topSubTexWidth = 256;
+        topSubTexHeight = 256;
+
+        bottomXOffset = 0;
+        bottomYOffset = -232;
+        bottomSubTexWidth = 256;
+        bottomSubTexHeight = 256;
+    }
+    else if (stretch == AltScreenPixelPerfect) {
+        topXOffset = 0;
+        topYOffset = 0;
+        topSubTexWidth = 0;
+        topSubTexHeight = 0;
+
+        bottomXOffset = 0;
+        bottomYOffset = 0;
+        bottomSubTexWidth = 128;
+        bottomSubTexHeight = 128;
+    }
+    else if (stretch == AltScreenStretch) {
+        topXOffset = 0;
+        topYOffset = 0;
+        topSubTexWidth = 0;
+        topSubTexHeight = 0;
+
+        bottomXOffset = 0;
+        bottomYOffset = 0;
+        bottomSubTexWidth = 240;
+        bottomSubTexHeight = 240;
+    }
+    else {
+        topXOffset = 0;
+        topYOffset = 0;
+        topSubTexWidth = 128;
+        topSubTexHeight = 128;
+        
+        bottomXOffset = 0;
+        bottomYOffset = 0;
+        bottomSubTexWidth = 0;
+        bottomSubTexHeight = 0;
+    }
 }
+
 
 
 void init_fill_buffer(void *audioBuffer,size_t offset, size_t size) {
@@ -217,6 +308,23 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     audioSetup();
 
     gfxInitDefault();
+    //C3D_Init(C3D_DEFAULT_CMDBUF_SIZE); default is 0x40000
+    C3D_Init(0x10000);
+	//C2D_Init(C2D_DEFAULT_MAX_OBJECTS); //4096
+    C2D_Init(32); //need very few objects? this probably doesn't really help perf
+	C2D_Prepare();
+
+    topTarget = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
+    /*
+    topTarget = C3D_RenderTargetCreate(GSP_SCREEN_WIDTH, GSP_SCREEN_HEIGHT_TOP, GPU_RB_RGBA8, GPU_RB_DEPTH16);
+	if (topTarget) {
+		C3D_RenderTargetSetOutput(topTarget, GFX_TOP, GFX_LEFT,
+			GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(0) | GX_TRANSFER_RAW_COPY(0) |
+			GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGB8) |
+			GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO));
+    }
+    */
+    bottomTarget = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
     
     last_time = 0;
     now_time = 0;
@@ -225,16 +333,33 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 
     _paletteColors = paletteColors;
     for(int i = 0; i < 144; i++){
+        _rgba8Colors[i] = 0xFF | (_paletteColors[i].Blue << 8) | (_paletteColors[i].Green << 16) | (_paletteColors[i].Red << 24);
         _rgb565Colors[i] = (((_paletteColors[i].Red & 0xf8)<<8) + ((_paletteColors[i].Green & 0xfc)<<3)+(_paletteColors[i].Blue>>3));
     }
 
-    //set to RGB565 for 2 bytes per pixel instead of 3
-    gfxSetScreenFormat(GFX_TOP, GSP_RGB565_OES);
-    gfxSetScreenFormat(GFX_BOTTOM, GSP_RGB565_OES);
+    pico_tex = (C3D_Tex*)linearAlloc(sizeof(C3D_Tex));
+	//people on homebrew discord said should use this
+	C3D_TexInitVRAM(pico_tex, 128, 128, texColor);
+	//can't tell a difference, but I'd expect vram to be better? maybe not if transferring often
+	//C3D_TexInit(pico_tex, 128, 128, GPU_RGBA8);
+	C3D_TexSetFilter(pico_tex, GPU_NEAREST, GPU_NEAREST);
 
-    numFramesToClear = 2;
+	pico_subtex = (Tex3DS_SubTexture*)linearAlloc(sizeof(Tex3DS_SubTexture));
+	pico_subtex->width = 128;
+	pico_subtex->height = 128;
+	pico_subtex->left = 0.0f;
+	pico_subtex->top = 1.0f;
+	pico_subtex->right = 1.0f;
+	pico_subtex->bottom = 0.0f;
+
+	pico_image.tex = pico_tex;
+	pico_image.subtex = pico_subtex;
+
+	pico_pixel_buffer = (u16*)linearAlloc(pico_pixel_buffer_size);
 
     loadSettingsIni();
+
+    setRenderParamsFromStretch(stretch);
 
     if (stretch == AltScreenPixelPerfect) {
         mouseOffsetX = (__3ds_BottomScreenWidth - PicoScreenWidth) / 2;
@@ -255,6 +380,14 @@ void Host::oneTimeCleanup(){
 
     audioCleanup();
 
+    C3D_TexDelete(pico_tex);
+
+	linearFree(pico_tex);
+	linearFree(pico_subtex);
+    linearFree(pico_pixel_buffer);
+
+    C2D_Fini();
+	C3D_Fini();
 	gfxExit();
 }
 
@@ -300,7 +433,8 @@ void Host::changeStretch(){
             scaleY = 0.53;
         }
 
-        numFramesToClear = 2;
+        setRenderParamsFromStretch(stretch);
+
     }
 }
 
@@ -359,191 +493,181 @@ void Host::waitForTargetFps(){
 }
 
 
-void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
-    
-	uint16_t* fb = (uint16_t*)gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
+void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMode){
+    size_t pixIdx = 0;
 
-	//bottom buffer in case overflow rendering is being used
-	uint16_t* fbb = (uint16_t*)gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
-
-    if (numFramesToClear > 0) {
-        //clear framebuffers so we don't leave pixels around
-        memset(fb, 0, __3ds_TopScreenWidth*__3ds_TopScreenHeight*2);
-        memset(fbb, 0, __3ds_BottomScreenWidth*__3ds_BottomScreenHeight*2);
-
-        numFramesToClear--;
+    for (pixIdx = 0; pixIdx < pico_pixel_buffer_size; pixIdx++){
+        pico_pixel_buffer[pixIdx] = _rgb565Colors[screenPaletteMap[getPixelNibble(pixIdx % 128, pixIdx / 128, picoFb)]];
     }
 
-    int x, y;
+    //not sure if this is necessary?
+    GSPGPU_FlushDataCache(pico_pixel_buffer, pico_pixel_buffer_size);
 
-    //these could be combined to shorten this method
-	if (stretch == PixelPerfect) {
-		int xOffset = __3ds_TopScreenWidth / 2 - PicoScreenWidth / 2;
-        int yOffset = __3ds_TopScreenHeight / 2 - PicoScreenHeight / 2;
+	C3D_SyncDisplayTransfer(
+        (u32*)pico_pixel_buffer, GX_BUFFER_DIM(128, 128),
+        (u32*)(pico_tex->data), GX_BUFFER_DIM(128, 128),
+		(GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(1) | GX_TRANSFER_RAW_COPY(0) |
+        GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGB565) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGB565) |
+        GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
+    );
 
-       for(x = 0; x < 64; x++) {
-            for(y = 0; y < 128; y++) {
-                int x1 = x << 1;
-                int x2 = x1 + 1;
-                uint8_t lc = getPixelNibble(x1, y, picoFb);
-                uint16_t lcol = _rgb565Colors[screenPaletteMap[lc]];
+    screenModeScaleX = 1.0f;
+    screenModeScaleY = 1.0f;
+    screenModeAngle = 0;
+    flipHorizontal = 1;
+    flipVertical = 1;
 
-                int pixIdx = (((x1 + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y + yOffset)));
+    switch(drawMode){
+        case 1:
+            screenModeScaleX = 2.0f;
+            screenModeScaleY = 1.0f;
+            screenModeAngle = 0;
+            flipHorizontal = 1;
+            flipVertical = 1;
+            break;
+        case 2:
+            screenModeScaleX = 1.0f;
+            screenModeScaleY = 2.0f;
+            screenModeAngle = 0;
+            flipHorizontal = 1;
+            flipVertical = 1;
+            break;
+        case 3:
+            screenModeScaleX = 2.0f;
+            screenModeScaleY = 2.0f;
+            screenModeAngle = 0;
+            flipHorizontal = 1;
+            flipVertical = 1;
+            break;
+        //todo: mirroring- not sure how to do this?
+        //case 5,6,7
 
-                fb[pixIdx] = lcol;
+        case 129:
+            screenModeScaleX = 1.0f;
+            screenModeScaleY = 1.0f;
+            screenModeAngle = 0;
+            flipHorizontal = -1;
+            flipVertical = 1;
+            break;
+        case 130:
+            screenModeScaleX = 1.0f;
+            screenModeScaleY = 1.0f;
+            screenModeAngle = 0;
+            flipHorizontal = 1;
+            flipVertical = -1;
+            break;
+        case 131:
+            screenModeScaleX = 1.0f;
+            screenModeScaleY = 1.0f;
+            screenModeAngle = 0;
+            flipHorizontal = -1;
+            flipVertical = -1;
+            break;
+        case 133:
+            screenModeScaleX = 1.0f;
+            screenModeScaleY = 1.0f;
+            screenModeAngle = 1.5707963267949f; // pi / 2 (90 degrees)
+            flipHorizontal = 1;
+            flipVertical = 1;
+            break;
+        case 134:
+            screenModeScaleX = 1.0f;
+            screenModeScaleY = 1.0f;
+            screenModeAngle = 3.1415926535898f; //pi (180 degrees)
+            flipHorizontal = 1;
+            flipVertical = 1;
+            break;
+        case 135:
+            screenModeScaleX = 1.0f;
+            screenModeScaleY = 1.0f;
+            screenModeAngle = 4.7123889803847f; // pi * 3 / 2 (270 degrees)
+            flipHorizontal = 1;
+            flipVertical = 1;
+            break;
+        default:
+            screenModeScaleX = 1.0f;
+            screenModeScaleY = 1.0f;
+            screenModeAngle = 0;
+            flipHorizontal = 1;
+            flipVertical = 1;
+            break;
+    }
 
-                uint8_t rc = getPixelNibble(x2, y, picoFb);
-                uint16_t rcol = _rgb565Colors[screenPaletteMap[rc]];
+    C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 
-                pixIdx = (((x2 + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y + yOffset)));
+		C2D_TargetClear(topTarget, CLEAR_COLOR);
+		C2D_SceneBegin(topTarget);
 
-                fb[pixIdx] = rcol;
-            }
+        if (topSubTexWidth > 0 && topSubTexHeight > 0) {
+            pico_subtex->width = topSubTexWidth;
+            pico_subtex->height = topSubTexHeight;
+            pico_subtex->left = 0.0f / screenModeScaleX;
+            //top and bottom are inverted from what I usually expect
+            pico_subtex->top = 1.0f - (0.0f / screenModeScaleY);
+            pico_subtex->right = 1.0f / screenModeScaleX;
+            pico_subtex->bottom = 1.0f - (1.0f / screenModeScaleY);
+
+            /*
+            C2D_DrawImageAt(
+                pico_image,
+                topXOffset,
+                topYOffset,
+                .5,
+                NULL,
+                topScaleX * screenModeScaleX,
+                topScaleY * screenModeScaleY);
+                */
+
+            //drawimageatrotated coord is center of image, drawimageage coord is top left
+            C2D_DrawImageAtRotated(
+                pico_image,
+                200 + topXOffset,
+                120 + topYOffset,
+                .5,
+                screenModeAngle,
+                NULL,
+                flipHorizontal,
+                flipVertical);
         }
-	}
-	else if (stretch == StretchToFit) {
-		float ratio = (float)__3ds_TopScreenHeight / (float)PicoScreenHeight;
-        int stretchedWidth = PicoScreenWidth * ratio;
 
-        int xOffset = __3ds_TopScreenWidth / 2 - stretchedWidth / 2;
-        int yOffset = 0;
         
-        for(x = 0; x < stretchedWidth; x++) {
-            for(y = 0; y < __3ds_TopScreenHeight; y++) {
-                int picoX = (int)(x / ratio);
-                int picoY = (int)(y / ratio);
-                uint8_t c = getPixelNibble(picoX, picoY, picoFb);
-                uint16_t col = _rgb565Colors[screenPaletteMap[c]];
+        C2D_TargetClear(bottomTarget, CLEAR_COLOR);
+        C2D_SceneBegin(bottomTarget);
 
-                int pixIdx = (((x + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y + yOffset)));
+        if (bottomSubTexWidth > 0 && bottomSubTexHeight > 0) {
+            pico_subtex->width = bottomSubTexWidth;
+            pico_subtex->height = bottomSubTexHeight;
+            pico_subtex->left = 0.0f / screenModeScaleX;
+            //top and bottom are inverted from what I usually expect
+            pico_subtex->top = 1.0f - (0.0f / screenModeScaleY);
+            pico_subtex->right = 1.0f / screenModeScaleX;
+            pico_subtex->bottom = 1.0f - (1.0f / screenModeScaleY);
 
-                fb[pixIdx] = col;
-            }
-        }
-	}
-    else if (stretch == AltScreenPixelPerfect) {
-		int xOffset = __3ds_BottomScreenWidth / 2 - PicoScreenWidth / 2;
-        int yOffset = __3ds_BottomScreenHeight / 2 - PicoScreenHeight / 2;
+/*
+            C2D_DrawImageAt(
+                pico_image,
+                bottomXOffset,
+                bottomYOffset,
+                .5,
+                NULL,
+                1,
+                1);
+                */
 
-       for(x = 0; x < 64; x++) {
-            for(y = 0; y < 128; y++) {
-                int x1 = x << 1;
-                int x2 = x1 + 1;
-                uint8_t lc = getPixelNibble(x1, y, picoFb);
-                uint16_t lcol = _rgb565Colors[screenPaletteMap[lc]];
-
-                int pixIdx = (((x1 + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y + yOffset)));
-
-                fbb[pixIdx] = lcol;
-
-                uint8_t rc = getPixelNibble(x2, y, picoFb);
-                uint16_t rcol = _rgb565Colors[screenPaletteMap[rc]];
-
-                pixIdx = (((x2 + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y + yOffset)));
-
-                fbb[pixIdx] = rcol;
-            }
-        }
-	}
-    else if (stretch == AltScreenStretch) {
-		float ratio = (float)__3ds_BottomScreenHeight / (float)PicoScreenHeight;
-        int stretchedWidth = PicoScreenWidth * ratio;
-
-        int xOffset = __3ds_BottomScreenWidth / 2 - stretchedWidth / 2;
-        int yOffset = 0;
-        
-        for(x = 0; x < stretchedWidth; x++) {
-            for(y = 0; y < __3ds_TopScreenHeight; y++) {
-                int picoX = (int)(x / ratio);
-                int picoY = (int)(y / ratio);
-                uint8_t c = getPixelNibble(picoX, picoY, picoFb);
-                uint16_t col = _rgb565Colors[screenPaletteMap[c]];
-
-                int pixIdx = (((x + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y + yOffset)));
-
-                fbb[pixIdx] = col;
-            }
-        }
-	}
-	else {
-		//assume landscape, hardcoded double for now (3ds)
-        int ratio = 2;
-        int stretchedWidth = PicoScreenWidth * ratio;
-
-        int xOffset = __3ds_TopScreenWidth / 2 - stretchedWidth / 2;
-        int yOffset = 0;
-       
-        //trying to optimize by looping over pico pixels, not 3ds pixels
-        for(x = 0; x < 64; x++) {
-            for(y = 0; y < 120; y++) {
-                int picox1 = x << 1;
-                int picox2 = picox1 + 1;
-                uint8_t lc = getPixelNibble(picox1, y, picoFb);
-                uint16_t lcol = _rgb565Colors[screenPaletteMap[lc]];
-
-                int pixIdx = (((picox1*2 + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y*2 + yOffset)));
-                int pixIdx2 = (((picox1*2 + xOffset + 1)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y*2 + yOffset)));
-                int pixIdx3 = (((picox1*2 + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y*2 + yOffset + 1)));
-                int pixIdx4 = (((picox1*2 + xOffset + 1)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y*2 + yOffset + 1)));
-
-                fb[pixIdx] = lcol;
-                fb[pixIdx2] = lcol;
-                fb[pixIdx3] = lcol;
-                fb[pixIdx4] = lcol;
-                
-
-                uint8_t rc = getPixelNibble(picox2, y, picoFb);
-                uint16_t rcol = _rgb565Colors[screenPaletteMap[rc]];
-
-                pixIdx = (((picox2*2 + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y*2 + yOffset)));
-                pixIdx2 = (((picox2*2 + xOffset + 1)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y*2 + yOffset)));
-                pixIdx3 = (((picox2*2 + xOffset)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y*2 + yOffset + 1)));
-                pixIdx4 = (((picox2*2 + xOffset + 1)*__3ds_TopScreenHeight)+ ((__3ds_TopScreenHeight - 1) - (y*2 + yOffset + 1)));
-
-                fb[pixIdx] = rcol;
-                fb[pixIdx2] = rcol;
-                fb[pixIdx3] = rcol;
-                fb[pixIdx4] = rcol;
-            }
+            C2D_DrawImageAtRotated(
+                pico_image,
+                160 + bottomXOffset,
+                120 + bottomYOffset,
+                .5,
+                screenModeAngle,
+                NULL,
+                flipHorizontal,
+                flipVertical);
         }
 
-        xOffset = __3ds_BottomScreenWidth / 2 - stretchedWidth / 2;
+		C2D_Flush();
 
-        for(x = 0; x < 64; x++) {
-            for(y = 0; y < 8; y++) {
-                int picox1 = x << 1;
-                int picox2 = picox1 + 1;
-                int picoY = 120 + y;
-                uint8_t lc = getPixelNibble(picox1, picoY, picoFb);
-                uint16_t lcol = _rgb565Colors[screenPaletteMap[lc]];
-
-                int pixIdx = (((picox1*2 + xOffset)*__3ds_BottomScreenHeight)+ ((__3ds_BottomScreenHeight - 1) - (y*2 + yOffset)));
-                int pixIdx2 = (((picox1*2 + xOffset + 1)*__3ds_BottomScreenHeight)+ ((__3ds_BottomScreenHeight - 1) - (y*2 + yOffset)));
-                int pixIdx3 = (((picox1*2 + xOffset)*__3ds_BottomScreenHeight)+ ((__3ds_BottomScreenHeight - 1) - (y*2 + yOffset + 1)));
-                int pixIdx4 = (((picox1*2 + xOffset + 1)*__3ds_BottomScreenHeight)+ ((__3ds_BottomScreenHeight - 1) - (y*2 + yOffset + 1)));
-
-                fbb[pixIdx] = lcol;
-                fbb[pixIdx2] = lcol;
-                fbb[pixIdx3] = lcol;
-                fbb[pixIdx4] = lcol;
-
-                uint8_t rc = getPixelNibble(picox2, picoY, picoFb);
-                uint16_t rcol = _rgb565Colors[screenPaletteMap[rc]];
-
-                pixIdx = (((picox2*2 + xOffset)*__3ds_BottomScreenHeight)+ ((__3ds_BottomScreenHeight - 1) - (y*2 + yOffset)));
-                pixIdx2 = (((picox2*2 + xOffset + 1)*__3ds_BottomScreenHeight)+ ((__3ds_BottomScreenHeight - 1) - (y*2 + yOffset)));
-                pixIdx3 = (((picox2*2 + xOffset)*__3ds_BottomScreenHeight)+ ((__3ds_BottomScreenHeight - 1) - (y*2 + yOffset + 1)));
-                pixIdx4 = (((picox2*2 + xOffset + 1)*__3ds_BottomScreenHeight)+ ((__3ds_BottomScreenHeight - 1) - (y*2 + yOffset + 1)));
-
-                fbb[pixIdx] = rcol;
-                fbb[pixIdx2] = rcol;
-                fbb[pixIdx3] = rcol;
-                fbb[pixIdx4] = rcol;
-            }
-        }
-	}
-
-    postFlipFunction();
+	C3D_FrameEnd(0);
 }
 
 bool Host::shouldFillAudioBuff(){

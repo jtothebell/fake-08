@@ -152,7 +152,7 @@ end
 
 
 __f08_menu_items = {
-    {"continue", __togglepausemenu},
+    [0] = {"continue", __togglepausemenu},
     {nil, nil},
     {nil, nil},
     {nil, nil},
@@ -162,7 +162,7 @@ __f08_menu_items = {
     {"exit to menu", __loadbioscart}
 }
 
-__f08_menu_selected = 1
+__f08_menu_selected = 0
 
 function __f08_menu_update()
     if btnp(3) and __f08_menu_selected < #__f08_menu_items then
@@ -181,6 +181,10 @@ function __f08_menu_update()
         toexec = __f08_menu_items[__f08_menu_selected]
         if toexec and toexec[2] then
             toexec[2]()
+            if __f08_menu_selected > 0 and __f08_menu_selected < 6 then
+                __f08_menu_selected = 0
+                __togglepausemenu()
+            end
         end
     end
 
@@ -189,7 +193,8 @@ end
 function __f08_menu_draw()
     local menuwidth = 82
     local itemcount = 0
-    for item in all(__f08_menu_items) do
+    for i=0, 7, 1 do
+        item = __f08_menu_items[i]
         if item[1] and item[2] then
             itemcount = itemcount + 1
         end
@@ -202,9 +207,10 @@ function __f08_menu_draw()
     rect(menux+1, menuy+1, menux + menuwidth-1, menuy + menuheight-1, 7)
     local itemx = menux + 8
     local itemy = menuy + 6
-    local itemidx = 1
+    local itemidx = 0
 
-    for item in all(__f08_menu_items) do
+    for i=0, 7, 1 do
+        item = __f08_menu_items[i]
         if item[1] and item[2] then
             print(item[1], itemx, itemy, 7)
             
