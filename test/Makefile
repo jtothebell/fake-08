@@ -1,5 +1,6 @@
 #match flags from 3ds and switch makefiles. This may not all be necessary
-CFLAGS := -Wall -g -c -O2 \
+# removed -O2 to make debugging tests easier
+CFLAGS := -Wall -g -c \
 		  -fno-rtti -fexceptions -std=gnu++11
 
 

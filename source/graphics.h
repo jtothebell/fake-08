@@ -86,7 +86,7 @@ class Graphics {
 	bool isXWithinClip(int x);
 	bool isYWithinClip(int y);
 	int clampXCoordToClip(int x);
-	int clampYCoordToCLip(int y);
+	int clampYCoordToClip(int y);
 
 	void _setPixelFromSprite(int x, int y, uint8_t col);
 	void _setPixelFromPen(int x, int y);

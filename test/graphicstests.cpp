@@ -583,6 +583,33 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("rect({x1}, {y1}, {x2}, {y2}) offscreen x draws nothing") {
+        graphics->cls();
+        graphics->color(15);
+        graphics->rect(-50, 40, -40, 42);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 40, 0},
+            {0, 41, 0},
+            {0, 42, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("rect({x1}, {y1}, {x2}, {y2}) offscreen y draws nothing") {
+        graphics->cls();
+        graphics->color(15);
+        graphics->rect(40, -50, 43, -40);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {40, 0, 0},
+            {41, 0, 0},
+            {42, 0, 0},
+            {43, 0, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
     SUBCASE("rect({x1}, {y1}, {x2}, {y2}, {c}) swapped coords work, color used") {
         graphics->cls();
         graphics->rect(42, 43, 40, 40, 1);

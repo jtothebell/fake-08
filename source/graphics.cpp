@@ -385,7 +385,7 @@ int Graphics::clampXCoordToClip(int x) {
 		(int)_memory->drawState.clip_xe - 1);
 }
 
-int Graphics::clampYCoordToCLip(int y) {
+int Graphics::clampYCoordToClip(int y) {
 	return clamp(
 		y,
 		(int)_memory->drawState.clip_yb,
@@ -527,6 +527,11 @@ void Graphics::_private_h_line(int x1, int x2, int y){
 		return;
 	}
 
+	if ((x1 < _memory->drawState.clip_xb && x2 < _memory->drawState.clip_xb) ||
+		(x1 > _memory->drawState.clip_xe && x2 > _memory->drawState.clip_xe)) {
+			return;
+	}
+
 	int maxx = clampXCoordToClip(std::max(x1, x2));
 	int minx = clampXCoordToClip(std::min(x1, x2));
 
@@ -541,8 +546,13 @@ void Graphics::_private_v_line (int y1, int y2, int x){
 		return;
 	}
 
-	int maxy = clampYCoordToCLip(std::max(y1, y2));
-	int miny = clampYCoordToCLip(std::min(y1, y2));
+	if ((y1 < _memory->drawState.clip_yb && y2 < _memory->drawState.clip_yb) ||
+		(y1 > _memory->drawState.clip_ye && y2 > _memory->drawState.clip_ye)) {
+			return;
+	}
+
+	int maxy = clampYCoordToClip(std::max(y1, y2));
+	int miny = clampYCoordToClip(std::min(y1, y2));
 
 	for (int y = miny; y <= maxy; y++){
 		_setPixelFromPen(x, y);
