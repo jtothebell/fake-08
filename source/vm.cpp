@@ -567,7 +567,7 @@ void Vm::GameLoop() {
 		uint8_t* picoFb = GetPicoInteralFb();
 		uint8_t* screenPaletteMap = GetScreenPaletteMap();
 
-		_host->drawFrame(picoFb, screenPaletteMap);
+		_host->drawFrame(picoFb, screenPaletteMap, _memory->drawState.drawMode);
 
 		if (_host->shouldFillAudioBuff()) {
 			FillAudioBuffer(_host->getAudioBufferPointer(), 0, _host->getAudioBufferSize());
@@ -866,7 +866,7 @@ void Vm::vm_flip() {
 		uint8_t* picoFb = GetPicoInteralFb();
 		uint8_t* screenPaletteMap = GetScreenPaletteMap();
 
-		_host->drawFrame(picoFb, screenPaletteMap);
+		_host->drawFrame(picoFb, screenPaletteMap, _memory->drawState.drawMode);
 
         //is this better at the end of the loop?
 		_host->waitForTargetFps();

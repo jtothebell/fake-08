@@ -71,9 +71,25 @@ const GPU_TEXCOLOR texColor = GPU_RGB565;
 
 #define CLEAR_COLOR 0xFF000000
 #define BYTES_PER_PIXEL 2
-size_t pico_rgba_buffer_size = 128*128*BYTES_PER_PIXEL;
+size_t pico_pixel_buffer_size = 128*128*BYTES_PER_PIXEL;
 
-u32 clrRec1;
+
+int topXOffset = 0;
+int topYOffset = 8;
+int topSubTexWidth = 256;
+int topSubTexHeight = 256;
+
+int bottomXOffset = 0;
+int bottomYOffset = -232;
+int bottomSubTexWidth = 256;
+int bottomSubTexHeight = 256;
+
+float screenModeScaleX = 1.0f;
+float screenModeScaleY = 1.0f;
+float screenModeAngle = 0;
+int flipHorizontal = 1;
+int flipVertical = 1;
+
 
 uint8_t ConvertInputToP8(u32 input){
 	uint8_t result = 0;
@@ -110,6 +126,64 @@ uint8_t ConvertInputToP8(u32 input){
 	}
 
 	return result;
+}
+
+void setRenderParamsFromStretch(StretchOption stretch) {
+    if (stretch == StretchToFit) {
+        topXOffset = 0;
+        topYOffset = 0;
+        topSubTexWidth = 240;
+        topSubTexHeight = 240;
+        
+        bottomXOffset = 0;
+        bottomYOffset = 0;
+        bottomSubTexWidth = 0;
+        bottomSubTexHeight = 0;
+    }
+    else if (stretch == StretchAndOverflow) {
+        topXOffset = 0;
+        topYOffset = 8;
+        topSubTexWidth = 256;
+        topSubTexHeight = 256;
+
+        bottomXOffset = 0;
+        bottomYOffset = -232;
+        bottomSubTexWidth = 256;
+        bottomSubTexHeight = 256;
+    }
+    else if (stretch == AltScreenPixelPerfect) {
+        topXOffset = 0;
+        topYOffset = 0;
+        topSubTexWidth = 0;
+        topSubTexHeight = 0;
+
+        bottomXOffset = 0;
+        bottomYOffset = 0;
+        bottomSubTexWidth = 128;
+        bottomSubTexHeight = 128;
+    }
+    else if (stretch == AltScreenStretch) {
+        topXOffset = 0;
+        topYOffset = 0;
+        topSubTexWidth = 0;
+        topSubTexHeight = 0;
+
+        bottomXOffset = 0;
+        bottomYOffset = 0;
+        bottomSubTexWidth = 240;
+        bottomSubTexHeight = 240;
+    }
+    else {
+        topXOffset = 0;
+        topYOffset = 0;
+        topSubTexWidth = 128;
+        topSubTexHeight = 128;
+        
+        bottomXOffset = 0;
+        bottomYOffset = 0;
+        bottomSubTexWidth = 0;
+        bottomSubTexHeight = 0;
+    }
 }
 
 
@@ -240,7 +314,8 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     C2D_Init(32); //need very few objects? this probably doesn't really help perf
 	C2D_Prepare();
 
-    //topTarget = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
+    topTarget = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
+    /*
     topTarget = C3D_RenderTargetCreate(GSP_SCREEN_WIDTH, GSP_SCREEN_HEIGHT_TOP, GPU_RB_RGBA8, GPU_RB_DEPTH16);
 	if (topTarget) {
 		C3D_RenderTargetSetOutput(topTarget, GFX_TOP, GFX_LEFT,
@@ -248,6 +323,7 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 			GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGB8) |
 			GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO));
     }
+    */
     bottomTarget = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
     
     last_time = 0;
@@ -279,11 +355,11 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 	pico_image.tex = pico_tex;
 	pico_image.subtex = pico_subtex;
 
-	pico_pixel_buffer = (u16*)linearAlloc(pico_rgba_buffer_size);
-
-    clrRec1 = C2D_Color32(0x9A, 0x6C, 0xB9, 0xFF);
+	pico_pixel_buffer = (u16*)linearAlloc(pico_pixel_buffer_size);
 
     loadSettingsIni();
+
+    setRenderParamsFromStretch(stretch);
 
     if (stretch == AltScreenPixelPerfect) {
         mouseOffsetX = (__3ds_BottomScreenWidth - PicoScreenWidth) / 2;
@@ -357,6 +433,8 @@ void Host::changeStretch(){
             scaleY = 0.53;
         }
 
+        setRenderParamsFromStretch(stretch);
+
     }
 }
 
@@ -415,15 +493,15 @@ void Host::waitForTargetFps(){
 }
 
 
-void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
+void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t screenMode){
     size_t pixIdx = 0;
 
-    for (pixIdx = 0; pixIdx < pico_rgba_buffer_size; pixIdx++){
+    for (pixIdx = 0; pixIdx < pico_pixel_buffer_size; pixIdx++){
         pico_pixel_buffer[pixIdx] = _rgb565Colors[screenPaletteMap[getPixelNibble(pixIdx % 128, pixIdx / 128, picoFb)]];
     }
 
     //not sure if this is necessary?
-    GSPGPU_FlushDataCache(pico_pixel_buffer, pico_rgba_buffer_size);
+    GSPGPU_FlushDataCache(pico_pixel_buffer, pico_pixel_buffer_size);
 
 	C3D_SyncDisplayTransfer(
         (u32*)pico_pixel_buffer, GX_BUFFER_DIM(128, 128),
@@ -433,16 +511,161 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
         GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
     );
 
+    screenModeScaleX = 1.0f;
+    screenModeScaleY = 1.0f;
+    screenModeAngle = 0;
+    flipHorizontal = 1;
+    flipVertical = 1;
+
+    switch(screenMode){
+        case 1:
+            screenModeScaleX = 2.0f;
+            screenModeScaleY = 1.0f;
+            screenModeAngle = 0;
+            flipHorizontal = 1;
+            flipVertical = 1;
+            break;
+        case 2:
+            screenModeScaleX = 1.0f;
+            screenModeScaleY = 2.0f;
+            screenModeAngle = 0;
+            flipHorizontal = 1;
+            flipVertical = 1;
+            break;
+        case 3:
+            screenModeScaleX = 2.0f;
+            screenModeScaleY = 2.0f;
+            screenModeAngle = 0;
+            flipHorizontal = 1;
+            flipVertical = 1;
+            break;
+        //todo: mirroring- not sure how to do this?
+        //case 5,6,7
+
+        case 129:
+            screenModeScaleX = 1.0f;
+            screenModeScaleY = 1.0f;
+            screenModeAngle = 0;
+            flipHorizontal = -1;
+            flipVertical = 1;
+            break;
+        case 130:
+            screenModeScaleX = 1.0f;
+            screenModeScaleY = 1.0f;
+            screenModeAngle = 0;
+            flipHorizontal = 1;
+            flipVertical = -1;
+            break;
+        case 131:
+            screenModeScaleX = 1.0f;
+            screenModeScaleY = 1.0f;
+            screenModeAngle = 0;
+            flipHorizontal = -1;
+            flipVertical = -1;
+            break;
+        case 133:
+            screenModeScaleX = 1.0f;
+            screenModeScaleY = 1.0f;
+            screenModeAngle = 1.5707963267949f; // pi / 2 (90 degrees)
+            flipHorizontal = 1;
+            flipVertical = 1;
+            break;
+        case 134:
+            screenModeScaleX = 1.0f;
+            screenModeScaleY = 1.0f;
+            screenModeAngle = 3.1415926535898f; //pi (180 degrees)
+            flipHorizontal = 1;
+            flipVertical = 1;
+            break;
+        case 135:
+            screenModeScaleX = 1.0f;
+            screenModeScaleY = 1.0f;
+            screenModeAngle = 4.7123889803847f; // pi * 3 / 2 (270 degrees)
+            flipHorizontal = 1;
+            flipVertical = 1;
+            break;
+        default:
+            screenModeScaleX = 1.0f;
+            screenModeScaleY = 1.0f;
+            screenModeAngle = 0;
+            flipHorizontal = 1;
+            flipVertical = 1;
+            break;
+    }
+
     C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 
 		C2D_TargetClear(topTarget, CLEAR_COLOR);
 		C2D_SceneBegin(topTarget);
 
-		C2D_DrawRectangle(0, 128, 0, 64, 64, clrRec1, clrRec1, clrRec1, clrRec1);
+        if (topSubTexWidth > 0 && topSubTexHeight > 0) {
+            pico_subtex->width = topSubTexWidth;
+            pico_subtex->height = topSubTexHeight;
+            pico_subtex->left = 0.0f / screenModeScaleX;
+            //top and bottom are inverted from what I usually expect
+            pico_subtex->top = 1.0f - (0.0f / screenModeScaleY);
+            pico_subtex->right = 1.0f / screenModeScaleX;
+            pico_subtex->bottom = 1.0f - (1.0f / screenModeScaleY);
 
-		C2D_DrawImageAt(pico_image, 72, 0, .5, NULL, 2.0f, 2.0f);
+            /*
+            C2D_DrawImageAt(
+                pico_image,
+                topXOffset,
+                topYOffset,
+                .5,
+                NULL,
+                topScaleX * screenModeScaleX,
+                topScaleY * screenModeScaleY);
+                */
 
-		//C2D_Flush();
+            //drawimageatrotated coord is center of image, drawimageage coord is top left
+            C2D_DrawImageAtRotated(
+                pico_image,
+                200 + topXOffset,
+                120 + topYOffset,
+                .5,
+                screenModeAngle,
+                NULL,
+                flipHorizontal,
+                flipVertical);
+        }
+
+        
+        C2D_TargetClear(bottomTarget, CLEAR_COLOR);
+        C2D_SceneBegin(bottomTarget);
+
+        if (bottomSubTexWidth > 0 && bottomSubTexHeight > 0) {
+            pico_subtex->width = bottomSubTexWidth;
+            pico_subtex->height = bottomSubTexHeight;
+            pico_subtex->left = 0.0f / screenModeScaleX;
+            //top and bottom are inverted from what I usually expect
+            pico_subtex->top = 1.0f - (0.0f / screenModeScaleY);
+            pico_subtex->right = 1.0f / screenModeScaleX;
+            pico_subtex->bottom = 1.0f - (1.0f / screenModeScaleY);
+
+/*
+            C2D_DrawImageAt(
+                pico_image,
+                bottomXOffset,
+                bottomYOffset,
+                .5,
+                NULL,
+                1,
+                1);
+                */
+
+            C2D_DrawImageAtRotated(
+                pico_image,
+                160 + bottomXOffset,
+                120 + bottomYOffset,
+                .5,
+                screenModeAngle,
+                NULL,
+                flipHorizontal,
+                flipVertical);
+        }
+
+		C2D_Flush();
 
 	C3D_FrameEnd(0);
 }

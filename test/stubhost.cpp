@@ -56,7 +56,7 @@ void Host::waitForTargetFps(){
 }
 
 
-void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
+void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t screenMode){
     
 }
 
