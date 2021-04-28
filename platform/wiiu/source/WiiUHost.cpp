@@ -99,7 +99,7 @@ bool audioInitialized = false;
 void audioCleanup(){
     audioInitialized = false;
 
-    //SDL_CloseAudioDevice(dev);
+    SDL_CloseAudioDevice(dev);
 }
 
 void FillAudioDeviceBuffer(void* UserData, Uint8* DeviceBuffer, int Length)
@@ -111,7 +111,6 @@ void audioSetup(){
     //modifed from SDL docs: https://wiki.libsdl.org/SDL_OpenAudioDevice
 
     //Audio plays but is wrong. maybe a problem with sample rate or endian-ness? haven't investigated thoroughly
-/*
     SDL_memset(&want, 0, sizeof(want)); // or SDL_zero(want)
     want.freq = SAMPLERATE;
     want.format = AUDIO_S16SYS;
@@ -131,7 +130,6 @@ void audioSetup(){
 
         audioInitialized = true;
     }
-    */
 }
 
 
