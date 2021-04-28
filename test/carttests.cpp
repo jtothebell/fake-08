@@ -86,12 +86,14 @@ TEST_CASE("Load simple p8 cart") {
         CHECK(cart->CartRom.SfxData[0].loopRangeEnd == 0);
         CHECK(cart->CartRom.SfxData[0].speed == 29);
 
-        CHECK(cart->CartRom.SfxData[0].notes[0].waveform == 0);
-        CHECK(cart->CartRom.SfxData[0].notes[0].effect == 0);
-        CHECK(cart->CartRom.SfxData[0].notes[0].key == 13);
-        CHECK(cart->CartRom.SfxData[0].notes[0].volume == 3);
         CHECK(cart->CartRom.SfxData[0].notes[0].data[0] == 13);
         CHECK(cart->CartRom.SfxData[0].notes[0].data[1] == 6);
+
+        CHECK(cart->CartRom.SfxData[0].notes[0].getWaveform() == 0);
+        CHECK(cart->CartRom.SfxData[0].notes[0].getEffect() == 0);
+        CHECK(cart->CartRom.SfxData[0].notes[0].getKey() == 13);
+        CHECK(cart->CartRom.SfxData[0].notes[0].getVolume() == 3);
+        CHECK(cart->CartRom.SfxData[0].notes[0].getCustom() == 0);
     }
     SUBCASE("Sfx data byte array is populated correctly") {
         CHECK(cart->CartRom.SfxData[2].data[0] == 139);
@@ -167,10 +169,10 @@ TEST_CASE("Load simple png cart") {
         CHECK(cart->CartRom.SfxData[0].loopRangeEnd == 0);
         CHECK(cart->CartRom.SfxData[0].speed == 29);
 
-        CHECK(cart->CartRom.SfxData[0].notes[0].waveform == 0);
-        CHECK(cart->CartRom.SfxData[0].notes[0].effect == 0);
-        CHECK(cart->CartRom.SfxData[0].notes[0].key == 13);
-        CHECK(cart->CartRom.SfxData[0].notes[0].volume == 3);
+        CHECK(cart->CartRom.SfxData[0].notes[0].getWaveform() == 0);
+        CHECK(cart->CartRom.SfxData[0].notes[0].getEffect() == 0);
+        CHECK(cart->CartRom.SfxData[0].notes[0].getKey() == 13);
+        CHECK(cart->CartRom.SfxData[0].notes[0].getVolume() == 3);
         CHECK(cart->CartRom.SfxData[0].notes[0].data[0] == 13);
         CHECK(cart->CartRom.SfxData[0].notes[0].data[1] == 6);
     }

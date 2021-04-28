@@ -97,8 +97,8 @@ TEST_CASE("Vm memory functions") {
         //waveform is next 3: (0) 01 : 1
         vm->vm_poke(0x3200, 97);
 
-        CHECK_EQ(memory->sfx[0].notes[0].key, 33);
-        CHECK_EQ(memory->sfx[0].notes[0].waveform, 1);
+        CHECK_EQ(memory->sfx[0].notes[0].getKey(), 33);
+        CHECK_EQ(memory->sfx[0].notes[0].getWaveform(), 1);
     }
     SUBCASE("poking general use ram"){
         vm->vm_poke(0x4300, 215);
@@ -344,10 +344,10 @@ TEST_CASE("Vm memory functions") {
             CHECK(memory->sfx[0].loopRangeEnd == 0);
             CHECK(memory->sfx[0].speed == 29);
 
-            CHECK(memory->sfx[0].notes[0].waveform == 0);
-            CHECK(memory->sfx[0].notes[0].effect == 0);
-            CHECK(memory->sfx[0].notes[0].key == 13);
-            CHECK(memory->sfx[0].notes[0].volume == 3);
+            CHECK(memory->sfx[0].notes[0].getWaveform() == 0);
+            CHECK(memory->sfx[0].notes[0].getEffect() == 0);
+            CHECK(memory->sfx[0].notes[0].getKey() == 13);
+            CHECK(memory->sfx[0].notes[0].getVolume() == 3);
             CHECK(memory->sfx[0].notes[0].data[0] == 13);
             CHECK(memory->sfx[0].notes[0].data[1] == 6);
         }
@@ -600,6 +600,26 @@ TEST_CASE("Vm memory functions") {
             "0000000000000000000000000000000000000000000000000000000000000000\n";
 
         CHECK_EQ(expected, actual);
+    }
+    SUBCASE("SFX Note getters match expected values"){
+        memory->sfx[0].notes[0].data[0] = 205;
+        memory->sfx[0].notes[0].data[1] = 233;
+
+        CHECK(memory->sfx[0].notes[0].getWaveform() == 7);
+        CHECK(memory->sfx[0].notes[0].getEffect() == 6);
+        CHECK(memory->sfx[0].notes[0].getKey() == 13);
+        CHECK(memory->sfx[0].notes[0].getVolume() == 4);
+        CHECK(memory->sfx[0].notes[0].getCustom() == 1);
+    }
+    SUBCASE("SFX Note settiers set correct values"){
+        memory->sfx[0].notes[0].setWaveform(7);
+        memory->sfx[0].notes[0].setEffect(6);
+        memory->sfx[0].notes[0].setKey(13);
+        memory->sfx[0].notes[0].setVolume(4);
+        memory->sfx[0].notes[0].setCustom(1);
+
+        CHECK(memory->sfx[0].notes[0].data[0] == 205);
+        CHECK(memory->sfx[0].notes[0].data[1] == 233);
     }
 
     delete stubHost;

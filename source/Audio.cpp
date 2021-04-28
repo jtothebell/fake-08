@@ -296,8 +296,8 @@ int16_t Audio::getSampleForChannel(int channel){
     int const note_idx = (int)floor(offset);
     int const next_note_idx = (int)floor(next_offset);
 
-    uint8_t key = sfx.notes[note_idx].key;
-    float volume = sfx.notes[note_idx].volume / 7.f;
+    uint8_t key = sfx.notes[note_idx].getKey();
+    float volume = sfx.notes[note_idx].getVolume() / 7.f;
     float freq = key_to_freq(key);
 
     if (volume == 0.f){
@@ -308,8 +308,8 @@ int16_t Audio::getSampleForChannel(int channel){
             _audioState._sfxChannels[channel].sfxId = -1;
         }
         else if (next_note_idx != note_idx){
-            _audioState._sfxChannels[channel].prev_key = sfx.notes[note_idx].key;
-            _audioState._sfxChannels[channel].prev_vol = sfx.notes[note_idx].volume / 7.f;
+            _audioState._sfxChannels[channel].prev_key = sfx.notes[note_idx].getKey();
+            _audioState._sfxChannels[channel].prev_vol = sfx.notes[note_idx].getVolume() / 7.f;
         }
 
         return 0;
@@ -319,7 +319,7 @@ int16_t Audio::getSampleForChannel(int channel){
     //int const fx = sfx.notes[note_id].effect;
 
     // Play note
-    float waveform = z8::synth::waveform(sfx.notes[note_idx].waveform, phi);
+    float waveform = z8::synth::waveform(sfx.notes[note_idx].getWaveform(), phi);
 
     // Apply master music volume from fade in/out
     // FIXME: check whether this should be done after distortion
@@ -342,8 +342,8 @@ int16_t Audio::getSampleForChannel(int channel){
         _audioState._sfxChannels[channel].sfxId = -1;
     }
     else if (next_note_idx != note_idx){
-        _audioState._sfxChannels[channel].prev_key = sfx.notes[note_idx].key;
-        _audioState._sfxChannels[channel].prev_vol = sfx.notes[note_idx].volume / 7.f;
+        _audioState._sfxChannels[channel].prev_key = sfx.notes[note_idx].getKey();
+        _audioState._sfxChannels[channel].prev_vol = sfx.notes[note_idx].getVolume() / 7.f;
     }
 
     return sample;
