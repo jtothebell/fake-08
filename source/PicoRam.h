@@ -18,27 +18,40 @@
 0x6000 	0x7fff 	Screen data (8k) 
 */
 
-struct song {
-    union
-    {
-        struct
-        {
-            uint8_t sfx0  : 7;
-            uint8_t start : 1;
-            uint8_t sfx1  : 7;
-            uint8_t loop  : 1;
-            uint8_t sfx2  : 7;
-            uint8_t stop  : 1;
-            uint8_t sfx3  : 7;
-            uint8_t mode  : 1;
-        };
 
-        // The four song channels that should play, 0…63 (each msb holds a flag)
-        uint8_t data[4];
-    };
+//used to use a bitfield union for song and sfx. but this caused problems on big endian platforms
+//now use specific getter/setters that make sure bits are in the right spot
+struct song {
+    // The four song channels that should play, 0…63 (each msb holds a flag)
+    uint8_t data[4];
+
+    uint8_t getSfx0()const {
+        return (data[0] & 0b01111111);
+    }
+    uint8_t getSfx1()const {
+        return (data[1] & 0b01111111);
+    }
+    uint8_t getSfx2()const {
+        return (data[2] & 0b01111111);
+    }
+    uint8_t getSfx3()const {
+        return (data[3] & 0b01111111);
+    }
+
+    uint8_t getStart()const {
+        return (data[0] & 0b10000000) >> 7;
+    }
+    uint8_t getLoop()const {
+        return (data[1] & 0b10000000) >> 7;
+    }
+    uint8_t getStop()const {
+        return (data[2] & 0b10000000) >> 7;
+    }
+    uint8_t getMode()const {
+        return (data[3] & 0b10000000) >> 7;
+    }
 };
 
-//using uint16_t may be necessary since waveform spans two bytes
 struct note {
     uint8_t data[2];
 

@@ -88,8 +88,8 @@ TEST_CASE("Vm memory functions") {
         //78: 0100 1110
         vm->vm_poke(0x3100, 78);
 
-        CHECK_EQ(memory->songs[0].sfx0, 78);
-        CHECK_EQ(memory->songs[0].start, 0);
+        CHECK_EQ(memory->songs[0].getSfx0(), 78);
+        CHECK_EQ(memory->songs[0].getStart(), 0);
     }
     SUBCASE("poking sfx"){
         //97: 0110 0001
@@ -352,14 +352,14 @@ TEST_CASE("Vm memory functions") {
             CHECK(memory->sfx[0].notes[0].data[1] == 6);
         }
         SUBCASE("Music data is populated") {
-            CHECK(memory->songs[0].sfx0 == 1);
-            CHECK(memory->songs[0].start == 0);
-            CHECK(memory->songs[0].sfx1 == 66);
-            CHECK(memory->songs[0].loop == 0);
-            CHECK(memory->songs[0].sfx2 == 67);
-            CHECK(memory->songs[0].stop == 0);
-            CHECK(memory->songs[0].sfx3 == 68);
-            CHECK(memory->songs[0].mode == 0);
+            CHECK(memory->songs[0].getSfx0() == 1);
+            CHECK(memory->songs[0].getStart() == 0);
+            CHECK(memory->songs[0].getSfx1() == 66);
+            CHECK(memory->songs[0].getLoop() == 0);
+            CHECK(memory->songs[0].getSfx2() == 67);
+            CHECK(memory->songs[0].getStop() == 0);
+            CHECK(memory->songs[0].getSfx3() == 68);
+            CHECK(memory->songs[0].getMode() == 0);
         }
     }
     SUBCASE("reload writes cart rom over changes") {

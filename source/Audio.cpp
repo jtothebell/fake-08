@@ -145,10 +145,10 @@ void Audio::set_music_pattern(int pattern) {
 
     //array to access song's channels. may be better to have this part of the struct?
     uint8_t channels[] = {
-        _memory->songs[pattern].sfx0,
-        _memory->songs[pattern].sfx1,
-        _memory->songs[pattern].sfx2,
-        _memory->songs[pattern].sfx3,
+        _memory->songs[pattern].getSfx0(),
+        _memory->songs[pattern].getSfx1(),
+        _memory->songs[pattern].getSfx2(),
+        _memory->songs[pattern].getSfx3(),
     };
 
     // Find music speed; it’s the speed of the fastest sfx
@@ -251,13 +251,13 @@ int16_t Audio::getSampleForChannel(int channel){
             int16_t next_pattern = _audioState._musicChannel.pattern + 1;
             int16_t next_count = _audioState._musicChannel.count + 1;
             //todo: pull out these flags, get memory storage correct as well
-            if (_memory->songs[_audioState._musicChannel.pattern].stop) //stop part of the loop flag
+            if (_memory->songs[_audioState._musicChannel.pattern].getStop()) //stop part of the loop flag
             {
                 next_pattern = -1;
                 next_count = _audioState._musicChannel.count;
             }
-            else if (_memory->songs[_audioState._musicChannel.pattern].loop){
-                while (--next_pattern > 0 && !_memory->songs[next_pattern].start)
+            else if (_memory->songs[_audioState._musicChannel.pattern].getLoop()){
+                while (--next_pattern > 0 && !_memory->songs[next_pattern].getStart())
                     ;
             }
 
