@@ -18,41 +18,87 @@
 0x6000 	0x7fff 	Screen data (8k) 
 */
 
-struct song {
-    union
-    {
-        struct
-        {
-            uint8_t sfx0  : 7;
-            uint8_t start : 1;
-            uint8_t sfx1  : 7;
-            uint8_t loop  : 1;
-            uint8_t sfx2  : 7;
-            uint8_t stop  : 1;
-            uint8_t sfx3  : 7;
-            uint8_t mode  : 1;
-        };
 
-        // The four song channels that should play, 0…63 (each msb holds a flag)
-        uint8_t data[4];
-    };
+//used to use a bitfield union for song and sfx. but this caused problems on big endian platforms
+//now use specific getter/setters that make sure bits are in the right spot
+struct song {
+    // The four song channels that should play, 0…63 (each msb holds a flag)
+    uint8_t data[4];
+
+    uint8_t getSfx0()const {
+        return (data[0] & 0b01111111);
+    }
+    uint8_t getSfx1()const {
+        return (data[1] & 0b01111111);
+    }
+    uint8_t getSfx2()const {
+        return (data[2] & 0b01111111);
+    }
+    uint8_t getSfx3()const {
+        return (data[3] & 0b01111111);
+    }
+
+    uint8_t getStart()const {
+        return (data[0] & 0b10000000) >> 7;
+    }
+    uint8_t getLoop()const {
+        return (data[1] & 0b10000000) >> 7;
+    }
+    uint8_t getStop()const {
+        return (data[2] & 0b10000000) >> 7;
+    }
+    uint8_t getMode()const {
+        return (data[3] & 0b10000000) >> 7;
+    }
 };
 
-//using uint16_t may be necessary since waveform spans two bytes
 struct note {
-    union
-    {
-        struct
-        {
-            uint16_t key : 6;
-            uint16_t waveform : 3;
-            uint16_t volume : 3;
-            uint16_t effect : 3;
-            uint16_t custom : 1;
-        };
-        
-        uint8_t data[2];
-    };
+    uint8_t data[2];
+
+    void setKey(uint8_t val){
+        uint8_t mask = 0b00111111;
+        data[0] = (data[0] & ~mask) | (val & mask);
+    }
+    void setWaveform(uint8_t val){
+        //waveform spans both bytes
+        uint8_t val0 = val << 6;
+        uint8_t mask0 = 0b11000000;
+        data[0] = (data[0] & ~mask0) | (val0 & mask0);
+
+        uint8_t val1 = val >> 2;
+        uint8_t mask1 = 0b00000001;
+        data[1] = (data[1] & ~mask1) | (val1 & mask1);
+    }
+    void setVolume(uint8_t val){
+        uint8_t mask = 0b00001110;
+        data[1] = (data[1] & ~mask) | ((val << 1) & mask);
+    }
+    void setEffect(uint8_t val){
+        uint8_t mask = 0b01110000;
+        data[1] = (data[1] & ~mask) | ((val << 4) & mask);
+    }
+    void setCustom(uint8_t val){
+        uint8_t mask = 0b10000000;
+        data[1] = (data[1] & ~mask) | ((val << 7) & mask);
+    }
+
+
+    uint8_t getKey()const {
+        return (data[0] & 0b00111111);
+    }
+    uint8_t getWaveform()const {
+        //waveform spans both bytes
+        return ((data[1] & 0b00000001) << 2) + ((data[0] & 0b11000000) >> 6);
+    }
+    uint8_t getVolume()const {
+        return ((data[1] & 0b00001110) >> 1);
+    }
+    uint8_t getEffect()const {
+        return ((data[1] & 0b01110000) >> 4);
+    }
+    uint8_t getCustom()const {
+        return ((data[1] & 0b10000000) >> 7);
+    }
 };
 
 struct sfx {

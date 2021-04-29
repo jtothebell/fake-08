@@ -145,10 +145,10 @@ void Audio::set_music_pattern(int pattern) {
 
     //array to access song's channels. may be better to have this part of the struct?
     uint8_t channels[] = {
-        _memory->songs[pattern].sfx0,
-        _memory->songs[pattern].sfx1,
-        _memory->songs[pattern].sfx2,
-        _memory->songs[pattern].sfx3,
+        _memory->songs[pattern].getSfx0(),
+        _memory->songs[pattern].getSfx1(),
+        _memory->songs[pattern].getSfx2(),
+        _memory->songs[pattern].getSfx3(),
     };
 
     // Find music speed; it’s the speed of the fastest sfx
@@ -199,8 +199,7 @@ void Audio::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
         int16_t sample = 0;
 
         for (int c = 0; c < 4; ++c) {
-            //bit shifted 3 places to lower volume and avoid clipping
-            sample += this->getSampleForChannel(c) >> 3;
+            sample += this->getSampleForChannel(c);
         }
 
         //buffer is stereo, so just send the mono sample to both channels
@@ -251,13 +250,13 @@ int16_t Audio::getSampleForChannel(int channel){
             int16_t next_pattern = _audioState._musicChannel.pattern + 1;
             int16_t next_count = _audioState._musicChannel.count + 1;
             //todo: pull out these flags, get memory storage correct as well
-            if (_memory->songs[_audioState._musicChannel.pattern].stop) //stop part of the loop flag
+            if (_memory->songs[_audioState._musicChannel.pattern].getStop()) //stop part of the loop flag
             {
                 next_pattern = -1;
                 next_count = _audioState._musicChannel.count;
             }
-            else if (_memory->songs[_audioState._musicChannel.pattern].loop){
-                while (--next_pattern > 0 && !_memory->songs[next_pattern].start)
+            else if (_memory->songs[_audioState._musicChannel.pattern].getLoop()){
+                while (--next_pattern > 0 && !_memory->songs[next_pattern].getStart())
                     ;
             }
 
@@ -296,8 +295,8 @@ int16_t Audio::getSampleForChannel(int channel){
     int const note_idx = (int)floor(offset);
     int const next_note_idx = (int)floor(next_offset);
 
-    uint8_t key = sfx.notes[note_idx].key;
-    float volume = sfx.notes[note_idx].volume / 7.f;
+    uint8_t key = sfx.notes[note_idx].getKey();
+    float volume = sfx.notes[note_idx].getVolume() / 7.f;
     float freq = key_to_freq(key);
 
     if (volume == 0.f){
@@ -308,8 +307,8 @@ int16_t Audio::getSampleForChannel(int channel){
             _audioState._sfxChannels[channel].sfxId = -1;
         }
         else if (next_note_idx != note_idx){
-            _audioState._sfxChannels[channel].prev_key = sfx.notes[note_idx].key;
-            _audioState._sfxChannels[channel].prev_vol = sfx.notes[note_idx].volume / 7.f;
+            _audioState._sfxChannels[channel].prev_key = sfx.notes[note_idx].getKey();
+            _audioState._sfxChannels[channel].prev_vol = sfx.notes[note_idx].getVolume() / 7.f;
         }
 
         return 0;
@@ -319,7 +318,7 @@ int16_t Audio::getSampleForChannel(int channel){
     //int const fx = sfx.notes[note_id].effect;
 
     // Play note
-    float waveform = z8::synth::waveform(sfx.notes[note_idx].waveform, phi);
+    float waveform = z8::synth::waveform(sfx.notes[note_idx].getWaveform(), phi);
 
     // Apply master music volume from fade in/out
     // FIXME: check whether this should be done after distortion
@@ -342,8 +341,8 @@ int16_t Audio::getSampleForChannel(int channel){
         _audioState._sfxChannels[channel].sfxId = -1;
     }
     else if (next_note_idx != note_idx){
-        _audioState._sfxChannels[channel].prev_key = sfx.notes[note_idx].key;
-        _audioState._sfxChannels[channel].prev_vol = sfx.notes[note_idx].volume / 7.f;
+        _audioState._sfxChannels[channel].prev_key = sfx.notes[note_idx].getKey();
+        _audioState._sfxChannels[channel].prev_vol = sfx.notes[note_idx].getVolume() / 7.f;
     }
 
     return sample;

@@ -506,29 +506,29 @@ void Cart::setSfx(std::string sfxString) {
         for (int i = 8; i < 168; i+=5) {
             buf[0] = line[i];
             buf[1] = line[i + 1];
-            uint16_t key = (uint16_t)strtol(buf, NULL, 16);
+            uint8_t key = (uint8_t)strtol(buf, NULL, 16);
             
 
             buf[0] = '0';
             buf[1] = line[i + 2];
-            uint16_t waveform = (uint16_t)strtol(buf, NULL, 16);
-            uint16_t custom = waveform > 7 ? 1 : 0;
+            uint8_t waveform = (uint8_t)strtol(buf, NULL, 16);
+            uint8_t custom = waveform > 7 ? 1 : 0;
 
             buf[0] = '0';
             buf[1] = line[i + 3];
-            uint16_t volume = (uint16_t)strtol(buf, NULL, 16);
+            uint8_t volume = (uint8_t)strtol(buf, NULL, 16);
 
             buf[0] = '0';
             buf[1] = line[i + 4];
-            uint16_t effect = (uint16_t)strtol(buf, NULL, 16);
+            uint8_t effect = (uint8_t)strtol(buf, NULL, 16);
 
-            CartRom.SfxData[sfxIdx].notes[noteIdx++] = {
-                key,
-                waveform,
-                volume,
-                effect,
-                custom
-            };
+            CartRom.SfxData[sfxIdx].notes[noteIdx].setKey(key);
+            CartRom.SfxData[sfxIdx].notes[noteIdx].setWaveform(waveform);
+            CartRom.SfxData[sfxIdx].notes[noteIdx].setVolume(volume);
+            CartRom.SfxData[sfxIdx].notes[noteIdx].setEffect(effect);
+            CartRom.SfxData[sfxIdx].notes[noteIdx].setCustom(custom);
+
+            noteIdx++;
         }
 
         sfxIdx++;

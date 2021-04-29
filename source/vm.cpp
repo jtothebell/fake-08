@@ -113,6 +113,11 @@ bool abortLua;
 
 bool Vm::loadCart(Cart* cart) {
     _picoFrameCount = 0;
+
+    if (_cartdataKey.length() > 0) {
+        _host->saveCartData(_cartdataKey, getSerializedCartData());
+    }
+
     _cartdataKey = "";
 
     //reset memory (may have to be more selective about zeroing out to be accurate?)
@@ -714,11 +719,6 @@ fix32 Vm::vm_dget(uint8_t n) {
 void Vm::vm_dset(uint8_t n, fix32 value){
     if (n < 64) {
         vm_poke4(0x5e00 + 4 * n, value);
-
-        //pico 8 seems to write immediately
-        if (_cartdataKey.length() > 0) {
-            _host->saveCartData(_cartdataKey, getSerializedCartData());
-        }
     }
 }
 

@@ -86,12 +86,14 @@ TEST_CASE("Load simple p8 cart") {
         CHECK(cart->CartRom.SfxData[0].loopRangeEnd == 0);
         CHECK(cart->CartRom.SfxData[0].speed == 29);
 
-        CHECK(cart->CartRom.SfxData[0].notes[0].waveform == 0);
-        CHECK(cart->CartRom.SfxData[0].notes[0].effect == 0);
-        CHECK(cart->CartRom.SfxData[0].notes[0].key == 13);
-        CHECK(cart->CartRom.SfxData[0].notes[0].volume == 3);
         CHECK(cart->CartRom.SfxData[0].notes[0].data[0] == 13);
         CHECK(cart->CartRom.SfxData[0].notes[0].data[1] == 6);
+
+        CHECK(cart->CartRom.SfxData[0].notes[0].getWaveform() == 0);
+        CHECK(cart->CartRom.SfxData[0].notes[0].getEffect() == 0);
+        CHECK(cart->CartRom.SfxData[0].notes[0].getKey() == 13);
+        CHECK(cart->CartRom.SfxData[0].notes[0].getVolume() == 3);
+        CHECK(cart->CartRom.SfxData[0].notes[0].getCustom() == 0);
     }
     SUBCASE("Sfx data byte array is populated correctly") {
         CHECK(cart->CartRom.SfxData[2].data[0] == 139);
@@ -115,14 +117,14 @@ TEST_CASE("Load simple p8 cart") {
         CHECK(cart->CartRom.SfxData[63].data[65] == 16);
     }
     SUBCASE("Music song data is populated") {
-        CHECK(cart->CartRom.SongData[0].sfx0 == 1);
-        CHECK(cart->CartRom.SongData[0].start == 0);
-        CHECK(cart->CartRom.SongData[0].sfx1 == 66);
-        CHECK(cart->CartRom.SongData[0].loop == 0);
-        CHECK(cart->CartRom.SongData[0].sfx2 == 67);
-        CHECK(cart->CartRom.SongData[0].stop == 0);
-        CHECK(cart->CartRom.SongData[0].sfx3 == 68);
-        CHECK(cart->CartRom.SongData[0].mode == 0);
+        CHECK(cart->CartRom.SongData[0].getSfx0() == 1);
+        CHECK(cart->CartRom.SongData[0].getStart() == 0);
+        CHECK(cart->CartRom.SongData[0].getSfx1() == 66);
+        CHECK(cart->CartRom.SongData[0].getLoop() == 0);
+        CHECK(cart->CartRom.SongData[0].getSfx2() == 67);
+        CHECK(cart->CartRom.SongData[0].getStop() == 0);
+        CHECK(cart->CartRom.SongData[0].getSfx3() == 68);
+        CHECK(cart->CartRom.SongData[0].getMode() == 0);
     }
     SUBCASE("Music data byte array is populated correctly") {
         CHECK(cart->CartRom.SongData[1].data[0] == 155);
@@ -167,22 +169,22 @@ TEST_CASE("Load simple png cart") {
         CHECK(cart->CartRom.SfxData[0].loopRangeEnd == 0);
         CHECK(cart->CartRom.SfxData[0].speed == 29);
 
-        CHECK(cart->CartRom.SfxData[0].notes[0].waveform == 0);
-        CHECK(cart->CartRom.SfxData[0].notes[0].effect == 0);
-        CHECK(cart->CartRom.SfxData[0].notes[0].key == 13);
-        CHECK(cart->CartRom.SfxData[0].notes[0].volume == 3);
+        CHECK(cart->CartRom.SfxData[0].notes[0].getWaveform() == 0);
+        CHECK(cart->CartRom.SfxData[0].notes[0].getEffect() == 0);
+        CHECK(cart->CartRom.SfxData[0].notes[0].getKey() == 13);
+        CHECK(cart->CartRom.SfxData[0].notes[0].getVolume() == 3);
         CHECK(cart->CartRom.SfxData[0].notes[0].data[0] == 13);
         CHECK(cart->CartRom.SfxData[0].notes[0].data[1] == 6);
     }
     SUBCASE("Music data is populated") {
-        CHECK(cart->CartRom.SongData[0].sfx0 == 1);
-        CHECK(cart->CartRom.SongData[0].start == 0);
-        CHECK(cart->CartRom.SongData[0].sfx1 == 66);
-        CHECK(cart->CartRom.SongData[0].loop == 0);
-        CHECK(cart->CartRom.SongData[0].sfx2 == 67);
-        CHECK(cart->CartRom.SongData[0].stop == 0);
-        CHECK(cart->CartRom.SongData[0].sfx3 == 68);
-        CHECK(cart->CartRom.SongData[0].mode == 0);
+        CHECK(cart->CartRom.SongData[0].getSfx0() == 1);
+        CHECK(cart->CartRom.SongData[0].getStart() == 0);
+        CHECK(cart->CartRom.SongData[0].getSfx1() == 66);
+        CHECK(cart->CartRom.SongData[0].getLoop() == 0);
+        CHECK(cart->CartRom.SongData[0].getSfx2() == 67);
+        CHECK(cart->CartRom.SongData[0].getStop() == 0);
+        CHECK(cart->CartRom.SongData[0].getSfx3() == 68);
+        CHECK(cart->CartRom.SongData[0].getMode() == 0);
     }
 
     delete cart;
