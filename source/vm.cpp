@@ -342,11 +342,16 @@ void Vm::LoadBiosCart(){
 }
 
 void Vm::LoadCart(std::string filename){
+    if (filename == "__FAKE08-BIOS.p8") {
+        LoadBiosCart();
+        return;
+    }
     Logger_Write("Loading cart %s\n", filename.c_str());
     CloseCart();
 
     Logger_Write("Calling Cart Constructor\n");
-    Cart *cart = new Cart(filename);
+    auto cartDir = _host->getCartDirectory();
+    Cart *cart = new Cart(cartDir + "/" + filename);
 
     _cartLoadError = cart->LoadError;
 

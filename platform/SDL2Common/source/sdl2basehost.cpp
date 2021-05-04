@@ -152,7 +152,8 @@ void Host::setPlatformParams(
     uint32_t sdlRendererFlags,
     uint32_t sdlPixelFormat,
     std::string logFilePrefix,
-    std::string customBiosLua) 
+    std::string customBiosLua,
+    std::string cartDirectory) 
 {
     _windowWidth = windowWidth;
     _windowHeight = windowHeight;
@@ -172,6 +173,7 @@ void Host::setPlatformParams(
 
     _logFilePrefix = logFilePrefix;
     _customBiosLua = customBiosLua;
+    _cartDirectory = cartDirectory;
 
 }
 
@@ -419,4 +421,8 @@ const char* Host::logFilePrefix() {
 
 std::string Host::customBiosLua() {
     return _customBiosLua;
+}
+
+std::string Host::getCartDirectory() {
+    return _cartDirectory;
 }

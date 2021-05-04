@@ -69,7 +69,7 @@ function _update60()
 		carttoload = carts[cidx]
 		local lastslashidx = string.find(carttoload, "/[^/]*$")
 		local dispstr = carttoload
-		if lastslashidx > 0 then
+		if lastslashidx ~= nil and lastslashidx > 0 then
 			dispstr = sub(dispstr, lastslashidx + 1)
 		end
 		linebuffer = "load " .. dispstr
