@@ -183,6 +183,7 @@ Host::Host() {
     }
 
     _logFilePrefix = "fs:/vol/external01/wiiu/apps/fake08/";
+    _cartDirectory = "fs:/vol/external01/p8carts";
  }
 
   void Host::setPlatformParams(
@@ -192,7 +193,8 @@ Host::Host() {
         uint32_t sdlRendererFlags,
         uint32_t sdlPixelFormat,
         std::string logFilePrefix,
-        std::string customBiosLua) {}
+        std::string customBiosLua,
+        std::string cartDirectory) {}
 
 
 void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
@@ -533,7 +535,7 @@ vector<string> Host::listcarts(){
     if (dir != NULL) {
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
-            carts.push_back(fullCartDir + "/" + ent->d_name);
+            carts.push_back(_cartDirectory + "/" + ent->d_name);
         }
         closedir (dir);
     } else {
@@ -552,5 +554,9 @@ const char* Host::logFilePrefix() {
 std::string Host::customBiosLua() {
     return "cartpath = \"sd:/p8carts/\"\n"
         "pausebtn = \"+\"";
+}
+
+std::string Host::getCartDirectory() {
+    return _cartDirectory;
 }
 
