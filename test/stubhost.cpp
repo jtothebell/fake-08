@@ -104,3 +104,7 @@ std::string Host::getCartDataFileContents(std::string cartDataKey) {
 
 void Host::saveCartData(std::string cartDataKey, std::string contents) {
 }
+
+std::string Host::getCartDirectory() {
+    return "carts";
+}

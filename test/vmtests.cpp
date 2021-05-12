@@ -321,7 +321,7 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(graphics->pget(127, 127), 13);
     }
     SUBCASE("Loading cart copies cart rom to memory") {
-        vm->LoadCart("carts/cartparsetest.p8.png");
+        vm->LoadCart("cartparsetest.p8.png");
 
         SUBCASE("Gfx data is populated") {
             CHECK(memory->spriteSheetData[0] == 255);
@@ -363,7 +363,7 @@ TEST_CASE("Vm memory functions") {
         }
     }
     SUBCASE("reload writes cart rom over changes") {
-        vm->LoadCart("carts/cartparsetest.p8.png");
+        vm->LoadCart("cartparsetest.p8.png");
 
         graphics->sset(0, 0, 4);
         graphics->fset(0, 3);
@@ -382,7 +382,7 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(graphics->fget(3), 13);
     }
     SUBCASE("memcpy copies memory") {
-        vm->LoadCart("carts/cartparsetest.p8.png");
+        vm->LoadCart("cartparsetest.p8.png");
         vm->vm_memcpy(0x3000, 0, 4);
 
         CHECK_EQ(memory->spriteSheetData[1], 1);
@@ -399,7 +399,7 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(vm->vm_dget(34), (fix32)1923);
     }
     SUBCASE("pico driller style input"){
-        vm->LoadCart("carts/drillerinputtest.p8");
+        vm->LoadCart("drillerinputtest.p8");
 
         SUBCASE("no buttons gives 0"){
             vm->UpdateAndDraw();
