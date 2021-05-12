@@ -30,6 +30,7 @@ using namespace std;
 
 string _desktopSdl2SettingsDir = "switch/fake08";
 string _desktopSdl2SettingsPrefix = "switch/fake08/";
+string _switchCartDir = "/p8carts";
 string _desktopSdl2customBiosLua = "cartpath = \"sdmc:/p8carts/\"\n";
 
 PadState pad;
@@ -109,7 +110,8 @@ Host::Host()
         RENDERER_FLAGS,
         PIXEL_FORMAT,
         _desktopSdl2SettingsPrefix,
-        _desktopSdl2customBiosLua
+        _desktopSdl2customBiosLua,
+        _switchCartDir
     );
 }
 
@@ -156,14 +158,13 @@ InputState_t Host::scanInput(){
 vector<string> Host::listcarts(){
     vector<string> carts;
 
-    DIR* dir = opendir("/p8carts");
+    DIR* dir = opendir(_cartDirectory.c_str());
     struct dirent *ent;
-    std::string fullCartDir = "/p8carts/";
 
     if (dir) {
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
-            carts.push_back(fullCartDir + ent->d_name);
+            carts.push_back(_cartDirectory + "/" + ent->d_name);
         }
         closedir (dir);
     }
