@@ -271,6 +271,8 @@ void audioSetup(){
 Host::Host() {
     _logFilePrefix = "sdmc:/3ds/fake08/";
 
+    _cartDirectory = "/p8carts/";
+
     struct stat st = {0};
 
     int res = chdir("sdmc:/");
@@ -296,7 +298,8 @@ Host::Host() {
         uint32_t sdlRendererFlags,
         uint32_t sdlPixelFormat,
         std::string logFilePrefix,
-        std::string customBiosLua) {}
+        std::string customBiosLua,
+        std::string cartDirectory) {}
 
 
 void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
@@ -702,12 +705,11 @@ vector<string> Host::listcarts(){
 
     DIR* dir = opendir("/p8carts");
     struct dirent *ent;
-    std::string fullCartDir = "/p8carts/";
 
     if (dir) {
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
-            carts.push_back(fullCartDir + ent->d_name);
+            carts.push_back(_cartDirectory + ent->d_name);
         }
         closedir (dir);
     }
@@ -721,4 +723,8 @@ const char* Host::logFilePrefix() {
 
 std::string Host::customBiosLua() {
     return "";
+}
+
+std::string Host::getCartDirectory() {
+    return _cartDirectory;
 }
