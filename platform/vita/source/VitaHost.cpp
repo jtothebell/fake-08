@@ -60,6 +60,7 @@ SDL_Point touchLocation = { 128 / 2, 128 / 2 };
 
 string _desktopSdl2SettingsDir = "ux0:/data/fake08";
 string _desktopSdl2SettingsPrefix = "ux0:/data/fake08/";
+string _vitaCartDir = "ux0:/p8carts";
 string _desktopSdl2customBiosLua = "cartpath = \"ux0:/p8carts/\"\n"
         "selectbtn = \"x\"\n"
         "pausebtn = \"start\"";
@@ -83,7 +84,8 @@ Host::Host() {
         RENDERER_FLAGS,
         PIXEL_FORMAT,
         _desktopSdl2SettingsPrefix,
-        _desktopSdl2customBiosLua
+        _desktopSdl2customBiosLua,
+        _vitaCartDir
     );
 }
 
@@ -270,20 +272,16 @@ InputState_t Host::scanInput(){
 vector<string> Host::listcarts(){
     vector<string> carts;
 
-    std::string cartDir = "p8carts";
-    std::string container = "ux0:/";
-    std::string fullCartDir = container + cartDir;
-
     SceUID dir = 0;
     int ret = 0;
 
-    if (R_SUCCEEDED(dir = sceIoDopen(fullCartDir.c_str()))) {
+    if (R_SUCCEEDED(dir = sceIoDopen(_cartDirectory.c_str()))) {
         
         do {
             SceIoDirent dirent;
 
             if (R_FAILED(ret = sceIoDread(dir, &dirent))) {
-                Logger_Write("Error: sceIoDread(%s) failed: 0x%lx\n", fullCartDir.c_str(), ret);
+                Logger_Write("Error: sceIoDread(%s) failed: 0x%lx\n", _cartDirectory.c_str(), ret);
                 continue;
             }
             
@@ -291,7 +289,7 @@ vector<string> Host::listcarts(){
                 continue;
             }
 
-            carts.push_back(fullCartDir + "/" + dirent.d_name);
+            carts.push_back(_cartDirectory + "/" + dirent.d_name);
         } while (ret > 0);
 
         sceIoDclose(dir);
