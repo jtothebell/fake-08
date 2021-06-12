@@ -50,13 +50,16 @@ function _update60()
 		cidx = min((cidx + 1), numcarts)
 	end
 	if btnp(0) then
-		cidx = max((cidx - 1), 0)
+		cidx = max((cidx - 1), 1)
 	end
 	
 	if btnp(2) then
-		--ls()
-		linebuffer = "ls"
+		cidx = max((cidx - 10), 1)
 	end
+	if btnp(3) then
+		cidx = min((cidx + 10), numcarts)
+	end
+
 	if btnp(4) then
 		linebuffer = ""
 	end
@@ -101,7 +104,8 @@ function _draw()
 	if numcarts < 1 then
 		print("--no carts found--")
 	else
-		print("⬅️➡️ to navigate carts")
+		print("⬅️➡️ to navigate carts 1 by 1")
+		print("⬆️⬇️ to navigate carts 10 by 10")
 		print("🅾️ (" .. selectbtn .. ") to load selected cart")
 		print(pausebtn .. " to close current cart")
 	end
