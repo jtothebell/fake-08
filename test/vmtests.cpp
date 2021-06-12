@@ -621,6 +621,16 @@ TEST_CASE("Vm memory functions") {
         CHECK(memory->sfx[0].notes[0].data[0] == 205);
         CHECK(memory->sfx[0].notes[0].data[1] == 233);
     }
+    SUBCASE("cartlist gets sorted"){
+        std::vector<std::string> vec = { "Qcart.p8", "Acart.p8", "Zcart.p8.png", "Jcart.p8.png" };
+        vm->SetCartList(vec);
+        auto sorted = vm->GetCartList();
+
+        CHECK_EQ("Acart.p8", sorted[0]);
+        CHECK_EQ("Jcart.p8.png", sorted[1]);
+        CHECK_EQ("Qcart.p8", sorted[2]);
+        CHECK_EQ("Zcart.p8.png", sorted[3]);
+    }
 
     delete stubHost;
     delete graphics;

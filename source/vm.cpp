@@ -545,6 +545,7 @@ int Vm::GetFrameCount() {
 }
 
 void Vm::SetCartList(vector<string> cartList){
+    std::sort(cartList.begin(), cartList.end());
     _cartList = cartList;
 }
 
