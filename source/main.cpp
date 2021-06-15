@@ -27,10 +27,16 @@ int main(int argc, char* argv[])
 	Logger_Write("initialized Vm and host\n");
 
 	Logger_Write("Setting cart list on vm\n");
+	
 	vm->SetCartList(host->listcarts());
 
 	Logger_Write("Loading Bios cart\n");
-	vm->LoadBiosCart();
+	if (argc > 1){
+		vm->LoadCart(argv[1]);
+	}
+	else {
+		vm->LoadBiosCart();
+	}
 	Logger_Write("Bios Cart Loaded\n");
 
 	// Main loop
