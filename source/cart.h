@@ -37,10 +37,10 @@ class Cart {
     bool loadCartFromPng(std::string filename);
 
     public:
-    Cart (std::string filename);
+    Cart (std::string filename, std::string cartDirectory);
     ~Cart();
 
-    std::string Filename;
+    std::string FullCartPath;
 
     std::string LuaString;
 

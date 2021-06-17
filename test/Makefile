@@ -9,7 +9,7 @@ all: runtests
 
 testrunner.a: testroot.o \
 	fontdatatests.o nibblehelperstests.o graphicstests.o audiotests.o \
-	carttests.o endtoendtests.o vmtests.o
+	carttests.o endtoendtests.o vmtests.o filehelperstests.o
 	g++ -I$(CURDIR)/include -L$(CURDIR)/lib \
 	testroot.o \
 	fontdata.o fontdatatests.o \
@@ -19,6 +19,7 @@ testrunner.a: testroot.o \
 	vm.o endtoendtests.o picoluaapi.o Input.o \
 	vmtests.o stubhost.o \
 	nibblehelpers.o nibblehelperstests.o \
+	filehelperstests.o \
 	-llua -ldl \
 	-o testrunner.a
 
@@ -85,6 +86,10 @@ vmtests.o: endtoendtests.o \
 	vmtests.cpp stubhost.cpp
 	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \
 	vmtests.cpp stubhost.cpp ../source/vm.cpp  ../source/picoluaapi.cpp ../source/Input.cpp
+
+filehelperstests.o: filehelperstests.cpp ../source/filehelpers.cpp ../source/filehelpers.h
+	g++ $(CFLAGS) filehelperstests.cpp ../source/filehelpers.cpp
+
 	
 
 

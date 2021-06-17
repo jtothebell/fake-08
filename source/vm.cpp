@@ -310,7 +310,7 @@ bool Vm::loadCart(Cart* cart) {
 
 
     //customize bios per host's requirements
-    if (cart->Filename == BiosCartName) {
+    if (cart->FullCartPath == BiosCartName) {
         std::string customBiosLua = _host->customBiosLua();
 
         if (customBiosLua.length() > 0) {
@@ -332,7 +332,7 @@ bool Vm::loadCart(Cart* cart) {
 void Vm::LoadBiosCart(){
     CloseCart();
 
-    Cart *cart = new Cart(BiosCartName);
+    Cart *cart = new Cart(BiosCartName, "");
 
     bool success = loadCart(cart);
 
@@ -351,7 +351,7 @@ void Vm::LoadCart(std::string filename){
 
     Logger_Write("Calling Cart Constructor\n");
     auto cartDir = _host->getCartDirectory();
-    Cart *cart = new Cart(cartDir + "/" + filename);
+    Cart *cart = new Cart(filename, cartDir);
 
     _cartLoadError = cart->LoadError;
 
@@ -535,7 +535,7 @@ int Vm::GetTargetFps() {
 
 std::string Vm::CurrentCartFilename(){
     if (_loadedCart){
-        return _loadedCart->Filename;
+        return _loadedCart->FullCartPath;
     }
 
     return "";
@@ -757,7 +757,7 @@ void Vm::vm_reload(int destaddr, int sourceaddr, int len, string filename){
     bool multicart = false;
 
     if (filename.length() > 0) {
-        cart = new Cart(filename);
+        cart = new Cart(filename, _host->getCartDirectory());
         if (cart->LoadError.length() > 0) {
             //error, can't load cart
             //todo: see what kind of error pico 8 throws, emulate
