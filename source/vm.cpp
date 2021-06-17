@@ -162,11 +162,11 @@ bool Vm::loadCart(Cart* cart) {
     //system
     //must be registered before loading globals for pause menu to work
     lua_register(_luaState, "__listcarts", listcarts);
-    lua_register(_luaState, "__loadcart", loadcart);
     lua_register(_luaState, "__getbioserror", getbioserror);
     lua_register(_luaState, "__loadbioscart", loadbioscart);
     lua_register(_luaState, "__togglepausemenu", togglepausemenu);
     lua_register(_luaState, "__resetcart", resetcart);
+    lua_register(_luaState, "load", load);
 
     //load in global lua fuctions for pico 8
     auto convertedGlobalLuaFunctions = convert_emojis(p8GlobalLuaFunctions);
@@ -439,6 +439,7 @@ void Vm::UpdateAndDraw() {
     }
 
     if (_cartChangeQueued) {
+        _prevCartKey = CurrentCartFilename();
         LoadCart(_nextCartKey);
     }
 
@@ -898,6 +899,13 @@ void Vm::vm_extcmd(std::string cmd){
     }
 }
 
+void Vm::vm_load(std::string filename, std::string breadcrumb, std::string param){
+    _cartBreadcrumb = breadcrumb;
+    _cartParam = param;
+
+    QueueCartChange(filename);
+}
+
 int Vm::getFps(){
     //TODO: return actual fps (as fix32?)
     return _targetFps;
@@ -947,4 +955,12 @@ int Vm::getSecond(){
     std::tm* now = std::localtime(&t);
 
     return now->tm_sec;
+}
+
+std::string Vm::getCartBreadcrumb() {
+    return _cartBreadcrumb;
+}
+
+std::string Vm::getCartParam() {
+    return _cartParam;
 }

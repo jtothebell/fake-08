@@ -84,8 +84,8 @@ function _update60()
 		--make call to global
 		--load cart here
 		
-		if __loadcart and carttoload then
-			__loadcart(carttoload)
+		if load and carttoload then
+			load(carttoload)
 		end
 	end
 		

@@ -92,7 +92,7 @@ int printh(lua_State *L);
 
 //file system/vm functions
 int listcarts(lua_State *L);
-int loadcart(lua_State *L);
+
 int getbioserror(lua_State *L);
 int loadbioscart(lua_State *L);
 int togglepausemenu(lua_State *L);
@@ -105,6 +105,7 @@ int srand(lua_State *L);
 int _update_buttons(lua_State *L);
 int run(lua_State *L);
 int extcmd(lua_State *L);
+int load(lua_State *L);
 
 //api.tonum(val)
 

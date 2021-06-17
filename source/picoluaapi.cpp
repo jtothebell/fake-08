@@ -785,7 +785,7 @@ int stat(lua_State *L) {
         //argument
         case 6:
             // no args or loading other cards currently supported
-            lua_pushstring(L, "");
+            lua_pushstring(L, _vmForLuaApi->getCartParam().c_str());
             return 1;
         break;
         //frame rate
@@ -853,6 +853,9 @@ int stat(lua_State *L) {
             lua_pushnumber(L, _vmForLuaApi->getSecond());
             return 1;
         break;
+        case 100:
+            lua_pushstring(L, _vmForLuaApi->getCartBreadcrumb().c_str());
+            return 1;
         //unknown? used by serial carts
         case 108:
             lua_pushnumber(L, 32);
@@ -1105,6 +1108,25 @@ int extcmd(lua_State *L){
     return 0;
 }
 
+int load(lua_State *L) {
+    const char* filename = "";
+    const char* breadcrumb = "";
+    const char* param = "";
+    if (lua_isstring(L, 1)){
+        filename = lua_tolstring(L, 1, nullptr);
+        if (lua_gettop(L) > 1){
+            breadcrumb = lua_tolstring(L, 2, nullptr);
+        }
+        if (lua_gettop(L) > 2){
+            param = lua_tolstring(L, 3, nullptr);
+        }
+
+        _vmForLuaApi->vm_load(filename, breadcrumb, param);
+    }
+
+    return 0;
+}
+
 int listcarts(lua_State *L) {
     //get cart list from VM (who should get it from host)
     vector<string> carts = _vmForLuaApi->GetCartList();
@@ -1123,15 +1145,7 @@ int listcarts(lua_State *L) {
     return 1;
 }
 
-int loadcart(lua_State *L) {
-    if (lua_isstring(L, 1)){
-        const char * str = "";
-        str = lua_tolstring(L, 1, nullptr);
-        _vmForLuaApi->QueueCartChange(str);
-    }
 
-    return 0;
-}
 
 int getbioserror(lua_State *L) {
     string error = _vmForLuaApi->GetBiosError();

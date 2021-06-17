@@ -40,11 +40,15 @@ class Vm {
 
     bool _cartChangeQueued;
     bool _pauseMenu;
+    string _prevCartKey;
     string _nextCartKey;
 
     string _cartLoadError;
 
     string _cartdataKey;
+
+    string _cartBreadcrumb;
+    string _cartParam;
 
     vector<string> _cartList;
 
@@ -127,6 +131,8 @@ class Vm {
     void vm_run();
     void vm_extcmd(string  cmd);
 
+    void vm_load(string filename, string breadcrumb, string param);
+
     int getFps();
     int getTargetFps();
 
@@ -136,5 +142,8 @@ class Vm {
     int getHour();
     int getMinute();
     int getSecond();
+
+    string getCartBreadcrumb();
+    string getCartParam();
 };
 
