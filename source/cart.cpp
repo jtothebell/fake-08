@@ -340,7 +340,8 @@ Cart::Cart(std::string filename, std::string cartDirectory){
         
         while (std::getline(s, line)) {
             line = utils::trimright(line, " \n\r");
-            line = convert_emojis(line);
+            line = charset::utf8_to_pico8(line);
+            //line = convert_emojis(line);
 
             if (line.length() > 2 && line[0] == '_' && line[1] == '_') {
                 currSec = line;

@@ -39,7 +39,7 @@ int camera(lua_State *L);
 int clip(lua_State *L);
 int mget(lua_State *L);
 int mset(lua_State *L);
-int map(lua_State *L);
+int gfx_map(lua_State *L);
 int pal(lua_State *L);
 int palt(lua_State *L);
 int cursor(lua_State *L);

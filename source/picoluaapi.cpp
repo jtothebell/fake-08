@@ -534,7 +534,7 @@ int mset(lua_State *L) {
     return 0;
 }
 
-int map(lua_State *L) {
+int gfx_map(lua_State *L) {
     int celx = 0, cely = 0, sx = 0, sy = 0, celw = 128, celh = 32, argc;
     argc = lua_gettop(L);
     if (argc > 0) {

@@ -169,7 +169,8 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "load", load);
 
     //load in global lua fuctions for pico 8
-    auto convertedGlobalLuaFunctions = convert_emojis(p8GlobalLuaFunctions);
+    //auto convertedGlobalLuaFunctions = convert_emojis(p8GlobalLuaFunctions);
+    auto convertedGlobalLuaFunctions = charset::utf8_to_pico8(p8GlobalLuaFunctions);
     int loadedGlobals = luaL_dostring(_luaState, convertedGlobalLuaFunctions.c_str());
 
     if (loadedGlobals != LUA_OK) {
@@ -210,8 +211,8 @@ bool Vm::loadCart(Cart* cart) {
 
     lua_register(_luaState, "mget", mget);
     lua_register(_luaState, "mset", mset);
-    lua_register(_luaState, "map", map);
-    lua_register(_luaState, "mapdraw", map);
+    lua_register(_luaState, "map", gfx_map);
+    lua_register(_luaState, "mapdraw", gfx_map);
 
     //stubbed in graphics:
     lua_register(_luaState, "fillp", fillp);
