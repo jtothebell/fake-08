@@ -15,7 +15,7 @@ testrunner.a: testroot.o \
 	fontdata.o fontdatatests.o \
 	graphics.o graphicstests.o stringToDataHelpers.o mathhelpers.o \
 	Audio.o synth.o audiotests.o \
-	cart.o carttests.o nooplogger.o lodepng.o emojiconversion.o filehelpers.o utf8-util.o \
+	cart.o carttests.o nooplogger.o lodepng.o emojiconversion.o filehelpers.o \
 	vm.o endtoendtests.o picoluaapi.o Input.o \
 	vmtests.o stubhost.o \
 	nibblehelpers.o nibblehelperstests.o \
@@ -68,10 +68,8 @@ carttests.o: carttests.cpp ../source/cart.cpp ../source/cart.h \
 	../source/filehelpers.h ../source/filehelpers.cpp
 	cp ../libs/lodepng/lodepng.h include/lodepng.h && \
 	cp ../source/logger.h include/logger.h && \
-	cp ../libs/utf8-util/utf8-util.h include/utf8-util.h && \
 	g++ $(CFLAGS) -I$(CURDIR)/include carttests.cpp ../source/cart.cpp ../libs/lodepng/lodepng.cpp \
-	nooplogger.cpp ../source/emojiconversion.cpp ../source/filehelpers.cpp \
-	../libs/utf8-util/utf8-util.cpp
+	nooplogger.cpp ../source/emojiconversion.cpp ../source/filehelpers.cpp 
 
 endtoendtests.o: carttests.o graphicstests.o audiotests.o \
 	endtoendtests.cpp \
