@@ -353,7 +353,7 @@ Cart::Cart(std::string filename, std::string cartDirectory){
 
                     auto includeContents = get_file_contents(fullPath);
                     if (includeContents.length() > 0){
-                        //todo: handle emojis
+                        includeContents = charset::utf8_to_pico8(includeContents);
                         LuaString += includeContents + "\n";
                     }
                     else{
