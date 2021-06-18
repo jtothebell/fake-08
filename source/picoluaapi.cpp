@@ -1114,10 +1114,10 @@ int load(lua_State *L) {
     const char* param = "";
     if (lua_isstring(L, 1)){
         filename = lua_tolstring(L, 1, nullptr);
-        if (lua_gettop(L) > 1){
+        if (lua_gettop(L) > 1 && lua_isstring(L, 2)){
             breadcrumb = lua_tolstring(L, 2, nullptr);
         }
-        if (lua_gettop(L) > 2){
+        if (lua_gettop(L) > 2 && lua_isstring(L, 2)){
             param = lua_tolstring(L, 3, nullptr);
         }
 
