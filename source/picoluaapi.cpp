@@ -798,6 +798,55 @@ int stat(lua_State *L) {
             lua_pushnumber(L, _vmForLuaApi->getTargetFps());
             return 1;
         break;
+        //16-19 audio sfx currently playing
+        case 16:
+            lua_pushnumber(L, _audioForLuaApi->getCurrentSfxId(0));
+            return 1;
+        break;
+        case 17:
+            lua_pushnumber(L, _audioForLuaApi->getCurrentSfxId(1));
+            return 1;
+        break;
+        case 18:
+            lua_pushnumber(L, _audioForLuaApi->getCurrentSfxId(2));
+            return 1;
+        break;
+        case 19:
+            lua_pushnumber(L, _audioForLuaApi->getCurrentSfxId(3));
+            return 1;
+        break;
+        //20-23 note idx of sfx currently playing
+        case 20:
+            lua_pushnumber(L, _audioForLuaApi->getCurrentNoteNumber(0));
+            return 1;
+        break;
+        case 21:
+            lua_pushnumber(L, _audioForLuaApi->getCurrentNoteNumber(1));
+            return 1;
+        break;
+        case 22:
+            lua_pushnumber(L, _audioForLuaApi->getCurrentNoteNumber(2));
+            return 1;
+        break;
+        case 23:
+            lua_pushnumber(L, _audioForLuaApi->getCurrentNoteNumber(3));
+            return 1;
+        break;
+        //current music pattern
+        case 24:
+            lua_pushnumber(L, _audioForLuaApi->getCurrentMusic());
+            return 1;
+        break;
+        //current music count
+        case 25:
+            lua_pushnumber(L, _audioForLuaApi->getMusicPatternCount());
+            return 1;
+        break;
+        //current music tick count
+        case 26:
+            lua_pushnumber(L, _audioForLuaApi->getMusicTickCount());
+            return 1;
+        break;
         //was a key pressed (always false)
         case 30:
             lua_pushboolean(L, false);
