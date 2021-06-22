@@ -614,7 +614,7 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my){
 	);
 }
 
-//proted from zepto 8 impl
+//ported from zepto 8 impl
 void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 mdx, fix32 mdy){
 	applyCameraToPoint(&x0, &y0);
 	applyCameraToPoint(&x1, &y1);
@@ -626,10 +626,10 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 m
 
 	bool vertical = x0 == x1;
 
-	int x = clampCoordToScreenDims(x0);
-	int xend = clampCoordToScreenDims(x1);
-	int y = clampCoordToScreenDims(y0);
-	int yend = clampCoordToScreenDims(y1);
+	int x = clampXCoordToClip(x0);
+	int xend = clampXCoordToClip(x1);
+	int y = clampYCoordToClip(y0);
+	int yend = clampYCoordToClip(y1);
 
 	auto &ds = _memory->drawState;
 
@@ -666,7 +666,7 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 m
 				spr_y + (int(my << 3) & 0x7),
 				_memory->spriteSheetData);
 
-            if (!isColorTransparent(col)) {
+            if (!isColorTransparent(col) && isWithinClip(x, y)) {
                 _setPixelFromSprite(x, y, col);
             }
         }
