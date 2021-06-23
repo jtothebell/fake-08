@@ -405,6 +405,13 @@ void Graphics::_setPixelFromSprite(int x, int y, uint8_t col) {
 
 	col = getDrawPalMappedColor(col);
 
+	//from pico 8 wiki:
+	//dst_color = (dst_color & ~write_mask) | (src_color & write_mask & read_mask)
+	uint8_t writeMask = _memory->hwState.colorBitmask & 15;
+	uint8_t readMask = _memory->hwState.colorBitmask >> 4;
+    uint8_t source = pget(x, y);
+    col = (col & writeMask) | (source & ~writeMask & readMask);
+
 	setPixelNibble(x, y, col, _memory->screenBuffer);
 }
 
@@ -435,7 +442,16 @@ void Graphics::_setPixelFromPen(int x, int y) {
 		finalC = col1;
 	}
 
-	setPixelNibble(x, y, getDrawPalMappedColor(finalC), _memory->screenBuffer);
+	finalC = getDrawPalMappedColor(finalC);
+
+	//from pico 8 wiki:
+	//dst_color = (dst_color & ~write_mask) | (src_color & write_mask & read_mask)
+	uint8_t writeMask = _memory->hwState.colorBitmask & 15;
+	uint8_t readMask = _memory->hwState.colorBitmask >> 4;
+    uint8_t source = pget(x, y);
+    finalC = (finalC & writeMask) | (source & ~writeMask & readMask);
+
+	setPixelNibble(x, y, finalC, _memory->screenBuffer);
 }
 //end helper methods
 
@@ -648,8 +664,8 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 m
 
 	for (;;) {
         // Find sprite in map memory
-        int sx = (ds.tlineMapXOffset + int(mx)) & 0x7f;
-        int sy = (ds.tlineMapYOffset + int(my)) & 0x3f;
+        int sx = (ds.tlineMapXOffset + int(mx));
+        int sy = (ds.tlineMapYOffset + int(my));
 		uint8_t sprite = mget(sx, sy);
         //uint8_t bits = fget(sprite);
 

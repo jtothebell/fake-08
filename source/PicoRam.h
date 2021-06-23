@@ -227,6 +227,8 @@ struct PicoRam
         memset(data, 0, 0x4300);
         //leave general use memory
         memset(data + 0x5600, 0, 0x8000 - 0x5600);
+        //colorBitmask starts at 255
+        hwState.colorBitmask = 0xff;
     }
     
     union

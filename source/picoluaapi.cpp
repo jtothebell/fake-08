@@ -988,9 +988,9 @@ int peek(lua_State *L) {
 
 int poke(lua_State *L) {
     int dest = lua_tonumber(L,1);
-    int val = lua_tonumber(L,2);
+    uint8_t val = lua_tonumber(L,2);
 
-    _vmForLuaApi->vm_poke(dest, (uint8_t)val);
+    _vmForLuaApi->vm_poke(dest, val);
 
     return 0;
 }

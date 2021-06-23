@@ -23,21 +23,24 @@ TEST_CASE("Vm memory functions") {
     SUBCASE("memory data stats with 0"){
         CHECK(memory->data[0] == 0);
     }
-    SUBCASE("resetting memory zeroes out everything except general use"){
+    SUBCASE("resetting memory zeroes out everything except general use and color bitmask"){
         for(int i = 0; i < 0x8000; ++i) {
             memory->data[i] = i & 255;
         }
 
         memory->Reset();
 
-        bool allZeroes = true;
+        bool correctValues = true;
         for(int i = 0; i < 0x8000; ++i) {
-            if (i < 0x4300 || i > 0x55ff) {
-                allZeroes &= memory->data[i] == 0;
+            if (i == 0x5f5e) {
+                correctValues &= memory->data[i] == 255;
+            }
+            else if (i < 0x4300 || i > 0x55ff) {
+                correctValues &= memory->data[i] == 0;
             }
         }
 
-        CHECK(allZeroes);
+        CHECK(correctValues);
     }
     SUBCASE("size of PicoRam struct corrct"){
         CHECK(sizeof(PicoRam) == 0x8000);

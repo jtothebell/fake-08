@@ -5,7 +5,7 @@
 TEST_CASE("audio class behaves as expected") {
     //general setup
     PicoRam picoRam;
-    picoRam = {0};
+    picoRam.Reset();
     Audio* audio = new Audio(&picoRam);
     audioState* audioState = audio->getAudioState();
 
