@@ -410,7 +410,7 @@ void Graphics::_setPixelFromSprite(int x, int y, uint8_t col) {
 	uint8_t writeMask = _memory->hwState.colorBitmask & 15;
 	uint8_t readMask = _memory->hwState.colorBitmask >> 4;
     uint8_t source = pget(x, y);
-    col = (col & writeMask) | (source & ~writeMask & readMask);
+    col = (source & ~writeMask) | (col & writeMask & readMask);
 
 	setPixelNibble(x, y, col, _memory->screenBuffer);
 }
@@ -449,7 +449,7 @@ void Graphics::_setPixelFromPen(int x, int y) {
 	uint8_t writeMask = _memory->hwState.colorBitmask & 15;
 	uint8_t readMask = _memory->hwState.colorBitmask >> 4;
     uint8_t source = pget(x, y);
-    finalC = (finalC & writeMask) | (source & ~writeMask & readMask);
+    finalC = (source & ~writeMask) | (finalC & writeMask & readMask);
 
 	setPixelNibble(x, y, finalC, _memory->screenBuffer);
 }
