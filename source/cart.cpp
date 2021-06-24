@@ -5,6 +5,7 @@
 #include <stack>
 #include <array>
 #include <algorithm>
+#include <regex>
 
 #include "lodepng.h"
 
@@ -143,14 +144,6 @@ static std::string pxa_decompress(uint8_t const *input)
     }
 
     return ret;
-}
-
-bool hasEnding (std::string const &fullString, std::string const &ending) {
-    if (fullString.length() >= ending.length()) {
-        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
-    } else {
-        return false;
-    }
 }
 
 #define HEADERLEN 8
@@ -302,22 +295,39 @@ bool Cart::loadCartFromPng(std::string filename){
 
 }
 
+static std::regex _includeRegex = std::regex("\\s*#include\\s+([\\\\/\\w-\\.]+)");
+
 //tac08 based cart parsing and stripping of emoji
-Cart::Cart(std::string filename){
-    Filename = filename;
+Cart::Cart(std::string filename, std::string cartDirectory){
+    //the leading # indicates it is the BBS key. In the future, it would be nice to fetch them,
+    //but for now expect the user to supply the carts
+    if (filename.length() > 0 && filename[0] == '#') {
+        filename = filename.substr(1);
+    }
+
+    if (getFileExtension(filename) == "") {
+        filename = filename + ".p8";
+    }
+
+    if (cartDirectory.length() > 0 && ! isAbsolutePath(filename)) {
+        FullCartPath = cartDirectory + "/" + filename;
+    }
+    else {
+        FullCartPath = filename;
+    }
     //zero out cart rom so no garbage is left over
     initCartRom();
 
     Logger_Write("getting file contents\n");
     
-    if (hasEnding(filename, ".p8")){
+    if (hasEnding(FullCartPath, ".p8")){
         std::string cartStr; 
 
-        if (filename == "__FAKE08-BIOS.p8") {
+        if (FullCartPath == "__FAKE08-BIOS.p8") {
             cartStr = fake08BiosP8;
         }
         else {
-            cartStr = get_file_contents(filename.c_str());
+            cartStr = get_file_contents(FullCartPath.c_str());
         }
         Logger_Write("Got file contents... parsing cart\n");
 
@@ -326,16 +336,35 @@ Cart::Cart(std::string filename){
         std::istringstream s(cartStr);
         std::string line;
         std::string currSec = "";
+        std::smatch sm;
         
         while (std::getline(s, line)) {
             line = utils::trimright(line, " \n\r");
-            line = convert_emojis(line);
+            line = charset::utf8_to_pico8(line);
+            //line = convert_emojis(line);
 
             if (line.length() > 2 && line[0] == '_' && line[1] == '_') {
                 currSec = line;
             }
             else if (currSec == "__lua__"){
-                LuaString += line + "\n";
+                if (std::regex_match(line, sm, _includeRegex)) {
+                    auto dir = getDirectory(FullCartPath);
+                    auto fullPath = dir + "/" + sm[1].str();
+
+                    auto includeContents = get_file_contents(fullPath);
+                    if (includeContents.length() > 0){
+                        includeContents = charset::utf8_to_pico8(includeContents);
+                        LuaString += includeContents + "\n";
+                    }
+                    else{
+                        //todo: report error
+                        //error: can't find included file
+                        return;
+                    }
+                }
+                else {
+                    LuaString += line + "\n";
+                }
             }
             else if (currSec == "__gfx__"){
                 SpriteSheetString += line + "\n";
@@ -366,8 +395,8 @@ Cart::Cart(std::string filename){
         setSfx(SfxString);
         setMusic(MusicString);
     }
-    else if (hasEnding(filename, ".png")) {
-        bool success = loadCartFromPng(filename);
+    else if (hasEnding(FullCartPath, ".png")) {
+        bool success = loadCartFromPng(FullCartPath);
 
         if (!success){
             return;

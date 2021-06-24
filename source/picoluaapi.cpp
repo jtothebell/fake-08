@@ -534,7 +534,7 @@ int mset(lua_State *L) {
     return 0;
 }
 
-int map(lua_State *L) {
+int gfx_map(lua_State *L) {
     int celx = 0, cely = 0, sx = 0, sy = 0, celw = 128, celh = 32, argc;
     argc = lua_gettop(L);
     if (argc > 0) {
@@ -785,7 +785,7 @@ int stat(lua_State *L) {
         //argument
         case 6:
             // no args or loading other cards currently supported
-            lua_pushstring(L, "");
+            lua_pushstring(L, _vmForLuaApi->getCartParam().c_str());
             return 1;
         break;
         //frame rate
@@ -796,6 +796,55 @@ int stat(lua_State *L) {
         //target framerate
         case 8:
             lua_pushnumber(L, _vmForLuaApi->getTargetFps());
+            return 1;
+        break;
+        //16-19 audio sfx currently playing
+        case 16:
+            lua_pushnumber(L, _audioForLuaApi->getCurrentSfxId(0));
+            return 1;
+        break;
+        case 17:
+            lua_pushnumber(L, _audioForLuaApi->getCurrentSfxId(1));
+            return 1;
+        break;
+        case 18:
+            lua_pushnumber(L, _audioForLuaApi->getCurrentSfxId(2));
+            return 1;
+        break;
+        case 19:
+            lua_pushnumber(L, _audioForLuaApi->getCurrentSfxId(3));
+            return 1;
+        break;
+        //20-23 note idx of sfx currently playing
+        case 20:
+            lua_pushnumber(L, _audioForLuaApi->getCurrentNoteNumber(0));
+            return 1;
+        break;
+        case 21:
+            lua_pushnumber(L, _audioForLuaApi->getCurrentNoteNumber(1));
+            return 1;
+        break;
+        case 22:
+            lua_pushnumber(L, _audioForLuaApi->getCurrentNoteNumber(2));
+            return 1;
+        break;
+        case 23:
+            lua_pushnumber(L, _audioForLuaApi->getCurrentNoteNumber(3));
+            return 1;
+        break;
+        //current music pattern
+        case 24:
+            lua_pushnumber(L, _audioForLuaApi->getCurrentMusic());
+            return 1;
+        break;
+        //current music count
+        case 25:
+            lua_pushnumber(L, _audioForLuaApi->getMusicPatternCount());
+            return 1;
+        break;
+        //current music tick count
+        case 26:
+            lua_pushnumber(L, _audioForLuaApi->getMusicTickCount());
             return 1;
         break;
         //was a key pressed (always false)
@@ -853,6 +902,9 @@ int stat(lua_State *L) {
             lua_pushnumber(L, _vmForLuaApi->getSecond());
             return 1;
         break;
+        case 100:
+            lua_pushstring(L, _vmForLuaApi->getCartBreadcrumb().c_str());
+            return 1;
         //unknown? used by serial carts
         case 108:
             lua_pushnumber(L, 32);
@@ -936,9 +988,9 @@ int peek(lua_State *L) {
 
 int poke(lua_State *L) {
     int dest = lua_tonumber(L,1);
-    int val = lua_tonumber(L,2);
+    uint8_t val = lua_tonumber(L,2);
 
-    _vmForLuaApi->vm_poke(dest, (uint8_t)val);
+    _vmForLuaApi->vm_poke(dest, val);
 
     return 0;
 }
@@ -1105,6 +1157,25 @@ int extcmd(lua_State *L){
     return 0;
 }
 
+int load(lua_State *L) {
+    const char* filename = "";
+    const char* breadcrumb = "";
+    const char* param = "";
+    if (lua_isstring(L, 1)){
+        filename = lua_tolstring(L, 1, nullptr);
+        if (lua_gettop(L) > 1 && lua_isstring(L, 2)){
+            breadcrumb = lua_tolstring(L, 2, nullptr);
+        }
+        if (lua_gettop(L) > 2 && lua_isstring(L, 2)){
+            param = lua_tolstring(L, 3, nullptr);
+        }
+
+        _vmForLuaApi->vm_load(filename, breadcrumb, param);
+    }
+
+    return 0;
+}
+
 int listcarts(lua_State *L) {
     //get cart list from VM (who should get it from host)
     vector<string> carts = _vmForLuaApi->GetCartList();
@@ -1123,15 +1194,7 @@ int listcarts(lua_State *L) {
     return 1;
 }
 
-int loadcart(lua_State *L) {
-    if (lua_isstring(L, 1)){
-        const char * str = "";
-        str = lua_tolstring(L, 1, nullptr);
-        _vmForLuaApi->QueueCartChange(str);
-    }
 
-    return 0;
-}
 
 int getbioserror(lua_State *L) {
     string error = _vmForLuaApi->GetBiosError();

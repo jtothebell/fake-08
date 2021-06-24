@@ -14,6 +14,7 @@ using namespace std;
 #include "../../SDL2Common/source/sdl2basehost.h"
 #include "../../../source/hostVmShared.h"
 #include "../../../source/nibblehelpers.h"
+#include "../../../source/filehelpers.h"
 #include "../../../source/logger.h"
 
 // sdl
@@ -52,6 +53,10 @@ Host::Host()
         res = mkdir(cartdatadir.c_str(), 0777);
     }
 
+    std::string home = getenv("HOME");
+    
+    std::string fullCartDir = home + "/p8carts";
+
     setPlatformParams(
         WINDOW_SIZE_X,
         WINDOW_SIZE_Y,
@@ -59,7 +64,8 @@ Host::Host()
         RENDERER_FLAGS,
         PIXEL_FORMAT,
         _desktopSdl2SettingsPrefix,
-        _desktopSdl2customBiosLua
+        _desktopSdl2customBiosLua,
+        fullCartDir
     );
 }
 
@@ -145,19 +151,17 @@ InputState_t Host::scanInput(){
     };
 }
 
-
 vector<string> Host::listcarts(){
     vector<string> carts;
 
     DIR *dir;
     struct dirent *ent;
-    std::string home = getenv("HOME");
-    std::string cartDir = "/p8carts";
-    std::string fullCartDir = home + cartDir;
-    if ((dir = opendir (fullCartDir.c_str())) != NULL) {
+    if ((dir = opendir (_cartDirectory.c_str())) != NULL) {
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
-            carts.push_back(fullCartDir + "/" + ent->d_name);
+            if (hasEnding(ent->d_name, ".p8") || hasEnding(ent->d_name, ".png")){
+                carts.push_back(ent->d_name);
+            }
         }
         closedir (dir);
     } else {

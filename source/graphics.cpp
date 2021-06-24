@@ -405,6 +405,13 @@ void Graphics::_setPixelFromSprite(int x, int y, uint8_t col) {
 
 	col = getDrawPalMappedColor(col);
 
+	//from pico 8 wiki:
+	//dst_color = (dst_color & ~write_mask) | (src_color & write_mask & read_mask)
+	uint8_t writeMask = _memory->hwState.colorBitmask & 15;
+	uint8_t readMask = _memory->hwState.colorBitmask >> 4;
+    uint8_t source = pget(x, y);
+    col = (source & ~writeMask) | (col & writeMask & readMask);
+
 	setPixelNibble(x, y, col, _memory->screenBuffer);
 }
 
@@ -435,7 +442,16 @@ void Graphics::_setPixelFromPen(int x, int y) {
 		finalC = col1;
 	}
 
-	setPixelNibble(x, y, getDrawPalMappedColor(finalC), _memory->screenBuffer);
+	finalC = getDrawPalMappedColor(finalC);
+
+	//from pico 8 wiki:
+	//dst_color = (dst_color & ~write_mask) | (src_color & write_mask & read_mask)
+	uint8_t writeMask = _memory->hwState.colorBitmask & 15;
+	uint8_t readMask = _memory->hwState.colorBitmask >> 4;
+    uint8_t source = pget(x, y);
+    finalC = (source & ~writeMask) | (finalC & writeMask & readMask);
+
+	setPixelNibble(x, y, finalC, _memory->screenBuffer);
 }
 //end helper methods
 
@@ -614,7 +630,7 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my){
 	);
 }
 
-//proted from zepto 8 impl
+//ported from zepto 8 impl
 void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 mdx, fix32 mdy){
 	applyCameraToPoint(&x0, &y0);
 	applyCameraToPoint(&x1, &y1);
@@ -626,10 +642,10 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 m
 
 	bool vertical = x0 == x1;
 
-	int x = clampCoordToScreenDims(x0);
-	int xend = clampCoordToScreenDims(x1);
-	int y = clampCoordToScreenDims(y0);
-	int yend = clampCoordToScreenDims(y1);
+	int x = clampXCoordToClip(x0);
+	int xend = clampXCoordToClip(x1);
+	int y = clampYCoordToClip(y0);
+	int yend = clampYCoordToClip(y1);
 
 	auto &ds = _memory->drawState;
 
@@ -648,8 +664,8 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 m
 
 	for (;;) {
         // Find sprite in map memory
-        int sx = (ds.tlineMapXOffset + int(mx)) & 0x7f;
-        int sy = (ds.tlineMapYOffset + int(my)) & 0x3f;
+        int sx = (ds.tlineMapXOffset + int(mx));
+        int sy = (ds.tlineMapYOffset + int(my));
 		uint8_t sprite = mget(sx, sy);
         //uint8_t bits = fget(sprite);
 
@@ -666,7 +682,7 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 m
 				spr_y + (int(my << 3) & 0x7),
 				_memory->spriteSheetData);
 
-            if (!isColorTransparent(col)) {
+            if (!isColorTransparent(col) && isWithinClip(x, y)) {
                 _setPixelFromSprite(x, y, col);
             }
         }

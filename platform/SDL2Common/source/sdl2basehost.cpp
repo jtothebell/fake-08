@@ -129,6 +129,14 @@ void _changeStretch(StretchOption newStretch){
         _screenWidth = _maxNoStretchWidth;
         _screenHeight = _maxNoStretchHeight; 
     }
+    else if (newStretch == FourByThreeVertPerfect) {
+        _screenWidth = _maxNoStretchHeight * 4 / 3;
+        _screenHeight = _maxNoStretchHeight; 
+    }
+    else if (newStretch == FourByThreeStretch) {
+        _screenWidth = _windowHeight * 4 / 3;
+        _screenHeight = _windowHeight; 
+    }
     
 
     DestR.x = _windowWidth / 2 - _screenWidth / 2;
@@ -152,7 +160,8 @@ void Host::setPlatformParams(
     uint32_t sdlRendererFlags,
     uint32_t sdlPixelFormat,
     std::string logFilePrefix,
-    std::string customBiosLua) 
+    std::string customBiosLua,
+    std::string cartDirectory) 
 {
     _windowWidth = windowWidth;
     _windowHeight = windowHeight;
@@ -172,6 +181,7 @@ void Host::setPlatformParams(
 
     _logFilePrefix = logFilePrefix;
     _customBiosLua = customBiosLua;
+    _cartDirectory = cartDirectory;
 
 }
 
@@ -264,6 +274,12 @@ void Host::changeStretch(){
             newStretch = StretchToFill;
         }
         else if (stretch == StretchToFill) {
+            newStretch = FourByThreeVertPerfect;
+        }
+        else if (stretch == FourByThreeVertPerfect) {
+            newStretch = FourByThreeStretch;
+        }
+        else if (stretch == FourByThreeStretch) {
             newStretch = PixelPerfectStretch;
         }
 
@@ -419,4 +435,8 @@ const char* Host::logFilePrefix() {
 
 std::string Host::customBiosLua() {
     return _customBiosLua;
+}
+
+std::string Host::getCartDirectory() {
+    return _cartDirectory;
 }

@@ -2,10 +2,10 @@
 #include "../source/cart.h"
 
 TEST_CASE("Loads bios cart") {
-    Cart* cart = new Cart("__FAKE08-BIOS.p8");
+    Cart* cart = new Cart("__FAKE08-BIOS.p8", "");
 
-    SUBCASE("filename is correct") {
-        CHECK(cart->Filename == "__FAKE08-BIOS.p8");
+    SUBCASE("FullCartPath is correct") {
+        CHECK(cart->FullCartPath == "__FAKE08-BIOS.p8");
     }
     SUBCASE("error is empty") {
         CHECK(cart->LoadError == "");
@@ -33,10 +33,10 @@ TEST_CASE("Loads bios cart") {
 }
 
 TEST_CASE("Load simple p8 cart") {
-    Cart* cart = new Cart("carts/cartparsetest.p8");
+    Cart* cart = new Cart("carts/cartparsetest.p8", "");
 
-    SUBCASE("filename is correct") {
-        CHECK(cart->Filename == "carts/cartparsetest.p8");
+    SUBCASE("FullCartPath is correct") {
+        CHECK(cart->FullCartPath == "carts/cartparsetest.p8");
     }
     SUBCASE("error is empty") {
         CHECK(cart->LoadError == "");
@@ -137,10 +137,10 @@ TEST_CASE("Load simple p8 cart") {
 }
 
 TEST_CASE("Load simple png cart") {
-    Cart* cart = new Cart("carts/cartparsetest.p8.png");
+    Cart* cart = new Cart("cartparsetest.p8.png", "carts");
 
-    SUBCASE("filename is correct") {
-        CHECK(cart->Filename == "carts/cartparsetest.p8.png");
+    SUBCASE("FullCartPath is correct") {
+        CHECK(cart->FullCartPath == "carts/cartparsetest.p8.png");
     }
     SUBCASE("error is empty") {
         CHECK(cart->LoadError == "");
@@ -196,10 +196,10 @@ TEST_CASE("Load legacy png cart") {
     //MIT license
     //Might be good to have a more complex test cart for this scenario, but for now
     //just making sure its decompressed is better than nothing
-    Cart* cart = new Cart("carts/test_legacypng_cart.p8.png");
+    Cart* cart = new Cart("test_legacypng_cart.p8.png", "carts");
 
-    SUBCASE("filename is correct") {
-        CHECK(cart->Filename == "carts/test_legacypng_cart.p8.png");
+    SUBCASE("FullCartPath is correct") {
+        CHECK(cart->FullCartPath == "carts/test_legacypng_cart.p8.png");
     }
     SUBCASE("error is empty") {
         CHECK(cart->LoadError == "");
@@ -212,6 +212,16 @@ TEST_CASE("Load legacy png cart") {
         CHECK(cart->CartRom.SpriteSheetData[1] == 0);
         CHECK(cart->CartRom.SpriteSheetData[2] == 0);
         CHECK(cart->CartRom.SpriteSheetData[3] == 0);
+    }
+
+    delete cart;
+}
+
+TEST_CASE("cart loading options") {
+    Cart* cart = new Cart("#cartparsetest", "carts");
+
+    SUBCASE("FullCartPath is correct") {
+        CHECK(cart->FullCartPath == "carts/cartparsetest.p8");
     }
 
     delete cart;

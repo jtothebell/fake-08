@@ -23,21 +23,24 @@ TEST_CASE("Vm memory functions") {
     SUBCASE("memory data stats with 0"){
         CHECK(memory->data[0] == 0);
     }
-    SUBCASE("resetting memory zeroes out everything except general use"){
+    SUBCASE("resetting memory zeroes out everything except general use and color bitmask"){
         for(int i = 0; i < 0x8000; ++i) {
             memory->data[i] = i & 255;
         }
 
         memory->Reset();
 
-        bool allZeroes = true;
+        bool correctValues = true;
         for(int i = 0; i < 0x8000; ++i) {
-            if (i < 0x4300 || i > 0x55ff) {
-                allZeroes &= memory->data[i] == 0;
+            if (i == 0x5f5e) {
+                correctValues &= memory->data[i] == 255;
+            }
+            else if (i < 0x4300 || i > 0x55ff) {
+                correctValues &= memory->data[i] == 0;
             }
         }
 
-        CHECK(allZeroes);
+        CHECK(correctValues);
     }
     SUBCASE("size of PicoRam struct corrct"){
         CHECK(sizeof(PicoRam) == 0x8000);
@@ -321,7 +324,7 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(graphics->pget(127, 127), 13);
     }
     SUBCASE("Loading cart copies cart rom to memory") {
-        vm->LoadCart("carts/cartparsetest.p8.png");
+        vm->LoadCart("cartparsetest.p8.png");
 
         SUBCASE("Gfx data is populated") {
             CHECK(memory->spriteSheetData[0] == 255);
@@ -363,7 +366,7 @@ TEST_CASE("Vm memory functions") {
         }
     }
     SUBCASE("reload writes cart rom over changes") {
-        vm->LoadCart("carts/cartparsetest.p8.png");
+        vm->LoadCart("cartparsetest.p8.png");
 
         graphics->sset(0, 0, 4);
         graphics->fset(0, 3);
@@ -382,7 +385,7 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(graphics->fget(3), 13);
     }
     SUBCASE("memcpy copies memory") {
-        vm->LoadCart("carts/cartparsetest.p8.png");
+        vm->LoadCart("cartparsetest.p8.png");
         vm->vm_memcpy(0x3000, 0, 4);
 
         CHECK_EQ(memory->spriteSheetData[1], 1);
@@ -399,7 +402,7 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(vm->vm_dget(34), (fix32)1923);
     }
     SUBCASE("pico driller style input"){
-        vm->LoadCart("carts/drillerinputtest.p8");
+        vm->LoadCart("drillerinputtest.p8");
 
         SUBCASE("no buttons gives 0"){
             vm->UpdateAndDraw();

@@ -13,7 +13,9 @@ enum StretchOption {
   StretchToFill,
   StretchAndOverflow,
   AltScreenPixelPerfect,
-  AltScreenStretch
+  AltScreenStretch,
+  FourByThreeVertPerfect,
+  FourByThreeStretch
 };
 
 class Host {
@@ -32,6 +34,7 @@ class Host {
 
     std::string _logFilePrefix;
     std::string _customBiosLua;
+    std::string _cartDirectory;
 
     void loadSettingsIni();
     void saveSettingsIni();
@@ -75,6 +78,8 @@ class Host {
 
     void saveCartData(std::string cartDataKey, std::string contents);
 
+    std::string getCartDirectory();
+
     void setPlatformParams(
         int windowWidth,
         int windowHeight,
@@ -82,5 +87,6 @@ class Host {
         uint32_t sdlRendererFlags,
         uint32_t sdlPixelFormat,
         std::string logFilePrefix,
-        std::string customBiosLua);
+        std::string customBiosLua,
+        std::string cartDirectory);
 };

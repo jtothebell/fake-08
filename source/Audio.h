@@ -91,6 +91,12 @@ class Audio {
     void api_sfx(int sfx, int channel, int offset);
     void api_music(int pattern, int16_t fade_len, int16_t mask);
 
+    int16_t getCurrentSfxId(int channel);
+    int getCurrentNoteNumber(int channel);
+    int16_t getCurrentMusic();
+    int16_t getMusicPatternCount();
+    int16_t getMusicTickCount();
+
     void FillAudioBuffer(void *audioBuffer,size_t offset, size_t size);
 };
 

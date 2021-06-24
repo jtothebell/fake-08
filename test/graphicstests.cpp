@@ -45,7 +45,7 @@ TEST_CASE("graphics class behaves as expected") {
     //general setup
     std::string fontdata = get_font_data();
     PicoRam picoRam;
-    picoRam = {0};
+    picoRam.Reset();
     Graphics* graphics = new Graphics(fontdata, &picoRam);
     graphics->cls();
 

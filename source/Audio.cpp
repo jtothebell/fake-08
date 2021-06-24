@@ -213,6 +213,28 @@ static float key_to_freq(float key)
     return 440.f * exp2((key - 33.f) / 12.f);
 }
 
+int16_t Audio::getCurrentSfxId(int channel){
+    return _audioState._sfxChannels[channel].sfxId;
+}
+
+int Audio::getCurrentNoteNumber(int channel){
+    return _audioState._sfxChannels[channel].sfxId < 0 
+        ? -1
+        : _audioState._sfxChannels[channel].offset;
+}
+
+int16_t Audio::getCurrentMusic(){
+    return _audioState._musicChannel.pattern;
+}
+
+int16_t Audio::getMusicPatternCount(){
+    return _audioState._musicChannel.count;
+}
+
+int16_t Audio::getMusicTickCount(){
+    return _audioState._musicChannel.offset * _audioState._musicChannel.speed;
+}
+
 //adapted from zepto8 sfx.cpp (wtfpl license)
 int16_t Audio::getSampleForChannel(int channel){
     using std::fabs;

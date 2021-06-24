@@ -162,14 +162,15 @@ bool Vm::loadCart(Cart* cart) {
     //system
     //must be registered before loading globals for pause menu to work
     lua_register(_luaState, "__listcarts", listcarts);
-    lua_register(_luaState, "__loadcart", loadcart);
     lua_register(_luaState, "__getbioserror", getbioserror);
     lua_register(_luaState, "__loadbioscart", loadbioscart);
     lua_register(_luaState, "__togglepausemenu", togglepausemenu);
     lua_register(_luaState, "__resetcart", resetcart);
+    lua_register(_luaState, "load", load);
 
     //load in global lua fuctions for pico 8
-    auto convertedGlobalLuaFunctions = convert_emojis(p8GlobalLuaFunctions);
+    //auto convertedGlobalLuaFunctions = convert_emojis(p8GlobalLuaFunctions);
+    auto convertedGlobalLuaFunctions = charset::utf8_to_pico8(p8GlobalLuaFunctions);
     int loadedGlobals = luaL_dostring(_luaState, convertedGlobalLuaFunctions.c_str());
 
     if (loadedGlobals != LUA_OK) {
@@ -210,8 +211,8 @@ bool Vm::loadCart(Cart* cart) {
 
     lua_register(_luaState, "mget", mget);
     lua_register(_luaState, "mset", mset);
-    lua_register(_luaState, "map", map);
-    lua_register(_luaState, "mapdraw", map);
+    lua_register(_luaState, "map", gfx_map);
+    lua_register(_luaState, "mapdraw", gfx_map);
 
     //stubbed in graphics:
     lua_register(_luaState, "fillp", fillp);
@@ -310,7 +311,7 @@ bool Vm::loadCart(Cart* cart) {
 
 
     //customize bios per host's requirements
-    if (cart->Filename == BiosCartName) {
+    if (cart->FullCartPath == BiosCartName) {
         std::string customBiosLua = _host->customBiosLua();
 
         if (customBiosLua.length() > 0) {
@@ -332,7 +333,7 @@ bool Vm::loadCart(Cart* cart) {
 void Vm::LoadBiosCart(){
     CloseCart();
 
-    Cart *cart = new Cart(BiosCartName);
+    Cart *cart = new Cart(BiosCartName, "");
 
     bool success = loadCart(cart);
 
@@ -342,11 +343,16 @@ void Vm::LoadBiosCart(){
 }
 
 void Vm::LoadCart(std::string filename){
+    if (filename == "__FAKE08-BIOS.p8") {
+        LoadBiosCart();
+        return;
+    }
     Logger_Write("Loading cart %s\n", filename.c_str());
     CloseCart();
 
     Logger_Write("Calling Cart Constructor\n");
-    Cart *cart = new Cart(filename);
+    auto cartDir = _host->getCartDirectory();
+    Cart *cart = new Cart(filename, cartDir);
 
     _cartLoadError = cart->LoadError;
 
@@ -434,6 +440,7 @@ void Vm::UpdateAndDraw() {
     }
 
     if (_cartChangeQueued) {
+        _prevCartKey = CurrentCartFilename();
         LoadCart(_nextCartKey);
     }
 
@@ -529,7 +536,7 @@ int Vm::GetTargetFps() {
 
 std::string Vm::CurrentCartFilename(){
     if (_loadedCart){
-        return _loadedCart->Filename;
+        return _loadedCart->FullCartPath;
     }
 
     return "";
@@ -751,7 +758,7 @@ void Vm::vm_reload(int destaddr, int sourceaddr, int len, string filename){
     bool multicart = false;
 
     if (filename.length() > 0) {
-        cart = new Cart(filename);
+        cart = new Cart(filename, _host->getCartDirectory());
         if (cart->LoadError.length() > 0) {
             //error, can't load cart
             //todo: see what kind of error pico 8 throws, emulate
@@ -893,6 +900,13 @@ void Vm::vm_extcmd(std::string cmd){
     }
 }
 
+void Vm::vm_load(std::string filename, std::string breadcrumb, std::string param){
+    _cartBreadcrumb = breadcrumb;
+    _cartParam = param;
+
+    QueueCartChange(filename);
+}
+
 int Vm::getFps(){
     //TODO: return actual fps (as fix32?)
     return _targetFps;
@@ -942,4 +956,12 @@ int Vm::getSecond(){
     std::tm* now = std::localtime(&t);
 
     return now->tm_sec;
+}
+
+std::string Vm::getCartBreadcrumb() {
+    return _cartBreadcrumb;
+}
+
+std::string Vm::getCartParam() {
+    return _cartParam;
 }

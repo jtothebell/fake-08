@@ -150,6 +150,14 @@ void _changeStretch(StretchOption newStretch){
         screenWidth = SCREEN_SIZE_X;
         screenHeight = SCREEN_SIZE_Y; 
     }
+    else if (newStretch == FourByThreeVertPerfect) {
+        screenWidth = SCREEN_SIZE_Y * 4 / 3;
+        screenHeight = SCREEN_SIZE_Y; 
+    }
+    else if (newStretch == FourByThreeStretch) {
+        screenWidth = WIN_HEIGHT * 4 / 3;
+        screenHeight = WIN_HEIGHT; 
+    }
 
     DestR.x = WIN_WIDTH / 2 - screenWidth / 2;
     DestR.y = WIN_HEIGHT / 2 - screenHeight / 2;
@@ -183,6 +191,7 @@ Host::Host() {
     }
 
     _logFilePrefix = "fs:/vol/external01/wiiu/apps/fake08/";
+    _cartDirectory = "fs:/vol/external01/p8carts";
  }
 
   void Host::setPlatformParams(
@@ -192,7 +201,8 @@ Host::Host() {
         uint32_t sdlRendererFlags,
         uint32_t sdlPixelFormat,
         std::string logFilePrefix,
-        std::string customBiosLua) {}
+        std::string customBiosLua,
+        std::string cartDirectory) {}
 
 
 void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
@@ -287,6 +297,12 @@ void Host::changeStretch(){
             stretch = StretchToFill;
         }
         else if (stretch == StretchToFill) {
+            stretch = FourByThreeVertPerfect;
+        }
+        else if (stretch == FourByThreeVertPerfect) {
+            stretch = FourByThreeStretch;
+        }
+        else if (stretch == FourByThreeStretch) {
             stretch = PixelPerfectStretch;
         }
 
@@ -320,7 +336,8 @@ InputState_t Host::scanInput(){
                     case JOY_B:     currKDown |= P8_KEY_O; break;
 
                     case JOY_L: lDown = true; break;
-                    case JOY_R: rDown = true; stretchKeyPressed = true; break;
+                    case JOY_R: rDown = true; break;
+                    case JOY_MINUS: stretchKeyPressed = true; break;
                 }
                 break;
 
@@ -533,7 +550,7 @@ vector<string> Host::listcarts(){
     if (dir != NULL) {
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
-            carts.push_back(fullCartDir + "/" + ent->d_name);
+            carts.push_back(_cartDirectory + "/" + ent->d_name);
         }
         closedir (dir);
     } else {
@@ -552,5 +569,9 @@ const char* Host::logFilePrefix() {
 std::string Host::customBiosLua() {
     return "cartpath = \"sd:/p8carts/\"\n"
         "pausebtn = \"+\"";
+}
+
+std::string Host::getCartDirectory() {
+    return _cartDirectory;
 }
 

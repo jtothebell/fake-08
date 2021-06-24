@@ -72,7 +72,7 @@ CFLAGS	:=	-g -Wall -Ofast -mword-relocations \
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS -DVER_STR=\"$(APP_VERSION)\"
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++11
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
