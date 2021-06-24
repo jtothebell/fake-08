@@ -150,6 +150,14 @@ void _changeStretch(StretchOption newStretch){
         screenWidth = SCREEN_SIZE_X;
         screenHeight = SCREEN_SIZE_Y; 
     }
+    else if (newStretch == FourByThreeVertPerfect) {
+        screenWidth = SCREEN_SIZE_Y * 4 / 3;
+        screenHeight = SCREEN_SIZE_Y; 
+    }
+    else if (newStretch == FourByThreeStretch) {
+        screenWidth = WIN_HEIGHT * 4 / 3;
+        screenHeight = WIN_HEIGHT; 
+    }
 
     DestR.x = WIN_WIDTH / 2 - screenWidth / 2;
     DestR.y = WIN_HEIGHT / 2 - screenHeight / 2;
@@ -289,6 +297,12 @@ void Host::changeStretch(){
             stretch = StretchToFill;
         }
         else if (stretch == StretchToFill) {
+            stretch = FourByThreeVertPerfect;
+        }
+        else if (stretch == FourByThreeVertPerfect) {
+            stretch = FourByThreeStretch;
+        }
+        else if (stretch == FourByThreeStretch) {
             stretch = PixelPerfectStretch;
         }
 
