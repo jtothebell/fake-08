@@ -258,6 +258,9 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     frame_time = 0;
     targetFrameTimeMs = 0;
 
+    currKDown = 0;
+    currKHeld = 0;
+
     _paletteColors = paletteColors;
 
     loadSettingsIni();

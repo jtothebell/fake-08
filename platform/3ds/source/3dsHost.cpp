@@ -330,6 +330,9 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     frame_time = 0;
     targetFrameTimeMs = 0;
 
+    currKDown32 = 0;
+    currKHeld32 = 0;
+
     _paletteColors = paletteColors;
     for(int i = 0; i < 144; i++){
         _rgba8Colors[i] = 0xFF | (_paletteColors[i].Blue << 8) | (_paletteColors[i].Green << 16) | (_paletteColors[i].Red << 24);
