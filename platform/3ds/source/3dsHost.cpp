@@ -121,10 +121,6 @@ uint8_t ConvertInputToP8(u32 input){
 		result |= P8_KEY_PAUSE;
 	}
 
-	if (input & KEY_SELECT){
-		result |= P8_KEY_7;
-	}
-
 	return result;
 }
 
@@ -399,7 +395,7 @@ void Host::setTargetFps(int targetFps){
 }
 
 void Host::changeStretch(){
-    if (currKDown32 & KEY_R) {
+    if (currKDown32 & KEY_SELECT) {
         if (stretch == PixelPerfect) {
             stretch = StretchToFit;
             mouseOffsetX = (__3ds_BottomScreenWidth - __3ds_BottomScreenHeight) / 2;

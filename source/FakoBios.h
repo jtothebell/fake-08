@@ -29,7 +29,7 @@ selectbtn = "a"
 pausebtn = "start"
 versionstr = ")#" VER_STR  R"#("
 exitbtn = "l + r"
-sizebtn = "r to cycle screen sizes"
+sizebtn = "select to cycle screen sizes"
 --end customizable per platform
 
 function _init()

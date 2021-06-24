@@ -131,7 +131,7 @@ InputState_t Host::scanInput(){
         quit = 1;
     }
 
-    stretchKeyPressed = rDown;
+    stretchKeyPressed = currKDown_64 & HidNpadButton_Minus;
 
     HidTouchScreenState state={0};
     if (hidGetTouchScreenStates(&state, 1)) {

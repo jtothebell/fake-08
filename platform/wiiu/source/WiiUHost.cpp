@@ -322,7 +322,8 @@ InputState_t Host::scanInput(){
                     case JOY_B:     currKDown |= P8_KEY_O; break;
 
                     case JOY_L: lDown = true; break;
-                    case JOY_R: rDown = true; stretchKeyPressed = true; break;
+                    case JOY_R: rDown = true; break;
+                    case JOY_MINUS: stretchKeyPressed = true; break;
                 }
                 break;
 

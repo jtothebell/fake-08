@@ -111,7 +111,8 @@ InputState_t Host::scanInput(){
                     case SDLK_VITA_CROSS:     currKDown |= P8_KEY_X; break;
                     case SDLK_VITA_CIRCLE:     currKDown |= P8_KEY_O; break;
                     case SDLK_VITA_LTRIGGER: lDown = true; break;
-                    case SDLK_VITA_RTRIGGER: rDown = true; stretchKeyPressed = true; break;
+                    case SDLK_VITA_RTRIGGER: rDown = true; break;
+                    case SDLK_VITA_SELECT: stretchKeyPressed = true; break;
                 }
                 break;
 
