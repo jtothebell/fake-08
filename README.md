@@ -26,9 +26,9 @@ Building tested on windows using devkitpro's msys2 and Ubuntu (WSL and standalon
  * Zep/Lexaloffle software for making pico 8. Buy a copy if you can. You won't regret it. https://www.lexaloffle.com/pico-8.php
  * Nintendo Homebrew Community
  * Vita Homebrew Community
- * zepto8 (https://github.com/samhocevar/zepto8) - Probably the best Pico 8 emulator. FAKE-08's audio, tline, and newer png decompression implementations were ported from zepto8, and other parts were heavily influenced. I also use a slightly modified z8lua (https://github.com/samhocevar/z8lua) for pico 8 specific features.
+ * zepto8 (https://github.com/samhocevar/zepto8) - Probably the best Pico 8 emulator. FAKE-08's audio, tline, emoji conversion, and newer png decompression implementations were ported from zepto8, and other parts were heavily influenced. I also use a slightly modified z8lua (https://github.com/samhocevar/z8lua) for pico 8 specific features.
  * PicoLove (https://github.com/gamax92/picolove) - basis for my previous project - PicoLovePotion - and where I first learned the basics of Pico 8's API
- * tac08 (https://github.com/0xcafed00d/tac08) - a Pico 8 emulator that I leared a lot from. FAKE-08's sprite rendering and cart parsing is heavily based on tac08, and it uses 0xcafed00d's utf8-util to handle special characters in pico 8 carts
+ * tac08 (https://github.com/0xcafed00d/tac08) - a Pico 8 emulator that I leared a lot from. FAKE-08's sprite rendering and cart parsing were originally based on tac08's implementations
  * LovePotion (https://github.com/TurtleP/LovePotion) - an implementation of Love2d for 3DS and switch that served as the runtime for PicoLovePotion, and a great way to make homebrew games for the 3DS and switch. I also use a modified version of their static Logger implementation
 
 See LICENSE.MD for FAKE-08 license (MIT) as well as licenses of all other software used
@@ -39,9 +39,7 @@ Latest Pico 8 version v0.2.2 features (sprite fill patterns, text control codes,
 
 Games using `flip()` (like tweetcarts) have intermittent problems exiting back to the menu, and may crash the console. Use with caution.
 
-Sound emulation is missing effects, and the noise implementation is wildly inaccurrate. Most of my sound implementation was ported over from Zepto 8 (a much more accurrate emulator) but I didn't want to bring over dependencies that were needed for those parts, and haven't otherwise implemented them yet
-
-Sound currently not supported on Wii U. I also suspect there may be some bugs with peeking and poking multibyte values on the Wii U given its Big Endian architecture, but have not confirmed
+Sound emulation is missing effects, and the noise implementation is wildly inaccurrate. Most of my sound implementation was ported over from Zepto 8 (which has better sound emulation) but I didn't want to bring over dependencies that were needed for those parts, and haven't otherwise implemented them yet
 
 Performance is not great on Old 3ds systems. Some games may experience slowdowns on the faster consoles as well. More optimizations are probably possible, but keep in mind that Pico 8 lists a raspberry pi 1 with a 700 MHz ARM11 professor as minimum spec, and the old 3DS's CPU is 268 MHz ARM11. Many games should be playable regardless. 
 
@@ -53,6 +51,8 @@ See [Issues](https://github.com/jtothebell/fake-08/issues) page for more specifi
 You browse and download carts by using the `SPLORE()` function in Pico 8 (again, if you have $15 to spend, and you are interested in game dev, it is well worth your money). Once you have loaded a cart that you want to try on FAKE-08, type `save {{cartname}}.p8` to save the cart as a text file, then copy that file to your device's SD card.
 
 You can also browse carts on the Pico-8 BBS website, but can only download complete carts in png format. As of pre release v0.0.1.1 Fake-08 should load and play png carts provided they don't use any other unsupported features. You can download p8.png carts from the `Cart` link in the lower left of the game view, and save it into your `p8carts` directory.
+
+If you are trying to play a multi cart game, it should be noted that you must provide all the carts required by the game as FAKE-08 currently does not have cart downloading capabilities. All carts should be placed in the same directory.
 
 ## Other Notes
 
