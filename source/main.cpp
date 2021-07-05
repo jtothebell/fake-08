@@ -10,6 +10,10 @@
 #include "host.h"
 #include "hostVmShared.h"
 
+#if __VITA__
+#include <vitasdk.h>
+#endif
+
 
 
 int main(int argc, char* argv[])
@@ -30,9 +34,26 @@ int main(int argc, char* argv[])
 	
 	vm->SetCartList(host->listcarts());
 
+	bool loadCart = false;
+	char* cart;
+	char boot_params[1024];
+
+	#if __VITA__
+	sceAppMgrGetAppParam(boot_params);
+	if (strstr(boot_params,"psgm:play") && strstr(boot_params, "&param=")) {
+		loadCart = true;
+		cart = strstr(boot_params, "&param=") + 7;
+	}
+	#else
+	if (argc > 1) {
+		cart = argv[1];
+		loadCart = true;
+	}
+	#endif
+
 	Logger_Write("Loading Bios cart\n");
-	if (argc > 1){
-		vm->LoadCart(argv[1]);
+	if (loadCart){
+		vm->LoadCart(cart);
 	}
 	else {
 		vm->LoadBiosCart();
