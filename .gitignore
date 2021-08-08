@@ -36,3 +36,4 @@ platform/vita/*.velf
 platform/vita/*.vpk
 platform/vita/param.sfo
 platform/SDL1_2/FAKE08
+platform/bittboy/FAKE08

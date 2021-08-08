@@ -19,7 +19,7 @@ export INCLUDES  = ../../include ../../libs/z8lua ../../libs/utf8-util ../../lib
 
 all: 3ds switch wiiu sdl2
 
-clean: clean-tests clean-3ds clean-switch clean-wiiu clean-vita clean-sdl2 clean-sdl
+clean: clean-tests clean-3ds clean-switch clean-wiiu clean-vita clean-sdl2 clean-sdl clean-bittboy
 
 clean-3ds:
 	@$(MAKE) -C platform/3ds clean
@@ -38,6 +38,9 @@ clean-sdl2:
 
 clean-sdl:
 	@$(MAKE) -C platform/SDL1_2 clean
+
+clean-bittboy:
+	@$(MAKE) -C platform/bittboy clean
 
 3ds:
 	@$(MAKE) -C platform/3ds
@@ -59,6 +62,9 @@ sdl2:
 
 sdl:
 	@$(MAKE) -C platform/SDL1_2
+
+bittboy:
+	@$(MAKE) -C platform/bittboy
 
 clean-tests:
 	@$(MAKE) -C test clean
