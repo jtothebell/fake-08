@@ -23,7 +23,7 @@ CFLAGS	+=	$(INCLUDE)
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
 
-LIBS	:= -lSDL -lSDL_gfx
+LIBS	:= -lSDL 
 
 LDFLAGS	:= $(LIBS)
 
