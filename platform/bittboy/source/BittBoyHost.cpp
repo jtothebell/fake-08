@@ -125,10 +125,7 @@ void audioSetup(){
 
 
 Host::Host() {
-    std::string home = getenv("HOME");
-    
-    _cartDirectory = home + "/p8carts";
-
+    _cartDirectory = "/mnt/roms/PICO-8";
  }
 
 void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
@@ -139,6 +136,7 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     }
 
     SDL_WM_SetCaption("FAKE-08", NULL);
+    SDL_ShowCursor(SDL_DISABLE);
 
     int flags = SDL_SWSURFACE;
 
@@ -204,14 +202,16 @@ InputState_t Host::scanInput(){
             case SDL_KEYDOWN:
                 switch (event.key.keysym.sym)
                 {
-                    case SDLK_ESCAPE:currKDown |= P8_KEY_PAUSE; break;
+                    case SDLK_RETURN:currKDown |= P8_KEY_PAUSE; break;
                     case SDLK_LEFT:  currKDown |= P8_KEY_LEFT; break;
                     case SDLK_RIGHT: currKDown |= P8_KEY_RIGHT; break;
                     case SDLK_UP:    currKDown |= P8_KEY_UP; break;
                     case SDLK_DOWN:  currKDown |= P8_KEY_DOWN; break;
-                    case SDLK_z:     currKDown |= P8_KEY_X; break;
-                    case SDLK_x:     currKDown |= P8_KEY_O; break;
-                    case SDLK_c:     currKDown |= P8_KEY_X; break;
+                    case SDLK_SPACE: currKDown |= P8_KEY_X; break;
+                    case SDLK_LSHIFT:currKDown |= P8_KEY_O; break;
+                    case SDLK_LALT:  currKDown |= P8_KEY_X; break;
+                    case SDLK_LCTRL: currKDown |= P8_KEY_O; break;
+                    case SDLK_ESCAPE: done = SDL_TRUE; break;
                     default: break;
                 }
                 break;
@@ -219,6 +219,37 @@ InputState_t Host::scanInput(){
                 done = SDL_TRUE;
                 break;
         }
+    }
+
+    const Uint8* keystate = SDL_GetKeyState(NULL);
+
+    //continuous-response keys
+    if(keystate[SDLK_LEFT]){
+        currKHeld |= P8_KEY_LEFT;
+    }
+    if(keystate[SDLK_RIGHT]){
+        currKHeld |= P8_KEY_RIGHT;;
+    }
+    if(keystate[SDLK_UP]){
+        currKHeld |= P8_KEY_UP;
+    }
+    if(keystate[SDLK_DOWN]){
+        currKHeld |= P8_KEY_DOWN;
+    }
+    if(keystate[SDLK_SPACE]){
+        currKHeld |= P8_KEY_X;
+    }
+    if(keystate[SDLK_LSHIFT]){
+        currKHeld |= P8_KEY_O;
+    }
+    if(keystate[SDLK_LALT]){
+        currKHeld |= P8_KEY_X;
+    }
+    if(keystate[SDLK_LCTRL]){
+        currKHeld |= P8_KEY_O;
+    }
+    if(keystate[SDLK_RETURN]){
+        currKHeld |= P8_KEY_PAUSE;
     }
 
     
@@ -252,7 +283,7 @@ void Host::waitForTargetFps(){
 void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMode){
     pixels = texture->pixels;
 
-    for (int y = 0; y < (PicoScreenHeight - 8); y ++){
+    for (int y = 0; y < (PicoScreenHeight); y ++){
         for (int x = 0; x < PicoScreenWidth; x ++){
             uint8_t c = getPixelNibble(x, y, picoFb);
             uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
@@ -294,13 +325,10 @@ vector<string> Host::listcarts(){
 
     DIR *dir;
     struct dirent *ent;
-    std::string home = getenv("HOME");
-    std::string cartDir = "/p8carts";
-    std::string fullCartDir = home + cartDir;
-    if ((dir = opendir (fullCartDir.c_str())) != NULL) {
+    if ((dir = opendir (_cartDirectory.c_str())) != NULL) {
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
-            carts.push_back(fullCartDir + "/" + ent->d_name);
+            carts.push_back(_cartDirectory + "/" + ent->d_name);
         }
         closedir (dir);
     } else {
@@ -317,7 +345,7 @@ const char* Host::logFilePrefix() {
 }
 
 std::string Host::customBiosLua() {
-    return "cartpath = \"~/p8carts/\"\n"
+    return "cartpath = \"roms/pico-8/\"\n"
         "selectbtn = \"z\"\n"
         "pausebtn = \"esc\""
         "exitbtn = \"close window\""
