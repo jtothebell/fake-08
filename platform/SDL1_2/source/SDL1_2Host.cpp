@@ -15,10 +15,11 @@ using namespace std;
 
 // sdl
 #include <SDL/SDL.h>
-#include <SDL/SDL_gfxBlitFunc.h>
 
 #define SCREEN_SIZE_X 320
 #define SCREEN_SIZE_Y 240
+
+#define SCREEN_BPP 16
 
 
 #define SAMPLERATE 22050
@@ -54,13 +55,15 @@ SDL_bool done = SDL_FALSE;
 SDL_AudioSpec want, have;
 //SDL_AudioDeviceID dev;
 void *pixels;
-uint8_t *base;
+uint16_t *base;
 int pitch;
 
 SDL_Rect SrcR;
 SDL_Rect DestR;
 
 bool audioInitialized = false;
+
+uint16_t _mapped16BitColors[144];
 
 
 void postFlipFunction(){
@@ -139,9 +142,9 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 
     int flags = SDL_SWSURFACE;
 
-    window = SDL_SetVideoMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, 0, flags);
+    window = SDL_SetVideoMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, SCREEN_BPP, flags);
 
-    SDL_Surface* temp = SDL_CreateRGBSurface(flags, PicoScreenWidth, PicoScreenHeight, 0, 0, 0, 0, 0);
+    SDL_Surface* temp = SDL_CreateRGBSurface(flags, PicoScreenWidth, PicoScreenHeight, SCREEN_BPP, 0, 0, 0, 0);
 
     texture = SDL_DisplayFormat(temp);
 
@@ -156,6 +159,12 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     targetFrameTimeMs = 0;
 
     _paletteColors = paletteColors;
+
+    SDL_PixelFormat *f = window->format;
+
+    for(int i = 0; i < 144; i++){
+        _mapped16BitColors[i] = SDL_MapRGB(f, _paletteColors[i].Red, _paletteColors[i].Green, _paletteColors[i].Blue);
+    }
 
     SrcR.x = 0;
     SrcR.y = 0;
@@ -246,13 +255,10 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
     for (int y = 0; y < (PicoScreenHeight - 8); y ++){
         for (int x = 0; x < PicoScreenWidth; x ++){
             uint8_t c = getPixelNibble(x, y, picoFb);
-            Color col = _paletteColors[screenPaletteMap[c]];
+            uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
 
-            base = ((Uint8 *)pixels) + (4 * ( y * PicoScreenHeight + x));
-            base[0] = col.Blue;
-            base[1] = col.Green;
-            base[2] = col.Red;
-            base[3] = col.Alpha;
+            base = ((uint16_t *)pixels) + ( y * PicoScreenHeight + x);
+            base[0] = col;
         }
     }
     
