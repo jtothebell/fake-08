@@ -17,8 +17,8 @@ using namespace std;
 #include <SDL/SDL.h>
 #include <SDL/SDL_gfxBlitFunc.h>
 
-#define SCREEN_SIZE_X 512
-#define SCREEN_SIZE_Y 512
+#define SCREEN_SIZE_X 320
+#define SCREEN_SIZE_Y 240
 
 
 #define SAMPLERATE 22050
@@ -76,7 +76,7 @@ void postFlipFunction(){
     //    printf("blit failed : %d\n", res);
     //}
 
-    SDL_UpdateRect(window, 0, 0, 0, 0);
+    SDL_Flip(window);
 }
 
 
@@ -121,8 +121,12 @@ void audioSetup(){
 }
 
 
-Host::Host() { }
+Host::Host() {
+    std::string home = getenv("HOME");
+    
+    _cartDirectory = home + "/p8carts";
 
+ }
 
 void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
@@ -133,7 +137,7 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 
     SDL_WM_SetCaption("FAKE-08", NULL);
 
-    int flags = SDL_HWSURFACE;
+    int flags = SDL_SWSURFACE;
 
     window = SDL_SetVideoMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, 0, flags);
 
@@ -158,8 +162,8 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     SrcR.w = PicoScreenWidth;
     SrcR.h = PicoScreenHeight;
 
-    DestR.x = 0;
-    DestR.y = 0;
+    DestR.x = 96;
+    DestR.y = 56;
     DestR.w = SCREEN_SIZE_X;
     DestR.h = SCREEN_SIZE_Y;
 }
@@ -236,11 +240,10 @@ void Host::waitForTargetFps(){
 }
 
 
-void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap){
-
+void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMode){
     pixels = texture->pixels;
 
-    for (int y = 0; y < PicoScreenHeight; y ++){
+    for (int y = 0; y < (PicoScreenHeight - 8); y ++){
         for (int x = 0; x < PicoScreenWidth; x ++){
             uint8_t c = getPixelNibble(x, y, picoFb);
             Color col = _paletteColors[screenPaletteMap[c]];
@@ -313,4 +316,8 @@ std::string Host::customBiosLua() {
         "pausebtn = \"esc\""
         "exitbtn = \"close window\""
         "sizebtn = \"\"";
+}
+
+std::string Host::getCartDirectory() {
+    return _cartDirectory;
 }

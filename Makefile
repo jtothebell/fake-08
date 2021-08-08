@@ -19,7 +19,7 @@ export INCLUDES  = ../../include ../../libs/z8lua ../../libs/utf8-util ../../lib
 
 all: 3ds switch wiiu sdl2
 
-clean: clean-tests clean-3ds clean-switch clean-wiiu clean-vita clean-sdl2
+clean: clean-tests clean-3ds clean-switch clean-wiiu clean-vita clean-sdl2 clean-sdl
 
 clean-3ds:
 	@$(MAKE) -C platform/3ds clean
