@@ -207,6 +207,24 @@ void Audio::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
     }
 }
 
+void Audio::FillMonoAudioBuffer(void *audioBuffer, size_t offset, size_t size){
+    if (audioBuffer == nullptr) {
+        return;
+    }
+
+    int16_t *buffer = (int16_t *)audioBuffer;
+
+    for (size_t i = 0; i < size; ++i){
+        int16_t sample = 0;
+
+        for (int c = 0; c < 4; ++c) {
+            sample += this->getSampleForChannel(c);
+        }
+
+        buffer[i] = sample;
+    }
+}
+
 static float key_to_freq(float key)
 {
     using std::exp2;

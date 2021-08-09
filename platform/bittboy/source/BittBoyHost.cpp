@@ -45,15 +45,11 @@ uint8_t currKHeld;
 Color* _paletteColors;
 Audio* _audio;
 
-//SDL_Window* window;
 SDL_Event event;
 SDL_Surface *window;
 SDL_Surface *texture;
-//SDL_Renderer *renderer;
-//SDL_Texture *texture = NULL;
 SDL_bool done = SDL_FALSE;
 SDL_AudioSpec want, have;
-//SDL_AudioDeviceID dev;
 void *pixels;
 uint16_t *base;
 int pitch;
@@ -82,45 +78,39 @@ void postFlipFunction(){
     SDL_Flip(window);
 }
 
-
-
-
-
 void audioCleanup(){
     audioInitialized = false;
 
-    //SDL_CloseAudioDevice(dev);
+    SDL_CloseAudio();
 }
 
 
 void FillAudioDeviceBuffer(void* UserData, Uint8* DeviceBuffer, int Length)
 {
-    _audio->FillAudioBuffer(DeviceBuffer, 0, Length / 4);
+    _audio->FillMonoAudioBuffer(DeviceBuffer, 0, Length / 2);
 }
 
 void audioSetup(){
     //modifed from SDL docs: https://wiki.libsdl.org/SDL_OpenAudioDevice
 
-    /*
     SDL_memset(&want, 0, sizeof(want));
     want.freq = SAMPLERATE;
-    want.format = AUDIO_S16;
-    want.channels = 2;
-    want.samples = 4096;
+    want.format = AUDIO_S16LSB;
+    want.channels = 1;
+    want.samples = 1024;
     want.callback = FillAudioDeviceBuffer;
     
 
-    dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
-    if (dev == 0) {
+    int audioOpenRes = SDL_OpenAudio(&want, &have);
+    if (audioOpenRes < 0) {
         Logger_Write("Failed to open audio: %s", SDL_GetError());
     } else {
         if (have.format != want.format) { 
             Logger_Write("We didn't get requested audio format.");
         }
-        SDL_PauseAudioDevice(dev, 0); 
+        SDL_PauseAudio(0); 
         audioInitialized = true;
     }
-    */
 }
 
 
@@ -149,7 +139,7 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     SDL_FreeSurface(temp);
 
     _audio = audio;
-    //audioSetup();
+    audioSetup();
     
     last_time = 0;
     now_time = 0;
@@ -176,12 +166,13 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 }
 
 void Host::oneTimeCleanup(){
-    //audioCleanup();
+    audioCleanup();
 
     //SDL_DestroyRenderer(renderer);
     //SDL_DestroyWindow(window);
 
     SDL_FreeSurface(texture);
+    SDL_FreeSurface(window);
 
     SDL_Quit();
 }
@@ -292,6 +283,19 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
             base[0] = col;
         }
     }
+    /*
+    pixels = window->pixels;
+
+    for (int y = 0; y < PicoScreenHeight; y ++){
+        for (int x = 0; x < PicoScreenWidth; x ++){
+            uint8_t c = getPixelNibble(x, y, picoFb);
+            uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+
+            base = ((uint16_t *)pixels) + (y * 240 + x);
+            base[0] = col;
+        }
+    }
+    */
     
 
     postFlipFunction();

@@ -45,15 +45,11 @@ uint8_t currKHeld;
 Color* _paletteColors;
 Audio* _audio;
 
-//SDL_Window* window;
 SDL_Event event;
 SDL_Surface *window;
 SDL_Surface *texture;
-//SDL_Renderer *renderer;
-//SDL_Texture *texture = NULL;
 SDL_bool done = SDL_FALSE;
 SDL_AudioSpec want, have;
-//SDL_AudioDeviceID dev;
 void *pixels;
 uint16_t *base;
 int pitch;
@@ -68,59 +64,45 @@ uint16_t _mapped16BitColors[144];
 
 void postFlipFunction(){
     // We're done rendering, so we end the frame here.
-
+    
     //this function doesn't stretch
     SDL_BlitSurface(texture, NULL, window, &DestR);
-
-    //this function is supposed to stretch, but its doing nothing
-    //int res = SDL_gfxBlitRGBA(texture, NULL, window, NULL);
-
-    //if (res != 1){
-    //    printf("blit failed : %d\n", res);
-    //}
-
     SDL_Flip(window);
 }
-
-
-
-
 
 void audioCleanup(){
     audioInitialized = false;
 
-    //SDL_CloseAudioDevice(dev);
+    SDL_CloseAudio();
 }
 
 
 void FillAudioDeviceBuffer(void* UserData, Uint8* DeviceBuffer, int Length)
 {
-    _audio->FillAudioBuffer(DeviceBuffer, 0, Length / 4);
+    _audio->FillMonoAudioBuffer(DeviceBuffer, 0, Length / 2);
 }
 
 void audioSetup(){
     //modifed from SDL docs: https://wiki.libsdl.org/SDL_OpenAudioDevice
 
-    /*
     SDL_memset(&want, 0, sizeof(want));
     want.freq = SAMPLERATE;
-    want.format = AUDIO_S16;
-    want.channels = 2;
-    want.samples = 4096;
+    want.format = AUDIO_S16LSB;
+    want.channels = 1;
+    want.samples = 1024;
     want.callback = FillAudioDeviceBuffer;
     
 
-    dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
-    if (dev == 0) {
+    int audioOpenRes = SDL_OpenAudio(&want, &have);
+    if (audioOpenRes < 0) {
         Logger_Write("Failed to open audio: %s", SDL_GetError());
     } else {
         if (have.format != want.format) { 
             Logger_Write("We didn't get requested audio format.");
         }
-        SDL_PauseAudioDevice(dev, 0); 
+        SDL_PauseAudio(0); 
         audioInitialized = true;
     }
-    */
 }
 
 
@@ -151,7 +133,7 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     SDL_FreeSurface(temp);
 
     _audio = audio;
-    //audioSetup();
+    audioSetup();
     
     last_time = 0;
     now_time = 0;
@@ -178,12 +160,13 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 }
 
 void Host::oneTimeCleanup(){
-    //audioCleanup();
+    audioCleanup();
 
     //SDL_DestroyRenderer(renderer);
     //SDL_DestroyWindow(window);
 
     SDL_FreeSurface(texture);
+    SDL_FreeSurface(window);
 
     SDL_Quit();
 }
@@ -204,14 +187,16 @@ InputState_t Host::scanInput(){
             case SDL_KEYDOWN:
                 switch (event.key.keysym.sym)
                 {
-                    case SDLK_ESCAPE:currKDown |= P8_KEY_PAUSE; break;
+                    case SDLK_RETURN:currKDown |= P8_KEY_PAUSE; break;
                     case SDLK_LEFT:  currKDown |= P8_KEY_LEFT; break;
                     case SDLK_RIGHT: currKDown |= P8_KEY_RIGHT; break;
                     case SDLK_UP:    currKDown |= P8_KEY_UP; break;
                     case SDLK_DOWN:  currKDown |= P8_KEY_DOWN; break;
-                    case SDLK_z:     currKDown |= P8_KEY_X; break;
-                    case SDLK_x:     currKDown |= P8_KEY_O; break;
-                    case SDLK_c:     currKDown |= P8_KEY_X; break;
+                    case SDLK_SPACE: currKDown |= P8_KEY_X; break;
+                    case SDLK_LSHIFT:currKDown |= P8_KEY_O; break;
+                    case SDLK_LALT:  currKDown |= P8_KEY_X; break;
+                    case SDLK_LCTRL: currKDown |= P8_KEY_O; break;
+                    case SDLK_ESCAPE: done = SDL_TRUE; break;
                     default: break;
                 }
                 break;
@@ -219,6 +204,37 @@ InputState_t Host::scanInput(){
                 done = SDL_TRUE;
                 break;
         }
+    }
+
+    const Uint8* keystate = SDL_GetKeyState(NULL);
+
+    //continuous-response keys
+    if(keystate[SDLK_LEFT]){
+        currKHeld |= P8_KEY_LEFT;
+    }
+    if(keystate[SDLK_RIGHT]){
+        currKHeld |= P8_KEY_RIGHT;;
+    }
+    if(keystate[SDLK_UP]){
+        currKHeld |= P8_KEY_UP;
+    }
+    if(keystate[SDLK_DOWN]){
+        currKHeld |= P8_KEY_DOWN;
+    }
+    if(keystate[SDLK_SPACE]){
+        currKHeld |= P8_KEY_X;
+    }
+    if(keystate[SDLK_LSHIFT]){
+        currKHeld |= P8_KEY_O;
+    }
+    if(keystate[SDLK_LALT]){
+        currKHeld |= P8_KEY_X;
+    }
+    if(keystate[SDLK_LCTRL]){
+        currKHeld |= P8_KEY_O;
+    }
+    if(keystate[SDLK_RETURN]){
+        currKHeld |= P8_KEY_PAUSE;
     }
 
     
@@ -261,6 +277,19 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
             base[0] = col;
         }
     }
+    /*
+    pixels = window->pixels;
+
+    for (int y = 0; y < PicoScreenHeight; y ++){
+        for (int x = 0; x < PicoScreenWidth; x ++){
+            uint8_t c = getPixelNibble(x, y, picoFb);
+            uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+
+            base = ((uint16_t *)pixels) + (y * 240 + x);
+            base[0] = col;
+        }
+    }
+    */
     
 
     postFlipFunction();
