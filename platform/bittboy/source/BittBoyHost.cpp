@@ -47,7 +47,7 @@ Audio* _audio;
 
 SDL_Event event;
 SDL_Surface *window;
-SDL_Surface *texture;
+//SDL_Surface *texture;
 SDL_bool done = SDL_FALSE;
 SDL_AudioSpec want, have;
 void *pixels;
@@ -66,14 +66,7 @@ void postFlipFunction(){
     // We're done rendering, so we end the frame here.
 
     //this function doesn't stretch
-    SDL_BlitSurface(texture, NULL, window, &DestR);
-
-    //this function is supposed to stretch, but its doing nothing
-    //int res = SDL_gfxBlitRGBA(texture, NULL, window, NULL);
-
-    //if (res != 1){
-    //    printf("blit failed : %d\n", res);
-    //}
+    //SDL_BlitSurface(texture, NULL, window, &DestR);
 
     SDL_Flip(window);
 }
@@ -132,11 +125,11 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 
     window = SDL_SetVideoMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, SCREEN_BPP, flags);
 
-    SDL_Surface* temp = SDL_CreateRGBSurface(flags, PicoScreenWidth, PicoScreenHeight, SCREEN_BPP, 0, 0, 0, 0);
+    //SDL_Surface* temp = SDL_CreateRGBSurface(flags, PicoScreenWidth, PicoScreenHeight, SCREEN_BPP, 0, 0, 0, 0);
 
-    texture = SDL_DisplayFormat(temp);
+    //texture = SDL_DisplayFormat(temp);
 
-    SDL_FreeSurface(temp);
+    //SDL_FreeSurface(temp);
 
     _audio = audio;
     audioSetup();
@@ -171,7 +164,7 @@ void Host::oneTimeCleanup(){
     //SDL_DestroyRenderer(renderer);
     //SDL_DestroyWindow(window);
 
-    SDL_FreeSurface(texture);
+    //SDL_FreeSurface(texture);
     SDL_FreeSurface(window);
 
     SDL_Quit();
@@ -270,8 +263,16 @@ void Host::waitForTargetFps(){
 	}
 }
 
+void set_pixel(SDL_Surface *surface, int x, int y, uint16_t pixel)
+{
+  uint16_t * const target_pixel = (uint16_t *) ((Uint8 *) surface->pixels
+                                             + y * surface->pitch
+                                             + x * surface->format->BytesPerPixel);
+  *target_pixel = pixel;
+}
 
 void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMode){
+    /*
     pixels = texture->pixels;
 
     for (int y = 0; y < (PicoScreenHeight); y ++){
@@ -283,19 +284,29 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
             base[0] = col;
         }
     }
-    /*
-    pixels = window->pixels;
-
-    for (int y = 0; y < PicoScreenHeight; y ++){
+    */
+    for (int y = 0; y < (PicoScreenHeight - 4); y ++){
         for (int x = 0; x < PicoScreenWidth; x ++){
             uint8_t c = getPixelNibble(x, y, picoFb);
             uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
 
-            base = ((uint16_t *)pixels) + (y * 240 + x);
-            base[0] = col;
+            set_pixel(window, 32 + (x*2), (y*2), col);
+            set_pixel(window, 32 + (x*2)+1, (y*2), col);
+            set_pixel(window, 32 + (x*2), (y*2)+1, col);
+            set_pixel(window, 32 + (x*2)+1, (y*2)+1, col);
+
+            /*
+            uint16_t * const target_pixel = (uint16_t *) ((Uint8 *) window->pixels
+                                             + y * pitch
+                                             + x * bpp);
+            *target_pixel = col;
+            */
+
+            //base = ((uint16_t *)pixels) + (y * window->pitch + x);
+            //base[0] = col;
         }
     }
-    */
+    
     
 
     postFlipFunction();
