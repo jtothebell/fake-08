@@ -263,6 +263,7 @@ void Host::waitForTargetFps(){
 	}
 }
 
+/*
 void set_pixel(SDL_Surface *surface, int x, int y, uint16_t pixel)
 {
   uint16_t * const target_pixel = (uint16_t *) ((Uint8 *) surface->pixels
@@ -270,43 +271,68 @@ void set_pixel(SDL_Surface *surface, int x, int y, uint16_t pixel)
                                              + x * surface->format->BytesPerPixel);
   *target_pixel = pixel;
 }
+*/
 
 void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMode){
-    /*
-    pixels = texture->pixels;
+    
+    //pixels = window->pixels;
 
+    /*
+    1x scale
     for (int y = 0; y < (PicoScreenHeight); y ++){
         for (int x = 0; x < PicoScreenWidth; x ++){
             uint8_t c = getPixelNibble(x, y, picoFb);
             uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
 
-            base = ((uint16_t *)pixels) + ( y * PicoScreenHeight + x);
-            base[0] = col;
+            uint16_t * const target_pixel = (uint16_t *) ((Uint8 *) window->pixels
+                                             + y * window->pitch
+                                             + x * window->format->BytesPerPixel);
+            *target_pixel = col;
         }
     }
     */
-    for (int y = 0; y < (PicoScreenHeight - 4); y ++){
+    
+   //2x scale, last 8 pico pixels (16 screen pixels) cut off
+    for (int y = 0; y < PicoScreenHeight; y ++){
         for (int x = 0; x < PicoScreenWidth; x ++){
             uint8_t c = getPixelNibble(x, y, picoFb);
             uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
 
-            set_pixel(window, 32 + (x*2), (y*2), col);
-            set_pixel(window, 32 + (x*2)+1, (y*2), col);
-            set_pixel(window, 32 + (x*2), (y*2)+1, col);
-            set_pixel(window, 32 + (x*2)+1, (y*2)+1, col);
+            uint16_t * const target_pixel0 = (uint16_t *) ((Uint8 *) window->pixels
+                                             + y*2 * window->pitch
+                                             + (x*2 + 32) * window->format->BytesPerPixel);
+            uint16_t * const target_pixel1 = (uint16_t *) ((Uint8 *) window->pixels
+                                             + (y*2 + 1) * window->pitch
+                                             + (x*2 + 32) * window->format->BytesPerPixel);
+            uint16_t * const target_pixel2 = (uint16_t *) ((Uint8 *) window->pixels
+                                             + y*2 * window->pitch
+                                             + (x*2 + 33) * window->format->BytesPerPixel);
+            uint16_t * const target_pixel3 = (uint16_t *) ((Uint8 *) window->pixels
+                                             + (y*2 + 1) * window->pitch
+                                             + (x*2 + 33)* window->format->BytesPerPixel);
+            *target_pixel0 = col;
+            *target_pixel1 = col;
+            *target_pixel2 = col;
+            *target_pixel3 = col;
 
-            /*
-            uint16_t * const target_pixel = (uint16_t *) ((Uint8 *) window->pixels
-                                             + y * pitch
-                                             + x * bpp);
-            *target_pixel = col;
-            */
+            //set_pixel(window, 32 + (x*2), (y*2), col);
+            //set_pixel(window, 32 + (x*2)+1, (y*2), col);
+            //set_pixel(window, 32 + (x*2), (y*2)+1, col);
+            //set_pixel(window, 32 + (x*2)+1, (y*2)+1, col);
+
+            
+            //uint16_t * const target_pixel = (uint16_t *) ((Uint8 *) window->pixels
+            //                                 + y * pitch
+            //                                 + x * bpp);
+            //target_pixel = col;
+            
 
             //base = ((uint16_t *)pixels) + (y * window->pitch + x);
             //base[0] = col;
         }
     }
     
+
     
 
     postFlipFunction();
