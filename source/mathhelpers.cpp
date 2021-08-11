@@ -10,3 +10,7 @@ float clamp (float val, float lo, float hi) {
 	val = (val > hi) ? hi : val;
     return (val < lo) ? lo : val;
 }
+
+float lerp(float a, float b, float t) {
+	return (b - a) * t + a;
+}

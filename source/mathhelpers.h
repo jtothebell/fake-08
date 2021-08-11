@@ -4,3 +4,6 @@
 int clamp (int val, int lo, int hi);
 
 float clamp (float val, float lo, float hi);
+
+float lerp (float a, float b, float t);
+
