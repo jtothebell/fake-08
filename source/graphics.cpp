@@ -292,8 +292,8 @@ void Graphics::copyStretchSpriteToScreen(
 				uint8_t bothPix = spr[combinedPixIdx];
 
 				uint8_t c = (pixIndex >> 16) % 2 == 0 
-					? bothPix >> 4 //just first 4 bits
-					: bothPix & 0x0f;  //just last 4 bits
+					? bothPix & 0x0f //just first 4 bits
+					: bothPix >> 4;  //just last 4 bits
 				if (isColorTransparent(c) == false) {
 					_setPixelFromSprite(scr_x + x, scr_y + y, c);
 				}
