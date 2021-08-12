@@ -195,7 +195,7 @@ InputState_t Host::scanInput(){
                     case SDLK_LSHIFT:currKDown |= P8_KEY_O; break;
                     case SDLK_LALT:  currKDown |= P8_KEY_X; break;
                     case SDLK_LCTRL: currKDown |= P8_KEY_O; break;
-                    case SDLK_ESCAPE: done = SDL_TRUE; break;
+                    case SDLK_RCTRL: done = SDL_TRUE; break;
                     default: break;
                 }
                 break;
