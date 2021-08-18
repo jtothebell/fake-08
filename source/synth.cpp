@@ -107,7 +107,7 @@ float synth::waveform(int instrument, float advance)
             sample = (lsample + scale * (((float)rand() / (float)RAND_MAX) * 2.0f - 1.0f)) / (1.0f + scale);
             //printf("sample: %f\n", sample);
             lastadvance = advance;
-            float endval = std::min(std::max((lsample + sample) * 4.0f / 3.0f * (1.75f - scale), -1.0f), 1.0f) * 0.4f;
+            float endval = std::min(std::max((lsample + sample) * 4.0f / 3.0f * (1.75f - scale), -1.0f), 1.0f) * 0.2f;
             //printf("endval: %f\n", endval);
             return endval;
         }
