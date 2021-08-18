@@ -22,12 +22,12 @@ CXX = $(BIN_BASE)arm-linux-g++
 
 CC = $(CXX)
 
-CFLAGS	:=	-g -Wall -Ofast -ffunction-sections -Iinc -D_BITTBOY -march=armv5te -mtune=arm926ej-s \
+CFLAGS	:=	-g -Wall -Ofast -ffunction-sections -Iinc -D_BITTBOY -DVER_STR=\"$(APP_VERSION)\" -march=armv5te -mtune=arm926ej-s \
 			$(DEFINES)
 
 CFLAGS	+=	$(INCLUDE)
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -std=gnu++17
 
 LIBS	:= -s $(shell $(BIN_BASE)pkg-config --libs sdl) -lSDL
 

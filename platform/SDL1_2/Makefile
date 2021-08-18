@@ -16,12 +16,12 @@ INCLUDES	:=	${INCLUDES}
 #---------------------------------------------------------------------------------
 CC = $(CXX)
 
-CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
+CFLAGS	:=	-g -Wall -O2 -ffunction-sections -DVER_STR=\"$(APP_VERSION)\" \
 			$(DEFINES)
 
 CFLAGS	+=	$(INCLUDE)
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -std=gnu++17
 
 LIBS	:= -lSDL 
 

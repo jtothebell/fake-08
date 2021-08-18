@@ -47,7 +47,7 @@ Audio* _audio;
 
 SDL_Event event;
 SDL_Surface *window;
-//SDL_Surface *texture;
+SDL_Surface *texture;
 SDL_bool done = SDL_FALSE;
 SDL_AudioSpec want, have;
 void *pixels;
@@ -65,8 +65,7 @@ uint16_t _mapped16BitColors[144];
 void postFlipFunction(){
     // We're done rendering, so we end the frame here.
 
-    //this function doesn't stretch
-    //SDL_BlitSurface(texture, NULL, window, &DestR);
+    SDL_SoftStretch(texture, NULL, window, &DestR);
 
     SDL_Flip(window);
 }
@@ -131,11 +130,7 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 
     window = SDL_SetVideoMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, SCREEN_BPP, flags);
 
-    //SDL_Surface* temp = SDL_CreateRGBSurface(flags, PicoScreenWidth, PicoScreenHeight, SCREEN_BPP, 0, 0, 0, 0);
-
-    //texture = SDL_DisplayFormat(temp);
-
-    //SDL_FreeSurface(temp);
+    texture = SDL_CreateRGBSurface(flags, PicoScreenWidth, PicoScreenHeight, SCREEN_BPP, 0, 0, 0, 0);
 
     _audio = audio;
     audioSetup();
@@ -158,8 +153,8 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     SrcR.w = PicoScreenWidth;
     SrcR.h = PicoScreenHeight;
 
-    DestR.x = 96;
-    DestR.y = 56;
+    DestR.x = 0;
+    DestR.y = 0;
     DestR.w = SCREEN_SIZE_X;
     DestR.h = SCREEN_SIZE_Y;
 }
@@ -170,7 +165,7 @@ void Host::oneTimeCleanup(){
     //SDL_DestroyRenderer(renderer);
     //SDL_DestroyWindow(window);
 
-    //SDL_FreeSurface(texture);
+    SDL_FreeSurface(texture);
     SDL_FreeSurface(window);
 
     SDL_Quit();
@@ -281,65 +276,17 @@ void set_pixel(SDL_Surface *surface, int x, int y, uint16_t pixel)
 
 void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMode){
     
-    //pixels = window->pixels;
+    pixels = texture->pixels;
 
-    /*
-    1x scale
     for (int y = 0; y < (PicoScreenHeight); y ++){
         for (int x = 0; x < PicoScreenWidth; x ++){
             uint8_t c = getPixelNibble(x, y, picoFb);
             uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
 
-            uint16_t * const target_pixel = (uint16_t *) ((Uint8 *) window->pixels
-                                             + y * window->pitch
-                                             + x * window->format->BytesPerPixel);
-            *target_pixel = col;
+            base = ((uint16_t *)pixels) + ( y * PicoScreenHeight + x);
+            base[0] = col;
         }
     }
-    */
-    
-   //2x scale, last 8 pico pixels (16 screen pixels) cut off
-    for (int y = 0; y < PicoScreenHeight; y ++){
-        for (int x = 0; x < PicoScreenWidth; x ++){
-            uint8_t c = getPixelNibble(x, y, picoFb);
-            uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
-
-            uint16_t * const target_pixel0 = (uint16_t *) ((Uint8 *) window->pixels
-                                             + y*2 * window->pitch
-                                             + (x*2 + 32) * window->format->BytesPerPixel);
-            uint16_t * const target_pixel1 = (uint16_t *) ((Uint8 *) window->pixels
-                                             + (y*2 + 1) * window->pitch
-                                             + (x*2 + 32) * window->format->BytesPerPixel);
-            uint16_t * const target_pixel2 = (uint16_t *) ((Uint8 *) window->pixels
-                                             + y*2 * window->pitch
-                                             + (x*2 + 33) * window->format->BytesPerPixel);
-            uint16_t * const target_pixel3 = (uint16_t *) ((Uint8 *) window->pixels
-                                             + (y*2 + 1) * window->pitch
-                                             + (x*2 + 33)* window->format->BytesPerPixel);
-            *target_pixel0 = col;
-            *target_pixel1 = col;
-            *target_pixel2 = col;
-            *target_pixel3 = col;
-
-            //set_pixel(window, 32 + (x*2), (y*2), col);
-            //set_pixel(window, 32 + (x*2)+1, (y*2), col);
-            //set_pixel(window, 32 + (x*2), (y*2)+1, col);
-            //set_pixel(window, 32 + (x*2)+1, (y*2)+1, col);
-
-            
-            //uint16_t * const target_pixel = (uint16_t *) ((Uint8 *) window->pixels
-            //                                 + y * pitch
-            //                                 + x * bpp);
-            //target_pixel = col;
-            
-
-            //base = ((uint16_t *)pixels) + (y * window->pitch + x);
-            //base[0] = col;
-        }
-    }
-    
-
-    
 
     postFlipFunction();
 }
