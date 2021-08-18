@@ -244,10 +244,15 @@ TEST_CASE("Vm memory functions") {
 
         CHECK_EQ(memory->drawState.line_y, 262);
     }
-    SUBCASE("poking audio hardware state") {
+    SUBCASE("poking audio hardware state half rate") {
         vm->vm_poke(0x5f40, 3);
 
-        CHECK_EQ(memory->hwState.audioHardwareState[0], 3);
+        CHECK_EQ(memory->hwState.half_rate, 3);
+    }
+    SUBCASE("poking audio hardware state distort") {
+        vm->vm_poke(0x5f42, 5);
+
+        CHECK_EQ(memory->hwState.distort, 5);
     }
     SUBCASE("poking rng state") {
         //rng gets seeded, we need to zero it out to test this easier

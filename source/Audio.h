@@ -73,6 +73,18 @@ note is encoded in 16 bits, LSB first, like so:
 
 //this is also defined in audio? should probably consolidate
 
+enum
+{
+    FX_NO_EFFECT = 0,
+    FX_SLIDE =     1,
+    FX_VIBRATO =   2,
+    FX_DROP =      3,
+    FX_FADE_IN =   4,
+    FX_FADE_OUT =  5,
+    FX_ARP_FAST =  6,
+    FX_ARP_SLOW =  7,
+};
+
 
 class Audio {
     PicoRam* _memory;

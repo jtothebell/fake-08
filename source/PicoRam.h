@@ -195,7 +195,11 @@ struct drawState_t {
 
 
 struct hwState_t {
-    uint8_t audioHardwareState[4];
+    //audio hardware mods
+    uint8_t half_rate;
+    uint8_t reverb;
+    uint8_t distort;
+    uint8_t lowpass;
 
     uint32_t rngState[2];
 

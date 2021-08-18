@@ -355,23 +355,72 @@ int16_t Audio::getSampleForChannel(int channel){
     }
     
     //TODO: apply effects
-    //int const fx = sfx.notes[note_id].effect;
+    int const fx = sfx.notes[note_idx].getEffect();
+
+    // Apply effect, if any
+    switch (fx)
+    {
+        case FX_NO_EFFECT:
+            break;
+        case FX_SLIDE:
+        {
+            float t = fmod(offset, 1.f);
+            // From the documentation: “Slide to the next note and volume”,
+            // but it’s actually _from_ the _prev_ note and volume.
+            freq = lerp(key_to_freq(_audioState._sfxChannels[channel].prev_key), freq, t);
+            if (_audioState._sfxChannels[channel].prev_vol > 0.f)
+                volume = lerp(_audioState._sfxChannels[channel].prev_vol, volume, t);
+            break;
+        }
+        case FX_VIBRATO:
+        {
+            // 7.5f and 0.25f were found empirically by matching
+            // frequency graphs of PICO-8 instruments.
+            float t = fabs(fmod(7.5f * offset / offset_per_second, 1.0f) - 0.5f) - 0.25f;
+            // Vibrato half a semi-tone, so multiply by pow(2,1/12)
+            freq = lerp(freq, freq * 1.059463094359f, t);
+            break;
+        }
+        case FX_DROP:
+            freq *= 1.f - fmod(offset, 1.f);
+            break;
+        case FX_FADE_IN:
+            volume *= fmod(offset, 1.f);
+            break;
+        case FX_FADE_OUT:
+            volume *= 1.f - fmod(offset, 1.f);
+            break;
+        case FX_ARP_FAST:
+        case FX_ARP_SLOW:
+        {
+            // From the documentation:
+            // “6 arpeggio fast  //  Iterate over groups of 4 notes at speed of 4
+            //  7 arpeggio slow  //  Iterate over groups of 4 notes at speed of 8”
+            // “If the SFX speed is <= 8, arpeggio speeds are halved to 2, 4”
+            int const m = (speed <= 8 ? 32 : 16) / (fx == FX_ARP_FAST ? 4 : 8);
+            int const n = (int)(m * 7.5f * offset / offset_per_second);
+            int const arp_note = (note_idx & ~3) | (n & 3);
+            freq = key_to_freq(sfx.notes[arp_note].getKey());
+            break;
+        }
+    }
+
 
     // Play note
     float waveform = z8::synth::waveform(sfx.notes[note_idx].getWaveform(), phi);
 
     // Apply master music volume from fade in/out
     // FIXME: check whether this should be done after distortion
-    //if (_sfxChannels[chan].is_music) {
-    //    volume *= _musicChannel.volume;
-    //}
+    if (_audioState._sfxChannels[channel].is_music) {
+        volume *= _audioState._musicChannel.volume;
+    }
 
     sample = (int16_t)(32767.99f * volume * waveform);
 
     // TODO: Apply hardware effects
-    //if (m_ram.hw_state.distort & (1 << chan)) {
-    //    sample = sample / 0x1000 * 0x1249;
-    //}
+    if (_memory->hwState.distort & (1 << channel)) {
+        sample = sample / 0x1000 * 0x1249;
+    }
 
     _audioState._sfxChannels[channel].phi = phi + freq / samples_per_second;
 

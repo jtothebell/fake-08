@@ -102,6 +102,7 @@ costatus = coroutine.status
 --Debug
 ---------------------------------
 trace = debug.traceback
+debug = nil
 
 sub = string.sub
 pack = table.pack

@@ -14,6 +14,10 @@
 
 //#include <lol/noise> // lol::perlin_noise
 #include <cmath>     // std::fabs, std::fmod
+#include <algorithm> //std::min, std::max
+
+//temp for printf debugging
+//#include <stdio.h>
 
 namespace z8
 {
@@ -22,6 +26,13 @@ float synth::waveform(int instrument, float advance)
 {
     using std::fabs;
     using std::fmod;
+
+    //const from picolove:
+    //local function note_to_hz(note)
+	//  return 440 * 2 ^ ((note - 33) / 12)
+    //end
+    //local tscale = note_to_hz(63) / __sample_rate
+    const float tscale = 0.11288053831187f;
 
     float t = fmod(advance, 1.f);
     float ret = 0.f;
@@ -65,9 +76,40 @@ float synth::waveform(int instrument, float advance)
             //for (float m = 1.75f, d = 1.f; m <= 128; m *= 2.25f, d *= 0.75f)
             //    ret += d * noise.eval(lol::vec_t<float, 1>(m * advance));
 
-            ret = ((float)rand() / (float)RAND_MAX);
+            //ret = ((float)rand() / (float)RAND_MAX);
 
-            return ret * 0.4f;
+            //return ret * 0.4f;
+
+            //picolove noise function in lua
+            //zepto8 phi == picolove oscpos (x parameter in picolove generator func, advance in synth.cpp waveform function)
+            //-- noise
+            //osc[6] = function()
+            //    local lastx = 0
+            //    local sample = 0
+            //    local lsample = 0
+            //    local tscale = note_to_hz(63) / __sample_rate
+            //1,041.8329
+            //    return function(x)
+            //        local scale = (x - lastx) / tscale
+            //        lsample = sample
+            //        sample = (lsample + scale * (math.random() * 2 - 1)) / (1 + scale)
+            //        lastx = x
+            //        return math.min(math.max((lsample + sample) * 4 / 3 * (1.75 - scale), -1), 1) *
+            //            0.7
+            //    end
+            //end
+            //printf("tscale: %f\n", tscale);
+            //printf("advance: %f\n", advance);
+
+            float scale = (advance - lastadvance) / tscale;
+            //printf("scale: %f\n", scale);
+            lsample = sample;
+            sample = (lsample + scale * (((float)rand() / (float)RAND_MAX) * 2.0f - 1.0f)) / (1.0f + scale);
+            //printf("sample: %f\n", sample);
+            lastadvance = advance;
+            float endval = std::min(std::max((lsample + sample) * 4.0f / 3.0f * (1.75f - scale), -1.0f), 1.0f) * 0.2f;
+            //printf("endval: %f\n", endval);
+            return endval;
         }
         case INST_PHASER:
         {   // This one has a subfrequency of freq/128 that appears

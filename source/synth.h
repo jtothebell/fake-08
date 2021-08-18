@@ -35,6 +35,16 @@ public:
     };
 
     static float waveform(int instrument, float advance);
+
+    //These are inline so they don't have to be declared in the class
+    //c++17 allows this, but if need for c++11 "inline" can be removed and they
+    //can be declared in synth.cpp
+    //also not threadsafe, but this is all single threaded anyway
+    private:
+        inline static float lastadvance;
+        inline static float sample;
+        inline static float lsample;
+        
 };
 
 } // namespace z8
