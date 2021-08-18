@@ -108,7 +108,13 @@ void audioSetup(){
 
 
 Host::Host() {
+    #ifdef _BITTBOY
     _cartDirectory = "/mnt/roms/PICO-8";
+    #else
+    std::string home = getenv("HOME");
+    
+    _cartDirectory = home + "/p8carts";
+    #endif
  }
 
 void Host::oneTimeSetup(Color* paletteColors, Audio* audio){

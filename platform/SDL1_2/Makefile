@@ -8,7 +8,7 @@
 #---------------------------------------------------------------------------------
 TARGET		:=	FAKE08
 BUILD		:=	build
-SOURCES		:=	${SOURCES} source
+SOURCES		:=	${SOURCES} ../bittboy/source source
 INCLUDES	:=	${INCLUDES}
 
 #---------------------------------------------------------------------------------

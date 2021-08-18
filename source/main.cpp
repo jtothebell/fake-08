@@ -36,9 +36,9 @@ int main(int argc, char* argv[])
 
 	bool loadCart = false;
 	char* cart;
-	char boot_params[1024];
 
 	#if __VITA__
+	char boot_params[1024];
 	sceAppMgrGetAppParam(boot_params);
 	if (strstr(boot_params,"psgm:play") && strstr(boot_params, "&param=")) {
 		loadCart = true;
