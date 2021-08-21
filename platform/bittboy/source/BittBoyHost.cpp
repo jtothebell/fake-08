@@ -29,6 +29,15 @@ using namespace std;
 const int __screenWidth = SCREEN_SIZE_X;
 const int __screenHeight = SCREEN_SIZE_Y;
 
+int _windowWidth = 128;
+int _windowHeight = 128;
+
+int _screenWidth = 128;
+int _screenHeight = 128;
+
+int _maxNoStretchWidth = 128;
+int _maxNoStretchHeight = 128;
+
 const int PicoScreenWidth = 128;
 const int PicoScreenHeight = 128;
 
@@ -57,6 +66,9 @@ int pitch;
 SDL_Rect SrcR;
 SDL_Rect DestR;
 
+double textureAngle;
+uint8_t flip; //0 none, 1 horizontal, 2 vertical - match SDL2's SDL_RendererFlip
+
 bool audioInitialized = false;
 
 uint16_t _mapped16BitColors[144];
@@ -65,7 +77,7 @@ uint16_t _mapped16BitColors[144];
 void postFlipFunction(){
     // We're done rendering, so we end the frame here.
 
-    SDL_SoftStretch(texture, NULL, window, &DestR);
+    SDL_SoftStretch(texture, &SrcR, window, &DestR);
 
     SDL_Flip(window);
 }
@@ -103,6 +115,41 @@ void audioSetup(){
         SDL_PauseAudio(0); 
         audioInitialized = true;
     }
+}
+
+void _changeStretch(StretchOption newStretch){
+    int srcx = 0;
+    int srcy = 0;
+    if (newStretch == PixelPerfect) {
+        _screenWidth = PicoScreenWidth;
+        _screenHeight = PicoScreenHeight;
+    }
+    else if (newStretch == StretchToFill){
+        _screenWidth = _windowWidth;
+        _screenHeight = _windowHeight; 
+    }
+    else if (newStretch == StretchAndOverflow) {
+        _screenWidth = PicoScreenWidth * 2;
+        _screenHeight = (PicoScreenHeight - 8) * 2;
+        srcy = 4;
+    }
+    
+
+    DestR.x = _windowWidth / 2 - _screenWidth / 2;
+    DestR.y = _windowHeight / 2 - _screenHeight / 2;
+    DestR.w = _screenWidth;
+    DestR.h = _screenHeight;
+
+    SrcR.x = srcx;
+    SrcR.y = srcy;
+    SrcR.w = PicoScreenWidth - (srcx * 2);
+    SrcR.h = PicoScreenHeight - (srcy * 2);
+
+    textureAngle = 0;
+    flip = 0;
+
+    //clear the screen so nothing is left over behind current stretch
+    SDL_FillRect(window, NULL, SDL_MapRGB(window->format, 0, 0, 0));
 }
 
 
@@ -148,15 +195,14 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
         _mapped16BitColors[i] = SDL_MapRGB(f, _paletteColors[i].Red, _paletteColors[i].Green, _paletteColors[i].Blue);
     }
 
-    SrcR.x = 0;
-    SrcR.y = 0;
-    SrcR.w = PicoScreenWidth;
-    SrcR.h = PicoScreenHeight;
 
-    DestR.x = 0;
-    DestR.y = 0;
-    DestR.w = SCREEN_SIZE_X;
-    DestR.h = SCREEN_SIZE_Y;
+    _windowWidth = SCREEN_SIZE_X;
+    _windowHeight = SCREEN_SIZE_Y;
+
+    //TODO: store in settings INI
+    stretch = StretchToFill;
+
+    _changeStretch(stretch);
 }
 
 void Host::oneTimeCleanup(){
@@ -176,11 +222,33 @@ void Host::setTargetFps(int targetFps){
 }
 
 void Host::changeStretch(){
+    if (stretchKeyPressed) {
+        StretchOption newStretch = stretch;
+
+        if (stretch == StretchAndOverflow) {
+            newStretch = PixelPerfect;
+        }
+        else if (stretch == PixelPerfect) {
+            newStretch = StretchToFill;
+        }
+        else if (stretch == StretchToFill) {
+            newStretch = StretchAndOverflow;
+        }
+
+        _changeStretch(newStretch);
+
+        stretch = newStretch;
+        scaleX = _screenWidth / (float)PicoScreenWidth;
+        scaleY = _screenHeight / (float)PicoScreenHeight;
+        mouseOffsetX = DestR.x;
+        mouseOffsetY = DestR.y;
+    }
 }
 
 InputState_t Host::scanInput(){
     currKDown = 0;
     currKHeld = 0;
+    stretchKeyPressed = false;
 
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
@@ -197,6 +265,7 @@ InputState_t Host::scanInput(){
                     case SDLK_LALT:  currKDown |= P8_KEY_X; break;
                     case SDLK_LCTRL: currKDown |= P8_KEY_O; break;
                     case SDLK_RCTRL: done = SDL_TRUE; break;
+                    case SDLK_ESCAPE: stretchKeyPressed = true; break;
                     default: break;
                 }
                 break;
