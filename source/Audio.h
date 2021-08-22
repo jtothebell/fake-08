@@ -110,5 +110,6 @@ class Audio {
     int16_t getMusicTickCount();
 
     void FillAudioBuffer(void *audioBuffer,size_t offset, size_t size);
+    void FillMonoAudioBuffer(void *audioBuffer,size_t offset, size_t size);
 };
 

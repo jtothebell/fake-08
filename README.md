@@ -1,6 +1,6 @@
 # fake-08
 
-A Pico 8 player for homebrew consoles. Not related to or supported by Lexaloffle Software. [Latest release](https://github.com/jtothebell/fake-08/releases) includes releases for Nintendo 3DS, Nintendo Switch, Sony PS Vita, and Nintendo Wii U. If you are feeling extra brave, you can also download build aftifacts from the latest CI runs in the [Actions section](https://github.com/jtothebell/fake-08/actions)
+A Pico 8 player for homebrew consoles. Not related to or supported by Lexaloffle Software. [Latest release](https://github.com/jtothebell/fake-08/releases) includes releases for Nintendo 3DS, Nintendo Switch, Sony PS Vita, Nintendo Wii U, and the Miyoo CFW for bittboy and similar consoles. If you are feeling extra brave, you can also download build aftifacts from the latest CI runs in the [Actions section](https://github.com/jtothebell/fake-08/actions)
 
 ## Usage:
 Installation will vary by console and executable type. If it is a console with a homebrew menu (Switch, Wii U, 3DS using .3dsx), place the executable file in the directory with other executables. If it is a console with installable hombrew (3ds with .cia, or PS Vita) install executable (VitaShell on Vita or FBI on 3DS).
@@ -9,8 +9,10 @@ Pico 8 cart files go in the `p8carts/` directory of your memory card (SD card on
 
 Launch FAKE-08 either via the homebrew menu or normal system UI (depending on how you installed). Use left and right to cycle through carts on the SD card. Choose a cart using the `A` (Nintendo consoles) or `X`(Vita) button. To exit the currently running cart, press `Start` or `+` to open the pause menu and select `Exit to Menu`. Press `R` to cycle between rendering sizes. Press `L` and `R` simultaneously to exit the appication. You can also close it via your console's operating system controls (home button etc).
 
+For bittboy and similar consoles, back up `emus/pico8/pico8.elf`  and replace it with the one from the release. Place your cart files in `roms/pico-8/` and use the front end of choice to launch games. Press the menu button to return to the menu (though you can also press start and exit to the FAKE-08 bios menu if you would like).
+
 ## Building:
-All platforms have automated builds set up via GitHub actions using docker images. You can see how those are set up in the `.github/workflows` directory of the repo.
+All platforms (except bittboy currently) have automated builds set up via GitHub actions using docker images. You can see how those are set up in the `.github/workflows` directory of the repo.
 
 Building outside of a pre-setup docker container will require a toolchain installation for the platform that you want to build. 
 
@@ -22,12 +24,14 @@ Once you have the appropriate toolchain(s) installed, call `make` followed by th
 
 Building tested on windows using devkitpro's msys2 and Ubuntu (WSL and standalone). Should work on other plaforms as well.
 
+Building for bittboy requires builing your own toolchain first (and will probably only work on unix.). The toolchain is available at https://github.com/bittboy/buildroot/. Clone and build that repo, then recursively copy the contents of `/output/host/` to `/opt/miyoo/`. You should then be able to use the `make bittboy` command.
+
 ## Acknowledgements
  * Zep/Lexaloffle software for making pico 8. Buy a copy if you can. You won't regret it. https://www.lexaloffle.com/pico-8.php
  * Nintendo Homebrew Community
  * Vita Homebrew Community
  * zepto8 (https://github.com/samhocevar/zepto8) - Probably the best Pico 8 emulator. FAKE-08's audio, tline, emoji conversion, and newer png decompression implementations were ported from zepto8, and other parts were heavily influenced. I also use a slightly modified z8lua (https://github.com/samhocevar/z8lua) for pico 8 specific features.
- * PicoLove (https://github.com/gamax92/picolove) - basis for my previous project - PicoLovePotion - and where I first learned the basics of Pico 8's API
+ * PicoLove (https://github.com/gamax92/picolove) - Noise synthesis ported from this Pico Love, and it was also the basis for my previous project - PicoLovePotion - and where I first learned the basics of Pico 8's API
  * tac08 (https://github.com/0xcafed00d/tac08) - a Pico 8 emulator that I leared a lot from. FAKE-08's sprite rendering and cart parsing were originally based on tac08's implementations
  * LovePotion (https://github.com/TurtleP/LovePotion) - an implementation of Love2d for 3DS and switch that served as the runtime for PicoLovePotion, and a great way to make homebrew games for the 3DS and switch. I also use a modified version of their static Logger implementation
 
@@ -39,9 +43,9 @@ Latest Pico 8 version v0.2.2 features (sprite fill patterns, text control codes,
 
 Games using `flip()` (like tweetcarts) have intermittent problems exiting back to the menu, and may crash the console. Use with caution.
 
-Sound emulation is missing effects, and the noise implementation is wildly inaccurrate. Most of my sound implementation was ported over from Zepto 8 (which has better sound emulation) but I didn't want to bring over dependencies that were needed for those parts, and haven't otherwise implemented them yet
+Sound emulation is not perfect, and the noise implementation is noticably inaccurrate. Most of my sound implementation was ported over from Zepto 8. with the exception of the Noise instrument which was ported from PicoLove. It is not 100% accurate, and some games have noticable clipping/popping.
 
-Performance is not great on Old 3ds systems. Some games may experience slowdowns on the faster consoles as well. More optimizations are probably possible, but keep in mind that Pico 8 lists a raspberry pi 1 with a 700 MHz ARM11 professor as minimum spec, and the old 3DS's CPU is 268 MHz ARM11. Many games should be playable regardless. 
+Performance is not great on Old 3ds systems. Some games may experience slowdowns on the faster consoles as well. More optimizations are probably possible, but keep in mind that Pico 8 lists a raspberry pi 1 with a 700 MHz ARM11 professor as minimum spec, and the old 3DS's CPU is 268 MHz ARM11. Many games should be playable regardless, and hopefully more optimizations can be made.
 
 See [Issues](https://github.com/jtothebell/fake-08/issues) page for more specifics
 
