@@ -66,8 +66,10 @@ int pitch;
 SDL_Rect SrcR;
 SDL_Rect DestR;
 
-double textureAngle;
+int textureAngle;
 uint8_t flip; //0 none, 1 horizontal, 2 vertical - match SDL2's SDL_RendererFlip
+int drawModeScaleX = 1;
+int drawModeScaleY = 1;
 
 bool audioInitialized = false;
 
@@ -117,9 +119,17 @@ void audioSetup(){
     }
 }
 
+void _setSourceRect(int xoffset, int yoffset) {
+    SrcR.x = xoffset;
+    SrcR.y = yoffset;
+    SrcR.w = PicoScreenWidth / drawModeScaleX - (xoffset * 2);
+    SrcR.h = PicoScreenHeight / drawModeScaleY - (yoffset * 2);
+}
+
 void _changeStretch(StretchOption newStretch){
-    int srcx = 0;
-    int srcy = 0;
+    int xoffset = 0;
+    int yoffset = 0;
+
     if (newStretch == PixelPerfect) {
         _screenWidth = PicoScreenWidth;
         _screenHeight = PicoScreenHeight;
@@ -129,9 +139,9 @@ void _changeStretch(StretchOption newStretch){
         _screenHeight = _windowHeight; 
     }
     else if (newStretch == StretchAndOverflow) {
+        yoffset = 4 / drawModeScaleY;
         _screenWidth = PicoScreenWidth * 2;
-        _screenHeight = (PicoScreenHeight - 8) * 2;
-        srcy = 4;
+        _screenHeight = _windowHeight;
     }
     
 
@@ -140,10 +150,7 @@ void _changeStretch(StretchOption newStretch){
     DestR.w = _screenWidth;
     DestR.h = _screenHeight;
 
-    SrcR.x = srcx;
-    SrcR.y = srcy;
-    SrcR.w = PicoScreenWidth - (srcx * 2);
-    SrcR.h = PicoScreenHeight - (srcy * 2);
+    _setSourceRect(xoffset, yoffset);
 
     textureAngle = 0;
     flip = 0;
@@ -151,6 +158,8 @@ void _changeStretch(StretchOption newStretch){
     //clear the screen so nothing is left over behind current stretch
     SDL_FillRect(window, NULL, SDL_MapRGB(window->format, 0, 0, 0));
 }
+
+
 
 
 Host::Host() {
@@ -344,10 +353,64 @@ void set_pixel(SDL_Surface *surface, int x, int y, uint16_t pixel)
 */
 
 void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMode){
-    
+    drawModeScaleX = 1;
+    drawModeScaleY = 1;
+    switch(drawMode){
+        case 1:
+            drawModeScaleX = 2;
+            textureAngle = 0;
+            flip = 0;
+            break;
+        case 2:
+            drawModeScaleY = 2;
+            textureAngle = 0;
+            flip = 0;
+            break;
+        case 3:
+            drawModeScaleX = 2;
+            drawModeScaleY = 2;
+            textureAngle = 0;
+            flip = 0;
+            break;
+        //todo: mirroring
+        //case 4,6,7
+        case 129:
+            textureAngle = 0;
+            flip = 1;
+            break;
+        case 130:
+            textureAngle = 0;
+            flip = 2;
+            break;
+        case 131:
+            textureAngle = 0;
+            flip = 3;
+            break;
+        case 133:
+            textureAngle = 90;
+            flip = 0;
+            break;
+        case 134:
+            textureAngle = 180;
+            flip = 0;
+            break;
+        case 135:
+            textureAngle = 270;
+            flip = 0;
+            break;
+        default:
+            
+            textureAngle = 0;
+            flip = 0;
+            break;
+    }
+    int yoffset = stretch == StretchAndOverflow ? 4 / drawModeScaleX : 0;
+
+    _setSourceRect(0, yoffset);
+
     pixels = texture->pixels;
 
-    for (int y = 0; y < (PicoScreenHeight); y ++){
+    for (int y = 0; y < PicoScreenHeight; y ++){
         for (int x = 0; x < PicoScreenWidth; x ++){
             uint8_t c = getPixelNibble(x, y, picoFb);
             uint16_t col = _mapped16BitColors[screenPaletteMap[c]];

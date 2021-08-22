@@ -16,7 +16,7 @@ INCLUDES	:=	${INCLUDES}
 #---------------------------------------------------------------------------------
 CC = $(CXX)
 
-CFLAGS	:=	-g -Wall -O2 -ffunction-sections -DVER_STR=\"$(APP_VERSION)\" \
+CFLAGS	:=	-g -Wall -ffunction-sections -DVER_STR=\"$(APP_VERSION)\" \
 			$(DEFINES)
 
 CFLAGS	+=	$(INCLUDE)
