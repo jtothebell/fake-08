@@ -410,13 +410,87 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
 
     pixels = texture->pixels;
 
-    for (int y = 0; y < PicoScreenHeight; y ++){
-        for (int x = 0; x < PicoScreenWidth; x ++){
-            uint8_t c = getPixelNibble(x, y, picoFb);
-            uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+    //horizontal flip
+    if (textureAngle == 0 && flip == 1) {
+        for (int y = 0; y < PicoScreenHeight; y ++){
+            for (int x = 0; x < PicoScreenWidth; x ++){
+                uint8_t c = getPixelNibble(x, y, picoFb);
+                uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
 
-            base = ((uint16_t *)pixels) + ( y * PicoScreenHeight + x);
-            base[0] = col;
+                base = ((uint16_t *)pixels) + ( y * PicoScreenHeight + (127 - x));
+                base[0] = col;
+            }
+        }
+    }
+    //vertical flip
+    else if (textureAngle == 0 && flip == 2) {
+        for (int y = 0; y < PicoScreenHeight; y ++){
+            for (int x = 0; x < PicoScreenWidth; x ++){
+                uint8_t c = getPixelNibble(x, y, picoFb);
+                uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+
+                base = ((uint16_t *)pixels) + ((127 - y) * PicoScreenHeight + x);
+                base[0] = col;
+            }
+        }
+    }
+    //horizontal and vertical flip
+    else if (textureAngle == 0 && flip == 3) {
+        for (int y = 0; y < PicoScreenHeight; y ++){
+            for (int x = 0; x < PicoScreenWidth; x ++){
+                uint8_t c = getPixelNibble(x, y, picoFb);
+                uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+
+                base = ((uint16_t *)pixels) + ((127 - y) * PicoScreenHeight + (127 - x));
+                base[0] = col;
+            }
+        }
+    }
+    //rotated 90 degrees
+    else if (textureAngle == 90 && flip == 0) { 
+        for (int y = 0; y < PicoScreenHeight; y ++){
+            for (int x = 0; x < PicoScreenWidth; x ++){
+                uint8_t c = getPixelNibble(x, y, picoFb);
+                uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+
+                base = ((uint16_t *)pixels) + (x * PicoScreenHeight + (127 - y));
+                base[0] = col;
+            }
+        }
+    }
+    //rotated 180 degrees
+    else if (textureAngle == 180 && flip == 0) { 
+        for (int y = 0; y < PicoScreenHeight; y ++){
+            for (int x = 0; x < PicoScreenWidth; x ++){
+                uint8_t c = getPixelNibble(x, y, picoFb);
+                uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+
+                base = ((uint16_t *)pixels) + ((127 - y) * PicoScreenHeight + (127 - x));
+                base[0] = col;
+            }
+        }
+    }
+    //rotated 270 degrees
+    else if (textureAngle == 270 && flip == 0) { 
+        for (int y = 0; y < PicoScreenHeight; y ++){
+            for (int x = 0; x < PicoScreenWidth; x ++){
+                uint8_t c = getPixelNibble(x, y, picoFb);
+                uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+
+                base = ((uint16_t *)pixels) + ((127 - x) * PicoScreenHeight + y);
+                base[0] = col;
+            }
+        }
+    }
+    else { //default
+        for (int y = 0; y < PicoScreenHeight; y ++){
+            for (int x = 0; x < PicoScreenWidth; x ++){
+                uint8_t c = getPixelNibble(x, y, picoFb);
+                uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+
+                base = ((uint16_t *)pixels) + ( y * PicoScreenHeight + x);
+                base[0] = col;
+            }
         }
     }
 
