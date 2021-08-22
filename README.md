@@ -24,7 +24,7 @@ Once you have the appropriate toolchain(s) installed, call `make` followed by th
 
 Building tested on windows using devkitpro's msys2 and Ubuntu (WSL and standalone). Should work on other plaforms as well.
 
-Building for bittboy requires builing your own toolchain first (and will probably only work on unix.). The toolchain is available at https://github.com/bittboy/buildroot/. Clone and build that repo, then recursively copy the contents of `/output/host/` to `/opt/miyoo/`. You should then be able to use the `make bittboy` command.
+Building for bittboy requires builing your own toolchain first (and will probably only work on unix.). The toolchain is available at https://github.com/bittboy/buildroot/. Clone and build that repo, then recursively copy the contents of `output/host/` to `/opt/miyoo/`. You should then be able to use the `make bittboy` command.
 
 ## Acknowledgements
  * Zep/Lexaloffle software for making pico 8. Buy a copy if you can. You won't regret it. https://www.lexaloffle.com/pico-8.php
