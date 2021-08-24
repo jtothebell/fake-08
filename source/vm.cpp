@@ -325,6 +325,10 @@ bool Vm::loadCart(Cart* cart) {
         }
     }
 
+    if (_cartBreadcrumb.length() > 0) {
+        ExecuteLua("__addbreadcrumb(\"" + _cartBreadcrumb +"\", \"" + _prevCartKey +"\")", "");
+    }
+
     _cartLoadError = "";
 
     return true;
@@ -902,7 +906,9 @@ void Vm::vm_extcmd(std::string cmd){
 
 void Vm::vm_load(std::string filename, std::string breadcrumb, std::string param){
     _cartBreadcrumb = breadcrumb;
-    _cartParam = param;
+    if (param.length() > 0) {
+        _cartParam = param;
+    }
 
     QueueCartChange(filename);
 }

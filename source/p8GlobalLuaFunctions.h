@@ -151,6 +151,12 @@ function menuitem(index, label, callback)
     __f08_menu_items[index + 1][2] = callback
 end
 
+function __addbreadcrumb(label, carttoload)
+    __f08_menu_items[8] = {nil, nil}
+    __f08_menu_items[8][1] = label
+    __f08_menu_items[8][2] = function() load(carttoload) end
+end
+
 
 __f08_menu_items = {
     [0] = {"continue", __togglepausemenu},
@@ -194,9 +200,9 @@ end
 function __f08_menu_draw()
     local menuwidth = 82
     local itemcount = 0
-    for i=0, 7, 1 do
+    for i=0, 8, 1 do
         item = __f08_menu_items[i]
-        if item[1] and item[2] then
+        if item and item[1] and item[2] then
             itemcount = itemcount + 1
         end
     end
@@ -210,9 +216,9 @@ function __f08_menu_draw()
     local itemy = menuy + 6
     local itemidx = 0
 
-    for i=0, 7, 1 do
+    for i=0, 8, 1 do
         item = __f08_menu_items[i]
-        if item[1] and item[2] then
+        if item and item[1] and item[2] then
             print(item[1], itemx, itemy, 7)
             
             --draw selection indicator
