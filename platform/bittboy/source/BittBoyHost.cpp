@@ -134,14 +134,15 @@ void _changeStretch(StretchOption newStretch){
         _screenWidth = PicoScreenWidth;
         _screenHeight = PicoScreenHeight;
     }
-    else if (newStretch == StretchToFill){
-        _screenWidth = _windowWidth;
-        _screenHeight = _windowHeight; 
-    }
     else if (newStretch == StretchAndOverflow) {
         yoffset = 4 / drawModeScaleY;
         _screenWidth = PicoScreenWidth * 2;
         _screenHeight = _windowHeight;
+    }
+    //default to StretchToFill)
+    else {
+        _screenWidth = _windowWidth;
+        _screenHeight = _windowHeight; 
     }
     
 
@@ -165,10 +166,13 @@ void _changeStretch(StretchOption newStretch){
 Host::Host() {
     #ifdef _BITTBOY
     _cartDirectory = "/mnt/roms/PICO-8";
+    _logFilePrefix = "/mnt/emus/pico8/";
     #else
     std::string home = getenv("HOME");
     
     _cartDirectory = home + "/p8carts";
+    _logFilePrefix = home + "/fake08";
+
     #endif
  }
 
@@ -210,11 +214,15 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 
     //TODO: store in settings INI
     stretch = StretchToFill;
+    loadSettingsIni();
 
     _changeStretch(stretch);
 }
 
 void Host::oneTimeCleanup(){
+    //saving seems to increase the number of hard locks
+    //saveSettingsIni();
+
     audioCleanup();
 
     //SDL_DestroyRenderer(renderer);
@@ -240,7 +248,7 @@ void Host::changeStretch(){
         else if (stretch == PixelPerfect) {
             newStretch = StretchToFill;
         }
-        else if (stretch == StretchToFill) {
+        else{
             newStretch = StretchAndOverflow;
         }
 
