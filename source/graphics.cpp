@@ -17,8 +17,6 @@
 #include <fix32.h>
 using namespace z8;
 
-#define COMBINED_IDX(x, y) ((y) << 6) + ((x) >> 1)
-
 const uint8_t PicoScreenWidth = 128;
 const uint8_t PicoScreenHeight = 128;
 
@@ -456,7 +454,7 @@ void Graphics::_setPixelFromPen(int x, int y) {
 	uint8_t writeMask = hwState.colorBitmask & 15;
 	uint8_t readMask = hwState.colorBitmask >> 4;
 
-	//camera should already be applied, and x and y should be safe coords by now
+	//camera should already be applied, and x and y should be safe coords by now, so don't use pget
     //uint8_t source = pget(x, y);
 	uint8_t source = (BITMASK(0) & x) == 0 
 		? screenBuffer[COMBINED_IDX(x, y)] & 0x0f //just first 4 bits
@@ -558,9 +556,6 @@ void Graphics::_private_h_line(int x1, int x2, int y){
 	if (!(y >= drawState.clip_yb && y < drawState.clip_ye)) {
 		return;
 	}
-	//if (!isYWithinClip(y)){
-	//	return;
-	//}
 
 	if ((x1 < drawState.clip_xb && x2 < drawState.clip_xb) ||
 		(x1 > drawState.clip_xe && x2 > drawState.clip_xe)) {
@@ -583,11 +578,9 @@ void Graphics::_private_h_line(int x1, int x2, int y){
 		maxx - minx > 1;
 
 	if (canmemset) {
-		//zepto 8 otimized line draw with memset
+		//zepto 8 adapted otimized line draw with memset
 		uint8_t *p = _memory->screenBuffer + (y*64);
-        uint8_t color = drawState.color & 0xf;
-		int startIndex = COMBINED_IDX(x1, y);
-		int endIndex = COMBINED_IDX(x2, y);
+        uint8_t color = getDrawPalMappedColor(drawState.color);
 
         if (minx & 1)
         {
@@ -613,21 +606,48 @@ void Graphics::_private_h_line(int x1, int x2, int y){
 }
 
 void Graphics::_private_v_line (int y1, int y2, int x){
-	//save draw calls if its out
-	if (!isXWithinClip(x)){
+	auto &drawState = _memory->drawState;
+	auto &hwState = _memory->hwState;
+
+	if (!(x >= drawState.clip_xb && x < drawState.clip_xe)) {
 		return;
 	}
 
-	if ((y1 < _memory->drawState.clip_yb && y2 < _memory->drawState.clip_yb) ||
-		(y1 > _memory->drawState.clip_ye && y2 > _memory->drawState.clip_ye)) {
+	if ((y1 < drawState.clip_yb && y2 < drawState.clip_yb) ||
+		(y1 > drawState.clip_ye && y2 > drawState.clip_ye)) {
 			return;
 	}
 
-	int maxy = clampYCoordToClip(std::max(y1, y2));
-	int miny = clampYCoordToClip(std::min(y1, y2));
+	int maxy = clamp(
+		std::max(y1, y2),
+		(int)drawState.clip_yb,
+		(int)drawState.clip_ye - 1);
 
-	for (int y = miny; y <= maxy; y++){
-		_setPixelFromPen(x, y);
+	int miny = clamp(
+		std::min(y1, y2),
+		(int)drawState.clip_yb,
+		(int)drawState.clip_ye - 1);
+
+	bool skipPen = hwState.colorBitmask == 0xff && 
+		drawState.fillPattern[0] == 0 && 
+		drawState.fillPattern[1] == 0;
+
+	if (skipPen) {
+		uint8_t color = getDrawPalMappedColor(drawState.color);
+		uint8_t mask = (x & 1) ? 0x0f : 0xf0;
+		uint8_t nibble = (x & 1) ? color << 4 : color;
+
+		for (int16_t y = miny; y <= maxy; ++y)
+        {
+			int pixIdx = COMBINED_IDX(x, y);
+            auto &data = _memory->screenBuffer[pixIdx];
+            data = (data & mask) | nibble;
+        }
+	}
+	else {
+		for (int y = miny; y <= maxy; y++){
+			_setPixelFromPen(x, y);
+		}
 	}
 }
 
@@ -1181,7 +1201,6 @@ int Graphics::print(std::string str, int x, int y, uint8_t c) {
 
 	//todo: auto scrolling
 	_memory->drawState.text_y += 6;
-
 
 	return x;
 }

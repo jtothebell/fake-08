@@ -2,6 +2,8 @@
 
 #include <string>
 
+#define COMBINED_IDX(x, y) ((y) << 6) + ((x) >> 1)
+
 int getCombinedIdx(int x, int y);
 
 void setPixelNibble(const int x, const int y, uint8_t value, uint8_t* targetBuffer);

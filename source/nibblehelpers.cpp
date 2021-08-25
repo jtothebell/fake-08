@@ -5,7 +5,6 @@
 #include "nibblehelpers.h"
 
 
-#define COMBINED_IDX(x, y) ((y) << 6) + ((x) >> 1)
 
 int getCombinedIdx(const int x, const int y){
 	//bit shifting might be faster? trying to optimize
