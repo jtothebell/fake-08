@@ -4,6 +4,6 @@
 
 int getCombinedIdx(int x, int y);
 
-void setPixelNibble(int x, int y, uint8_t value, uint8_t* targetBuffer);
+void setPixelNibble(const int x, const int y, uint8_t value, uint8_t* targetBuffer);
 
-uint8_t getPixelNibble(int x, int y, uint8_t* targetBuffer);
+uint8_t getPixelNibble(const int x, const int y, const uint8_t* targetBuffer);

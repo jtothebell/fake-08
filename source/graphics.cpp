@@ -17,6 +17,8 @@
 #include <fix32.h>
 using namespace z8;
 
+#define COMBINED_IDX(x, y) ((y) << 6) + ((x) >> 1)
+
 const uint8_t PicoScreenWidth = 128;
 const uint8_t PicoScreenHeight = 128;
 
@@ -419,7 +421,11 @@ void Graphics::_setPixelFromPen(int x, int y) {
 	x = x & 127;
 	y = y & 127;
 
-	uint8_t col = _memory->drawState.color;
+	auto &drawState = _memory->drawState;
+	auto &hwState = _memory->hwState;
+	auto &screenBuffer = _memory->screenBuffer;
+
+	uint8_t col = drawState.color;
 
 	uint8_t col0 = col & 0x0f;
 	uint8_t col1 = (col & 0xf0) >> 4;
@@ -432,26 +438,33 @@ void Graphics::_setPixelFromPen(int x, int y) {
 	//uint8_t bitPlace = gridY * 4 + gridX;
 	uint8_t bitPlace = 15 - ((x & 3) + 4 * (y & 3));
 
-	uint16_t fillp = ((uint16_t)_memory->drawState.fillPattern[1] << 8) + _memory->drawState.fillPattern[0];
+	uint16_t fillp = ((uint16_t)drawState.fillPattern[1] << 8) + drawState.fillPattern[0];
 	bool altColor = (fillp >> bitPlace) & 0x1;
 	if (altColor) {
-		if (_memory->drawState.fillPatternTransparencyBit & 1){
+		if (drawState.fillPatternTransparencyBit & 1){
 			return;
 		}
 
 		finalC = col1;
 	}
 
-	finalC = getDrawPalMappedColor(finalC);
+	//finalC = getDrawPalMappedColor(finalC);
+	finalC = drawState.drawPaletteMap[finalC & 0x0f] & 0x0f; 
 
 	//from pico 8 wiki:
 	//dst_color = (dst_color & ~write_mask) | (src_color & write_mask & read_mask)
-	uint8_t writeMask = _memory->hwState.colorBitmask & 15;
-	uint8_t readMask = _memory->hwState.colorBitmask >> 4;
-    uint8_t source = pget(x, y);
+	uint8_t writeMask = hwState.colorBitmask & 15;
+	uint8_t readMask = hwState.colorBitmask >> 4;
+
+	//camera should already be applied, and x and y should be safe coords by now
+    //uint8_t source = pget(x, y);
+	uint8_t source = (BITMASK(0) & x) == 0 
+		? screenBuffer[COMBINED_IDX(x, y)] & 0x0f //just first 4 bits
+		: screenBuffer[COMBINED_IDX(x, y)] >> 4;
+
     finalC = (source & ~writeMask) | (finalC & writeMask & readMask);
 
-	setPixelNibble(x, y, finalC, _memory->screenBuffer);
+	setPixelNibble(x, y, finalC, screenBuffer);
 }
 //end helper methods
 
@@ -539,20 +552,63 @@ void Graphics::line (int x1, int y1, int x2, int y2){
 }
 
 void Graphics::_private_h_line(int x1, int x2, int y){
-	if (!isYWithinClip(y)){
+	auto &drawState = _memory->drawState;
+	auto &hwState = _memory->hwState;
+
+	if (!(y >= drawState.clip_yb && y < drawState.clip_ye)) {
 		return;
 	}
+	//if (!isYWithinClip(y)){
+	//	return;
+	//}
 
-	if ((x1 < _memory->drawState.clip_xb && x2 < _memory->drawState.clip_xb) ||
-		(x1 > _memory->drawState.clip_xe && x2 > _memory->drawState.clip_xe)) {
+	if ((x1 < drawState.clip_xb && x2 < drawState.clip_xb) ||
+		(x1 > drawState.clip_xe && x2 > drawState.clip_xe)) {
 			return;
 	}
 
-	int maxx = clampXCoordToClip(std::max(x1, x2));
-	int minx = clampXCoordToClip(std::min(x1, x2));
+	int maxx = clamp(
+		std::max(x1, x2),
+		(int)drawState.clip_xb,
+		(int)drawState.clip_xe - 1);
 
-	for (int x = minx; x <= maxx; x++){
-		_setPixelFromPen(x, y);
+	int minx = clamp(
+		std::min(x1, x2),
+		(int)drawState.clip_xb,
+		(int)drawState.clip_xe - 1);
+
+	bool canmemset = hwState.colorBitmask == 0xff && 
+		drawState.fillPattern[0] == 0 && 
+		drawState.fillPattern[1] == 0 &&
+		maxx - minx > 1;
+
+	if (canmemset) {
+		//zepto 8 otimized line draw with memset
+		uint8_t *p = _memory->screenBuffer + (y*64);
+        uint8_t color = drawState.color & 0xf;
+		int startIndex = COMBINED_IDX(x1, y);
+		int endIndex = COMBINED_IDX(x2, y);
+
+        if (minx & 1)
+        {
+			
+            p[minx / 2] = (p[minx / 2] & 0x0f) | (color << 4);
+            ++minx;
+        }
+
+        if ((maxx & 1) == 0)
+        {
+			
+            p[maxx / 2] = (p[maxx / 2] & 0xf0) | color;
+            --maxx;
+        }
+
+        memset(p + minx / 2, color * 0x11, (maxx - minx + 1) / 2);
+	}
+	else {
+		for (int x = minx; x <= maxx; x++){
+			_setPixelFromPen(x, y);
+		}
 	}
 }
 
@@ -991,12 +1047,27 @@ void Graphics::rect(int x1, int y1, int x2, int y2) {
 }
 
 void Graphics::rect(int x1, int y1, int x2, int y2, uint8_t col) {
-	color(col);
+	_memory->drawState.color = col;
 
-	applyCameraToPoint(&x1, &y1);
-	applyCameraToPoint(&x2, &y2);
+	//applyCameraToPoint(&x1, &y1);
+	x1 -= _memory->drawState.camera_x;
+	y1 -= _memory->drawState.camera_y;
+	//applyCameraToPoint(&x2, &y2);
+	x2 -= _memory->drawState.camera_x;
+	y2 -= _memory->drawState.camera_y;
 
-	sortCoordsForRect(&x1, &y1, &x2, &y2);
+	int temp;
+
+	if (x1 > x2) {
+		temp = x1;
+		x1 = x2;
+		x2 = temp;
+	}
+	if (y1 > y2) {
+		temp = y1;
+		y1 = y2;
+		y2 = temp;
+	}
 
 	_private_h_line(x1, x2, y1);
 	_private_h_line(x1, x2, y2);
@@ -1010,12 +1081,29 @@ void Graphics::rectfill(int x1, int y1, int x2, int y2) {
 }
 
 void Graphics::rectfill(int x1, int y1, int x2, int y2, uint8_t col) {
-	color(col);
+	auto &drawState = _memory->drawState;
 
-	applyCameraToPoint(&x1, &y1);
-	applyCameraToPoint(&x2, &y2);
+	drawState.color = col;
 
-	sortCoordsForRect(&x1, &y1, &x2, &y2);
+	//applyCameraToPoint(&x1, &y1);
+	x1 -= drawState.camera_x;
+	y1 -= drawState.camera_y;
+	//applyCameraToPoint(&x2, &y2);
+	x2 -= drawState.camera_x;
+	y2 -= drawState.camera_y;
+
+	int temp;
+
+	if (x1 > x2) {
+		temp = x1;
+		x1 = x2;
+		x2 = temp;
+	}
+	if (y1 > y2) {
+		temp = y1;
+		y1 = y2;
+		y2 = temp;
+	}
 
 	for (int y = y1; y <= y2; y++) {
 		_private_h_line(x1, x2, y);

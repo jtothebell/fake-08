@@ -16,13 +16,15 @@ INCLUDES	:=	${INCLUDES}
 #---------------------------------------------------------------------------------
 CC = $(CXX)
 
-CFLAGS	:=	-g -Wall -ffunction-sections -DVER_STR=\"$(APP_VERSION)\" \
+CFLAGS	:=	-g -Wall -Ofast -ffunction-sections -DVER_STR=\"$(APP_VERSION)\" \
 			$(DEFINES)
 
 CFLAGS	+=	$(INCLUDE)
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -std=gnu++17
 
+#to profile, link to gperftools profiler
+#LIBS	:= -Wl,--no-as-needed -lprofiler -Wl,--as-needed -lSDL 
 LIBS	:= -lSDL 
 
 LDFLAGS	:= $(LIBS)
