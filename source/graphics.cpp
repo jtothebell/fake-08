@@ -148,111 +148,37 @@ void Graphics::copySpriteToScreen(
 		int nclip = (scr_y + scr_h) - drawState.clip_ye;
 		scr_h -= nclip;
 	}
-	
-	int dy = 1;
-	if (flip_y) {
-		spr_y += spr_h - 1;
-		dy = -dy;
-	}
 
-	//ugly duplication but see if inlining helps
-	if (hwState.colorBitmask == 0xff){
-		for (int y = 0; y < scr_h; y++) {
-			uint8_t* spr = spritebuffer + ((spr_y + y * dy) & 0x7f) * 64;
+	for (int y = 0; y < scr_h; y++) {
+		for (int x = 0; x < scr_w; x++) {
+			int abs_spr_x = spr_x + (flip_x ? spr_w - (x + 1) : x);
+			int abs_spr_y = spr_y + (flip_y ? spr_h - (y + 1) : y);
+			int combinedSprShtIndx = COMBINED_IDX(abs_spr_x, abs_spr_y);
+			uint8_t bothPix = spritebuffer[combinedSprShtIndx];
 
-			if (!flip_x) {
-				for (int x = 0; x < scr_w; x++) {
-					int abs_spr_x = spr_x + x;
-					int combinedPixIdx = abs_spr_x / 2;
-					uint8_t bothPix = spr[combinedPixIdx];
-
-					uint8_t c = abs_spr_x % 2 == 0 
+			uint8_t c = (BITMASK(0) & abs_spr_x)== 0 
 						? bothPix & 0x0f //just first 4 bits
 						: bothPix >> 4;  //just last 4 bits
 
-					if (_memory->drawState.drawPaletteMap[c] >> 4){
-						continue;
-					}
-					c = drawState.drawPaletteMap[c] & 0x0f;
-					setPixelNibble(scr_x + x, scr_y + y, c, screenBuffer);
-				}
-			} else {
-				for (int x = 0; x < scr_w; x++) {
-					int pixIndex = spr_x + spr_w - (x + 1);
-					int combinedPixIdx = pixIndex / 2;
-					uint8_t bothPix = spr[combinedPixIdx];
-
-					uint8_t c = x % 2 == 0 
-						? bothPix >> 4 //just first 4 bits
-						: bothPix & 0x0f;  //just last 4 bits
-						
-					if (_memory->drawState.drawPaletteMap[c] >> 4){
-						continue;
-					}
-					c = drawState.drawPaletteMap[c] & 0x0f;
-					setPixelNibble(scr_x + x, scr_y + y, c, screenBuffer);
-				}
+			if (drawState.drawPaletteMap[c] >> 4){
+				continue;
 			}
+
+			c = drawState.drawPaletteMap[c] & 0x0f;
+			//setPixelNibble(scr_x + x, scr_y + y, c, screenBuffer);
+
+			const int finalx = scr_x + x;
+			const int finaly = scr_y + y;
+
+			uint8_t source = (BITMASK(0) & finalx) == 0 
+				? screenBuffer[COMBINED_IDX(finalx, finaly)] & 0x0f //just first 4 bits
+				: screenBuffer[COMBINED_IDX(finalx, finaly)] >> 4;
+
+			c = (source & ~writeMask) | (c & writeMask & readMask);
+
+			setPixelNibble(finalx, finaly, c, screenBuffer);
 		}
-	}
-	else {
-		for (int y = 0; y < scr_h; y++) {
-			uint8_t* spr = spritebuffer + ((spr_y + y * dy) & 0x7f) * 64;
 
-			if (!flip_x) {
-				for (int x = 0; x < scr_w; x++) {
-					int abs_spr_x = spr_x + x;
-					int combinedPixIdx = abs_spr_x / 2;
-					uint8_t bothPix = spr[combinedPixIdx];
-
-					uint8_t c = abs_spr_x % 2 == 0 
-						? bothPix & 0x0f //just first 4 bits
-						: bothPix >> 4;  //just last 4 bits
-						
-					if (_memory->drawState.drawPaletteMap[c] >> 4){
-						continue;
-					}
-					c = drawState.drawPaletteMap[c] & 0x0f;
-
-					const int finalx = scr_x + x;
-					const int finaly = scr_y + y;
-
-					uint8_t source = (BITMASK(0) & finalx) == 0 
-							? screenBuffer[COMBINED_IDX(finalx, finaly)] & 0x0f //just first 4 bits
-							: screenBuffer[COMBINED_IDX(finalx, finaly)] >> 4;
-
-					c = (source & ~writeMask) | (c & writeMask & readMask);
-
-					setPixelNibble(finalx, finaly, c, screenBuffer);
-				}
-			} else {
-				for (int x = 0; x < scr_w; x++) {
-					int pixIndex = spr_x + spr_w - (x + 1);
-					int combinedPixIdx = pixIndex / 2;
-					uint8_t bothPix = spr[combinedPixIdx];
-
-					uint8_t c = x % 2 == 0 
-						? bothPix >> 4 //just first 4 bits
-						: bothPix & 0x0f;  //just last 4 bits
-						
-					if (_memory->drawState.drawPaletteMap[c] >> 4){
-						continue;
-					}
-					c = drawState.drawPaletteMap[c] & 0x0f;
-
-					const int finalx = scr_x + x;
-					const int finaly = scr_y + y;
-
-					uint8_t source = (BITMASK(0) & finalx) == 0 
-							? screenBuffer[COMBINED_IDX(finalx, finaly)] & 0x0f //just first 4 bits
-							: screenBuffer[COMBINED_IDX(finalx, finaly)] >> 4;
-
-					c = (source & ~writeMask) | (c & writeMask & readMask);
-
-					setPixelNibble(finalx, finaly, c, screenBuffer);
-				}
-			}
-		}
 	}
 }
 
