@@ -148,35 +148,63 @@ void Graphics::copySpriteToScreen(
 		int nclip = (scr_y + scr_h) - drawState.clip_ye;
 		scr_h -= nclip;
 	}
+	uint8_t lastScreenBuffByte = 0;
+	int lastScreenBuffIdx = -1;
 
+	//since we get 2 pixels at a time, don't go through this whole loop every pixel
 	for (int y = 0; y < scr_h; y++) {
 		for (int x = 0; x < scr_w; x++) {
 			int abs_spr_x = spr_x + (flip_x ? spr_w - (x + 1) : x);
 			int abs_spr_y = spr_y + (flip_y ? spr_h - (y + 1) : y);
-			int combinedSprShtIndx = COMBINED_IDX(abs_spr_x, abs_spr_y);
-			uint8_t bothPix = spritebuffer[combinedSprShtIndx];
+			uint8_t bothPix = spritebuffer[COMBINED_IDX(abs_spr_x, abs_spr_y)];
 
-			uint8_t c = (BITMASK(0) & abs_spr_x)== 0 
-						? bothPix & 0x0f //just first 4 bits
-						: bothPix >> 4;  //just last 4 bits
+			//uint8_t c = (BITMASK(0) & abs_spr_x)== 0 
+			//			? bothPix & 0x0f //just first 4 bits
+			//			: bothPix >> 4;  //just last 4 bits
+			uint8_t lc = bothPix & 0x0f;
+			uint8_t rc = bothPix >> 4;
+			
+			const int finaly = scr_y + y;
+			const int finalx0 = scr_x + (flip_x ? x + 1 : x);
+			const int finalx1 = scr_x + (flip_x ? x : x + 1);
 
-			if (drawState.drawPaletteMap[c] >> 4){
-				continue;
+			if (!(drawState.drawPaletteMap[lc] >> 4)){
+				lc = drawState.drawPaletteMap[lc] & 0x0f;
+
+				int screenPixelIdx = COMBINED_IDX(finalx0, finaly);
+				if (lastScreenBuffIdx != screenPixelIdx) {
+					lastScreenBuffByte = screenBuffer[screenPixelIdx];
+					lastScreenBuffIdx = screenPixelIdx;
+				}
+
+				uint8_t source = (BITMASK(0) & finalx0) == 0 
+					? lastScreenBuffByte & 0x0f //just first 4 bits
+					: lastScreenBuffByte >> 4;
+
+				lc = (source & ~writeMask) | (lc & writeMask & readMask);
+
+				setPixelNibble(finalx0, finaly, lc, screenBuffer);
 			}
 
-			c = drawState.drawPaletteMap[c] & 0x0f;
-			//setPixelNibble(scr_x + x, scr_y + y, c, screenBuffer);
+			if (!(drawState.drawPaletteMap[rc] >> 4)){
+				rc = drawState.drawPaletteMap[rc] & 0x0f;
 
-			const int finalx = scr_x + x;
-			const int finaly = scr_y + y;
+				int screenPixelIdx = COMBINED_IDX(finalx1, finaly);
+				if (lastScreenBuffIdx != screenPixelIdx) {
+					lastScreenBuffByte = screenBuffer[screenPixelIdx];
+					lastScreenBuffIdx = screenPixelIdx;
+				}
 
-			uint8_t source = (BITMASK(0) & finalx) == 0 
-				? screenBuffer[COMBINED_IDX(finalx, finaly)] & 0x0f //just first 4 bits
-				: screenBuffer[COMBINED_IDX(finalx, finaly)] >> 4;
+				uint8_t source = (BITMASK(0) & finalx1) == 0 
+					? lastScreenBuffByte & 0x0f //just first 4 bits
+					: lastScreenBuffByte >> 4;
 
-			c = (source & ~writeMask) | (c & writeMask & readMask);
+				rc = (source & ~writeMask) | (rc & writeMask & readMask);
 
-			setPixelNibble(finalx, finaly, c, screenBuffer);
+				setPixelNibble(finalx1, finaly, rc, screenBuffer);
+			}
+			//we did two pixels so do an extra increment
+			++x;
 		}
 
 	}
