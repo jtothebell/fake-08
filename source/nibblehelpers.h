@@ -2,7 +2,8 @@
 
 #include <string>
 
-#define COMBINED_IDX(x, y) ((y) << 6) + ((x) >> 1)
+//should be the equivalent of return y * 64 + (x / 2);
+#define COMBINED_IDX(x, y) ((y) << 6) | ((x) >> 1)
 
 int getCombinedIdx(int x, int y);
 
