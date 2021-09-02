@@ -41,6 +41,12 @@ clean-sdl:
 
 clean-bittboy:
 	@$(MAKE) -C platform/bittboy clean
+	
+clean-funkey:
+	@$(MAKE) -C platform/funkey-s clean
+	
+clean-gcw0:
+	@$(MAKE) -C platform/gcw0 clean
 
 clean-miyoomini:
 	@$(MAKE) -C platform/miyoomini clean
@@ -66,8 +72,14 @@ sdl2:
 sdl:
 	@$(MAKE) -C platform/SDL1_2
 
+funkey:
+	@$(MAKE) -C platform/funkey-s
+
 bittboy:
 	@$(MAKE) -C platform/bittboy
+	
+gcw0:
+	@$(MAKE) -C platform/gcw0
 
 miyoomini:
 	@$(MAKE) -C platform/miyoomini
