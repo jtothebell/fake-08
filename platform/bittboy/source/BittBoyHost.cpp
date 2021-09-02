@@ -491,6 +491,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
         }
     }
     else { //default
+        /*
         for (int y = 0; y < PicoScreenHeight; y ++){
             for (int x = 0; x < PicoScreenWidth; x ++){
                 uint8_t c = getPixelNibble(x, y, picoFb);
@@ -498,6 +499,62 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
 
                 base = ((uint16_t *)pixels) + ( y * PicoScreenHeight + x);
                 base[0] = col;
+            }
+        }
+        */
+       const int pixelBlocksPerLine = PicoScreenWidth / 8;
+        for (int y = 0; y < PicoScreenHeight; y ++){
+            for (int x = 0; x < pixelBlocksPerLine; x ++){
+                int32_t eightPix = ((int32_t*)picoFb)[y * pixelBlocksPerLine + x];
+
+                int h = (eightPix >> 28) & 0x0f;
+                int g = (eightPix >> 24) & 0x0f;
+                int f = (eightPix >> 20) & 0x0f;
+                int e = (eightPix >> 16) & 0x0f;
+                int d = (eightPix >> 12) & 0x0f;
+                int c = (eightPix >>  8) & 0x0f;
+                int b = (eightPix >>  4) & 0x0f;
+                int a = (eightPix)       & 0x0f;
+
+                /*
+                //old way to check
+                uint8_t ca = getPixelNibble(x    , y, picoFb);
+                uint8_t cb = getPixelNibble(x + 1, y, picoFb);
+                uint8_t cc = getPixelNibble(x + 2, y, picoFb);
+                uint8_t cd = getPixelNibble(x + 3, y, picoFb);
+                uint8_t ce = getPixelNibble(x + 4, y, picoFb);
+                uint8_t cf = getPixelNibble(x + 5, y, picoFb);
+                uint8_t cg = getPixelNibble(x + 6, y, picoFb);
+                uint8_t ch = getPixelNibble(x + 7, y, picoFb);
+                */
+
+                uint16_t cola = _mapped16BitColors[screenPaletteMap[a]];
+                uint16_t colb = _mapped16BitColors[screenPaletteMap[b]];
+                uint16_t colc = _mapped16BitColors[screenPaletteMap[c]];
+                uint16_t cold = _mapped16BitColors[screenPaletteMap[d]];
+                uint16_t cole = _mapped16BitColors[screenPaletteMap[e]];
+                uint16_t colf = _mapped16BitColors[screenPaletteMap[f]];
+                uint16_t colg = _mapped16BitColors[screenPaletteMap[g]];
+                uint16_t colh = _mapped16BitColors[screenPaletteMap[h]];
+
+                base = ((uint16_t *)pixels) + ( y * PicoScreenHeight + x * 8);
+                base[0] = cola;
+                base[1] = colb;
+                base[2] = colc;
+                base[3] = cold;
+                base[4] = cole;
+                base[5] = colf;
+                base[6] = colg;
+                base[7] = colh;
+
+                //----OR----
+                /*
+                int32_t* base32 = ((int32_t *)pixels) + ( y * PicoScreenHeight + x * 4);
+                base32[0] = cola << 16 & colb;
+                base32[1] = colc << 16 & cold;
+                base32[2] = cole << 16 & colf;
+                base32[3] = colg << 16 & colh;
+                */
             }
         }
     }
