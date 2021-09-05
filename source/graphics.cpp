@@ -103,12 +103,20 @@ void Graphics::copySpriteToScreen(
 	int scr_w = spr_w;
 	int scr_h = spr_h;
 
-	applyCameraToPoint(&scr_x, &scr_y);
+	auto &drawState = _memory->drawState;
+	auto &hwState = _memory->hwState;
+	auto &screenBuffer = _memory->screenBuffer;
+	
+	const uint8_t writeMask = hwState.colorBitmask & 15;
+	const uint8_t readMask = hwState.colorBitmask >> 4;
+
+	scr_x -= drawState.camera_x;
+	scr_y -= drawState.camera_y;
 
 	// left clip
-	if (scr_x < _memory->drawState.clip_xb) {
-		int nclip = _memory->drawState.clip_xb - scr_x;
-		scr_x = _memory->drawState.clip_xb;
+	if (scr_x < drawState.clip_xb) {
+		int nclip = drawState.clip_xb - scr_x;
+		scr_x = drawState.clip_xb;
 		scr_w -= nclip;
 		if (!flip_x) {
 			spr_x += nclip;
@@ -118,15 +126,15 @@ void Graphics::copySpriteToScreen(
 	}
 
 	// right clip
-	if (scr_x + scr_w > _memory->drawState.clip_xe) {
-		int nclip = (scr_x + scr_w) - _memory->drawState.clip_xe;
+	if (scr_x + scr_w > drawState.clip_xe) {
+		int nclip = (scr_x + scr_w) - drawState.clip_xe;
 		scr_w -= nclip;
 	}
 
 	// top clip
-	if (scr_y < _memory->drawState.clip_yb) {
-		int nclip = _memory->drawState.clip_yb - scr_y;
-		scr_y = _memory->drawState.clip_yb;
+	if (scr_y < drawState.clip_yb) {
+		int nclip = drawState.clip_yb - scr_y;
+		scr_y = drawState.clip_yb;
 		scr_h -= nclip;
 		if (!flip_y) {
 			spr_y += nclip;
@@ -136,49 +144,88 @@ void Graphics::copySpriteToScreen(
 	}
 
 	// bottom clip
-	if (scr_y + scr_h > _memory->drawState.clip_ye) {
-		int nclip = (scr_y + scr_h) - _memory->drawState.clip_ye;
+	if (scr_y + scr_h > drawState.clip_ye) {
+		int nclip = (scr_y + scr_h) - drawState.clip_ye;
 		scr_h -= nclip;
 	}
-	
-	int dy = 1;
-	if (flip_y) {
-		spr_y += spr_h - 1;
-		dy = -dy;
+	uint8_t lastScreenBuffByte = 0;
+	int lastScreenBuffIdx = -1;
+
+	bool startWithHalf = false;
+	//starting with odd pixel
+	if (BITMASK(0) & spr_x) {
+		startWithHalf = true;
 	}
 
+	//since we get 2 pixels at a time, don't go through this whole loop every pixel
 	for (int y = 0; y < scr_h; y++) {
-		uint8_t* spr = spritebuffer + ((spr_y + y * dy) & 0x7f) * 64;
+		int x = 0;
+		while (x < scr_w) {
+			int abs_spr_x = spr_x + (flip_x ? spr_w - (x + 1) : x);
+			int abs_spr_y = spr_y + (flip_y ? spr_h - (y + 1) : y);
+			uint8_t bothPix = spritebuffer[COMBINED_IDX(abs_spr_x, abs_spr_y)];
 
-		if (!flip_x) {
-			for (int x = 0; x < scr_w; x++) {
-				int abs_spr_x = spr_x + x;
-				int combinedPixIdx = abs_spr_x / 2;
-				uint8_t bothPix = spr[combinedPixIdx];
+			//uint8_t c = (BITMASK(0) & abs_spr_x)== 0 
+			//			? bothPix & 0x0f //just first 4 bits
+			//			: bothPix >> 4;  //just last 4 bits
+			uint8_t lc = bothPix & 0x0f;
+			uint8_t rc = bothPix >> 4;
+			
+			const int finaly = scr_y + y;
+			int finalx = scr_x + (flip_x ? x + 1 : x);
+			
+			if (x > 0 || !startWithHalf){
+				if (!(drawState.drawPaletteMap[lc] >> 4)){
+					lc = drawState.drawPaletteMap[lc] & 0x0f;
 
-				uint8_t c = abs_spr_x % 2 == 0 
-					? bothPix & 0x0f //just first 4 bits
-					: bothPix >> 4;  //just last 4 bits
-					
-				if (isColorTransparent(c) == false) { //if not transparent. Come back later to add palt() support by checking tranparency palette
-					_setPixelFromSprite(scr_x + x, scr_y + y, c); //set color on framebuffer. Come back later and add pal() by translating color
+					int screenPixelIdx = COMBINED_IDX(finalx, finaly);
+					if (lastScreenBuffIdx != screenPixelIdx) {
+						lastScreenBuffByte = screenBuffer[screenPixelIdx];
+						lastScreenBuffIdx = screenPixelIdx;
+					}
+
+					uint8_t source = (BITMASK(0) & finalx) == 0 
+						? lastScreenBuffByte & 0x0f //just first 4 bits
+						: lastScreenBuffByte >> 4;
+
+					lc = (source & ~writeMask) | (lc & writeMask & readMask);
+
+					setPixelNibble(finalx, finaly, lc, screenBuffer);
+				}
+				++x;
+				if (flip_x){
+					--finalx;
+				}
+				else {
+					++finalx;
 				}
 			}
-		} else {
-			for (int x = 0; x < scr_w; x++) {
-				int pixIndex = spr_x + spr_w - (x + 1);
-				int combinedPixIdx = pixIndex / 2;
-				uint8_t bothPix = spr[combinedPixIdx];
 
-				uint8_t c = x % 2 == 0 
-					? bothPix >> 4 //just first 4 bits
-					: bothPix & 0x0f;  //just last 4 bits
-					
-				if (isColorTransparent(c) == false) { //if not transparent. Come back later to add palt() support by checking tranparency palette
-					_setPixelFromSprite(scr_x + x, scr_y + y, c); //set color on framebuffer. Come back later and add pal() by translating color
+			if (x < scr_w) {
+				if (!(drawState.drawPaletteMap[rc] >> 4)){
+					rc = drawState.drawPaletteMap[rc] & 0x0f;
+
+					int screenPixelIdx = COMBINED_IDX(finalx, finaly);
+					if (lastScreenBuffIdx != screenPixelIdx) {
+						lastScreenBuffByte = screenBuffer[screenPixelIdx];
+						lastScreenBuffIdx = screenPixelIdx;
+					}
+
+					uint8_t source = (BITMASK(0) & finalx) == 0 
+						? lastScreenBuffByte & 0x0f //just first 4 bits
+						: lastScreenBuffByte >> 4;
+
+					rc = (source & ~writeMask) | (rc & writeMask & readMask);
+
+					setPixelNibble(finalx, finaly, rc, screenBuffer);
 				}
+
+				//we did two pixels so do an extra increment
+				++x;
 			}
+			
 		}
+
 	}
 }
 
@@ -206,7 +253,15 @@ void Graphics::copyStretchSpriteToScreen(
 		return;
 	}
 
-	applyCameraToPoint(&scr_x, &scr_y);
+	auto &drawState = _memory->drawState;
+	auto &hwState = _memory->hwState;
+	auto &screenBuffer = _memory->screenBuffer;
+
+	const uint8_t writeMask = hwState.colorBitmask & 15;
+	const uint8_t readMask = hwState.colorBitmask >> 4;
+
+	scr_x -= drawState.camera_x;
+	scr_y -= drawState.camera_y;
 
 	if (scr_w < 0){
 		flip_x = !flip_x;
@@ -229,9 +284,9 @@ void Graphics::copyStretchSpriteToScreen(
 	int dy = spr_h / scr_h;
 
 	// left clip
-	if (scr_x < _memory->drawState.clip_xb) {
-		int nclip = _memory->drawState.clip_xb - scr_x;
-		scr_x = _memory->drawState.clip_xb;
+	if (scr_x < drawState.clip_xb) {
+		int nclip = drawState.clip_xb - scr_x;
+		scr_x = drawState.clip_xb;
 		scr_w -= nclip;
 		if (!flip_x) {
 			spr_x += nclip * dx;
@@ -241,15 +296,15 @@ void Graphics::copyStretchSpriteToScreen(
 	}
 
 	// right clip
-	if (scr_x + scr_w > _memory->drawState.clip_xe) {
-		int nclip = (scr_x + scr_w) - _memory->drawState.clip_xe;
+	if (scr_x + scr_w > drawState.clip_xe) {
+		int nclip = (scr_x + scr_w) - drawState.clip_xe;
 		scr_w -= nclip;
 	}
 
 	// top clip
-	if (scr_y < _memory->drawState.clip_yb) {
-		int nclip = _memory->drawState.clip_yb - scr_y;
-		scr_y = _memory->drawState.clip_yb;
+	if (scr_y < drawState.clip_yb) {
+		int nclip = drawState.clip_yb - scr_y;
+		scr_y = drawState.clip_yb;
 		scr_h -= nclip;
 		if (!flip_y) {
 			spr_y += nclip * dy;
@@ -259,8 +314,8 @@ void Graphics::copyStretchSpriteToScreen(
 	}
 
 	// bottom clip
-	if (scr_y + scr_h > _memory->drawState.clip_ye) {
-		int nclip = (scr_y + scr_h) - _memory->drawState.clip_ye;
+	if (scr_y + scr_h > drawState.clip_ye) {
+		int nclip = (scr_y + scr_h) - drawState.clip_ye;
 		scr_h -= nclip;
 	}
 
@@ -269,33 +324,101 @@ void Graphics::copyStretchSpriteToScreen(
 		dy = -dy;
 	}
 
-	for (int y = 0; y < scr_h; y++) {
-		uint8_t* spr = spritebuffer + (((spr_y + y * dy) >> 16) & 0x7f) * 64;
+	//ugly duplication but see if inlining helps
+	if (hwState.colorBitmask == 0xff){
+		for (int y = 0; y < scr_h; y++) {
+			uint8_t* spr = spritebuffer + (((spr_y + y * dy) >> 16) & 0x7f) * 64;
 
-		if (!flip_x) {
-			for (int x = 0; x < scr_w; x++) {
-				int pixIndex = (spr_x + x * dx);
-				int combinedPixIdx = ((pixIndex / 2) >> 16) & 0x7f;
-				uint8_t bothPix = spr[combinedPixIdx];
+			if (!flip_x) {
+				for (int x = 0; x < scr_w; x++) {
+					int pixIndex = (spr_x + x * dx);
+					int combinedPixIdx = ((pixIndex / 2) >> 16) & 0x7f;
+					uint8_t bothPix = spr[combinedPixIdx];
 
-				uint8_t c = (pixIndex >> 16) % 2 == 0 
-					? bothPix & 0x0f //just first 4 bits
-					: bothPix >> 4;  //just last 4 bits
-				if (isColorTransparent(c) == false) {
-					_setPixelFromSprite(scr_x + x, scr_y + y, c);
+					uint8_t c = (pixIndex >> 16) % 2 == 0 
+						? bothPix & 0x0f //just first 4 bits
+						: bothPix >> 4;  //just last 4 bits
+
+					if (_memory->drawState.drawPaletteMap[c] >> 4){
+						continue;
+					}
+					c = drawState.drawPaletteMap[c] & 0x0f;
+					setPixelNibble(scr_x + x, scr_y + y, c, screenBuffer);
+				}
+			} else {
+				for (int x = 0; x < scr_w; x++) {
+					int pixIndex = (spr_x + spr_w - (x + 1) * dx);
+					int combinedPixIdx = ((pixIndex / 2) >> 16) & 0x7f;
+					uint8_t bothPix = spr[combinedPixIdx];
+
+					uint8_t c = (pixIndex >> 16) % 2 == 0 
+						? bothPix & 0x0f //just first 4 bits
+						: bothPix >> 4;  //just last 4 bits
+					
+					if (_memory->drawState.drawPaletteMap[c] >> 4){
+						continue;
+					}
+					c = drawState.drawPaletteMap[c] & 0x0f;
+					setPixelNibble(scr_x + x, scr_y + y, c, screenBuffer);
 				}
 			}
-		} else {
-			for (int x = 0; x < scr_w; x++) {
-				int pixIndex = (spr_x + spr_w - (x + 1) * dx);
-				int combinedPixIdx = ((pixIndex / 2) >> 16) & 0x7f;
-				uint8_t bothPix = spr[combinedPixIdx];
+		}
+	}
+	else {
+		for (int y = 0; y < scr_h; y++) {
+			uint8_t* spr = spritebuffer + (((spr_y + y * dy) >> 16) & 0x7f) * 64;
 
-				uint8_t c = (pixIndex >> 16) % 2 == 0 
-					? bothPix & 0x0f //just first 4 bits
-					: bothPix >> 4;  //just last 4 bits
-				if (isColorTransparent(c) == false) {
-					_setPixelFromSprite(scr_x + x, scr_y + y, c);
+			if (!flip_x) {
+				for (int x = 0; x < scr_w; x++) {
+					int pixIndex = (spr_x + x * dx);
+					int combinedPixIdx = ((pixIndex / 2) >> 16) & 0x7f;
+					uint8_t bothPix = spr[combinedPixIdx];
+
+					uint8_t c = (pixIndex >> 16) % 2 == 0 
+						? bothPix & 0x0f //just first 4 bits
+						: bothPix >> 4;  //just last 4 bits
+
+					if (_memory->drawState.drawPaletteMap[c] >> 4){
+						continue;
+					}
+					c = drawState.drawPaletteMap[c] & 0x0f;
+
+					const int finalx = scr_x + x;
+					const int finaly = scr_y + y;
+
+					uint8_t source = (BITMASK(0) & finalx) == 0 
+							? screenBuffer[COMBINED_IDX(finalx, finaly)] & 0x0f //just first 4 bits
+							: screenBuffer[COMBINED_IDX(finalx, finaly)] >> 4;
+
+					c = (source & ~writeMask) | (c & writeMask & readMask);
+
+					setPixelNibble(finalx, finaly, c, screenBuffer);
+				}
+			} else {
+				for (int x = 0; x < scr_w; x++) {
+					int pixIndex = (spr_x + spr_w - (x + 1) * dx);
+					int combinedPixIdx = ((pixIndex / 2) >> 16) & 0x7f;
+					uint8_t bothPix = spr[combinedPixIdx];
+
+					uint8_t c = (pixIndex >> 16) % 2 == 0 
+						? bothPix & 0x0f //just first 4 bits
+						: bothPix >> 4;  //just last 4 bits
+
+					if (_memory->drawState.drawPaletteMap[c] >> 4){
+						continue;
+					}
+					c = drawState.drawPaletteMap[c] & 0x0f;
+					
+					const int finalx = scr_x + x;
+					const int finaly = scr_y + y;
+					
+					uint8_t source = (BITMASK(0) & finalx) == 0 
+							? screenBuffer[COMBINED_IDX(finalx, finaly)] & 0x0f //just first 4 bits
+							: screenBuffer[COMBINED_IDX(finalx, finaly)] >> 4;
+
+					c = (source & ~writeMask) | (c & writeMask & readMask);
+
+					setPixelNibble(finalx, finaly, c, screenBuffer);
 				}
 			}
 		}
@@ -403,23 +526,37 @@ void Graphics::_setPixelFromSprite(int x, int y, uint8_t col) {
 	x = x & 127;
 	y = y & 127;
 
-	col = getDrawPalMappedColor(col);
+	auto &drawState = _memory->drawState;
+	auto &hwState = _memory->hwState;
+	auto &screenBuffer = _memory->screenBuffer;
 
-	//from pico 8 wiki:
-	//dst_color = (dst_color & ~write_mask) | (src_color & write_mask & read_mask)
-	uint8_t writeMask = _memory->hwState.colorBitmask & 15;
-	uint8_t readMask = _memory->hwState.colorBitmask >> 4;
-    uint8_t source = pget(x, y);
-    col = (source & ~writeMask) | (col & writeMask & readMask);
+	//col = getDrawPalMappedColor(col);
+	col = drawState.drawPaletteMap[col & 0x0f] & 0x0f; 
 
-	setPixelNibble(x, y, col, _memory->screenBuffer);
+	if (hwState.colorBitmask != 0xff) {
+		//from pico 8 wiki:
+		//dst_color = (dst_color & ~write_mask) | (src_color & write_mask & read_mask)
+		uint8_t writeMask = hwState.colorBitmask & 15;
+		uint8_t readMask = hwState.colorBitmask >> 4;
+		//uint8_t source = pget(x, y);
+		uint8_t source = (BITMASK(0) & x) == 0 
+				? screenBuffer[COMBINED_IDX(x, y)] & 0x0f //just first 4 bits
+				: screenBuffer[COMBINED_IDX(x, y)] >> 4;
+		col = (source & ~writeMask) | (col & writeMask & readMask);
+	}
+
+	setPixelNibble(x, y, col, screenBuffer);
 }
 
 void Graphics::_setPixelFromPen(int x, int y) {
 	x = x & 127;
 	y = y & 127;
 
-	uint8_t col = _memory->drawState.color;
+	auto &drawState = _memory->drawState;
+	auto &hwState = _memory->hwState;
+	auto &screenBuffer = _memory->screenBuffer;
+
+	uint8_t col = drawState.color;
 
 	uint8_t col0 = col & 0x0f;
 	uint8_t col1 = (col & 0xf0) >> 4;
@@ -432,26 +569,35 @@ void Graphics::_setPixelFromPen(int x, int y) {
 	//uint8_t bitPlace = gridY * 4 + gridX;
 	uint8_t bitPlace = 15 - ((x & 3) + 4 * (y & 3));
 
-	uint16_t fillp = ((uint16_t)_memory->drawState.fillPattern[1] << 8) + _memory->drawState.fillPattern[0];
+	uint16_t fillp = ((uint16_t)drawState.fillPattern[1] << 8) + drawState.fillPattern[0];
 	bool altColor = (fillp >> bitPlace) & 0x1;
 	if (altColor) {
-		if (_memory->drawState.fillPatternTransparencyBit & 1){
+		if (drawState.fillPatternTransparencyBit & 1){
 			return;
 		}
 
 		finalC = col1;
 	}
 
-	finalC = getDrawPalMappedColor(finalC);
+	//finalC = getDrawPalMappedColor(finalC);
+	finalC = drawState.drawPaletteMap[finalC & 0x0f] & 0x0f; 
 
 	//from pico 8 wiki:
 	//dst_color = (dst_color & ~write_mask) | (src_color & write_mask & read_mask)
-	uint8_t writeMask = _memory->hwState.colorBitmask & 15;
-	uint8_t readMask = _memory->hwState.colorBitmask >> 4;
-    uint8_t source = pget(x, y);
-    finalC = (source & ~writeMask) | (finalC & writeMask & readMask);
+	if (hwState.colorBitmask != 0xff){
+		uint8_t writeMask = hwState.colorBitmask & 15;
+		uint8_t readMask = hwState.colorBitmask >> 4;
 
-	setPixelNibble(x, y, finalC, _memory->screenBuffer);
+		//camera should already be applied, and x and y should be safe coords by now, so don't use pget
+		//uint8_t source = pget(x, y);
+		uint8_t source = (BITMASK(0) & x) == 0 
+			? screenBuffer[COMBINED_IDX(x, y)] & 0x0f //just first 4 bits
+			: screenBuffer[COMBINED_IDX(x, y)] >> 4;
+
+		finalC = (source & ~writeMask) | (finalC & writeMask & readMask);
+	}
+
+	setPixelNibble(x, y, finalC, screenBuffer);
 }
 //end helper methods
 
@@ -539,39 +685,104 @@ void Graphics::line (int x1, int y1, int x2, int y2){
 }
 
 void Graphics::_private_h_line(int x1, int x2, int y){
-	if (!isYWithinClip(y)){
+	auto &drawState = _memory->drawState;
+	auto &hwState = _memory->hwState;
+
+	if (!(y >= drawState.clip_yb && y < drawState.clip_ye)) {
 		return;
 	}
 
-	if ((x1 < _memory->drawState.clip_xb && x2 < _memory->drawState.clip_xb) ||
-		(x1 > _memory->drawState.clip_xe && x2 > _memory->drawState.clip_xe)) {
+	if ((x1 < drawState.clip_xb && x2 < drawState.clip_xb) ||
+		(x1 > drawState.clip_xe && x2 > drawState.clip_xe)) {
 			return;
 	}
 
-	int maxx = clampXCoordToClip(std::max(x1, x2));
-	int minx = clampXCoordToClip(std::min(x1, x2));
+	int maxx = clamp(
+		std::max(x1, x2),
+		(int)drawState.clip_xb,
+		(int)drawState.clip_xe - 1);
 
-	for (int x = minx; x <= maxx; x++){
-		_setPixelFromPen(x, y);
+	int minx = clamp(
+		std::min(x1, x2),
+		(int)drawState.clip_xb,
+		(int)drawState.clip_xe - 1);
+
+	bool canmemset = hwState.colorBitmask == 0xff && 
+		drawState.fillPattern[0] == 0 && 
+		drawState.fillPattern[1] == 0 &&
+		maxx - minx > 1;
+
+	if (canmemset) {
+		//zepto 8 adapted otimized line draw with memset
+		uint8_t *p = _memory->screenBuffer + (y*64);
+        uint8_t color = getDrawPalMappedColor(drawState.color);
+
+        if (minx & 1)
+        {
+			
+            p[minx / 2] = (p[minx / 2] & 0x0f) | (color << 4);
+            ++minx;
+        }
+
+        if ((maxx & 1) == 0)
+        {
+			
+            p[maxx / 2] = (p[maxx / 2] & 0xf0) | color;
+            --maxx;
+        }
+
+        memset(p + minx / 2, color * 0x11, (maxx - minx + 1) / 2);
+	}
+	else {
+		for (int x = minx; x <= maxx; x++){
+			_setPixelFromPen(x, y);
+		}
 	}
 }
 
 void Graphics::_private_v_line (int y1, int y2, int x){
-	//save draw calls if its out
-	if (!isXWithinClip(x)){
+	auto &drawState = _memory->drawState;
+	auto &hwState = _memory->hwState;
+
+	if (!(x >= drawState.clip_xb && x < drawState.clip_xe)) {
 		return;
 	}
 
-	if ((y1 < _memory->drawState.clip_yb && y2 < _memory->drawState.clip_yb) ||
-		(y1 > _memory->drawState.clip_ye && y2 > _memory->drawState.clip_ye)) {
+	if ((y1 < drawState.clip_yb && y2 < drawState.clip_yb) ||
+		(y1 > drawState.clip_ye && y2 > drawState.clip_ye)) {
 			return;
 	}
 
-	int maxy = clampYCoordToClip(std::max(y1, y2));
-	int miny = clampYCoordToClip(std::min(y1, y2));
+	int maxy = clamp(
+		std::max(y1, y2),
+		(int)drawState.clip_yb,
+		(int)drawState.clip_ye - 1);
 
-	for (int y = miny; y <= maxy; y++){
-		_setPixelFromPen(x, y);
+	int miny = clamp(
+		std::min(y1, y2),
+		(int)drawState.clip_yb,
+		(int)drawState.clip_ye - 1);
+
+	bool skipPen = hwState.colorBitmask == 0xff && 
+		drawState.fillPattern[0] == 0 && 
+		drawState.fillPattern[1] == 0;
+
+	if (skipPen) {
+		uint8_t color = getDrawPalMappedColor(drawState.color);
+		uint8_t mask = (x & 1) ? 0x0f : 0xf0;
+		uint8_t nibble = (x & 1) ? color << 4 : color;
+
+		for (int16_t y = miny; y <= maxy; ++y)
+        {
+			int pixIdx = COMBINED_IDX(x, y);
+            auto &data = _memory->screenBuffer[pixIdx];
+            data = (data & mask) | nibble;
+        }
+	}
+	else {
+		for (int y = miny; y <= maxy; y++){
+			_setPixelFromPen(x, y);
+		}
 	}
 }
 
@@ -991,12 +1202,27 @@ void Graphics::rect(int x1, int y1, int x2, int y2) {
 }
 
 void Graphics::rect(int x1, int y1, int x2, int y2, uint8_t col) {
-	color(col);
+	_memory->drawState.color = col;
 
-	applyCameraToPoint(&x1, &y1);
-	applyCameraToPoint(&x2, &y2);
+	//applyCameraToPoint(&x1, &y1);
+	x1 -= _memory->drawState.camera_x;
+	y1 -= _memory->drawState.camera_y;
+	//applyCameraToPoint(&x2, &y2);
+	x2 -= _memory->drawState.camera_x;
+	y2 -= _memory->drawState.camera_y;
 
-	sortCoordsForRect(&x1, &y1, &x2, &y2);
+	int temp;
+
+	if (x1 > x2) {
+		temp = x1;
+		x1 = x2;
+		x2 = temp;
+	}
+	if (y1 > y2) {
+		temp = y1;
+		y1 = y2;
+		y2 = temp;
+	}
 
 	_private_h_line(x1, x2, y1);
 	_private_h_line(x1, x2, y2);
@@ -1010,12 +1236,29 @@ void Graphics::rectfill(int x1, int y1, int x2, int y2) {
 }
 
 void Graphics::rectfill(int x1, int y1, int x2, int y2, uint8_t col) {
-	color(col);
+	auto &drawState = _memory->drawState;
 
-	applyCameraToPoint(&x1, &y1);
-	applyCameraToPoint(&x2, &y2);
+	drawState.color = col;
 
-	sortCoordsForRect(&x1, &y1, &x2, &y2);
+	//applyCameraToPoint(&x1, &y1);
+	x1 -= drawState.camera_x;
+	y1 -= drawState.camera_y;
+	//applyCameraToPoint(&x2, &y2);
+	x2 -= drawState.camera_x;
+	y2 -= drawState.camera_y;
+
+	int temp;
+
+	if (x1 > x2) {
+		temp = x1;
+		x1 = x2;
+		x2 = temp;
+	}
+	if (y1 > y2) {
+		temp = y1;
+		y1 = y2;
+		y2 = temp;
+	}
 
 	for (int y = y1; y <= y2; y++) {
 		_private_h_line(x1, x2, y);
@@ -1093,7 +1336,6 @@ int Graphics::print(std::string str, int x, int y, uint8_t c) {
 
 	//todo: auto scrolling
 	_memory->drawState.text_y += 6;
-
 
 	return x;
 }

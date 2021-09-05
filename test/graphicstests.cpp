@@ -259,7 +259,7 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("line({x}, {y}, {c}) draws (vertical down)") {
+    SUBCASE("line({x}, {y}, {c}) draws (vertical down, even x value)") {
         graphics->cls();
         picoRam.drawState.line_x = 20;
         picoRam.drawState.line_y = 20;
@@ -272,6 +272,23 @@ TEST_CASE("graphics class behaves as expected") {
             {20, 22, 13},
             {20, 23, 13},
             {20, 24, 13}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("line({x}, {y}, {c}) draws (vertical up, odd x value)") {
+        graphics->cls();
+        picoRam.drawState.line_x = 21;
+        picoRam.drawState.line_y = 24;
+        picoRam.drawState.lineInvalid = false;
+        graphics->line(21, 20, 3);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {21, 20, 3},
+            {21, 21, 3},
+            {21, 22, 3},
+            {21, 23, 3},
+            {21, 24, 3}
         };
 
         checkPoints(graphics, expectedPoints);

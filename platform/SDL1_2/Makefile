@@ -16,13 +16,18 @@ INCLUDES	:=	${INCLUDES}
 #---------------------------------------------------------------------------------
 CC = $(CXX)
 
-CFLAGS	:=	-g -Wall -ffunction-sections -DVER_STR=\"$(APP_VERSION)\" \
+CFLAGS	:=	-g -Wall -Ofast -ffunction-sections -DVER_STR=\"$(APP_VERSION)\" \
 			$(DEFINES)
 
 CFLAGS	+=	$(INCLUDE)
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -std=gnu++17
 
+#to profile, link to gperftools profiler
+#LIBS	:= -Wl,--no-as-needed -lprofiler -Wl,--as-needed -lSDL 
+#alternatively, use operf
+#sudo operf ./platform/SDL1_2/FAKE08 ~/p8carts/png-x-zero.p8.png 
+#opreport --demangle=smart --symbols > fake08-x-zero-master-preoptim2.txt
 LIBS	:= -lSDL 
 
 LDFLAGS	:= $(LIBS)
