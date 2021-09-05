@@ -291,7 +291,7 @@ vector<string> Host::listcarts(){
                 continue;
             }
 
-            if (isCartFile(dirent->d_name)){
+            if (isCartFile(dirent.d_name)){
                 carts.push_back(_cartDirectory + "/" + dirent.d_name);
             }
         } while (ret > 0);
