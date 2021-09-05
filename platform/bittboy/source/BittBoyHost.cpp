@@ -12,6 +12,7 @@ using namespace std;
 #include "../../../source/hostVmShared.h"
 #include "../../../source/nibblehelpers.h"
 #include "../../../source/logger.h"
+#include "../../../source/filehelpers.h"
 
 // sdl
 #include <SDL/SDL.h>
@@ -536,7 +537,9 @@ vector<string> Host::listcarts(){
     if ((dir = opendir (_cartDirectory.c_str())) != NULL) {
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
-            carts.push_back(_cartDirectory + "/" + ent->d_name);
+            if (isCartFile(ent->d_name)){
+                carts.push_back(_cartDirectory + "/" + ent->d_name);
+            }
         }
         closedir (dir);
     } else {

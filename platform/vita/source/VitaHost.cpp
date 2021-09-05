@@ -15,6 +15,7 @@ using namespace std;
 #include "../../../source/hostVmShared.h"
 #include "../../../source/nibblehelpers.h"
 #include "../../../source/logger.h"
+#include "../../../source/filehelpers.h"
 
 #include <psp2/kernel/processmgr.h>
 #include <psp2/io/fcntl.h>
@@ -290,7 +291,9 @@ vector<string> Host::listcarts(){
                 continue;
             }
 
-            carts.push_back(_cartDirectory + "/" + dirent.d_name);
+            if (isCartFile(ent->d_name)){
+                carts.push_back(_cartDirectory + "/" + dirent.d_name);
+            }
         } while (ret > 0);
 
         sceIoDclose(dir);

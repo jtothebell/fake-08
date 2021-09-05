@@ -159,7 +159,7 @@ vector<string> Host::listcarts(){
     if ((dir = opendir (_cartDirectory.c_str())) != NULL) {
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
-            if (hasEnding(ent->d_name, ".p8") || hasEnding(ent->d_name, ".png")){
+            if (isCartFile(ent->d_name)){
                 carts.push_back(ent->d_name);
             }
         }

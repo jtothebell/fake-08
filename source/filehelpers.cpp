@@ -70,3 +70,16 @@ bool hasEnding (std::string const &fullString, std::string const &ending) {
     }
 }
 
+bool isHiddenFile (std::string const &fullString) {
+    if (fullString.length() >= 0) {
+        return (0 == fullString.compare (0, 2, "._"));
+    } else {
+        return false;
+    }
+}
+
+bool isCartFile (std::string const &fullString) {
+    return !isHiddenFile(fullString) && 
+        (hasEnding(fullString, ".p8") || hasEnding(fullString, ".png"));
+}
+
