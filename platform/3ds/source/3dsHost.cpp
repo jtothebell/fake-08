@@ -709,7 +709,7 @@ vector<string> Host::listcarts(){
     if (dir) {
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
-            if (isCartFile(ent->d_name)){
+            if (filehelpers::isCartFile(ent->d_name)){
                 carts.push_back(_cartDirectory + ent->d_name);
             }
         }

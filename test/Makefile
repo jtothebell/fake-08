@@ -6,13 +6,14 @@
 # graphics.o graphicstests.o stringToDataHelpers.o mathhelpers.o \  \
 	cart.o carttests.o nooplogger.o lodepng.o emojiconversion.o \
 	vm.o endtoendtests.o picoluaapi.o Input.o \
+	vm.o picoluaapi.o Input.o stubhost.o vmtests.o \
 	vm.o Input.o \
 	vmtests.o stubhost.o \
 	cart.o picoluaapi.o  \
 
 
 CFLAGS := -Wall -g -c \
-		  -fno-rtti -fno-exceptions -std=gnu++17
+		  -fno-rtti -fexceptions -std=gnu++17
 
 
 all: runtests
@@ -30,6 +31,7 @@ testrunner.a: testroot.o \
 	nooplogger.o lodepng.o emojiconversion.o \
 	Audio.o synth.o audiotests.o \
 	graphics.o graphicstests.o \
+	cart.o carttests.o \
 	-llua -ldl \
 	-o testrunner.a
 

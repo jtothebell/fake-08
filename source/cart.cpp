@@ -295,7 +295,7 @@ bool Cart::loadCartFromPng(std::string filename){
 
 }
 
-static std::regex _includeRegex = std::regex("\\s*#include\\s+([\\\\/\\w-\\.]+)");
+static std::regex _includeRegex = std::regex("\\s*#include\\s+([\\\\/A-Za-z0-9_-\\.]+)");
 
 //tac08 based cart parsing and stripping of emoji
 Cart::Cart(std::string filename, std::string cartDirectory){
