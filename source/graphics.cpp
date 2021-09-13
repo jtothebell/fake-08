@@ -14,11 +14,11 @@
 
 #include "logger.h"
 
-#include <fix32.h>
-using namespace z8;
+extern "C" {
+	#include <fix16.h>
+}
 
-const uint8_t PicoScreenWidth = 128;
-const uint8_t PicoScreenHeight = 128;
+
 
 
 //call initialize to make sure defaults are correct
@@ -828,7 +828,7 @@ void Graphics::line(int x0, int y0, int x1, int y1, uint8_t col) {
 }
 
 
-void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my){
+void Graphics::tline(int x0, int y0, int x1, int y1, fix16_t mx, fix16_t my){
 	tline(
 		x0,
 		y0,
@@ -836,13 +836,13 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my){
 		y1,
 		mx,
 		my,
-		fix32::frombits(0x2000), // 1/8
-		fix32(0)
+		0x2000, // 1/8
+		0
 	);
 }
 
 //ported from zepto 8 impl
-void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 mdx, fix32 mdy){
+void Graphics::tline(int x0, int y0, int x1, int y1, fix16_t mx, fix16_t my, fix16_t mdx, fix16_t mdy){
 	applyCameraToPoint(&x0, &y0);
 	applyCameraToPoint(&x1, &y1);
 
@@ -861,22 +861,22 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 m
 	auto &ds = _memory->drawState;
 
 	// Retrieve masks for wrap-around and subtract 0x0.0001
-	fix32 xmask = fix32(ds.tlineMapWidth) - fix32::frombits(1);
-    fix32 ymask = fix32(ds.tlineMapHeight) - fix32::frombits(1);
+	fix16_t xmask = fix16_from_int(ds.tlineMapWidth) - fix16_eps;
+    fix16_t ymask = fix16_from_int(ds.tlineMapHeight) - fix16_eps;
 
 	// Advance texture coordinates; do it in steps to avoid overflows
     int delta = abs(xDifGreater ? x - x0 : y - y0);
     while (delta) {
         int step = std::min(8192, delta);
-        mx = (mx & ~xmask) | ((mx + mdx * fix32(step)) & xmask);
-        my = (my & ~ymask) | ((my + mdy * fix32(step)) & ymask);
+        mx = (mx & ~xmask) | ((mx + fix16_mul(mdx, fix16_from_int(step))) & xmask);
+        my = (my & ~ymask) | ((my + fix16_mul(mdy, fix16_from_int(step))) & ymask);
         delta -= step;
     }
 
 	for (;;) {
         // Find sprite in map memory
-        int sx = (ds.tlineMapXOffset + int(mx));
-        int sy = (ds.tlineMapYOffset + int(my));
+        int sx = (ds.tlineMapXOffset + fix16_to_int(mx));
+        int sy = (ds.tlineMapYOffset + fix16_to_int(my));
 		uint8_t sprite = mget(sx, sy);
         //uint8_t bits = fget(sprite);
 
@@ -889,8 +889,8 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 m
             //uint8_t col = _memory->spriteSheetData.gfx.get(spr_x + (int(mx << 3) & 0x7),
             //                        spr_y + (int(my << 3) & 0x7));
 			uint8_t col = getPixelNibble(
-				spr_x + (int(mx << 3) & 0x7),
-				spr_y + (int(my << 3) & 0x7),
+				spr_x + (fix16_to_int(mx << 3) & 0x7),
+				spr_y + (fix16_to_int(my << 3) & 0x7),
 				_memory->spriteSheetData);
 
             if (!isColorTransparent(col) && isWithinClip(x, y)) {
@@ -1265,22 +1265,22 @@ void Graphics::rectfill(int x1, int y1, int x2, int y2, uint8_t col) {
 	}
 }
 
-fix32 Graphics::fillp(fix32 pat) {
+fix16_t Graphics::fillp(fix16_t pat) {
 	int32_t prev = (_memory->drawState.fillPattern[0] << 16)
                  | (_memory->drawState.fillPattern[1] << 24)
                  | (_memory->drawState.fillPatternTransparencyBit << 8);
 
-	uint8_t patByte0 = pat.bits() >> 16;
-	uint8_t patByte1 = pat.bits() >> 24;
+	uint8_t patByte0 = pat >> 16;
+	uint8_t patByte1 = pat >> 24;
 
-	uint8_t patTranspByte = pat.bits() >> 15;
+	uint8_t patTranspByte = pat >> 15;
 
 	_memory->drawState.fillPattern[0] = patByte0;
 	_memory->drawState.fillPattern[1] = patByte1;
 
 	_memory->drawState.fillPatternTransparencyBit = patTranspByte & 1;
 
-	return z8::fix32::frombits(prev);
+	return (fix16_t)prev;
 }
 
 int Graphics::print(std::string str) {
@@ -1344,15 +1344,15 @@ void Graphics::spr(
 	int n,
 	int x,
 	int y,
-	fix32 w = 1.0,
-	fix32 h = 1.0,
+	fix16_t w = fix16_one, //1.0,
+	fix16_t h = fix16_one, //1.0,
 	bool flip_x = false,
 	bool flip_y = false) 
 {
 	int spr_x = (n % 16) * 8;
 	int spr_y = (n / 16) * 8;
-	int16_t spr_w = (int16_t)(w * (fix32)8);
-	int16_t spr_h = (int16_t)(h * (fix32)8);
+	int spr_w = fix16_to_int(fix16_mul(w, fix16_from_int(8)));
+	int spr_h = fix16_to_int(fix16_mul(h, fix16_from_int(8)));
 	copySpriteToScreen(_memory->spriteSheetData, x, y, spr_x, spr_y, spr_w, spr_h, flip_x, flip_y);
 }
 

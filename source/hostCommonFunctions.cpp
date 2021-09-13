@@ -10,7 +10,7 @@ using namespace std;
 CSimpleIniA settingsIni;
 
 void Host::loadSettingsIni(){
-    std::string settingsIniStr = get_file_contents(_logFilePrefix + "settings.ini");
+    std::string settingsIniStr = filehelpers::get_file_contents(_logFilePrefix + "settings.ini");
 
 	//File does not exist, fill string with defaults
 	if(settingsIniStr.length() == 0 ){
@@ -49,7 +49,7 @@ std::string Host::getCartDataFile(std::string cartDataKey) {
 }
 
 std::string Host::getCartDataFileContents(std::string cartDataKey) {
-    return get_file_contents(getCartDataFile(cartDataKey));
+    return filehelpers::get_file_contents(getCartDataFile(cartDataKey));
 }
 
 void Host::saveCartData(std::string cartDataKey, std::string contents) {

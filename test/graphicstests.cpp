@@ -788,7 +788,7 @@ TEST_CASE("graphics class behaves as expected") {
             graphics->sset(i % 8, i / 8, i%2 == 0 ? i : 0 );
         }
 
-        graphics->spr(0, 101, 33, 1.0, 1.0, false, false);
+        graphics->spr(0, 101, 33, fix16_one, fix16_one, false, false);
         
         std::vector<coloredPoint> expectedPoints = {
             {103, 33, 2},
@@ -808,7 +808,7 @@ TEST_CASE("graphics class behaves as expected") {
             graphics->sset(i, 0, i);
         }
 
-        graphics->spr(0, 35, 100, 1.5, 1.0, false, false);
+        graphics->spr(0, 35, 100, fix16_from_dbl(1.5), fix16_from_dbl(1.0), false, false);
         
         std::vector<coloredPoint> expectedPoints = {
             {35, 100, 0},
@@ -834,7 +834,7 @@ TEST_CASE("graphics class behaves as expected") {
             graphics->sset(0, i, i);
         }
 
-        graphics->spr(0, 35, 100, 1.0, 1.25, false, false);
+        graphics->spr(0, 35, 100, fix16_one, fix16_from_dbl(1.25), false, false);
         
         std::vector<coloredPoint> expectedPoints = {
             {35, 100, 0},
@@ -858,7 +858,7 @@ TEST_CASE("graphics class behaves as expected") {
             graphics->sset(i, 0, i);
         }
 
-        graphics->spr(0, 35, 100, 1.0, 1.0, true, false);
+        graphics->spr(0, 35, 100, fix16_one, fix16_one, true, false);
         
         std::vector<coloredPoint> expectedPoints = {
             {34, 100, 0},
@@ -881,7 +881,7 @@ TEST_CASE("graphics class behaves as expected") {
             graphics->sset(0, i, i);
         }
 
-        graphics->spr(0, 35, 100, 1.0, 1.0, false, true);
+        graphics->spr(0, 35, 100, fix16_one, fix16_one, false, true);
         
         std::vector<coloredPoint> expectedPoints = {
             {35, 99, 0},
@@ -907,7 +907,7 @@ TEST_CASE("graphics class behaves as expected") {
             }
         }
 
-        graphics->spr(0, 51, 11, 1, 1, false, false);
+        graphics->spr(0, 51, 11, fix16_one, fix16_one, false, false);
 
         //diagonal across sprite
         std::vector<coloredPoint> expectedPoints = {
@@ -1334,7 +1334,7 @@ TEST_CASE("graphics class behaves as expected") {
         
         graphics->cls();
         graphics->camera(-100, -100);
-        graphics->spr(0, 10, 10, 1, 1, false, false);
+        graphics->spr(0, 10, 10, fix16_one, fix16_one, false, false);
         graphics->camera();
 
         //diagonal across sprite
@@ -1572,7 +1572,7 @@ TEST_CASE("graphics class behaves as expected") {
         
         graphics->cls();
         graphics->clip(111, 111, 17, 17);
-        graphics->spr(0, 110, 110, 1, 1, false, false);
+        graphics->spr(0, 110, 110, fix16_one, fix16_one, false, false);
 
         //diagonal across sprite
         std::vector<coloredPoint> expectedPoints = {
@@ -1817,7 +1817,7 @@ TEST_CASE("graphics class behaves as expected") {
             graphics->sset(i, j, 5);
         }
         graphics->pal(5, 2, 0);
-        graphics->spr(1, 0, 0, 1.0, 1.0, false, false);
+        graphics->spr(1, 0, 0, fix16_one, fix16_one, false, false);
 
         std::vector<coloredPoint> expectedPoints = {
             {0, 0, 2},
@@ -1898,7 +1898,7 @@ TEST_CASE("graphics class behaves as expected") {
             }
         }
 
-        graphics->tline(27, 34, 34, 41, 3, 4);
+        graphics->tline(27, 34, 34, 41, fix16_from_int(3), fix16_from_int(4));
 
         //diagonal across screen- 2x2 cells, 16x16 pixels
         std::vector<coloredPoint> expectedPoints = {
@@ -1916,7 +1916,7 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("fillp(pat) sets values in memory"){
         //0011001111001100 - 2x2 checkerboard
-        graphics->fillp(0x33cc);
+        graphics->fillp(0x33cc0000);
 
         CHECK_EQ(picoRam.drawState.fillPattern[0], 0xcc);
         CHECK_EQ(picoRam.drawState.fillPattern[1], 0x33);
@@ -1927,15 +1927,15 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(picoRam.data[0x5f33], 0);
     }
     SUBCASE("fillp(pat) returns previous"){
-        graphics->fillp(0x33cc);
+        graphics->fillp(0x33cc0000);
 
         auto prev = graphics->fillp(0x44dd);
 
-        CHECK_EQ(prev.bits(), 0x33cc0000);
+        CHECK_EQ(prev, 0x33cc0000);
     }
     SUBCASE("fill pattern affects rectfill"){
         //0b0101101001011010 - 1x1 checkerboard
-        graphics->fillp(0x5A5A);
+        graphics->fillp(0x5A5A0000);
         graphics->cls(8);
 
         graphics->rectfill(0, 0, 4, 4, 10);
@@ -1984,7 +1984,7 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("fill pattern with transparency"){
         //0b0101101001011010.1 - 1x1 checkerboard with transparency
-        graphics->fillp(23130.5);
+        graphics->fillp(fix16_from_dbl(23130.5));
         graphics->cls(3);
 
         graphics->rectfill(0, 0, 2, 2, 11);
@@ -2018,7 +2018,7 @@ TEST_CASE("graphics class behaves as expected") {
         //0011
         //0111
         graphics->cls(0);
-        graphics->fillp(311);
+        graphics->fillp(fix16_from_int(311));
 
         //e8: light pink alt color, pink normal color
         graphics->rectfill(0, 0, 3, 3, 0xe8);

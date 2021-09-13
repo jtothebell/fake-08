@@ -1,7 +1,18 @@
 #match flags from 3ds and switch makefiles. This may not all be necessary
 # removed -O2 to make debugging tests easier
+
+#graphcis: 13 failed, but do run
+#cart tests abort-  probably regex? 
+# graphics.o graphicstests.o stringToDataHelpers.o mathhelpers.o \  \
+	cart.o carttests.o nooplogger.o lodepng.o emojiconversion.o \
+	vm.o endtoendtests.o picoluaapi.o Input.o \
+	vm.o Input.o \
+	vmtests.o stubhost.o \
+	cart.o picoluaapi.o  \
+
+
 CFLAGS := -Wall -g -c \
-		  -fno-rtti -fexceptions -std=gnu++17
+		  -fno-rtti -fno-exceptions -std=gnu++17
 
 
 all: runtests
@@ -12,14 +23,13 @@ testrunner.a: testroot.o \
 	carttests.o endtoendtests.o vmtests.o filehelperstests.o
 	g++ -I$(CURDIR)/include -L$(CURDIR)/lib \
 	testroot.o \
-	fontdata.o fontdatatests.o \
-	graphics.o graphicstests.o stringToDataHelpers.o mathhelpers.o \
-	Audio.o synth.o audiotests.o \
-	cart.o carttests.o nooplogger.o lodepng.o emojiconversion.o filehelpers.o \
-	vm.o endtoendtests.o picoluaapi.o Input.o \
-	vmtests.o stubhost.o \
 	nibblehelpers.o nibblehelperstests.o \
-	filehelperstests.o \
+	filehelpers.o filehelperstests.o \
+	fontdata.o fontdatatests.o \
+	mathhelpers.o stringToDataHelpers.o \
+	nooplogger.o lodepng.o emojiconversion.o \
+	Audio.o synth.o audiotests.o \
+	graphics.o graphicstests.o \
 	-llua -ldl \
 	-o testrunner.a
 
@@ -59,7 +69,7 @@ liblua.a:
 	cp ../libs/z8lua/luaconf.h include/luaconf.h && \
 	cp ../libs/z8lua/lualib.h include/lualib.h && \
 	cp ../libs/z8lua/lauxlib.h include/lauxlib.h && \
-	cp ../libs/z8lua/fix32.h include/fix32.h 
+	cp ../libs/z8lua/fix16.h include/fix16.h 
 #make lua (cd ../libs/z8lua make linux, cp liblua.a, lua.h luaconf.h lualib.h lauxlib.h
 
 carttests.o: carttests.cpp ../source/cart.cpp ../source/cart.h \

@@ -9,14 +9,13 @@ using namespace std;
 #include "Audio.h"
 #include "host.h"
 
-//extern "C" {
+extern "C" {
   #include <lua.h>
   #include <lualib.h>
   #include <lauxlib.h>
-  #include <fix32.h>
-//}
+  #include <fix16.h>
+}
 
-using namespace z8;
 
 class Vm {
     Host* _host;
@@ -104,15 +103,15 @@ class Vm {
 
     uint8_t vm_peek(int addr);
     int16_t vm_peek2(int addr);
-    fix32 vm_peek4(int addr);
+    fix16_t vm_peek4(int addr);
 
     void vm_poke(int addr, uint8_t value);
     void vm_poke2(int addr, int16_t value);
-    void vm_poke4(int addr, fix32 value);
+    void vm_poke4(int addr, fix16_t value);
 
     bool vm_cartdata(string key);
-    fix32 vm_dget(uint8_t n);
-    void vm_dset(uint8_t n, fix32 value);
+    fix16_t vm_dget(uint8_t n);
+    void vm_dset(uint8_t n, fix16_t value);
 
     void vm_reload(int destaddr, int sourceaddr, int len, string filename);
 
@@ -121,9 +120,9 @@ class Vm {
 
     void update_prng();
 
-    fix32 api_rnd();
-    fix32 api_rnd(fix32 inRange);
-    void api_srand(fix32 seed);
+    fix16_t api_rnd();
+    fix16_t api_rnd(fix16_t inRange);
+    void api_srand(fix16_t seed);
 
     void update_buttons();
 

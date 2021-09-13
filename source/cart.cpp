@@ -305,11 +305,11 @@ Cart::Cart(std::string filename, std::string cartDirectory){
         filename = filename.substr(1);
     }
 
-    if (getFileExtension(filename) == "") {
+    if (filehelpers::getFileExtension(filename) == "") {
         filename = filename + ".p8";
     }
 
-    if (cartDirectory.length() > 0 && ! isAbsolutePath(filename)) {
+    if (cartDirectory.length() > 0 && ! filehelpers::isAbsolutePath(filename)) {
         FullCartPath = cartDirectory + "/" + filename;
     }
     else {
@@ -320,14 +320,14 @@ Cart::Cart(std::string filename, std::string cartDirectory){
 
     Logger_Write("getting file contents\n");
     
-    if (hasEnding(FullCartPath, ".p8")){
+    if (filehelpers::hasEnding(FullCartPath, ".p8")){
         std::string cartStr; 
 
         if (FullCartPath == "__FAKE08-BIOS.p8") {
             cartStr = fake08BiosP8;
         }
         else {
-            cartStr = get_file_contents(FullCartPath.c_str());
+            cartStr = filehelpers::get_file_contents(FullCartPath.c_str());
         }
         Logger_Write("Got file contents... parsing cart\n");
 
@@ -348,10 +348,10 @@ Cart::Cart(std::string filename, std::string cartDirectory){
             }
             else if (currSec == "__lua__"){
                 if (std::regex_match(line, sm, _includeRegex)) {
-                    auto dir = getDirectory(FullCartPath);
+                    auto dir = filehelpers::getDirectory(FullCartPath);
                     auto fullPath = dir + "/" + sm[1].str();
 
-                    auto includeContents = get_file_contents(fullPath);
+                    auto includeContents = filehelpers::get_file_contents(fullPath);
                     if (includeContents.length() > 0){
                         includeContents = charset::utf8_to_pico8(includeContents);
                         LuaString += includeContents + "\n";
@@ -395,7 +395,7 @@ Cart::Cart(std::string filename, std::string cartDirectory){
         setSfx(SfxString);
         setMusic(MusicString);
     }
-    else if (hasEnding(FullCartPath, ".png")) {
+    else if (filehelpers::hasEnding(FullCartPath, ".png")) {
         bool success = loadCartFromPng(FullCartPath);
 
         if (!success){

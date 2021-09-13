@@ -14,16 +14,16 @@ INCLUDES	:=	${INCLUDES}
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-CC = $(CXX)
+#CC = $(CXX)
 
-CFLAGS	:=	-g -Wall -ffunction-sections \
+CFLAGS	:=	-g -Wall -ffunction-sections -I/opt/homebrew/include -D_THREAD_SAFE \
 			$(DEFINES)
 
 CFLAGS	+=	$(INCLUDE) -DVER_STR=\"$(APP_VERSION)\"
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++17
 
-LIBS	:= -lSDL2
+LIBS	:= -L/opt/homebrew/lib -lSDL2
 
 LDFLAGS	:= $(LIBS)
 

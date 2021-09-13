@@ -59,9 +59,9 @@ TEST_CASE("Vm memory functions") {
         CHECK(vm->vm_peek2(41) == -1031);
     }
     SUBCASE("simple peek4 and poke4"){
-        vm->vm_poke4(0x7123, 3584.0059);
+        vm->vm_poke4(0x7123, fix16_from_dbl(3584.0059));
 
-        CHECK(vm->vm_peek4(0x7123).bits() == ((z8::fix32)3584.0059).bits());
+        CHECK(vm->vm_peek4(0x7123) == fix16_from_dbl(3584.0059));
     }
     SUBCASE("poking spritesheet"){
         //147: 1001 0011
@@ -112,21 +112,21 @@ TEST_CASE("Vm memory functions") {
         vm->vm_cartdata("dummy");
         vm->vm_dset(13, 56);
 
-        CHECK_EQ(vm->vm_dget(13), (fix32)56);
+        CHECK_EQ(vm->vm_dget(13), fix16_from_int(56));
     }
     SUBCASE("poking cart data"){
         vm->vm_poke(0x5e02, 56);
         vm->vm_cartdata("dummy");
 
         CHECK_EQ(memory->cartData[2], 56);
-        CHECK_EQ(vm->vm_dget(0), (fix32)56);
+        CHECK_EQ(vm->vm_dget(0), fix16_from_int(56));
     }
     SUBCASE("poking and peeking cart data"){
-        vm->vm_poke4(0x5e80, (fix32)133);
+        vm->vm_poke4(0x5e80, fix16_from_int(133));
         vm->vm_cartdata("dummy");
 
-        CHECK_EQ(vm->vm_peek4(0x5e80), (fix32)133);
-        CHECK_EQ(vm->vm_dget(32), (fix32)133);
+        CHECK_EQ(vm->vm_peek4(0x5e80), fix16_from_int(133));
+        CHECK_EQ(vm->vm_dget(32), fix16_from_int(133));
     }
     SUBCASE("poking draw palette data"){
         //21 : 0001 0101 (transparet: true) (color mapped 5)
@@ -398,13 +398,13 @@ TEST_CASE("Vm memory functions") {
     SUBCASE("dget before setting cart data is allowed for backward compat") {
         vm->vm_dset(34, 1925);
 
-        CHECK_EQ(vm->vm_dget(34), (fix32)1925);
+        CHECK_EQ(vm->vm_dget(34), fix16_from_int(1925));
     }
     SUBCASE("dget after setting cart data key stores value") {
         vm->vm_cartdata("uniquekey");
         vm->vm_dset(34, 1923);
 
-        CHECK_EQ(vm->vm_dget(34), (fix32)1923);
+        CHECK_EQ(vm->vm_dget(34), fix16_from_int(1923));
     }
     SUBCASE("pico driller style input"){
         vm->LoadCart("drillerinputtest.p8");

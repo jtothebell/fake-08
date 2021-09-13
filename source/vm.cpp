@@ -22,14 +22,12 @@
 #include "hostVmShared.h"
 #include "emojiconversion.h"
 
-//extern "C" {
+extern "C" {
   #include <lua.h>
   #include <lualib.h>
   #include <lauxlib.h>
-  #include <fix32.h>
-//}
-
-using namespace z8;
+  #include <fix16.h>
+}
 
 static const char BiosCartName[] = "__FAKE08-BIOS.p8";
 
@@ -125,7 +123,7 @@ bool Vm::loadCart(Cart* cart) {
 
     //seed rng
     auto now = std::chrono::high_resolution_clock::now();
-    api_srand(fix32::frombits((int32_t)now.time_since_epoch().count()));
+    api_srand((int32_t)now.time_since_epoch().count());
 
     //set graphics state
     _graphics->color();
@@ -170,8 +168,9 @@ bool Vm::loadCart(Cart* cart) {
 
     //load in global lua fuctions for pico 8
     //auto convertedGlobalLuaFunctions = convert_emojis(p8GlobalLuaFunctions);
-    auto convertedGlobalLuaFunctions = charset::utf8_to_pico8(p8GlobalLuaFunctions);
-    int loadedGlobals = luaL_dostring(_luaState, convertedGlobalLuaFunctions.c_str());
+    //auto convertedGlobalLuaFunctions = charset::utf8_to_pico8(p8GlobalLuaFunctions);
+    //int loadedGlobals = luaL_dostring(_luaState, convertedGlobalLuaFunctions.c_str());
+    int loadedGlobals = luaL_dostring(_luaState, p8GlobalLuaFunctions);
 
     if (loadedGlobals != LUA_OK) {
         _cartLoadError = "ERROR loading pico 8 lua globals";
@@ -317,7 +316,7 @@ bool Vm::loadCart(Cart* cart) {
         if (customBiosLua.length() > 0) {
             int doStrRes = luaL_dostring(_luaState, customBiosLua.c_str());
 
-            if (! doStrRes == LUA_OK){
+            if (doStrRes != LUA_OK){
                 //bad lua passed
                 Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
                 lua_pop(_luaState, 1);
@@ -410,8 +409,8 @@ std::string Vm::getSerializedCartData() {
     std::stringstream outputstr;
 
     for(int i = 0; i < 64; i++){
-        fix32 val = vm_dget((uint8_t)i);
-        int32_t bitsVal = val.bits();
+        fix16_t val = vm_dget((uint8_t)i);
+        int32_t bitsVal = (int32_t)val;
         
         outputstr << std::setfill('0') << std::setw(8) << std::hex << bitsVal;
 
@@ -428,7 +427,7 @@ void Vm::deserializeCartDataToMemory(std::string cartDataStr) {
     auto intsVector = hexToInts(cartDataStr);
 
     for(size_t i = 0; i < intsVector.size(); i++) {
-        vm_dset(i, fix32::frombits(intsVector[i]));
+        vm_dset(i, intsVector[i]);
     }
 
 }
@@ -597,7 +596,7 @@ void Vm::GameLoop() {
 bool Vm::ExecuteLua(string luaString, string callbackFunction){
     int success = luaL_dostring(_luaState, luaString.c_str());
 
-    if (! success == LUA_OK){
+    if (success != LUA_OK){
         //bad lua passed
         Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
         lua_pop(_luaState, 1);
@@ -644,7 +643,7 @@ int16_t Vm::vm_peek2(int addr){
 }
 
 //note: this should return a 32 bit fixed point number
-fix32 Vm::vm_peek4(int addr){
+fix16_t Vm::vm_peek4(int addr){
     //zepto8
     int32_t bits = 0;
     for (int i = 0; i < 4; ++i)
@@ -656,7 +655,7 @@ fix32 Vm::vm_peek4(int addr){
             bits |= _memory->data[addr + i - 0x8000] << (8 * i);
     }
 
-    return fix32::frombits(bits);
+    return bits;
 } 
 
 void Vm::vm_poke(int addr, uint8_t value){
@@ -678,12 +677,12 @@ void Vm::vm_poke2(int addr, int16_t value){
 
 }
 
-void Vm::vm_poke4(int addr, fix32 value){
+void Vm::vm_poke4(int addr, fix16_t value){
     if (addr < 0 || addr > 0x8000 - 3){
         return;
     }
 
-    uint32_t ubits = (uint32_t)value.bits();
+    uint32_t ubits = (uint32_t)value;
     _memory->data[addr + 0] = (uint8_t)ubits;
     _memory->data[addr + 1] = (uint8_t)(ubits >> 8);
     _memory->data[addr + 2] = (uint8_t)(ubits >> 16);
@@ -720,7 +719,7 @@ bool Vm::vm_cartdata(string key) {
     //call host to get that string if anything exists
 }
 
-fix32 Vm::vm_dget(uint8_t n) {
+fix16_t Vm::vm_dget(uint8_t n) {
     if (n < 64) {
         return vm_peek4(0x5e00 + 4 * n);
     }
@@ -728,7 +727,7 @@ fix32 Vm::vm_dget(uint8_t n) {
     return 0;
 }
 
-void Vm::vm_dset(uint8_t n, fix32 value){
+void Vm::vm_dset(uint8_t n, fix16_t value){
     if (n < 64) {
         vm_poke4(0x5e00 + 4 * n, value);
     }
@@ -813,23 +812,23 @@ void Vm::update_prng()
     rngState[0] += rngState[1];
 }
 
-fix32 Vm::api_rnd()
+fix16_t Vm::api_rnd()
 {
-    return api_rnd((fix32)1);
+    return api_rnd(fix16_one);
 }
 
-fix32 Vm::api_rnd(fix32 in_range)
+fix16_t Vm::api_rnd(fix16_t in_range)
 {
     update_prng();
     uint32_t b = _memory->hwState.rngState[1];
-    uint32_t range = in_range.bits();
-    return fix32::frombits(range > 0 ? b % range : 0);
+    int32_t range = fix16_to_int(in_range);
+    return range > 0 ? b % range : 0;
 }
 
-void Vm::api_srand(fix32 seed)
+void Vm::api_srand(fix16_t seed)
 {
     auto rngState = _memory->hwState.rngState;
-    rngState[0] = seed ? seed.bits() : 0xdeadbeef;
+    rngState[0] = seed ? seed : 0xdeadbeef;
     rngState[1] = rngState[0] ^ 0xbead29ba;
     for (int i = 0; i < 32; ++i)
         update_prng();
@@ -914,7 +913,7 @@ void Vm::vm_load(std::string filename, std::string breadcrumb, std::string param
 }
 
 int Vm::getFps(){
-    //TODO: return actual fps (as fix32?)
+    //TODO: return actual fps (as fixed point?)
     return _targetFps;
 }
 

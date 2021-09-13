@@ -10,11 +10,12 @@ using namespace std;
 #include "vm.h"
 #include "logger.h"
 
-//extern "C" {
+extern "C" {
   #include <lua.h>
   #include <lualib.h>
   #include <lauxlib.h>
-//}
+  #include <fix16.h>
+}
 
 Graphics* _graphicsForLuaApi;
 Input* _inputForLuaApi;
@@ -55,15 +56,15 @@ int cls(lua_State *L){
 }
 
 int pset(lua_State *L){
-    int x = lua_tonumber(L,1);
-    int y = lua_tonumber(L,2);
+    int x = lua_tointeger(L,1);
+    int y = lua_tointeger(L,2);
 
     if (lua_gettop(L) <= 2) {
         _graphicsForLuaApi->pset(x, y);
         return 0;
     }
 
-    int c = lua_tonumber(L,3);
+    int c = lua_tointeger(L,3);
 
     _graphicsForLuaApi->pset(x, y, (uint8_t)c);
 
@@ -71,10 +72,10 @@ int pset(lua_State *L){
 }
 
 int pget(lua_State *L){
-    fix32 x = lua_tonumber(L,1);
-    fix32 y = lua_tonumber(L,2);
+    fix16_t x = lua_tonumber(L,1);
+    fix16_t y = lua_tonumber(L,2);
 
-    uint8_t color = _graphicsForLuaApi->pget((int)x, (int)y);
+    uint8_t color = _graphicsForLuaApi->pget(fix16_to_int(x), fix16_to_int(y));
 
     lua_pushinteger(L, color);
 
@@ -85,7 +86,7 @@ int color(lua_State *L){
     uint8_t prev = 0;
     uint8_t c = 0;
     if (lua_gettop(L) > 0) {
-        c = lua_tonumber(L,1);
+        c = lua_tointeger(L,1);
         prev = _graphicsForLuaApi->color((uint8_t)c);
     }
     else {
@@ -102,37 +103,37 @@ int line (lua_State *L){
         _graphicsForLuaApi->line();
     }
     else if (lua_gettop(L) == 1) {
-        fix32 c = lua_tonumber(L,1);
+        int c = lua_tointeger(L,1);
 
         _graphicsForLuaApi->line(c);
     }
     else if (lua_gettop(L) == 2) {
-        int x1 = lua_tonumber(L,1);
-        int y1 = lua_tonumber(L,2);
+        int x1 = lua_tointeger(L,1);
+        int y1 = lua_tointeger(L,2);
 
         _graphicsForLuaApi->line(x1, y1);
     }
     else if (lua_gettop(L) == 3) {
-        int x1 = lua_tonumber(L,1);
-        int y1 = lua_tonumber(L,2);
-        uint8_t c = lua_tonumber(L,3);
+        int x1 = lua_tointeger(L,1);
+        int y1 = lua_tointeger(L,2);
+        int c = lua_tointeger(L,3);
 
         _graphicsForLuaApi->line(x1, y1, c);
     }
     else if (lua_gettop(L) == 4) {
-        int x1 = lua_tonumber(L,1);
-        int y1 = lua_tonumber(L,2);
-        int x2 = lua_tonumber(L,3);
-        int y2 = lua_tonumber(L,4);
+        int x1 = lua_tointeger(L,1);
+        int y1 = lua_tointeger(L,2);
+        int x2 = lua_tointeger(L,3);
+        int y2 = lua_tointeger(L,4);
 
         _graphicsForLuaApi->line(x1, y1, x2, y2);
     }
     else {
-        int x1 = lua_tonumber(L,1);
-        int y1 = lua_tonumber(L,2);
-        int x2 = lua_tonumber(L,3);
-        int y2 = lua_tonumber(L,4);
-        uint8_t c = lua_tonumber(L,5);
+        int x1 = lua_tointeger(L,1);
+        int y1 = lua_tointeger(L,2);
+        int x2 = lua_tointeger(L,3);
+        int y2 = lua_tointeger(L,4);
+        uint8_t c = lua_tointeger(L,5);
 
         _graphicsForLuaApi->line(x1, y1, x2, y2, c);
     }
@@ -142,13 +143,13 @@ int line (lua_State *L){
 
 int tline (lua_State *L){
     int x0 = 0, y0 = 0, x1 = 0, y1 = 0;
-    fix32 mx = 0, my = 0, mdx = fix32::frombits(0x2000), mdy = 0;
+    fix16_t mx = 0, my = 0, mdx = 0x2000, mdy = 0;
 
     if (lua_gettop(L) >= 6) {
-        x0 = lua_tonumber(L,1);
-        y0 = lua_tonumber(L,2);
-        x1 = lua_tonumber(L,3);
-        y1 = lua_tonumber(L,4);
+        x0 = lua_tointeger(L,1);
+        y0 = lua_tointeger(L,2);
+        x1 = lua_tointeger(L,3);
+        y1 = lua_tointeger(L,4);
         mx = lua_tonumber(L,5);
         my = lua_tonumber(L,6);
     }
@@ -163,19 +164,19 @@ int tline (lua_State *L){
 }
 
 int circ(lua_State *L){
-    int ox = lua_tonumber(L,1);
-    int oy = lua_tonumber(L,2);
+    int ox = lua_tointeger(L,1);
+    int oy = lua_tointeger(L,2);
 
     if (lua_gettop(L) == 2) {
         _graphicsForLuaApi->circ(ox, oy);
     } 
     else if (lua_gettop(L) == 3){
-        int r = lua_tonumber(L,3);
+        int r = lua_tointeger(L,3);
         _graphicsForLuaApi->circ(ox, oy, r);
     }
     else if (lua_gettop(L) > 3){
-        int r = lua_tonumber(L,3);
-        uint8_t c = lua_tonumber(L,4);
+        int r = lua_tointeger(L,3);
+        uint8_t c = lua_tointeger(L,4);
 
         _graphicsForLuaApi->circ(ox, oy, r, c);
     }
@@ -184,19 +185,19 @@ int circ(lua_State *L){
 }
 
 int circfill(lua_State *L){
-    int ox = lua_tonumber(L,1);
-    int oy = lua_tonumber(L,2);
+    int ox = lua_tointeger(L,1);
+    int oy = lua_tointeger(L,2);
 
     if (lua_gettop(L) == 2) {
         _graphicsForLuaApi->circfill(ox, oy);
     } 
     else if (lua_gettop(L) == 3){
-        int r = lua_tonumber(L,3);
+        int r = lua_tointeger(L,3);
         _graphicsForLuaApi->circfill(ox, oy, r);
     }
     else if (lua_gettop(L) > 3){
-        int r = lua_tonumber(L,3);
-        uint8_t c = lua_tonumber(L,4);
+        int r = lua_tointeger(L,3);
+        uint8_t c = lua_tointeger(L,4);
 
         _graphicsForLuaApi->circfill(ox, oy, r, c);
     }
@@ -207,17 +208,17 @@ int circfill(lua_State *L){
 int oval(lua_State *L){
 
     if (lua_gettop(L) >= 4) {
-        int x1 = lua_tonumber(L,1);
-        int y1 = lua_tonumber(L,2);
-        int x2 = lua_tonumber(L,3);
-        int y2 = lua_tonumber(L,4);
+        int x1 = lua_tointeger(L,1);
+        int y1 = lua_tointeger(L,2);
+        int x2 = lua_tointeger(L,3);
+        int y2 = lua_tointeger(L,4);
 
         if (lua_gettop(L) == 4){
             _graphicsForLuaApi->oval(x1, y1, x2, y2);
 
         }
         else {
-            uint8_t c = lua_tonumber(L,5);
+            uint8_t c = lua_tointeger(L,5);
 
             _graphicsForLuaApi->oval(x1, y1, x2, y2, c);
         }
@@ -228,17 +229,17 @@ int oval(lua_State *L){
 
 int ovalfill(lua_State *L){
     if (lua_gettop(L) >= 4) {
-        int x1 = lua_tonumber(L,1);
-        int y1 = lua_tonumber(L,2);
-        int x2 = lua_tonumber(L,3);
-        int y2 = lua_tonumber(L,4);
+        int x1 = lua_tointeger(L,1);
+        int y1 = lua_tointeger(L,2);
+        int x2 = lua_tointeger(L,3);
+        int y2 = lua_tointeger(L,4);
 
         if (lua_gettop(L) == 4){
             _graphicsForLuaApi->ovalfill(x1, y1, x2, y2);
 
         }
         else {
-            fix32 c = lua_tonumber(L,5);
+            uint8_t c = lua_tointeger(L,5);
 
             _graphicsForLuaApi->ovalfill(x1, y1, x2, y2, c);
         }
@@ -250,17 +251,17 @@ int ovalfill(lua_State *L){
 int rect(lua_State *L){
 
     if (lua_gettop(L) >= 4) {
-        int x1 = lua_tonumber(L,1);
-        int y1 = lua_tonumber(L,2);
-        int x2 = lua_tonumber(L,3);
-        int y2 = lua_tonumber(L,4);
+        int x1 = lua_tointeger(L,1);
+        int y1 = lua_tointeger(L,2);
+        int x2 = lua_tointeger(L,3);
+        int y2 = lua_tointeger(L,4);
 
         if (lua_gettop(L) == 4){
             _graphicsForLuaApi->rect(x1, y1, x2, y2);
 
         }
         else {
-            uint8_t c = lua_tonumber(L,5);
+            uint8_t c = lua_tointeger(L,5);
 
             _graphicsForLuaApi->rect(x1, y1, x2, y2, c);
         }
@@ -271,17 +272,17 @@ int rect(lua_State *L){
 
 int rectfill(lua_State *L){
     if (lua_gettop(L) >= 4) {
-        int x1 = lua_tonumber(L,1);
-        int y1 = lua_tonumber(L,2);
-        int x2 = lua_tonumber(L,3);
-        int y2 = lua_tonumber(L,4);
+        int x1 = lua_tointeger(L,1);
+        int y1 = lua_tointeger(L,2);
+        int x2 = lua_tointeger(L,3);
+        int y2 = lua_tointeger(L,4);
 
         if (lua_gettop(L) == 4){
             _graphicsForLuaApi->rectfill(x1, y1, x2, y2);
 
         }
         else {
-            fix32 c = lua_tonumber(L,5);
+            uint8_t c = lua_tointeger(L,5);
 
             _graphicsForLuaApi->rectfill(x1, y1, x2, y2, c);
         }
@@ -321,22 +322,22 @@ int print(lua_State *L){
         newx = _graphicsForLuaApi->print(str);
     }
     else if (numArgs == 2) {
-        uint8_t c = lua_tonumber(L,2);
+        uint8_t c = lua_tointeger(L,2);
 
         _graphicsForLuaApi->color(c);
         newx = _graphicsForLuaApi->print(str);
     }
     else if (numArgs == 3) {
-        int x = lua_tonumber(L,2);
-        int y = lua_tonumber(L,3);
+        int x = lua_tointeger(L,2);
+        int y = lua_tointeger(L,3);
 
         newx = _graphicsForLuaApi->print(str, x, y);
     }
     else {
-        int x = lua_tonumber(L,2);
-        int y = lua_tonumber(L,3);
+        int x = lua_tointeger(L,2);
+        int y = lua_tointeger(L,3);
 
-        uint8_t c = lua_tonumber(L,4);
+        uint8_t c = lua_tointeger(L,4);
 
         newx = _graphicsForLuaApi->print(str, x, y, c);
     }
@@ -350,11 +351,11 @@ int spr(lua_State *L) {
         return 0;
     }
 
-    int n = lua_tonumber(L,1);
-    int x = lua_tonumber(L,2);
-    int y = lua_tonumber(L,3);
-    fix32 w = 1.0;
-    fix32 h = 1.0;
+    int n = lua_tointeger(L,1);
+    int x = lua_tointeger(L,2);
+    int y = lua_tointeger(L,3);
+    fix16_t w = fix16_one;
+    fix16_t h = fix16_one;
     bool flip_x = false;
     bool flip_y = false;
 
@@ -382,12 +383,12 @@ int sspr(lua_State *L) {
         return 0;
     }
 
-    int sx = lua_tonumber(L,1);
-    int sy = lua_tonumber(L,2);
-    int sw = lua_tonumber(L,3);
-    int sh = lua_tonumber(L,4);
-    int dx = lua_tonumber(L,5);
-    int dy = lua_tonumber(L,6);
+    int sx = lua_tointeger(L,1);
+    int sy = lua_tointeger(L,2);
+    int sw = lua_tointeger(L,3);
+    int sh = lua_tointeger(L,4);
+    int dx = lua_tointeger(L,5);
+    int dy = lua_tointeger(L,6);
 
     int dw = sw;
     int dh = sh;
@@ -395,10 +396,10 @@ int sspr(lua_State *L) {
     bool flip_y = false;
 
     if (lua_gettop(L) > 6){
-        dw = lua_tonumber(L,7);
+        dw = lua_tointeger(L,7);
     }
     if (lua_gettop(L) > 7){
-        dh = lua_tonumber(L,8);
+        dh = lua_tointeger(L,8);
     }
     if (lua_gettop(L) > 8){
         flip_x = lua_toboolean(L,9);
@@ -423,15 +424,15 @@ int sspr(lua_State *L) {
 }
 
 int fget(lua_State *L) {
-    fix32 n = lua_tonumber(L,1);
+    uint8_t n = lua_tointeger(L,1);
 
     if (lua_gettop(L) == 1) {
-        uint8_t result = _graphicsForLuaApi->fget((uint8_t)n);
+        uint8_t result = _graphicsForLuaApi->fget(n);
         lua_pushinteger(L, result);
     }
     else {
-        fix32 f = lua_tonumber(L,2);
-        bool result = _graphicsForLuaApi->fget((uint8_t)n, (uint8_t)f);
+        uint8_t f = lua_tointeger(L,2);
+        bool result = _graphicsForLuaApi->fget(n, f);
         lua_pushboolean(L, result);
     }
 
@@ -439,24 +440,24 @@ int fget(lua_State *L) {
 }
 
 int fset(lua_State *L) {
-    fix32 n = lua_tonumber(L,1);
+    uint8_t n = lua_tointeger(L,1);
 
     if (lua_gettop(L) > 2) {
-        fix32 f = lua_tonumber(L,2);
+        uint8_t f = lua_tointeger(L,2);
         bool v = lua_toboolean(L,3);
-        _graphicsForLuaApi->fset((uint8_t)n, (uint8_t)f, v);
+        _graphicsForLuaApi->fset(n, f, v);
     }
     else {
-        fix32 v = lua_tonumber(L,2);
-        _graphicsForLuaApi->fset((uint8_t)n, (uint8_t)v);
+        uint8_t v = lua_tointeger(L,2);
+        _graphicsForLuaApi->fset(n, v);
     }
 
     return 0;
 }
 
 int sget(lua_State *L) {
-    int x = lua_tonumber(L,1);
-    int y = lua_tonumber(L,2);
+    int x = lua_tointeger(L,1);
+    int y = lua_tointeger(L,2);
     uint8_t result = _graphicsForLuaApi->sget((uint8_t)x, (uint8_t)y);
     lua_pushinteger(L, result);
 
@@ -464,9 +465,9 @@ int sget(lua_State *L) {
 }
 
 int sset(lua_State *L) {
-    int x = lua_tonumber(L,1);
-    int y = lua_tonumber(L,2);
-    uint8_t c = lua_tonumber(L,3);
+    int x = lua_tointeger(L,1);
+    int y = lua_tointeger(L,2);
+    uint8_t c = lua_tointeger(L,3);
     _graphicsForLuaApi->sset(x, y, c);
 
     return 0;
@@ -484,8 +485,8 @@ int camera(lua_State *L) {
     
     auto prev = _graphicsForLuaApi->camera(x, y);
 
-    lua_pushnumber(L, get<0>(prev));
-    lua_pushnumber(L, get<1>(prev));
+    lua_pushinteger(L, get<0>(prev));
+    lua_pushinteger(L, get<1>(prev));
 
     return 2;
 }
@@ -495,10 +496,10 @@ int clip(lua_State *L) {
     std::tuple<uint8_t, uint8_t, uint8_t, uint8_t> prev;
 
     if (lua_gettop(L) >= 4) {
-        int x = lua_tonumber(L,1);
-        int y = lua_tonumber(L,2);
-        int w = lua_tonumber(L,3);
-        int h = lua_tonumber(L,4);
+        int x = lua_tointeger(L,1);
+        int y = lua_tointeger(L,2);
+        int w = lua_tointeger(L,3);
+        int h = lua_tointeger(L,4);
 
         prev = _graphicsForLuaApi->clip(x, y, w, h);
     }
@@ -506,28 +507,28 @@ int clip(lua_State *L) {
         prev = _graphicsForLuaApi->clip();
     }
 
-    lua_pushnumber(L, get<0>(prev));
-    lua_pushnumber(L, get<1>(prev));
-    lua_pushnumber(L, get<2>(prev));
-    lua_pushnumber(L, get<3>(prev));
+    lua_pushinteger(L, get<0>(prev));
+    lua_pushinteger(L, get<1>(prev));
+    lua_pushinteger(L, get<2>(prev));
+    lua_pushinteger(L, get<3>(prev));
 
     return 4;
 }
 
 int mget(lua_State *L) {
-    int celx = lua_tonumber(L,1);
-    int cely = lua_tonumber(L,2);
+    int celx = lua_tointeger(L,1);
+    int cely = lua_tointeger(L,2);
 
     uint8_t result = _graphicsForLuaApi->mget(celx, cely);
-    lua_pushnumber(L, result);
+    lua_pushinteger(L, result);
 
     return 1;
 }
 
 int mset(lua_State *L) {
-    int celx = lua_tonumber(L,1);
-    int cely = lua_tonumber(L,2);
-    uint8_t snum = lua_tonumber(L, 3);
+    int celx = lua_tointeger(L,1);
+    int cely = lua_tointeger(L,2);
+    uint8_t snum = lua_tointeger(L, 3);
 
     _graphicsForLuaApi->mset(celx, cely, snum);
 
@@ -538,27 +539,27 @@ int gfx_map(lua_State *L) {
     int celx = 0, cely = 0, sx = 0, sy = 0, celw = 128, celh = 32, argc;
     argc = lua_gettop(L);
     if (argc > 0) {
-        celx = lua_tonumber(L,1);
+        celx = lua_tointeger(L,1);
     }
     if (argc > 1) {
-        cely = lua_tonumber(L,2);
+        cely = lua_tointeger(L,2);
     }
     if (argc > 2) {
-        sx = lua_tonumber(L,3);
+        sx = lua_tointeger(L,3);
     }
     if (argc > 3) {
-        sy = lua_tonumber(L,4);
+        sy = lua_tointeger(L,4);
     }
     if (argc > 4) {
-        celw = lua_tonumber(L,5);
+        celw = lua_tointeger(L,5);
     }
     if (argc > 5) {
-        celh = lua_tonumber(L,6);
+        celh = lua_tointeger(L,6);
     }
     uint8_t layer = 0;
 
     if (argc > 6){
-        layer = lua_tonumber(L,7);
+        layer = lua_tointeger(L,7);
     }
 
     _graphicsForLuaApi->map(celx, cely, sx, sy, celw, celh, layer);
@@ -583,15 +584,15 @@ int pal(lua_State *L) {
 
     if (lua_istable(L, 1)){
         if (numArgs > 1) {
-            p = lua_tonumber(L,2);
+            p = lua_tointeger(L,2);
         }
 
         /* table is in the stack at index 't' */
         lua_pushnil(L);  /* first key */
         while (lua_next(L, 1) != 0) {
             if (lua_isnumber(L, -2) && lua_isnumber(L, -1)) {
-                c0 = lua_tonumber(L, -2);
-                c1 = lua_tonumber(L, -1);
+                c0 = lua_tointeger(L, -2);
+                c1 = lua_tointeger(L, -1);
 
                 _graphicsForLuaApi->pal(c0, c1, p);
             }
@@ -602,19 +603,19 @@ int pal(lua_State *L) {
     }
 
 
-    c0 = lua_tonumber(L,1);
+    c0 = lua_tointeger(L,1);
     c1 = c0;
     if (lua_gettop(L) > 1) {
-        c1 = lua_tonumber(L,2);
+        c1 = lua_tointeger(L,2);
     }
 
     if (lua_gettop(L) > 2){
-        p = lua_tonumber(L,3);
+        p = lua_tointeger(L,3);
     }
 
     uint8_t prev =_graphicsForLuaApi->pal(c0, c1, p);
 
-    lua_pushnumber(L, prev);
+    lua_pushinteger(L, prev);
 
     return 1;
 }
@@ -626,7 +627,7 @@ int palt(lua_State *L) {
     c |= 1UL << 15;
     if (lua_gettop(L) < 2) {
         if (lua_gettop(L) == 1){
-            c = lua_tonumber(L,1);
+            c = lua_tointeger(L,1);
         }
         //c is a bitfield of what colors should be transparent
         for (int i = 0; i < 16; i++){
@@ -640,19 +641,19 @@ int palt(lua_State *L) {
         }
     }
     else {
-        c = lua_tonumber(L,1);
+        c = lua_tointeger(L,1);
         bool t = lua_toboolean(L,2);
         prev = _graphicsForLuaApi->palt(c, t);
     }
 
-    lua_pushnumber(L, prev);
+    lua_pushinteger(L, prev);
 
     return 1;
 }
 
 int cursor(lua_State *L) {
-    int x = lua_tonumber(L,1);
-    int y = lua_tonumber(L,2);
+    int x = lua_tointeger(L,1);
+    int y = lua_tointeger(L,2);
 
     std::tuple<uint8_t, uint8_t> prev;
 
@@ -665,19 +666,19 @@ int cursor(lua_State *L) {
         prev =_graphicsForLuaApi->cursor(x, y, c);
     }
 
-    lua_pushnumber(L, get<0>(prev));
-    lua_pushnumber(L, get<1>(prev));
+    lua_pushinteger(L, get<0>(prev));
+    lua_pushinteger(L, get<1>(prev));
 
     return 2;
 }
 
 int fillp(lua_State *L) {
-    fix32 pat = 0;
+    fix16_t pat = 0;
     if (lua_gettop(L) > 0) {
         pat = lua_tonumber(L, 1);
     }
 
-    fix32 prev = _graphicsForLuaApi->fillp(pat);
+    fix16_t prev = _graphicsForLuaApi->fillp(pat);
 
     lua_pushnumber(L, prev);
 
@@ -698,16 +699,16 @@ int btn(lua_State *L){
     if (numArgs == 0) {
         uint8_t btnstate = _inputForLuaApi->btn();
 
-        lua_pushnumber(L, btnstate);
+        lua_pushinteger(L, btnstate);
     }
     else {
-        fix32 i = lua_tonumber(L,1);
+        int i = lua_tointeger(L,1);
         int p = 0;
         if (numArgs > 1){
-            p = lua_tonumber(L,2);
+            p = lua_tointeger(L,2);
         };
 
-        bool pressed = _inputForLuaApi->btn((int)i, p);
+        bool pressed = _inputForLuaApi->btn(i, p);
 
         lua_pushboolean(L, pressed);
     }
@@ -719,13 +720,13 @@ int btnp(lua_State *L){
     if (numArgs == 0) {
         uint8_t btnpstate = _inputForLuaApi->btnp();
 
-        lua_pushnumber(L, btnpstate);
+        lua_pushinteger(L, btnpstate);
     }
     else {
-        fix32 i = lua_tonumber(L,1);
+        int i = lua_tointeger(L,1);
         int p = 0;
         if (numArgs > 1){
-            p = lua_tonumber(L,2);
+            p = lua_tointeger(L,2);
         };
 
         bool pressed = _inputForLuaApi->btnp((int)i, p);
@@ -741,7 +742,8 @@ int time(lua_State *L) {
     int frameCount = _vmForLuaApi->GetFrameCount();
     int targetFps = _vmForLuaApi->GetTargetFps();
 
-    fix32 seconds = (fix32)frameCount / (fix32)targetFps;
+    fix16_t seconds = fix16_div(fix16_from_int(frameCount), fix16_from_int(targetFps));
+    //fix16_t seconds = fix16_from_int(frameCount / targetFps);
 
     lua_pushnumber(L, seconds);
 
@@ -749,25 +751,25 @@ int time(lua_State *L) {
 }
 
 int stat(lua_State *L) {
-    int n = (int)lua_tonumber(L, 1);
+    int n = lua_tointeger(L, 1);
 
     switch(n){
         //0 memory usage
         case 0:
             //TODO: get from z8lua
-            lua_pushnumber(L, 1);
+            lua_pushinteger(L, 1);
             return 1;
         break;
         //cpu usage
         case 1:
             // stubbed to return 50%
-            lua_pushnumber(L, 0.5);
+            lua_pushnumber(L, 0x00008000/*0.5*/);
             return 1;
         break;
         //cpu usage (without system calls)
         case 2:
             // stubbed to return 50%
-            lua_pushnumber(L, 0.5);
+            lua_pushnumber(L, 0x00008000/*0.5*/);
             return 1;
         break;
         //clipboard contents
@@ -778,8 +780,7 @@ int stat(lua_State *L) {
         break;
         //version
         case 5:
-            // no clipboard support currently
-            lua_pushnumber(L, 22);
+            lua_pushinteger(L, 22);
             return 1;
         break;
         //argument
@@ -790,61 +791,61 @@ int stat(lua_State *L) {
         break;
         //frame rate
         case 7:
-            lua_pushnumber(L, _vmForLuaApi->getFps());
+            lua_pushinteger(L, _vmForLuaApi->getFps());
             return 1;
         break;
         //target framerate
         case 8:
-            lua_pushnumber(L, _vmForLuaApi->getTargetFps());
+            lua_pushinteger(L, _vmForLuaApi->getTargetFps());
             return 1;
         break;
         //16-19 audio sfx currently playing
         case 16:
-            lua_pushnumber(L, _audioForLuaApi->getCurrentSfxId(0));
+            lua_pushinteger(L, _audioForLuaApi->getCurrentSfxId(0));
             return 1;
         break;
         case 17:
-            lua_pushnumber(L, _audioForLuaApi->getCurrentSfxId(1));
+            lua_pushinteger(L, _audioForLuaApi->getCurrentSfxId(1));
             return 1;
         break;
         case 18:
-            lua_pushnumber(L, _audioForLuaApi->getCurrentSfxId(2));
+            lua_pushinteger(L, _audioForLuaApi->getCurrentSfxId(2));
             return 1;
         break;
         case 19:
-            lua_pushnumber(L, _audioForLuaApi->getCurrentSfxId(3));
+            lua_pushinteger(L, _audioForLuaApi->getCurrentSfxId(3));
             return 1;
         break;
         //20-23 note idx of sfx currently playing
         case 20:
-            lua_pushnumber(L, _audioForLuaApi->getCurrentNoteNumber(0));
+            lua_pushinteger(L, _audioForLuaApi->getCurrentNoteNumber(0));
             return 1;
         break;
         case 21:
-            lua_pushnumber(L, _audioForLuaApi->getCurrentNoteNumber(1));
+            lua_pushinteger(L, _audioForLuaApi->getCurrentNoteNumber(1));
             return 1;
         break;
         case 22:
-            lua_pushnumber(L, _audioForLuaApi->getCurrentNoteNumber(2));
+            lua_pushinteger(L, _audioForLuaApi->getCurrentNoteNumber(2));
             return 1;
         break;
         case 23:
-            lua_pushnumber(L, _audioForLuaApi->getCurrentNoteNumber(3));
+            lua_pushinteger(L, _audioForLuaApi->getCurrentNoteNumber(3));
             return 1;
         break;
         //current music pattern
         case 24:
-            lua_pushnumber(L, _audioForLuaApi->getCurrentMusic());
+            lua_pushinteger(L, _audioForLuaApi->getCurrentMusic());
             return 1;
         break;
         //current music count
         case 25:
-            lua_pushnumber(L, _audioForLuaApi->getMusicPatternCount());
+            lua_pushinteger(L, _audioForLuaApi->getMusicPatternCount());
             return 1;
         break;
         //current music tick count
         case 26:
-            lua_pushnumber(L, _audioForLuaApi->getMusicTickCount());
+            lua_pushinteger(L, _audioForLuaApi->getMusicTickCount());
             return 1;
         break;
         //was a key pressed (always false)
@@ -859,47 +860,47 @@ int stat(lua_State *L) {
         break;
         //mouse x
         case 32:
-            lua_pushnumber(L, _inputForLuaApi->getMouseX());
+            lua_pushinteger(L, _inputForLuaApi->getMouseX());
             return 1;
         break;
         //mouse y
         case 33:
-            lua_pushnumber(L, _inputForLuaApi->getMouseY());
+            lua_pushinteger(L, _inputForLuaApi->getMouseY());
             return 1;
         break;
         //mouse btn state
         case 34:
-            lua_pushnumber(L, _inputForLuaApi->getMouseBtnState());
+            lua_pushinteger(L, _inputForLuaApi->getMouseBtnState());
             return 1;
         break;
         //Current Year
         case 90:
-            lua_pushnumber(L, _vmForLuaApi->getYear());
+            lua_pushinteger(L, _vmForLuaApi->getYear());
             return 1;
         break;
         //Current month
         case 91:
-            lua_pushnumber(L, _vmForLuaApi->getMonth());
+            lua_pushinteger(L, _vmForLuaApi->getMonth());
             return 1;
         break;
         //Current day
         case 92:
-            lua_pushnumber(L, _vmForLuaApi->getDay());
+            lua_pushinteger(L, _vmForLuaApi->getDay());
             return 1;
         break;
         //Current Hour
         case 93:
-            lua_pushnumber(L, _vmForLuaApi->getHour());
+            lua_pushinteger(L, _vmForLuaApi->getHour());
             return 1;
         break;
         //Current Minute
         case 94:
-            lua_pushnumber(L, _vmForLuaApi->getMinute());
+            lua_pushinteger(L, _vmForLuaApi->getMinute());
             return 1;
         break;
         //Current second
         case 95:
-            lua_pushnumber(L, _vmForLuaApi->getSecond());
+            lua_pushinteger(L, _vmForLuaApi->getSecond());
             return 1;
         break;
         case 100:
@@ -907,7 +908,7 @@ int stat(lua_State *L) {
             return 1;
         //unknown? used by serial carts
         case 108:
-            lua_pushnumber(L, 32);
+            lua_pushinteger(L, 32);
             return 1;
         break;
     }
@@ -918,14 +919,14 @@ int stat(lua_State *L) {
 
 //Audio
 int music(lua_State *L) {
-    int n = lua_tonumber(L,1);
+    int n = lua_tointeger(L,1);
     int fadems = 0;
     if (lua_gettop(L) > 1) {
-        fadems = (int)lua_tonumber(L, 2);
+        fadems = lua_tointeger(L, 2);
     }
     int channelmask = 0;
     if (lua_gettop(L) > 2) {
-        channelmask = (int)lua_tonumber(L, 3);
+        channelmask = lua_tointeger(L, 3);
     }
 
     _audioForLuaApi->api_music(n, fadems, channelmask);
@@ -934,17 +935,17 @@ int music(lua_State *L) {
 }
 
 int sfx(lua_State *L) {
-    fix32 n = lua_tonumber(L,1);
+    int n = lua_tointeger(L,1);
     int channel = -1;
     if (lua_gettop(L) > 1) {
-        channel = (int)lua_tonumber(L, 2);
+        channel = lua_tointeger(L, 2);
     }
     int offset = 0;
     if (lua_gettop(L) > 2) {
-        offset = (int)lua_tonumber(L, 3);
+        offset = lua_tointeger(L, 3);
     }
 
-    _audioForLuaApi->api_sfx((int)n, channel, offset);
+    _audioForLuaApi->api_sfx(n, channel, offset);
     
     return 0;
 }
@@ -957,9 +958,9 @@ int cstore(lua_State *L) {
 }
 
 int api_memcpy(lua_State *L) {
-    int dest = lua_tonumber(L,1);
-    int src = lua_tonumber(L,2);
-    int len = lua_tonumber(L,3);
+    int dest = lua_tointeger(L,1);
+    int src = lua_tointeger(L,2);
+    int len = lua_tointeger(L,3);
 
     _vmForLuaApi->vm_memcpy(dest, src, len);
 
@@ -967,9 +968,9 @@ int api_memcpy(lua_State *L) {
 }
 
 int api_memset(lua_State *L) {
-    int dest = lua_tonumber(L,1);
-    int val = lua_tonumber(L,2);
-    int len = lua_tonumber(L,3);
+    int dest = lua_tointeger(L,1);
+    int val = lua_tointeger(L,2);
+    int len = lua_tointeger(L,3);
 
     _vmForLuaApi->vm_memset(dest, val, len);
 
@@ -977,7 +978,7 @@ int api_memset(lua_State *L) {
 }
 
 int peek(lua_State *L) {
-    int addr = lua_tonumber(L,1);
+    int addr = lua_tointeger(L,1);
 
     uint8_t val = _vmForLuaApi->vm_peek(addr);
 
@@ -987,8 +988,8 @@ int peek(lua_State *L) {
 }
 
 int poke(lua_State *L) {
-    int dest = lua_tonumber(L,1);
-    uint8_t val = lua_tonumber(L,2);
+    int dest = lua_tointeger(L,1);
+    uint8_t val = lua_tointeger(L,2);
 
     _vmForLuaApi->vm_poke(dest, val);
 
@@ -996,7 +997,7 @@ int poke(lua_State *L) {
 }
 
 int peek2(lua_State *L) {
-    int addr = lua_tonumber(L,1);
+    int addr = lua_tointeger(L,1);
 
     int16_t val = _vmForLuaApi->vm_peek2(addr);
 
@@ -1006,8 +1007,8 @@ int peek2(lua_State *L) {
 }
 
 int poke2(lua_State *L) {
-    int dest = lua_tonumber(L,1);
-    int val = lua_tonumber(L,2);
+    int dest = lua_tointeger(L,1);
+    int val = lua_tointeger(L,2);
 
     _vmForLuaApi->vm_poke2(dest, (int16_t)val);
 
@@ -1015,9 +1016,9 @@ int poke2(lua_State *L) {
 }
 
 int peek4(lua_State *L) {
-    int addr = lua_tonumber(L,1);
+    int addr = lua_tointeger(L,1);
 
-    fix32 val = _vmForLuaApi->vm_peek4(addr);
+    fix16_t val = _vmForLuaApi->vm_peek4(addr);
 
     lua_pushnumber(L, val);
 
@@ -1025,8 +1026,8 @@ int peek4(lua_State *L) {
 }
 
 int poke4(lua_State *L) {
-    int dest = lua_tonumber(L,1);
-    fix32 val = lua_tonumber(L,2);
+    int dest = lua_tointeger(L,1);
+    fix16_t val = lua_tonumber(L,2);
 
     _vmForLuaApi->vm_poke4(dest, val);
 
@@ -1039,13 +1040,13 @@ int reload(lua_State *L) {
     int len = 0x4300;
     const char * str = "";
     if (lua_gettop(L) > 0) {
-        dest = lua_tonumber(L,1);
+        dest = lua_tointeger(L,1);
     }
     if (lua_gettop(L) > 1) {
-        src = lua_tonumber(L,2);
+        src = lua_tointeger(L,2);
     }
     if (lua_gettop(L) > 2) {
-        len = lua_tonumber(L,3);
+        len = lua_tointeger(L,3);
     }
     if (lua_gettop(L) > 3) {
         str = lua_tolstring(L, 4, nullptr);
@@ -1074,9 +1075,9 @@ int cartdata(lua_State *L) {
 }
 
 int dget(lua_State *L) {
-    int addr = lua_tonumber(L,1);
+    int addr = lua_tointeger(L,1);
 
-    fix32 val = _vmForLuaApi->vm_dget(addr);
+    fix16_t val = _vmForLuaApi->vm_dget(addr);
 
     lua_pushnumber(L, val);
 
@@ -1084,8 +1085,8 @@ int dget(lua_State *L) {
 }
 
 int dset(lua_State *L) {
-    int dest = lua_tonumber(L,1);
-    fix32 val = lua_tonumber(L,2);
+    int dest = lua_tointeger(L,1);
+    fix16_t val = lua_tointeger(L,2);
 
     _vmForLuaApi->vm_dset(dest, val);
 
@@ -1103,21 +1104,21 @@ int printh(lua_State *L) {
 
 int rnd(lua_State *L) {
     if (lua_gettop(L) == 0) {
-        fix32 val = _vmForLuaApi->api_rnd();
+        fix16_t val = _vmForLuaApi->api_rnd();
 
         lua_pushnumber(L, val);
     }
     else {
         if (lua_istable(L, 1)){
             size_t len = lua_rawlen(L,1);
-            fix32 range = (fix32)len;
+            fix16_t range = fix16_from_int(len);
             int idx = (int)(_vmForLuaApi->api_rnd(range)) + 1;
             
             lua_rawgeti(L, 1, idx);
         }
         else {
-            fix32 range = lua_tonumber(L,1);
-            fix32 val = _vmForLuaApi->api_rnd(range);
+            fix16_t range = lua_tonumber(L,1);
+            fix16_t val = _vmForLuaApi->api_rnd(range);
 
             lua_pushnumber(L, val);
         }
@@ -1127,7 +1128,7 @@ int rnd(lua_State *L) {
 }
 
 int srand(lua_State *L) {
-    fix32 seed = lua_tonumber(L,1);
+    fix16_t seed = lua_tonumber(L,1);
     _vmForLuaApi->api_srand(seed);
 
     return 0;

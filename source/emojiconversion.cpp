@@ -14,6 +14,9 @@
 
 // I know codecvt_utf8 is deprecated, but let’s hope C++ comes with a
 // replacement before they actually remove the feature.
+
+
+
 #define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING 1
 
 
@@ -23,6 +26,7 @@
 #include <cstring>
 #include <regex>
 #include <string_view>
+#include <map>
 
 #include "emojiconversion.h"
 
@@ -111,3 +115,28 @@ std::string charset::pico8_to_utf8(std::string const &str)
     return ret;
 }
 
+/*
+//stub
+#include "emojiconversion.h"
+
+//stubbed out for now
+std::string_view charset::to_utf8[256];
+std::u32string_view charset::to_utf32[256];
+
+std::regex charset::utf8_regex = charset::static_init();
+
+std::regex charset::static_init()
+{
+    return std::regex();
+}
+
+std::string charset::utf8_to_pico8(std::string const &str)
+{
+    return "";
+}
+
+std::string charset::pico8_to_utf8(std::string const &str)
+{
+    return "";
+}
+*/
