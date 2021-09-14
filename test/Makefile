@@ -1,8 +1,6 @@
 #match flags from 3ds and switch makefiles. This may not all be necessary
 # removed -O2 to make debugging tests easier
 
-#graphcis: 13 failed, but do run
-#cart tests abort-  probably regex? 
 # graphics.o graphicstests.o stringToDataHelpers.o mathhelpers.o \  \
 	cart.o carttests.o nooplogger.o lodepng.o emojiconversion.o \
 	vm.o endtoendtests.o picoluaapi.o Input.o \
@@ -32,6 +30,9 @@ testrunner.a: testroot.o \
 	Audio.o synth.o audiotests.o \
 	graphics.o graphicstests.o \
 	cart.o carttests.o \
+	vm.o picoluaapi.o Input.o \
+	vmtests.o stubhost.o \
+	endtoendtests.o \
 	-llua -ldl \
 	-o testrunner.a
 
