@@ -821,7 +821,7 @@ fix16_t Vm::api_rnd(fix16_t in_range)
 {
     update_prng();
     uint32_t b = _memory->hwState.rngState[1];
-    int32_t range = fix16_to_int(in_range);
+    uint32_t range = (uint32_t)in_range;
     return range > 0 ? b % range : 0;
 }
 

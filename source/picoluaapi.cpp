@@ -1086,7 +1086,7 @@ int dget(lua_State *L) {
 
 int dset(lua_State *L) {
     int dest = lua_tointeger(L,1);
-    fix16_t val = lua_tointeger(L,2);
+    fix16_t val = lua_tonumber(L,2);
 
     _vmForLuaApi->vm_dset(dest, val);
 
@@ -1112,7 +1112,7 @@ int rnd(lua_State *L) {
         if (lua_istable(L, 1)){
             size_t len = lua_rawlen(L,1);
             fix16_t range = fix16_from_int(len);
-            int idx = (int)(_vmForLuaApi->api_rnd(range)) + 1;
+            int idx = fix16_to_int(_vmForLuaApi->api_rnd(range)) + 1;
             
             lua_rawgeti(L, 1, idx);
         }
