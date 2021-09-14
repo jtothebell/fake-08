@@ -66,6 +66,31 @@ bool verifyScreenshot(Vm* vm, std::string screenshotFilename) {
         pixelsMatch &= pixelMatches;
     }
 
+    /*
+    //uncomment for debug image output
+    if (! pixelsMatch){
+        //write out internal buffer. save file.
+        png.clear();
+        image.clear();
+
+        for(int y = 0; y < 128; y++) {
+            for(int x = 0; x < 128; x++) {
+                uint8_t c = getPixelNibble(x, y, picoFb);
+                Color col = paletteColors[screenPaletteMap[c]];
+
+                image.push_back(col.Red);
+                image.push_back(col.Green);
+                image.push_back(col.Blue);
+                image.push_back(col.Alpha);
+            }
+        }
+
+        lodepng::encode(png, image, 128, 128);
+
+        lodepng::save_file(png, screenshotFilename.replace(screenshotFilename.length() - 4, 4, "-actual.png"));
+    }
+    */
+
     return pixelsMatch;
 
 }
