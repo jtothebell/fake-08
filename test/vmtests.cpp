@@ -110,7 +110,7 @@ TEST_CASE("Vm memory functions") {
     }
     SUBCASE("setting cart data"){
         vm->vm_cartdata("dummy");
-        vm->vm_dset(13, 56);
+        vm->vm_dset(13, fix16_from_int(56));
 
         CHECK_EQ(vm->vm_dget(13), fix16_from_int(56));
     }
@@ -396,13 +396,13 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(memory->spriteSheetData[1], 1);
     }
     SUBCASE("dget before setting cart data is allowed for backward compat") {
-        vm->vm_dset(34, 1925);
+        vm->vm_dset(34, fix16_from_int(1925));
 
         CHECK_EQ(vm->vm_dget(34), fix16_from_int(1925));
     }
     SUBCASE("dget after setting cart data key stores value") {
         vm->vm_cartdata("uniquekey");
-        vm->vm_dset(34, 1923);
+        vm->vm_dset(34, fix16_from_int(1923));
 
         CHECK_EQ(vm->vm_dget(34), fix16_from_int(1923));
     }
@@ -457,7 +457,7 @@ TEST_CASE("Vm memory functions") {
 
     SUBCASE("togglepausemenu resets and restores draw state") {
         graphics->pal(10, 12, 0);
-        graphics->fillp(25);
+        graphics->fillp(fix16_from_int(25));
         graphics->clip(11, 12, 21, 22);
         graphics->camera(1, 2);
         graphics->color(3);
@@ -591,9 +591,9 @@ TEST_CASE("Vm memory functions") {
     }
     SUBCASE("dset then getSerializedCartData returns correct values"){
         vm->vm_cartdata("serializeTest");
-        vm->vm_dset(32, 128);
-        vm->vm_dset(0, 1);
-        vm->vm_dset(1, 2);
+        vm->vm_dset(32, fix16_from_int(128));
+        vm->vm_dset(0, fix16_from_int(1));
+        vm->vm_dset(1, fix16_from_int(2));
 
         auto actual = vm->getSerializedCartData();
 
