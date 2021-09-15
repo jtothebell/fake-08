@@ -18,7 +18,7 @@ INCLUDES	:=	${INCLUDES}
 ifeq ($(GKD), 1)
 CC = /opt/gcw0-toolchain-static/bin/mipsel-linux-g++
 CXX = /opt/gcw0-toolchain-static/bin/mipsel-linux-g++
-CFLAGS	:= -Wall -Ofast -fdata-sections -ffunction-sections -fno-PIC -mno-shared -mno-abicalls -fno-PIC -flto -DVER_STR=\"$(APP_VERSION)\" $(DEFINES)
+CFLAGS	:= -Wall -Ofast -fdata-sections -ffunction-sections -fno-PIC -mno-shared -mno-abicalls -fno-PIC -flto -DVER_STR=\"$(APP_VERSION)\" $(DEFINES) -DGKD
 
 else
 CC = /opt/gcw0-toolchain/bin/mipsel-linux-g++

@@ -191,6 +191,9 @@ InputState_t Host::scanInput(){
                 switch (event.key.keysym.sym)
                 {
                     case SDLK_HOME:
+                    #ifdef GKD
+                    case SDLK_TAB:
+                    #endif
 						done = SDL_TRUE;
                     break;
                     default: break;
