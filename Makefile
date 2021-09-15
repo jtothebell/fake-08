@@ -47,6 +47,9 @@ clean-funkey:
 	
 clean-gcw0:
 	@$(MAKE) -C platform/gcw0 clean
+	
+clean-gkd:
+	@$(MAKE) -C platform/gcw0 GKD=1 clean
 
 clean-miyoomini:
 	@$(MAKE) -C platform/miyoomini clean
@@ -80,6 +83,9 @@ bittboy:
 	
 gcw0:
 	@$(MAKE) -C platform/gcw0
+	
+gkd:
+	@$(MAKE) -C platform/gcw0 GKD=1
 
 miyoomini:
 	@$(MAKE) -C platform/miyoomini

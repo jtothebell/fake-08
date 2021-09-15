@@ -14,11 +14,18 @@ INCLUDES	:=	${INCLUDES}
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
+
+ifeq ($(GKD), 1)
+CC = /opt/gcw0-toolchain-static/bin/mipsel-linux-g++
+CXX = /opt/gcw0-toolchain-static/bin/mipsel-linux-g++
+CFLAGS	:= -Wall -Ofast -fdata-sections -ffunction-sections -fno-PIC -mno-shared -mno-abicalls -fno-PIC -flto -DVER_STR=\"$(APP_VERSION)\" $(DEFINES)
+
+else
 CC = /opt/gcw0-toolchain/bin/mipsel-linux-g++
 CXX = /opt/gcw0-toolchain/bin/mipsel-linux-g++
+CFLAGS	:= -Wall -Ofast -fdata-sections -ffunction-sections -fno-PIC -mno-shared -mplt -flto -DVER_STR=\"$(APP_VERSION)\" $(DEFINES)
+endif
 
-CFLAGS	:= -Wall -Ofast -fdata-sections -ffunction-sections -fno-PIC -mno-shared -mplt -flto -DVER_STR=\"$(APP_VERSION)\" \
-			$(DEFINES)
 
 CFLAGS	+=	$(INCLUDE)
 
