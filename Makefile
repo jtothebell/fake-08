@@ -15,7 +15,7 @@ export APP_VERSION	= v$(V_MAJOR).$(V_MINOR).$(V_PATCH).$(V_BUILD)
 export SOURCES   = ../../source ../../libs/z8lua ../../libs/utf8-util ../../libs/lodepng ../../libs/simpleini
 export INCLUDES  = ../../include ../../libs/z8lua ../../libs/utf8-util ../../libs/lodepng ../../libs/simpleini
 
-.PHONY: all 3ds switch wiiu vita sdl2 sdl clean clean-3ds clean-switch clean-wiiu clean-vita clean-sdl2 clean-sdl
+.PHONY: all echo 3ds switch wiiu vita sdl2 sdl clean clean-3ds clean-switch clean-wiiu clean-vita clean-sdl2 clean-sdl
 
 all: 3ds switch wiiu vita bittboy
 
@@ -71,3 +71,6 @@ clean-tests:
 
 tests:
 	@$(MAKE) -C test
+
+echo:
+	@$(MAKE) -C platform/SDL2Desktop echo

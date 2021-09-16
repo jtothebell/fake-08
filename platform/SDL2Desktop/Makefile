@@ -23,7 +23,7 @@ CFLAGS	+=	$(INCLUDE) -DVER_STR=\"$(APP_VERSION)\"
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++17
 
-LIBS	:= -L/opt/homebrew/lib -lSDL2
+LIBS	:= -L/opt/homebrew/lib -lSDL2 -lm -lstdc++
 
 LDFLAGS	:= $(LIBS)
 
@@ -45,6 +45,9 @@ export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
 CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
+
+LUA_EXEC_FILE := lua.c 
+CFILES := $(filter-out $(LUA_EXEC_FILE),$(CFILES))
 
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
@@ -72,7 +75,7 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
 
-.PHONY: $(BUILD) clean all
+.PHONY: $(BUILD) clean all echo
 
 #---------------------------------------------------------------------------------
 all: $(BUILD)
@@ -85,6 +88,14 @@ $(BUILD):
 clean:
 	@echo clean ...
 	@rm -fr $(BUILD) $(TARGET)
+
+#---------------------------------------------------------------------------------
+echo:
+	@echo CFILES: $(CFILES)
+	@echo 
+	@echo CPPFILES: $(CPPFILES)
+	@echo
+	@echo LD: $(LD)
 
 
 #---------------------------------------------------------------------------------
