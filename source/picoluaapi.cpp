@@ -10,6 +10,7 @@ using namespace std;
 #include "vm.h"
 #include "logger.h"
 
+
 extern "C" {
   #include <lua.h>
   #include <lualib.h>
@@ -48,7 +49,7 @@ int cls(lua_State *L){
         _graphicsForLuaApi->cls();
     }
     else {
-        int c = lua_tonumber(L,1);
+        int c = lua_tointeger(L,1);
         _graphicsForLuaApi->cls(c);
     }
 
@@ -261,7 +262,7 @@ int rect(lua_State *L){
 
         }
         else {
-            uint8_t c = lua_tointeger(L,5);
+            int c = lua_tointeger(L,5);
 
             _graphicsForLuaApi->rect(x1, y1, x2, y2, c);
         }
@@ -282,7 +283,7 @@ int rectfill(lua_State *L){
 
         }
         else {
-            uint8_t c = lua_tointeger(L,5);
+            int c = lua_tointeger(L,5);
 
             _graphicsForLuaApi->rectfill(x1, y1, x2, y2, c);
         }
