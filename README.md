@@ -54,7 +54,7 @@ See [Issues](https://github.com/jtothebell/fake-08/issues) page for more specifi
 
 You browse and download carts by using the `SPLORE()` function in Pico 8 (again, if you have $15 to spend, and you are interested in game dev, it is well worth your money). Once you have loaded a cart that you want to try on FAKE-08, type `save {{cartname}}.p8` to save the cart as a text file, then copy that file to your device's SD card.
 
-You can also browse carts on the Pico-8 BBS website, but can only download complete carts in png format. As of pre release v0.0.1.1 Fake-08 should load and play png carts provided they don't use any other unsupported features. You can download p8.png carts from the `Cart` link in the lower left of the game view, and save it into your `p8carts` directory.
+You can also browse carts on the Pico-8 BBS website (https://www.lexaloffle.com/bbs/), but can only download complete carts in png format. As of pre release v0.0.1.1 Fake-08 should load and play png carts provided they don't use any other unsupported features. You can download p8.png carts from the `Cart` link in the lower left of the game view, and save it into your `p8carts` directory.
 
 If you are trying to play a multi cart game, it should be noted that you must provide all the carts required by the game as FAKE-08 currently does not have cart downloading capabilities. All carts should be placed in the same directory.
 
