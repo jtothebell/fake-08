@@ -12,7 +12,13 @@ Launch FAKE-08 either via the homebrew menu or normal system UI (depending on ho
 For bittboy and similar consoles, back up `emus/pico8/pico8.elf`  and replace it with the one from the release. Place your cart files in `roms/pico-8/` and use the front end of choice to launch games. Press the menu button to return to the menu (though you can also press start and exit to the FAKE-08 bios menu if you would like).
 
 ## Building:
-All platforms (except bittboy currently) have automated builds set up via GitHub actions using docker images. You can see how those are set up in the `.github/workflows` directory of the repo.
+All platforms have automated builds set up via GitHub actions using docker images. You can see how those are set up in the `.github/workflows` directory of the repo. To run them locally using docker run the following command from the root directory of this repo (replace `{docker-image}` and `{platform}` with the values from your platform of choice in `.github/workflows/build.yml`):
+
+`docker run -v $PWD:/build_dir {docker-image} /bin/sh -ex /build_dir/.github/workflows/{platform}.sh`
+
+`-v $PWD:/build_dir` mounts the output of `pwd` (current working directory) in the docker container at `.build_dir`
+
+`/bin/sh -ex /build_dir/.github/workflows/{platform}.sh` executes the build script for that platform. Most just call `make`, but a few also execute a couple extra steps
 
 Building outside of a pre-setup docker container will require a toolchain installation for the platform that you want to build. 
 
@@ -24,7 +30,7 @@ Once you have the appropriate toolchain(s) installed, call `make` followed by th
 
 Building tested on windows using devkitpro's msys2 and Ubuntu (WSL and standalone). Should work on other plaforms as well.
 
-Building for bittboy requires builing your own toolchain first (and will probably only work on unix.). The toolchain is available at https://github.com/bittboy/buildroot/. Clone and build that repo, then recursively copy the contents of `output/host/` to `/opt/miyoo/`. You should then be able to use the `make bittboy` command.
+Building for bittboy requires builing your own toolchain first (and will probably only work on unix.). The toolchain is available at https://github.com/bittboy/buildroot/. Clone and build that repo, then recursively copy the contents of `output/host/` to `/opt/bittboy-toolchain/`. You should then be able to use the `make bittboy` command.
 
 ## Acknowledgements
  * Zep/Lexaloffle software for making pico 8. Buy a copy if you can. You won't regret it. https://www.lexaloffle.com/pico-8.php
