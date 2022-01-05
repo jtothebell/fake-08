@@ -61,6 +61,7 @@ SDL_Surface *window;
 SDL_Surface *texture;
 SDL_bool done = SDL_FALSE;
 SDL_AudioSpec want, have;
+SDL_mutex *sound_mutex;
 void *pixels;
 uint16_t *base;
 int pitch;
@@ -87,15 +88,27 @@ void postFlipFunction(){
 }
 
 void audioCleanup(){
+    //seems to be necessary to lock the audio before closing to avoid a freeze on
+    //bittboy devices... maybe due to slow speed? not sure.
+    //SDL_LockAudio();
+    SDL_PauseAudio(1);
+    SDL_DestroyMutex(sound_mutex);
+
     audioInitialized = false;
 
     SDL_CloseAudio();
+    //hack to maybe prevent lockup?
+    SDL_Delay(100);
 }
 
 
 void FillAudioDeviceBuffer(void* UserData, Uint8* DeviceBuffer, int Length)
 {
+    SDL_LockMutex(sound_mutex);
+
     _audio->FillMonoAudioBuffer(DeviceBuffer, 0, Length / 2);
+
+    SDL_UnlockMutex(sound_mutex);
 }
 
 void audioSetup(){
@@ -116,6 +129,7 @@ void audioSetup(){
         if (have.format != want.format) { 
             Logger_Write("We didn't get requested audio format.");
         }
+        sound_mutex = SDL_CreateMutex();
         SDL_PauseAudio(0); 
         audioInitialized = true;
     }
@@ -222,10 +236,10 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 }
 
 void Host::oneTimeCleanup(){
-    //saving seems to increase the number of hard locks
-    //saveSettingsIni();
-
     audioCleanup();
+
+    //saving seems to increase the number of hard locks
+    saveSettingsIni();
 
     //SDL_DestroyRenderer(renderer);
     //SDL_DestroyWindow(window);
