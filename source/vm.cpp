@@ -619,9 +619,10 @@ bool Vm::ExecuteLua(string luaString, string callbackFunction){
     return true;
 }
 
+const int MemoryUpperBound = 0x10000;
 
 uint8_t Vm::vm_peek(int addr){
-    if (addr < 0 || addr > 0x8000){
+    if (addr < 0 || addr > MemoryUpperBound){
         return 0;
     }
 
@@ -634,10 +635,10 @@ int16_t Vm::vm_peek2(int addr){
     for (int i = 0; i < 2; ++i)
     {
         /* This code handles partial reads by adding zeroes */
-        if (addr + i < 0x8000)
+        if (addr + i < MemoryUpperBound)
             bits |= _memory->data[addr + i] << (8 * i);
-        else if (addr + i >= 0x8000)
-            bits |= _memory->data[addr + i - 0x8000] << (8 * i);
+        else if (addr + i >= MemoryUpperBound)
+            bits |= _memory->data[addr + i - MemoryUpperBound] << (8 * i);
     }
 
     return bits;
@@ -650,10 +651,10 @@ fix32 Vm::vm_peek4(int addr){
     for (int i = 0; i < 4; ++i)
     {
         /* This code handles partial reads by adding zeroes */
-        if (addr + i < 0x8000)
+        if (addr + i < MemoryUpperBound)
             bits |= _memory->data[addr + i] << (8 * i);
-        else if (addr + i >= 0x8000)
-            bits |= _memory->data[addr + i - 0x8000] << (8 * i);
+        else if (addr + i >= MemoryUpperBound)
+            bits |= _memory->data[addr + i - MemoryUpperBound] << (8 * i);
     }
 
     return fix32::frombits(bits);
@@ -661,7 +662,7 @@ fix32 Vm::vm_peek4(int addr){
 
 void Vm::vm_poke(int addr, uint8_t value){
     //todo: check how pico 8 handles out of bounds
-    if (addr < 0 || addr > 0x8000){
+    if (addr < 0 || addr > MemoryUpperBound){
         return;
     }
     
@@ -669,7 +670,7 @@ void Vm::vm_poke(int addr, uint8_t value){
 }
 
 void Vm::vm_poke2(int addr, int16_t value){
-    if (addr < 0 || addr > 0x8000 - 1){
+    if (addr < 0 || addr > MemoryUpperBound - 1){
         return;
     }
 
@@ -679,7 +680,7 @@ void Vm::vm_poke2(int addr, int16_t value){
 }
 
 void Vm::vm_poke4(int addr, fix32 value){
-    if (addr < 0 || addr > 0x8000 - 3){
+    if (addr < 0 || addr > MemoryUpperBound - 3){
         return;
     }
 

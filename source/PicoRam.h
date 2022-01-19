@@ -260,8 +260,10 @@ struct PicoRam
             hwState_t hwState;
 
             uint8_t screenBuffer[128 * 64];
+
+            uint8_t userData[0x8000];
         };
 
-        uint8_t data[0x8000];
+        uint8_t data[0x10000];
     };
 };

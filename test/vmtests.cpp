@@ -43,10 +43,10 @@ TEST_CASE("Vm memory functions") {
         CHECK(correctValues);
     }
     SUBCASE("size of PicoRam struct corrct"){
-        CHECK(sizeof(PicoRam) == 0x8000);
+        CHECK(sizeof(PicoRam) == 0x10000);
     }
     SUBCASE("size of data correct"){
-        CHECK(sizeof(memory->data) == 0x8000);
+        CHECK(sizeof(memory->data) == 0x10000);
     }
     SUBCASE("simple peek and poke"){
         vm->vm_poke(2, 232);
@@ -312,7 +312,7 @@ TEST_CASE("Vm memory functions") {
 
         CHECK_EQ(memory->hwState.gpioPins[0], 192);
     }
-    SUBCASE("poking screen data (first two pixels") {
+    SUBCASE("poking screen data (first two pixels)") {
         //195: 1100 0011 (left pixel 3, right pixel 12)
         vm->vm_poke(0x6000, 195);
 
@@ -320,13 +320,25 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(graphics->pget(0, 0), 3);
         CHECK_EQ(graphics->pget(1, 0), 12);
     }
-    SUBCASE("poking screen data (last two pixels") {
+    SUBCASE("poking screen data (last two pixels)") {
         //210: 1101 0010
         vm->vm_poke(0x7fff, 210);
 
         CHECK_EQ(memory->screenBuffer[8191], 210);
         CHECK_EQ(graphics->pget(126, 127), 2);
         CHECK_EQ(graphics->pget(127, 127), 13);
+    }
+    SUBCASE("poking user data (first byte)") {
+        vm->vm_poke(0x8000, 129);
+
+        CHECK_EQ(memory->data[0x8000], 129);
+        CHECK_EQ(memory->userData[0], 129);
+    }
+    SUBCASE("poking user data (last byte)") {
+        vm->vm_poke(0xffff, 211);
+
+        CHECK_EQ(memory->data[0xffff], 211);
+        CHECK_EQ(memory->userData[32767], 211);
     }
     SUBCASE("Loading cart copies cart rom to memory") {
         vm->LoadCart("cartparsetest.p8.png");
