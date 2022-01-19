@@ -987,6 +987,42 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("sspr(...) draws from odd numbered sprite sheet location flipped horizontally") {
+        //bug discovered in high stakes
+        graphics->cls();
+        
+        for(uint8_t i = 0; i < 16; i++) {
+            for(uint8_t j = 0; j < 16; j++) {
+                graphics->sset(i, j, i);
+            }
+        }
+
+        graphics->sspr(1, 1, 4, 4, 0, 15, 4, 4, true, false);
+
+        //check sprite in columns
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 14, 0},
+            {0, 15, 4},
+            {0, 16, 4},
+            {0, 17, 4},
+            {0, 18, 4},
+            {1, 15, 3},
+            {1, 16, 3},
+            {1, 17, 3},
+            {1, 18, 3},
+            {2, 15, 2},
+            {2, 16, 2},
+            {2, 17, 2},
+            {2, 18, 2},
+            {3, 15, 1},
+            {3, 16, 1},
+            {3, 17, 1},
+            {3, 18, 1},
+            {4, 15, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
     SUBCASE("sspr(...) draws non-square to screen at location") {
         graphics->cls();
         

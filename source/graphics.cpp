@@ -247,8 +247,9 @@ void Graphics::copyStretchSpriteToScreen(
 	if (scr_w == 0 || scr_h == 0)
 		return;
 
-	if (spr_h == scr_h && spr_w == scr_w) {
-		// use faster non stretch blitter if sprite is not stretched
+	if (spr_h == scr_h && spr_w == scr_w && !flip_x) {
+		// use faster non stretch blitter if sprite is not stretched 
+		//(or flipped horizontally - but skipping for that is just a hacky fix)
 		copySpriteToScreen(spritebuffer, scr_x, scr_y, spr_x, spr_y, scr_w, scr_h, flip_x, flip_y);
 		return;
 	}
