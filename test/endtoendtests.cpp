@@ -538,6 +538,20 @@ TEST_CASE("Loading and running carts") {
 
         vm->CloseCart();
     }
+    SUBCASE("sub test"){
+        vm->LoadCart("subtest.p8");
+
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("sceen matches screenshot"){
+            vm->UpdateAndDraw();
+
+            CHECK(verifyScreenshot(vm, "carts/screenshots/subtest_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
     
     delete vm;
     delete host;
