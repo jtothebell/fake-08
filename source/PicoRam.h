@@ -181,6 +181,7 @@ struct drawState_t {
 
     uint8_t lineInvalid;
 
+    //hardware extension
     uint8_t unknown05f36;
     uint8_t unknown05f37;
 
@@ -196,29 +197,41 @@ struct drawState_t {
 
 struct hwState_t {
     //audio hardware mods
+    //0x5f40
     uint8_t half_rate;
+    //0x5f41 
     uint8_t reverb;
+    //0x5f42
     uint8_t distort;
+    //0x5f43
     uint8_t lowpass;
-
+    //0x5f44..0x5f4b
     uint32_t rngState[2];
-
+    //0x5f4c..0x5f53
     uint8_t buttonStates[8];
-
-    uint8_t unknownInputBlock[8];
-
+    //0x5f54
+    uint8_t spriteSheetMemMapping;
+    //0x5f55
+    uint8_t screenDataMemMapping;
+    //0x5f56
+    uint8_t mapMemMapping;
+    //0x5f57
+    uint8_t widthOfTheMap;
+    //0x5f58..0x5f5b
+    uint8_t printAttributes[4];
+    //0x5f5c
     uint8_t btnpRepeatDelay;
-
+    //0x5f5d
     uint8_t btnpRepeatInterval;
-
+    //0x5f5e
     uint8_t colorBitmask;
-
+    //0x5f5f
     uint8_t alternatePaletteFlag;
-
+    //0x5f60..0x5f6f
     uint8_t alternatePaletteMap[16];
-
+    //0x5f70..0x5f7f
     uint8_t alternatePaletteScreenLineBitfield[16];
-
+    //0x5f80..0x5fff
     uint8_t gpioPins[128];
 
 };
@@ -230,9 +243,13 @@ struct PicoRam
     void Reset() {
         memset(data, 0, 0x4300);
         //leave general use memory
-        memset(data + 0x5600, 0, 0x8000 - 0x5600);
+        memset(data + 0x5600, 0, 0x10000 - 0x5600);
         //colorBitmask starts at 255
         hwState.colorBitmask = 0xff;
+        hwState.spriteSheetMemMapping = 0x00;
+        hwState.screenDataMemMapping = 0x60;
+        hwState.mapMemMapping = 0x20;
+        hwState.widthOfTheMap = 128;
     }
     
     union

@@ -23,17 +23,26 @@ TEST_CASE("Vm memory functions") {
     SUBCASE("memory data stats with 0"){
         CHECK(memory->data[0] == 0);
     }
-    SUBCASE("resetting memory zeroes out everything except general use and color bitmask"){
-        for(int i = 0; i < 0x8000; ++i) {
+    SUBCASE("resetting memory zeroes out everything except general use, color bitmask, screen data mapping, and map width"){
+        for(int i = 0; i < 0x10000; ++i) {
             memory->data[i] = i & 255;
         }
 
         memory->Reset();
 
         bool correctValues = true;
-        for(int i = 0; i < 0x8000; ++i) {
+        for(int i = 0; i < 0x10000; ++i) {
             if (i == 0x5f5e) {
                 correctValues &= memory->data[i] == 255;
+            }
+            else if (i == 0x5f55) {
+                correctValues &= memory->data[i] == 0x60;
+            }
+            else if (i == 0x5f56) {
+                correctValues &= memory->data[i] == 0x20;
+            }
+            else if (i == 0x5f57) {
+                correctValues &= memory->data[i] == 128;
             }
             else if (i < 0x4300 || i > 0x55ff) {
                 correctValues &= memory->data[i] == 0;
@@ -272,10 +281,10 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(input->btn(2), false);
         CHECK_EQ(input->btn(3), true);
     }
-    SUBCASE("poking unknown input block") {
-        vm->vm_poke(0x5f54, 53);
+    SUBCASE("poking print attributes") {
+        vm->vm_poke(0x5f58, 53);
 
-        CHECK_EQ(memory->hwState.unknownInputBlock[0], 53);
+        CHECK_EQ(memory->hwState.printAttributes[0], 53);
     }
     SUBCASE("poking btnp repeat delay") {
         vm->vm_poke(0x5f5c, 10);
