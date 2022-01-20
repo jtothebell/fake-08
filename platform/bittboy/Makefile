@@ -15,7 +15,7 @@ INCLUDES	:=	${INCLUDES}
 # options for code generation
 #---------------------------------------------------------------------------------
 
-BIN_BASE = /opt/miyoo/bin/
+BIN_BASE = /opt/bittboy-toolchain/bin/
 
 CC = $(BIN_BASE)arm-linux-gcc
 CXX = $(BIN_BASE)arm-linux-g++

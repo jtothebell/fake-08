@@ -87,8 +87,29 @@ jobs:
           name: PS Vita
           path: |
             platform/vita/*.vpk
-            
+
   fifth:
+    name: Bittboy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir mcejp/arm-miyoo-linux-musleabi-gcc /bin/sh -ex /build_dir/.github/workflows/buildBittboy.sh
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Bittboy
+          path: |
+            platform/bittboy/FAKE08
+            platform/bittboy/pico8.elf
+            
+  sixth:
     name: Tests
     runs-on: ubuntu-latest
 
