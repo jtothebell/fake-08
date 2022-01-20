@@ -31,10 +31,6 @@ function foreach(c, f)
      for v in all(c) do f(v) end
 end
 
-sub = string.sub
-pack = table.pack
-unpack = table.unpack
-
 -- Experimenting with count() on PICO-8 shows that it returns the number
 -- of non-nil elements between c[1] and c[#c], which is slightly different
 -- from returning #c in cases where the table is no longer an array. See
