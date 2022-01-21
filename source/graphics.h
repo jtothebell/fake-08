@@ -98,6 +98,7 @@ class Graphics {
 	Graphics(std::string fontdata, PicoRam* memory);
 
 	uint8_t* GetP8FrameBuffer();
+	uint8_t* GetP8SpriteSheetBuffer();
 	uint8_t* GetScreenPaletteMap();
 	Color* GetPaletteColors();
 

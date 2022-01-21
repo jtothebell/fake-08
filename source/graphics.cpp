@@ -73,8 +73,15 @@ Graphics::Graphics(std::string fontdata, PicoRam* memory) {
 
 
 uint8_t* Graphics::GetP8FrameBuffer(){
-	//TODO: replace with ram's screen buffer
-	return _memory->screenBuffer;
+	return _memory->hwState.screenDataMemMapping == 0 
+		? _memory->spriteSheetData 
+		: _memory->screenBuffer;
+}
+
+uint8_t* Graphics::GetP8SpriteSheetBuffer(){
+	return _memory->hwState.spriteSheetMemMapping == 0x60
+		? _memory->screenBuffer 
+		: _memory->spriteSheetData;
 }
 
 uint8_t* Graphics::GetScreenPaletteMap(){
@@ -1353,7 +1360,7 @@ void Graphics::spr(
 	int spr_y = (n / 16) * 8;
 	int16_t spr_w = (int16_t)(w * (fix32)8);
 	int16_t spr_h = (int16_t)(h * (fix32)8);
-	copySpriteToScreen(_memory->spriteSheetData, x, y, spr_x, spr_y, spr_w, spr_h, flip_x, flip_y);
+	copySpriteToScreen(GetP8SpriteSheetBuffer(), x, y, spr_x, spr_y, spr_w, spr_h, flip_x, flip_y);
 }
 
 void Graphics::sspr(
@@ -1368,7 +1375,7 @@ void Graphics::sspr(
         bool flip_x = false,
         bool flip_y = false)
 {
-	copyStretchSpriteToScreen(_memory->spriteSheetData, sx, sy, sw, sh, dx, dy, dw, dh, flip_x, flip_y);
+	copyStretchSpriteToScreen(GetP8SpriteSheetBuffer(), sx, sy, sw, sh, dx, dy, dw, dh, flip_x, flip_y);
 }
 
 bool Graphics::fget(uint8_t n, uint8_t f){
@@ -1393,11 +1400,11 @@ void Graphics::fset(uint8_t n, uint8_t v){
 }
 
 uint8_t Graphics::sget(uint8_t x, uint8_t y){
-	return getPixelNibble(x, y, _memory->spriteSheetData);
+	return getPixelNibble(x, y, GetP8SpriteSheetBuffer());
 }
 
 void Graphics::sset(uint8_t x, uint8_t y, uint8_t c){
-	setPixelNibble(x, y, c, _memory->spriteSheetData);
+	setPixelNibble(x, y, c, GetP8SpriteSheetBuffer());
 }
 
 std::tuple<int16_t, int16_t> Graphics::camera() {
