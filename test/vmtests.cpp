@@ -14,6 +14,7 @@
 TEST_CASE("Vm memory functions") {
     StubHost* stubHost = new StubHost();
     PicoRam* memory = new PicoRam();
+    memory->Reset();
     Graphics* graphics = new Graphics(get_font_data(), memory);
     Input* input = new Input(memory);
     Audio* audio = new Audio(memory);

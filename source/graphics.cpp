@@ -112,7 +112,7 @@ void Graphics::copySpriteToScreen(
 
 	auto &drawState = _memory->drawState;
 	auto &hwState = _memory->hwState;
-	auto &screenBuffer = _memory->screenBuffer;
+	uint8_t *screenBuffer = GetP8FrameBuffer();
 	
 	const uint8_t writeMask = hwState.colorBitmask & 15;
 	const uint8_t readMask = hwState.colorBitmask >> 4;
@@ -262,7 +262,7 @@ void Graphics::copyStretchSpriteToScreen(
 
 	auto &drawState = _memory->drawState;
 	auto &hwState = _memory->hwState;
-	auto &screenBuffer = _memory->screenBuffer;
+	uint8_t *screenBuffer = GetP8FrameBuffer();
 
 	const uint8_t writeMask = hwState.colorBitmask & 15;
 	const uint8_t readMask = hwState.colorBitmask >> 4;
@@ -535,7 +535,7 @@ void Graphics::_setPixelFromSprite(int x, int y, uint8_t col) {
 
 	auto &drawState = _memory->drawState;
 	auto &hwState = _memory->hwState;
-	auto &screenBuffer = _memory->screenBuffer;
+	uint8_t *screenBuffer = GetP8FrameBuffer();
 
 	//col = getDrawPalMappedColor(col);
 	col = drawState.drawPaletteMap[col & 0x0f] & 0x0f; 
@@ -561,7 +561,7 @@ void Graphics::_setPixelFromPen(int x, int y) {
 
 	auto &drawState = _memory->drawState;
 	auto &hwState = _memory->hwState;
-	auto &screenBuffer = _memory->screenBuffer;
+	uint8_t *screenBuffer = GetP8FrameBuffer();
 
 	uint8_t col = drawState.color;
 
@@ -615,7 +615,7 @@ void Graphics::cls() {
 void Graphics::cls(uint8_t color) {
 	color = color & 15;
 	uint8_t val = color << 4 | color;
-	memset(_memory->screenBuffer, val, sizeof(_memory->screenBuffer));
+	memset(GetP8FrameBuffer(), val, sizeof(_memory->screenBuffer));
 
 	_memory->drawState.text_x = 0;
 	_memory->drawState.text_y = 0;
@@ -644,7 +644,7 @@ uint8_t Graphics::pget(int x, int y){
 	applyCameraToPoint(&x, &y);
 
 	if (isOnScreen(x, y)){
-		return getPixelNibble(x, y, _memory->screenBuffer);
+		return getPixelNibble(x, y, GetP8FrameBuffer());
 	}
 
 	return 0;
@@ -750,6 +750,7 @@ void Graphics::_private_h_line(int x1, int x2, int y){
 void Graphics::_private_v_line (int y1, int y2, int x){
 	auto &drawState = _memory->drawState;
 	auto &hwState = _memory->hwState;
+	uint8_t * screenBuffer = GetP8FrameBuffer();
 
 	if (!(x >= drawState.clip_xb && x < drawState.clip_xe)) {
 		return;
@@ -782,7 +783,7 @@ void Graphics::_private_v_line (int y1, int y2, int x){
 		for (int16_t y = miny; y <= maxy; ++y)
         {
 			int pixIdx = COMBINED_IDX(x, y);
-            auto &data = _memory->screenBuffer[pixIdx];
+            auto &data = screenBuffer[pixIdx];
             data = (data & mask) | nibble;
         }
 	}

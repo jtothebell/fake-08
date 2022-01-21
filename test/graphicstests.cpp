@@ -2192,6 +2192,47 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+
+    SUBCASE("Remap screen to spritesheet"){
+        graphics->cls();
+        graphics->sset(125,125,4);
+        graphics->sset(126,126,5);
+        graphics->sset(127,127,6);
+        graphics->sset(128,128,13);
+
+        picoRam.hwState.screenDataMemMapping = 0x00;
+
+        std::vector<coloredPoint> expectedPoints = {
+            {124,124,0},
+            {125,124,0},
+            {126,124,0},
+            {127,124,0},
+            {128,124,0},
+            {124,125,0},
+            {125,125,4},
+            {126,125,0},
+            {127,125,0},
+            {128,125,0},
+            {124,126,0},
+            {125,126,0},
+            {126,126,5},
+            {127,126,0},
+            {128,126,0},
+            {124,127,0},
+            {125,127,0},
+            {126,127,0},
+            {127,127,6},
+            {128,127,0},
+            {124,128,0},
+            {125,128,0},
+            {126,128,0},
+            {127,128,0},
+            {128,128,0}
+
+       };
+
+        checkPoints(graphics, expectedPoints);
+    }
     
 
     //general teardown
