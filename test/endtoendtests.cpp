@@ -66,7 +66,7 @@ bool verifyScreenshot(Vm* vm, std::string screenshotFilename) {
         pixelsMatch &= pixelMatches;
     }
 
-    /*
+    
     //uncomment for debug image output
     if (! pixelsMatch){
         //write out internal buffer. save file.
@@ -89,7 +89,7 @@ bool verifyScreenshot(Vm* vm, std::string screenshotFilename) {
 
         lodepng::save_file(png, screenshotFilename.replace(screenshotFilename.length() - 4, 4, "-actual.png"));
     }
-    */
+    
 
     return pixelsMatch;
 
@@ -559,6 +559,37 @@ TEST_CASE("Loading and running carts") {
             vm->UpdateAndDraw();
 
             CHECK(verifyScreenshot(vm, "carts/screenshots/includetest_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
+    /*
+    diagonal line is not exact but the rest is OK
+    SUBCASE("simple graphics api test"){
+        vm->LoadCart("simplegfxtest.p8");
+
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("sceen matches screenshot"){
+            vm->UpdateAndDraw();
+
+            CHECK(verifyScreenshot(vm, "carts/screenshots/simplegfxtest_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
+    */
+   SUBCASE("simple graphics api test"){
+        vm->LoadCart("rndsinmintest.p8");
+
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("sceen matches screenshot"){
+            vm->UpdateAndDraw();
+
+            CHECK(verifyScreenshot(vm, "carts/screenshots/rndsinmintest_f01.png"));
         }
 
         vm->CloseCart();
