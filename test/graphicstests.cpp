@@ -2192,7 +2192,6 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-
     SUBCASE("Remap screen to spritesheet"){
         graphics->cls();
         graphics->sset(125,125,4);
@@ -2233,6 +2232,142 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("change map width"){
+        picoRam.data[0x5f57] = 4;
+
+        for(int y = 0; y < 8; y++){
+            for(int x = 0; x < 32; x++) {
+                graphics->sset(x,y,(x/8) + 1);
+            }
+        }
+
+        graphics->mset(0, 0, 1);
+        graphics->mset(0, 1, 2);
+        graphics->mset(1, 0, 2);
+        graphics->mset(1, 1, 1);
+
+        graphics->mset(2, 2046, 2);
+        graphics->mset(2, 2047, 3);
+        graphics->mset(3, 2046, 3);
+        graphics->mset(3, 2047, 2);
+
+        graphics->cls();
+
+        graphics->map(0, 0, 0, 0, 4, 8);
+        graphics->map(0, 2040, 64, 64, 4, 8);
+
+        CHECK_EQ(picoRam.hwState.widthOfTheMap, 4);
+        CHECK_EQ(graphics->mget(0,0), 1);
+        CHECK_EQ(graphics->mget(3,2047), 2);
+        
+        std::vector<coloredPoint> expectedPoints = {
+            {6,6,2},
+            {14,6,3},
+            {6,14,3},
+            {14,14,2},
+
+            {82,118,3},
+            {90,118,4},
+            {82,126,4},
+            {90,126,3},
+       };
+
+        checkPoints(graphics, expectedPoints);
+    }
+SUBCASE("use extended ram for big map"){
+        picoRam.data[0x5f56] = 0x80;
+        
+        for(int y = 0; y < 8; y++){
+            for(int x = 64; x < 96; x++) {
+                graphics->sset(x,y,(x/8) + 1);
+            }
+        }
+
+        graphics->mset(0, 0, 8);
+        graphics->mset(0, 1, 9);
+        graphics->mset(1, 0, 9);
+        graphics->mset(1, 1, 8);
+
+        graphics->mset(126, 254, 9);
+        graphics->mset(126, 255, 10);
+        graphics->mset(127, 254, 10);
+        graphics->mset(127, 255, 9);
+
+        graphics->cls();
+
+        graphics->map(0, 0, 8, 8, 2, 2);
+        graphics->map(126, 254, 112, 112, 2, 2);
+
+        CHECK_EQ(picoRam.hwState.mapMemMapping, 0x80);
+        CHECK_EQ(graphics->mget(0,0), 8);
+        CHECK_EQ(picoRam.data[0x8000], 8);
+        CHECK_EQ(picoRam.userData[0], 8);
+        CHECK_EQ(graphics->mget(127,255), 9);
+        CHECK_EQ(picoRam.data[0xFFFF], 9);
+        CHECK_EQ(picoRam.userData[0x7FFF], 9);
+        
+        std::vector<coloredPoint> expectedPoints = {
+            {12,12,9},
+            {20,12,10},
+            {12,20,10},
+            {20,20,9},
+
+            {116,116,10},
+            {124,116,11},
+            {116,124,11},
+            {124,124,10},
+       };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("use only part of extended ram for big map"){
+        picoRam.data[0x5f56] = 0xb6;
+        //18944 total map bytes, 148 lines (using default 128 width)
+        
+        for(int y = 0; y < 8; y++){
+            for(int x = 64; x < 96; x++) {
+                graphics->sset(x,y,(x/8) + 3);
+            }
+        }
+
+        graphics->mset(0, 0, 8);
+        graphics->mset(0, 1, 9);
+        graphics->mset(1, 0, 9);
+        graphics->mset(1, 1, 8);
+
+        graphics->mset(126, 146, 9);
+        graphics->mset(126, 147, 10);
+        graphics->mset(127, 146, 10);
+        graphics->mset(127, 147, 9);
+
+        graphics->cls();
+
+        graphics->map(0, 0, 8, 8, 2, 2);
+        graphics->map(126, 146, 112, 112, 2, 2);
+
+        CHECK_EQ(picoRam.hwState.mapMemMapping, 0xb6);
+        CHECK_EQ(picoRam.data[0x5f56], 0xb6);
+        CHECK_EQ(graphics->mget(0,0), 8);
+        CHECK_EQ(picoRam.data[0xb600], 8);
+        CHECK_EQ(graphics->mget(127,147), 9);
+        CHECK_EQ(picoRam.data[0xFFFF], 9);
+        
+        std::vector<coloredPoint> expectedPoints = {
+            {12,12,11},
+            {20,12,12},
+            {12,20,12},
+            {20,20,11},
+
+            {116,116,12},
+            {124,116,13},
+            {116,124,13},
+            {124,124,12},
+       };
+
+        checkPoints(graphics, expectedPoints);
+    }
+
+
     
 
     //general teardown

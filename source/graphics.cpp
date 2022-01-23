@@ -1444,30 +1444,61 @@ std::tuple<uint8_t, uint8_t, uint8_t, uint8_t> Graphics::clip(int x, int y, int 
 }
 
 
-//map methods heavily based on tac08 implementation
 uint8_t Graphics::mget(int celx, int cely){
-	if (celx < 0 || celx >= 128 || cely < 0 || cely >= 64)
-        return 0;
+	const bool bigMap = _memory->hwState.mapMemMapping >= 0x80;
+	const int mapW = _memory->hwState.widthOfTheMap;
+	const int idx = cely * mapW + celx;
 
-	if (cely < 32) {
-		return _memory->mapData[cely * 128 + celx];
+	if (idx < 0) {
+        return 0;
 	}
-	else if (cely < 64){
-		return _memory->spriteSheetData[cely* 128 + celx];
+	
+	if (bigMap){
+		const int mapLocation = _memory->hwState.mapMemMapping << 8;
+		const int mapSize = 0x10000 - mapLocation;
+		if (idx >= mapSize){
+			return 0;
+		}
+		const int offset = 0x8000 - mapSize;
+		return _memory->userData[offset + idx];
+	}
+	else {
+		if (idx < 4096) {
+			return _memory->mapData[idx];
+		}
+		else if (idx < 8192){
+			return _memory->spriteSheetData[idx];
+		}
 	}
 
 	return 0;
 }
 
 void Graphics::mset(int celx, int cely, uint8_t snum){
-	if (celx < 0 || celx >= 128 || cely < 0 || cely >= 64)
-        return;
+	const bool bigMap = _memory->hwState.mapMemMapping >= 0x80;
+	const int mapW = _memory->hwState.widthOfTheMap;
+	const int idx = cely * mapW + celx;
 
-	if (cely < 32) {
-		_memory->mapData[cely * 128 + celx] = snum;
+	if (idx < 0) {
+        return;
 	}
-	else if (cely < 64){
-		_memory->spriteSheetData[cely* 128 + celx] = snum;
+
+	if (bigMap){
+		const int mapLocation = _memory->hwState.mapMemMapping << 8;
+		const int mapSize = 0x10000 - mapLocation;
+		if (idx >= mapSize){
+			return;
+		}
+		const int offset = 0x8000 - mapSize;
+		_memory->userData[offset + idx] = snum;
+	}
+	else {
+		if (idx < 4096)  {
+			_memory->mapData[idx] = snum;
+		}
+		else if (idx < 8192) {
+			_memory->spriteSheetData[idx] = snum;
+		}
 	}
 }
 
