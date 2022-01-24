@@ -2134,6 +2134,276 @@ TEST_CASE("graphics class behaves as expected") {
         checkPoints(graphics, expectedPoints);
     }
     */
+
+    SUBCASE("Remap spritesheet to screen"){
+        graphics->cls();
+        graphics->print("zo", 8, 0);
+        picoRam.hwState.spriteSheetMemMapping = 0x60;
+
+        graphics->spr(1, 0, 64, 1.0, 1.0, false, false);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {0,64,6},
+            {1,64,6},
+            {2,64,6},
+            {3,64,0},
+            {4,64,0},
+            {5,64,6},
+            {6,64,6},
+            {7,64,0},
+            {8,64,0},
+            {0,65,0},
+            {1,65,0},
+            {2,65,6},
+            {3,65,0},
+            {4,65,6},
+            {5,65,0},
+            {6,65,6},
+            {7,65,0},
+            {8,65,0},
+            {0,66,0},
+            {1,66,6},
+            {2,66,0},
+            {3,66,0},
+            {4,66,6},
+            {5,66,0},
+            {6,66,6},
+            {7,66,0},
+            {8,66,0},
+            {0,67,6},
+            {1,67,0},
+            {2,67,0},
+            {3,67,0},
+            {4,67,6},
+            {5,67,0},
+            {6,67,6},
+            {7,67,0},
+            {8,67,0},
+            {0,68,6},
+            {1,68,6},
+            {2,68,6},
+            {3,68,0},
+            {4,68,6},
+            {5,68,6},
+            {6,68,0},
+            {7,68,0},
+            {8,68,0},
+            {0,69,0},
+            {1,69,0},
+            {2,69,0},
+            {3,69,0},
+            {4,69,0},
+            {5,69,0},
+            {6,69,0},
+            {7,69,0},
+            {8,69,0},
+            {0,70,0},
+            {1,70,0},
+            {2,70,0},
+            {3,70,0},
+            {4,70,0},
+            {5,70,0},
+            {6,70,0},
+            {7,70,0},
+            {8,70,0},
+            {0,71,0},
+            {1,71,0},
+            {2,71,0},
+            {3,71,0},
+            {4,71,0},
+            {5,71,0},
+            {6,71,0},
+            {7,71,0},
+            {8,71,0},
+            {0,72,0},
+            {1,72,0},
+            {2,72,0},
+            {3,72,0},
+            {4,72,0},
+            {5,72,0},
+            {6,72,0},
+            {7,72,0},
+            {8,72,0}
+       };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("Remap screen to spritesheet"){
+        graphics->cls();
+        graphics->sset(125,125,4);
+        graphics->sset(126,126,5);
+        graphics->sset(127,127,6);
+        graphics->sset(128,128,13);
+
+        picoRam.hwState.screenDataMemMapping = 0x00;
+
+        std::vector<coloredPoint> expectedPoints = {
+            {124,124,0},
+            {125,124,0},
+            {126,124,0},
+            {127,124,0},
+            {128,124,0},
+            {124,125,0},
+            {125,125,4},
+            {126,125,0},
+            {127,125,0},
+            {128,125,0},
+            {124,126,0},
+            {125,126,0},
+            {126,126,5},
+            {127,126,0},
+            {128,126,0},
+            {124,127,0},
+            {125,127,0},
+            {126,127,0},
+            {127,127,6},
+            {128,127,0},
+            {124,128,0},
+            {125,128,0},
+            {126,128,0},
+            {127,128,0},
+            {128,128,0}
+
+       };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("change map width"){
+        picoRam.data[0x5f57] = 4;
+
+        for(int y = 0; y < 8; y++){
+            for(int x = 0; x < 32; x++) {
+                graphics->sset(x,y,(x/8) + 1);
+            }
+        }
+
+        graphics->mset(0, 0, 1);
+        graphics->mset(0, 1, 2);
+        graphics->mset(1, 0, 2);
+        graphics->mset(1, 1, 1);
+
+        graphics->mset(2, 2046, 2);
+        graphics->mset(2, 2047, 3);
+        graphics->mset(3, 2046, 3);
+        graphics->mset(3, 2047, 2);
+
+        graphics->cls();
+
+        graphics->map(0, 0, 0, 0, 4, 8);
+        graphics->map(0, 2040, 64, 64, 4, 8);
+
+        CHECK_EQ(picoRam.hwState.widthOfTheMap, 4);
+        CHECK_EQ(graphics->mget(0,0), 1);
+        CHECK_EQ(graphics->mget(3,2047), 2);
+        
+        std::vector<coloredPoint> expectedPoints = {
+            {6,6,2},
+            {14,6,3},
+            {6,14,3},
+            {14,14,2},
+
+            {82,118,3},
+            {90,118,4},
+            {82,126,4},
+            {90,126,3},
+       };
+
+        checkPoints(graphics, expectedPoints);
+    }
+SUBCASE("use extended ram for big map"){
+        picoRam.data[0x5f56] = 0x80;
+        
+        for(int y = 0; y < 8; y++){
+            for(int x = 64; x < 96; x++) {
+                graphics->sset(x,y,(x/8) + 1);
+            }
+        }
+
+        graphics->mset(0, 0, 8);
+        graphics->mset(0, 1, 9);
+        graphics->mset(1, 0, 9);
+        graphics->mset(1, 1, 8);
+
+        graphics->mset(126, 254, 9);
+        graphics->mset(126, 255, 10);
+        graphics->mset(127, 254, 10);
+        graphics->mset(127, 255, 9);
+
+        graphics->cls();
+
+        graphics->map(0, 0, 8, 8, 2, 2);
+        graphics->map(126, 254, 112, 112, 2, 2);
+
+        CHECK_EQ(picoRam.hwState.mapMemMapping, 0x80);
+        CHECK_EQ(graphics->mget(0,0), 8);
+        CHECK_EQ(picoRam.data[0x8000], 8);
+        CHECK_EQ(picoRam.userData[0], 8);
+        CHECK_EQ(graphics->mget(127,255), 9);
+        CHECK_EQ(picoRam.data[0xFFFF], 9);
+        CHECK_EQ(picoRam.userData[0x7FFF], 9);
+        
+        std::vector<coloredPoint> expectedPoints = {
+            {12,12,9},
+            {20,12,10},
+            {12,20,10},
+            {20,20,9},
+
+            {116,116,10},
+            {124,116,11},
+            {116,124,11},
+            {124,124,10},
+       };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("use only part of extended ram for big map"){
+        picoRam.data[0x5f56] = 0xb6;
+        //18944 total map bytes, 148 lines (using default 128 width)
+        
+        for(int y = 0; y < 8; y++){
+            for(int x = 64; x < 96; x++) {
+                graphics->sset(x,y,(x/8) + 3);
+            }
+        }
+
+        graphics->mset(0, 0, 8);
+        graphics->mset(0, 1, 9);
+        graphics->mset(1, 0, 9);
+        graphics->mset(1, 1, 8);
+
+        graphics->mset(126, 146, 9);
+        graphics->mset(126, 147, 10);
+        graphics->mset(127, 146, 10);
+        graphics->mset(127, 147, 9);
+
+        graphics->cls();
+
+        graphics->map(0, 0, 8, 8, 2, 2);
+        graphics->map(126, 146, 112, 112, 2, 2);
+
+        CHECK_EQ(picoRam.hwState.mapMemMapping, 0xb6);
+        CHECK_EQ(picoRam.data[0x5f56], 0xb6);
+        CHECK_EQ(graphics->mget(0,0), 8);
+        CHECK_EQ(picoRam.data[0xb600], 8);
+        CHECK_EQ(graphics->mget(127,147), 9);
+        CHECK_EQ(picoRam.data[0xFFFF], 9);
+        
+        std::vector<coloredPoint> expectedPoints = {
+            {12,12,11},
+            {20,12,12},
+            {12,20,12},
+            {20,20,11},
+
+            {116,116,12},
+            {124,116,13},
+            {116,124,13},
+            {124,124,12},
+       };
+
+        checkPoints(graphics, expectedPoints);
+    }
+
+
     
 
     //general teardown

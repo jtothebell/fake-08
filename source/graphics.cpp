@@ -73,8 +73,15 @@ Graphics::Graphics(std::string fontdata, PicoRam* memory) {
 
 
 uint8_t* Graphics::GetP8FrameBuffer(){
-	//TODO: replace with ram's screen buffer
-	return _memory->screenBuffer;
+	return _memory->hwState.screenDataMemMapping == 0 
+		? _memory->spriteSheetData 
+		: _memory->screenBuffer;
+}
+
+uint8_t* Graphics::GetP8SpriteSheetBuffer(){
+	return _memory->hwState.spriteSheetMemMapping == 0x60
+		? _memory->screenBuffer 
+		: _memory->spriteSheetData;
 }
 
 uint8_t* Graphics::GetScreenPaletteMap(){
@@ -105,7 +112,7 @@ void Graphics::copySpriteToScreen(
 
 	auto &drawState = _memory->drawState;
 	auto &hwState = _memory->hwState;
-	auto &screenBuffer = _memory->screenBuffer;
+	uint8_t *screenBuffer = GetP8FrameBuffer();
 	
 	const uint8_t writeMask = hwState.colorBitmask & 15;
 	const uint8_t readMask = hwState.colorBitmask >> 4;
@@ -256,7 +263,7 @@ void Graphics::copyStretchSpriteToScreen(
 
 	auto &drawState = _memory->drawState;
 	auto &hwState = _memory->hwState;
-	auto &screenBuffer = _memory->screenBuffer;
+	uint8_t *screenBuffer = GetP8FrameBuffer();
 
 	const uint8_t writeMask = hwState.colorBitmask & 15;
 	const uint8_t readMask = hwState.colorBitmask >> 4;
@@ -529,7 +536,7 @@ void Graphics::_setPixelFromSprite(int x, int y, uint8_t col) {
 
 	auto &drawState = _memory->drawState;
 	auto &hwState = _memory->hwState;
-	auto &screenBuffer = _memory->screenBuffer;
+	uint8_t *screenBuffer = GetP8FrameBuffer();
 
 	//col = getDrawPalMappedColor(col);
 	col = drawState.drawPaletteMap[col & 0x0f] & 0x0f; 
@@ -555,7 +562,7 @@ void Graphics::_setPixelFromPen(int x, int y) {
 
 	auto &drawState = _memory->drawState;
 	auto &hwState = _memory->hwState;
-	auto &screenBuffer = _memory->screenBuffer;
+	uint8_t *screenBuffer = GetP8FrameBuffer();
 
 	uint8_t col = drawState.color;
 
@@ -609,7 +616,7 @@ void Graphics::cls() {
 void Graphics::cls(uint8_t color) {
 	color = color & 15;
 	uint8_t val = color << 4 | color;
-	memset(_memory->screenBuffer, val, sizeof(_memory->screenBuffer));
+	memset(GetP8FrameBuffer(), val, sizeof(_memory->screenBuffer));
 
 	_memory->drawState.text_x = 0;
 	_memory->drawState.text_y = 0;
@@ -638,7 +645,7 @@ uint8_t Graphics::pget(int x, int y){
 	applyCameraToPoint(&x, &y);
 
 	if (isOnScreen(x, y)){
-		return getPixelNibble(x, y, _memory->screenBuffer);
+		return getPixelNibble(x, y, GetP8FrameBuffer());
 	}
 
 	return 0;
@@ -744,6 +751,7 @@ void Graphics::_private_h_line(int x1, int x2, int y){
 void Graphics::_private_v_line (int y1, int y2, int x){
 	auto &drawState = _memory->drawState;
 	auto &hwState = _memory->hwState;
+	uint8_t * screenBuffer = GetP8FrameBuffer();
 
 	if (!(x >= drawState.clip_xb && x < drawState.clip_xe)) {
 		return;
@@ -776,7 +784,7 @@ void Graphics::_private_v_line (int y1, int y2, int x){
 		for (int16_t y = miny; y <= maxy; ++y)
         {
 			int pixIdx = COMBINED_IDX(x, y);
-            auto &data = _memory->screenBuffer[pixIdx];
+            auto &data = screenBuffer[pixIdx];
             data = (data & mask) | nibble;
         }
 	}
@@ -1354,7 +1362,7 @@ void Graphics::spr(
 	int spr_y = (n / 16) * 8;
 	int16_t spr_w = (int16_t)(w * (fix32)8);
 	int16_t spr_h = (int16_t)(h * (fix32)8);
-	copySpriteToScreen(_memory->spriteSheetData, x, y, spr_x, spr_y, spr_w, spr_h, flip_x, flip_y);
+	copySpriteToScreen(GetP8SpriteSheetBuffer(), x, y, spr_x, spr_y, spr_w, spr_h, flip_x, flip_y);
 }
 
 void Graphics::sspr(
@@ -1369,7 +1377,7 @@ void Graphics::sspr(
         bool flip_x = false,
         bool flip_y = false)
 {
-	copyStretchSpriteToScreen(_memory->spriteSheetData, sx, sy, sw, sh, dx, dy, dw, dh, flip_x, flip_y);
+	copyStretchSpriteToScreen(GetP8SpriteSheetBuffer(), sx, sy, sw, sh, dx, dy, dw, dh, flip_x, flip_y);
 }
 
 bool Graphics::fget(uint8_t n, uint8_t f){
@@ -1394,11 +1402,11 @@ void Graphics::fset(uint8_t n, uint8_t v){
 }
 
 uint8_t Graphics::sget(uint8_t x, uint8_t y){
-	return getPixelNibble(x, y, _memory->spriteSheetData);
+	return getPixelNibble(x, y, GetP8SpriteSheetBuffer());
 }
 
 void Graphics::sset(uint8_t x, uint8_t y, uint8_t c){
-	setPixelNibble(x, y, c, _memory->spriteSheetData);
+	setPixelNibble(x, y, c, GetP8SpriteSheetBuffer());
 }
 
 std::tuple<int16_t, int16_t> Graphics::camera() {
@@ -1437,30 +1445,61 @@ std::tuple<uint8_t, uint8_t, uint8_t, uint8_t> Graphics::clip(int x, int y, int 
 }
 
 
-//map methods heavily based on tac08 implementation
 uint8_t Graphics::mget(int celx, int cely){
-	if (celx < 0 || celx >= 128 || cely < 0 || cely >= 64)
-        return 0;
+	const bool bigMap = _memory->hwState.mapMemMapping >= 0x80;
+	const int mapW = _memory->hwState.widthOfTheMap;
+	const int idx = cely * mapW + celx;
 
-	if (cely < 32) {
-		return _memory->mapData[cely * 128 + celx];
+	if (idx < 0) {
+        return 0;
 	}
-	else if (cely < 64){
-		return _memory->spriteSheetData[cely* 128 + celx];
+	
+	if (bigMap){
+		const int mapLocation = _memory->hwState.mapMemMapping << 8;
+		const int mapSize = 0x10000 - mapLocation;
+		if (idx >= mapSize){
+			return 0;
+		}
+		const int offset = 0x8000 - mapSize;
+		return _memory->userData[offset + idx];
+	}
+	else {
+		if (idx < 4096) {
+			return _memory->mapData[idx];
+		}
+		else if (idx < 8192){
+			return _memory->spriteSheetData[idx];
+		}
 	}
 
 	return 0;
 }
 
 void Graphics::mset(int celx, int cely, uint8_t snum){
-	if (celx < 0 || celx >= 128 || cely < 0 || cely >= 64)
-        return;
+	const bool bigMap = _memory->hwState.mapMemMapping >= 0x80;
+	const int mapW = _memory->hwState.widthOfTheMap;
+	const int idx = cely * mapW + celx;
 
-	if (cely < 32) {
-		_memory->mapData[cely * 128 + celx] = snum;
+	if (idx < 0) {
+        return;
 	}
-	else if (cely < 64){
-		_memory->spriteSheetData[cely* 128 + celx] = snum;
+
+	if (bigMap){
+		const int mapLocation = _memory->hwState.mapMemMapping << 8;
+		const int mapSize = 0x10000 - mapLocation;
+		if (idx >= mapSize){
+			return;
+		}
+		const int offset = 0x8000 - mapSize;
+		_memory->userData[offset + idx] = snum;
+	}
+	else {
+		if (idx < 4096)  {
+			_memory->mapData[idx] = snum;
+		}
+		else if (idx < 8192) {
+			_memory->spriteSheetData[idx] = snum;
+		}
 	}
 }
 
