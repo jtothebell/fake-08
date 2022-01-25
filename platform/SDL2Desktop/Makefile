@@ -16,12 +16,13 @@ INCLUDES	:=	${INCLUDES}
 #---------------------------------------------------------------------------------
 CC = $(CXX)
 
-CFLAGS	:=	-g -Wall -ffunction-sections \
+CFLAGS	:=	-g -Wall -Wno-deprecated -ffunction-sections -std=c++17 \
 			$(DEFINES)
 
 CFLAGS	+=	$(INCLUDE) -DVER_STR=\"$(APP_VERSION)\"
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions 
+#-std=gnu++11 was used before... not sure of difference
 
 LIBS	:= -lSDL2
 
