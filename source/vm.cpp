@@ -317,7 +317,7 @@ bool Vm::loadCart(Cart* cart) {
         if (customBiosLua.length() > 0) {
             int doStrRes = luaL_dostring(_luaState, customBiosLua.c_str());
 
-            if (! doStrRes == LUA_OK){
+            if (doStrRes != LUA_OK){
                 //bad lua passed
                 Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
                 lua_pop(_luaState, 1);
@@ -597,7 +597,7 @@ void Vm::GameLoop() {
 bool Vm::ExecuteLua(string luaString, string callbackFunction){
     int success = luaL_dostring(_luaState, luaString.c_str());
 
-    if (! success == LUA_OK){
+    if (success != LUA_OK){
         //bad lua passed
         Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
         lua_pop(_luaState, 1);

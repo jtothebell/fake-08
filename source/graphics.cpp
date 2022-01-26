@@ -17,9 +17,6 @@
 #include <fix32.h>
 using namespace z8;
 
-const uint8_t PicoScreenWidth = 128;
-const uint8_t PicoScreenHeight = 128;
-
 
 //call initialize to make sure defaults are correct
 Graphics::Graphics(std::string fontdata, PicoRam* memory) {
