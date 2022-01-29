@@ -36,8 +36,8 @@ int _windowHeight = 128;
 int _screenWidth = 128;
 int _screenHeight = 128;
 
-int _maxNoStretchWidth = 128;
-int _maxNoStretchHeight = 128;
+int _maxNoStretchWidth = 384;
+int _maxNoStretchHeight = 384;
 
 const int PicoScreenWidth = 128;
 const int PicoScreenHeight = 128;
@@ -138,9 +138,25 @@ void _changeStretch(StretchOption newStretch){
         _screenWidth = PicoScreenWidth;
         _screenHeight = PicoScreenHeight;
     }
+    else if (newStretch == StretchToFit) {
+        _screenWidth = _windowHeight;
+        _screenHeight = _windowHeight;
+    }
+    else if (newStretch == StretchToFill){
+        _screenWidth = _windowWidth;
+        _screenHeight = _windowHeight; 
+    }
+    else if (newStretch == PixelPerfectStretch) {
+        _screenWidth = _maxNoStretchWidth;
+        _screenHeight = _maxNoStretchHeight; 
+    }
+    else if (newStretch == FourByThreeVertPerfect) {
+        _screenWidth = _maxNoStretchHeight * 4 / 3;
+        _screenHeight = _maxNoStretchHeight; 
+    }
     else if (newStretch == StretchAndOverflow) {
         yoffset = 4 / drawModeScaleY;
-        _screenWidth = PicoScreenWidth * 2;
+        _screenWidth = PicoScreenWidth * 4;
         _screenHeight = _windowHeight;
     }
     //default to StretchToFill)
@@ -428,8 +444,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
         }
     }
     //vertical flip
-    //this should be flip == 2, but miyoo mini is flipped for some reason
-    else if (textureAngle == 0 && flip == 0) {
+    else if (textureAngle == 0 && flip == 2) {
         for (int y = 0; y < PicoScreenHeight; y ++){
             for (int x = 0; x < PicoScreenWidth; x ++){
                 uint8_t c = getPixelNibble(x, y, picoFb);
@@ -490,50 +505,12 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
     }
     else { //default
         for (int y = 0; y < PicoScreenHeight; y ++){
-            for (int x = 0; x < pixelBlocksPerLine; x ++){
-                int32_t eightPix = ((int32_t*)picoFb)[y * pixelBlocksPerLine + x];
+            for (int x = 0; x < PicoScreenWidth; x ++){
+                uint8_t c = getPixelNibble(x, y, picoFb);
+                uint32_t col = _mapped32BitColors[screenPaletteMap[c]];
 
-                int h = (eightPix >> 28) & 0x0f;
-                int g = (eightPix >> 24) & 0x0f;
-                int f = (eightPix >> 20) & 0x0f;
-                int e = (eightPix >> 16) & 0x0f;
-                int d = (eightPix >> 12) & 0x0f;
-                int c = (eightPix >>  8) & 0x0f;
-                int b = (eightPix >>  4) & 0x0f;
-                int a = (eightPix)       & 0x0f;
-
-                int32_t cola = _mapped32BitColors[screenPaletteMap[a]];
-                int32_t colb = _mapped32BitColors[screenPaletteMap[b]];
-                int32_t colc = _mapped32BitColors[screenPaletteMap[c]];
-                int32_t cold = _mapped32BitColors[screenPaletteMap[d]];
-                int32_t cole = _mapped32BitColors[screenPaletteMap[e]];
-                int32_t colf = _mapped32BitColors[screenPaletteMap[f]];
-                int32_t colg = _mapped32BitColors[screenPaletteMap[g]];
-                int32_t colh = _mapped32BitColors[screenPaletteMap[h]];
-
-                
-                base = ((uint32_t *)pixels + (y * PicoScreenHeight + x * 8));
-                base[0] = cola;
-                base[1] = colb;
-                base[2] = colc;
-                base[3] = cold;
-                base[4] = cole;
-                base[5] = colf;
-                base[6] = colg;
-                base[7] = colh;
-                
-
-                //----OR something like this for further optimization?
-                //not exactly this. its broken
-                /*
-                int32_t* base32 = ((int32_t *)pixels + (y * PicoScreenHeight + x * 8));
-                base32[0] = cola << 16 & colb;
-                base32[1] = colc << 16 & cold;
-                base32[2] = cole << 16 & colf;
-                base32[3] = colg << 16 & colh;
-                */
-                
-                
+                base = ((uint32_t *)pixels) + ((127 - y) * PicoScreenHeight + (127 - x));
+                base[0] = col;
             }
         }
     }
