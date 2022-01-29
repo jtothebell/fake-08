@@ -97,7 +97,7 @@ void audioCleanup(){
 
 void FillAudioDeviceBuffer(void* UserData, Uint8* DeviceBuffer, int Length)
 {
-    _audio->FillMonoAudioBuffer(DeviceBuffer, 0, Length / 2);
+    _audio->FillMonoAudioBuffer(DeviceBuffer, 0, Length / 4);
 }
 
 void audioSetup(){
@@ -106,8 +106,8 @@ void audioSetup(){
     SDL_memset(&want, 0, sizeof(want));
     want.freq = SAMPLERATE;
     want.format = AUDIO_S16LSB;
-    want.channels = 1;
-    want.samples = 512;
+    want.channels = 2;
+    want.samples = 4096;
     want.callback = FillAudioDeviceBuffer;
     
 
