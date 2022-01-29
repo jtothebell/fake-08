@@ -8,7 +8,7 @@
 #---------------------------------------------------------------------------------
 TARGET		:=	FAKE08
 BUILD		:=	build
-SOURCES		:=	${SOURCES} ../bittboy/source source
+SOURCES		:=	${SOURCES} ../miyoomini/source source
 INCLUDES	:=	${INCLUDES}
 
 #---------------------------------------------------------------------------------

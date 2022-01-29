@@ -62,7 +62,7 @@ SDL_Surface *texture;
 SDL_bool done = SDL_FALSE;
 SDL_AudioSpec want, have;
 void *pixels;
-uint16_t *base;
+uint32_t *base;
 int pitch;
 
 SDL_Rect SrcR;
@@ -75,7 +75,7 @@ int drawModeScaleY = 1;
 
 bool audioInitialized = false;
 
-uint16_t _mapped16BitColors[144];
+uint32_t _mapped32BitColors[144];
 
 
 void postFlipFunction(){
@@ -202,7 +202,7 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     SDL_PixelFormat *f = window->format;
 
     for(int i = 0; i < 144; i++){
-        _mapped16BitColors[i] = SDL_MapRGB(f, _paletteColors[i].Red, _paletteColors[i].Green, _paletteColors[i].Blue);
+        _mapped32BitColors[i] = SDL_MapRGB(f, _paletteColors[i].Red, _paletteColors[i].Green, _paletteColors[i].Blue);
     }
 
 
@@ -420,21 +420,22 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
         for (int y = 0; y < PicoScreenHeight; y ++){
             for (int x = 0; x < PicoScreenWidth; x ++){
                 uint8_t c = getPixelNibble(x, y, picoFb);
-                uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+                uint32_t col = _mapped32BitColors[screenPaletteMap[c]];
 
-                base = ((uint16_t *)pixels) + ( y * PicoScreenHeight + (127 - x));
+                base = ((uint32_t *)pixels) + ( y * PicoScreenHeight + (127 - x));
                 base[0] = col;
             }
         }
     }
     //vertical flip
-    else if (textureAngle == 0 && flip == 2) {
+    //this should be flip == 2, but miyoo mini is flipped for some reason
+    else if (textureAngle == 0 && flip == 0) {
         for (int y = 0; y < PicoScreenHeight; y ++){
             for (int x = 0; x < PicoScreenWidth; x ++){
                 uint8_t c = getPixelNibble(x, y, picoFb);
-                uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+                uint32_t col = _mapped32BitColors[screenPaletteMap[c]];
 
-                base = ((uint16_t *)pixels) + ((127 - y) * PicoScreenHeight + x);
+                base = ((uint32_t *)pixels) + ((127 - y) * PicoScreenHeight + x);
                 base[0] = col;
             }
         }
@@ -444,9 +445,9 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
         for (int y = 0; y < PicoScreenHeight; y ++){
             for (int x = 0; x < PicoScreenWidth; x ++){
                 uint8_t c = getPixelNibble(x, y, picoFb);
-                uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+                uint32_t col = _mapped32BitColors[screenPaletteMap[c]];
 
-                base = ((uint16_t *)pixels) + ((127 - y) * PicoScreenHeight + (127 - x));
+                base = ((uint32_t *)pixels) + ((127 - y) * PicoScreenHeight + (127 - x));
                 base[0] = col;
             }
         }
@@ -456,9 +457,9 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
         for (int y = 0; y < PicoScreenHeight; y ++){
             for (int x = 0; x < PicoScreenWidth; x ++){
                 uint8_t c = getPixelNibble(x, y, picoFb);
-                uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+                uint32_t col = _mapped32BitColors[screenPaletteMap[c]];
 
-                base = ((uint16_t *)pixels) + (x * PicoScreenHeight + (127 - y));
+                base = ((uint32_t *)pixels) + (x * PicoScreenHeight + (127 - y));
                 base[0] = col;
             }
         }
@@ -468,9 +469,9 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
         for (int y = 0; y < PicoScreenHeight; y ++){
             for (int x = 0; x < PicoScreenWidth; x ++){
                 uint8_t c = getPixelNibble(x, y, picoFb);
-                uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+                uint32_t col = _mapped32BitColors[screenPaletteMap[c]];
 
-                base = ((uint16_t *)pixels) + ((127 - y) * PicoScreenHeight + (127 - x));
+                base = ((uint32_t *)pixels) + ((127 - y) * PicoScreenHeight + (127 - x));
                 base[0] = col;
             }
         }
@@ -480,9 +481,9 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
         for (int y = 0; y < PicoScreenHeight; y ++){
             for (int x = 0; x < PicoScreenWidth; x ++){
                 uint8_t c = getPixelNibble(x, y, picoFb);
-                uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+                uint32_t col = _mapped32BitColors[screenPaletteMap[c]];
 
-                base = ((uint16_t *)pixels) + ((127 - x) * PicoScreenHeight + y);
+                base = ((uint32_t *)pixels) + ((127 - x) * PicoScreenHeight + y);
                 base[0] = col;
             }
         }
@@ -501,17 +502,17 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
                 int b = (eightPix >>  4) & 0x0f;
                 int a = (eightPix)       & 0x0f;
 
-                int32_t cola = _mapped16BitColors[screenPaletteMap[a]];
-                int32_t colb = _mapped16BitColors[screenPaletteMap[b]];
-                int32_t colc = _mapped16BitColors[screenPaletteMap[c]];
-                int32_t cold = _mapped16BitColors[screenPaletteMap[d]];
-                int32_t cole = _mapped16BitColors[screenPaletteMap[e]];
-                int32_t colf = _mapped16BitColors[screenPaletteMap[f]];
-                int32_t colg = _mapped16BitColors[screenPaletteMap[g]];
-                int32_t colh = _mapped16BitColors[screenPaletteMap[h]];
+                int32_t cola = _mapped32BitColors[screenPaletteMap[a]];
+                int32_t colb = _mapped32BitColors[screenPaletteMap[b]];
+                int32_t colc = _mapped32BitColors[screenPaletteMap[c]];
+                int32_t cold = _mapped32BitColors[screenPaletteMap[d]];
+                int32_t cole = _mapped32BitColors[screenPaletteMap[e]];
+                int32_t colf = _mapped32BitColors[screenPaletteMap[f]];
+                int32_t colg = _mapped32BitColors[screenPaletteMap[g]];
+                int32_t colh = _mapped32BitColors[screenPaletteMap[h]];
 
                 
-                base = ((uint16_t *)pixels + (y * PicoScreenHeight + x * 8));
+                base = ((uint32_t *)pixels + (y * PicoScreenHeight + x * 8));
                 base[0] = cola;
                 base[1] = colb;
                 base[2] = colc;
