@@ -19,6 +19,24 @@ std::string get_file_contents(std::string filename){
   return "";
 }
 
+std::string get_first_four_chars(std::string filename){
+    std::ifstream in(filename, std::ios::in | std::ios::binary);
+    if (in)
+    {
+        std::string contents;
+        in.seekg(0, std::ios::end);
+        int fileLength = in.tellg();
+        int bufSize = 4 < fileLength ? 4 : fileLength;
+        contents.resize(bufSize);
+        in.seekg(0, std::ios::beg);
+        in.read(&contents[0], bufSize);
+        in.close();
+        return(contents);
+    }
+
+  return "";
+}
+
 //https://stackoverflow.com/questions/5420317/reading-and-writing-binary-file
 std::vector<unsigned char> get_file_buffer(std::string filename){
   std::ifstream in(filename, std::ios::binary);
