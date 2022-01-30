@@ -97,7 +97,7 @@ void audioCleanup(){
 
 void FillAudioDeviceBuffer(void* UserData, Uint8* DeviceBuffer, int Length)
 {
-    _audio->FillMonoAudioBuffer(DeviceBuffer, 0, Length / 4);
+    _audio->FillAudioBuffer(DeviceBuffer, 0, Length / 4);
 }
 
 void audioSetup(){
