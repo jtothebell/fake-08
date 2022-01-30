@@ -319,8 +319,10 @@ Cart::Cart(std::string filename, std::string cartDirectory){
     initCartRom();
 
     Logger_Write("getting file contents\n");
+
+    std::string firstFourChars = get_first_four_chars(FullCartPath);
     
-    if (hasEnding(FullCartPath, ".p8")){
+    if (FullCartPath == "__FAKE08-BIOS.p8" || firstFourChars == "pico"){
         std::string cartStr; 
 
         if (FullCartPath == "__FAKE08-BIOS.p8") {
@@ -395,7 +397,7 @@ Cart::Cart(std::string filename, std::string cartDirectory){
         setSfx(SfxString);
         setMusic(MusicString);
     }
-    else if (hasEnding(FullCartPath, ".png")) {
+    else if (firstFourChars == "\x89PNG") {
         bool success = loadCartFromPng(FullCartPath);
 
         if (!success){

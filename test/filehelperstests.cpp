@@ -120,3 +120,18 @@ TEST_CASE("isCartFile") {
         CHECK_EQ(isCartFile("._cart.p8.png"), false);
     }
 }
+
+TEST_CASE("get_first_four_chars") {
+    SUBCASE("empty string") {
+        CHECK_EQ(get_first_four_chars(""), "");
+    }
+    SUBCASE("not a file") {
+        CHECK_EQ(get_first_four_chars("file"), "");
+    }
+    SUBCASE("p8 cart file") {
+        CHECK_EQ(get_first_four_chars("carts/cartparsetest.p8"), "pico");
+    }
+    SUBCASE("png cart file") {
+        CHECK_EQ(get_first_four_chars("carts/test_legacypng_cart.p8.png"), "\x89PNG");
+    }
+}
