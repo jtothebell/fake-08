@@ -28,7 +28,7 @@ CFLAGS	+=	$(INCLUDE)
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -std=gnu++17 
 
-LIBS	:= -lSDL -lmi_ao
+LIBS	:= -lSDL -lpthread -lmi_sys -lmi_ao -lcam_os_wrapper -s
 
 LDFLAGS	:= $(LIBS)
 

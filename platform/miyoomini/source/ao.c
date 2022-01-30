@@ -4,8 +4,8 @@
 #include <pthread.h>
 #include <linux/input.h>
 #include <SDL/SDL.h>
-#include <sdkdir/mi_sys.h>
-#include <sdkdir/mi_ao.h>
+#include <mi_sys.h>
+#include <mi_ao.h>
 
 #define	NUM_FRAMES		4	// 8192/(512*2*2)
 //#define	NUM_FRAMES		2
