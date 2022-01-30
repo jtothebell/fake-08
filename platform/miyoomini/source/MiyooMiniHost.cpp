@@ -17,6 +17,8 @@ using namespace std;
 // sdl
 #include <SDL/SDL.h>
 
+#include "ao.h"
+
 #define SCREEN_SIZE_X 640
 #define SCREEN_SIZE_Y 480
 
@@ -87,11 +89,11 @@ void postFlipFunction(){
 }
 
 void audioCleanup(){
-    SDL_PauseAudio(1);
-
+    AO_PauseAudio(1);
+	
     audioInitialized = false;
 
-    SDL_CloseAudio();
+    AO_CloseAudio();
 }
 
 
@@ -111,6 +113,9 @@ void audioSetup(){
     want.callback = FillAudioDeviceBuffer;
     
 
+    AO_OpenAudio(&want);
+    AO_PauseAudio(0);
+    /*
     int audioOpenRes = SDL_OpenAudio(&want, &have);
     if (audioOpenRes < 0) {
         Logger_Write("Failed to open audio: %s", SDL_GetError());
@@ -121,6 +126,7 @@ void audioSetup(){
         SDL_PauseAudio(0); 
         audioInitialized = true;
     }
+    */
 }
 
 void _setSourceRect(int xoffset, int yoffset) {

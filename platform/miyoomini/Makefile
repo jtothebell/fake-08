@@ -9,7 +9,7 @@
 TARGET		:=	FAKE08
 BUILD		:=	build
 SOURCES		:=	${SOURCES} source
-INCLUDES	:=	${INCLUDES}
+INCLUDES	:=	${INCLUDES} source
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -28,7 +28,7 @@ CFLAGS	+=	$(INCLUDE)
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -std=gnu++17 
 
-LIBS	:= -lSDL
+LIBS	:= -lSDL -lmi_ao
 
 LDFLAGS	:= $(LIBS)
 
