@@ -196,11 +196,13 @@ void Audio::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
     uint32_t *buffer = (uint32_t *)audioBuffer;
 
     for (size_t i = 0; i < size; ++i){
-        int16_t sample = 0;
+        int32_t sample = 0;
 
         for (int c = 0; c < 4; ++c) {
             sample += this->getSampleForChannel(c);
         }
+
+	    if (sample > 0x7fff) sample = 0x7fff; else if (sample < -0x8000) sample = -0x8000;
 
         //buffer is stereo, so just send the mono sample to both channels
         buffer[i] = (sample<<16) | (sample & 0xffff);
@@ -215,11 +217,13 @@ void Audio::FillMonoAudioBuffer(void *audioBuffer, size_t offset, size_t size){
     int16_t *buffer = (int16_t *)audioBuffer;
 
     for (size_t i = 0; i < size; ++i){
-        int16_t sample = 0;
+        int32_t sample = 0;
 
         for (int c = 0; c < 4; ++c) {
             sample += this->getSampleForChannel(c);
         }
+
+	    if (sample > 0x7fff) sample = 0x7fff; else if (sample < -0x8000) sample = -0x8000;
 
         buffer[i] = sample;
     }
