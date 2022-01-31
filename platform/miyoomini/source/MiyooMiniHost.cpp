@@ -115,18 +115,8 @@ void audioSetup(){
 
     AO_OpenAudio(&want);
     AO_PauseAudio(0);
-    /*
-    int audioOpenRes = SDL_OpenAudio(&want, &have);
-    if (audioOpenRes < 0) {
-        Logger_Write("Failed to open audio: %s", SDL_GetError());
-    } else {
-        if (have.format != want.format) { 
-            Logger_Write("We didn't get requested audio format.");
-        }
-        SDL_PauseAudio(0); 
-        audioInitialized = true;
-    }
-    */
+
+    audioInitialized = true;
 }
 
 void _setSourceRect(int xoffset, int yoffset) {
