@@ -21,7 +21,7 @@ STRIP = arm-linux-gnueabihf-strip
 
 CC = $(CXX)
 
-CFLAGS	:=	-g -Wall -Ofast -ffunction-sections -Iinc -D_BITTBOY -DVER_STR=\"$(APP_VERSION)\" -marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -O3 -march=armv7ve \
+CFLAGS	:=	-Wall -Ofast -ffunction-sections -Iinc -D_BITTBOY -DVER_STR=\"$(APP_VERSION)\" -marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -O3 -march=armv7ve \
 			$(DEFINES)
 
 CFLAGS	+=	$(INCLUDE)
