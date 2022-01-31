@@ -13,11 +13,10 @@ using namespace std;
 #include "../../../source/nibblehelpers.h"
 #include "../../../source/logger.h"
 #include "../../../source/filehelpers.h"
+#include "ao.h"
 
 // sdl
 #include <SDL/SDL.h>
-
-#include "ao.h"
 
 #define SCREEN_SIZE_X 640
 #define SCREEN_SIZE_Y 480
@@ -90,7 +89,7 @@ void postFlipFunction(){
 
 void audioCleanup(){
     AO_PauseAudio(1);
-	
+
     audioInitialized = false;
 
     AO_CloseAudio();
@@ -99,7 +98,7 @@ void audioCleanup(){
 
 void FillAudioDeviceBuffer(void* UserData, Uint8* DeviceBuffer, int Length)
 {
-    _audio->FillAudioBuffer(DeviceBuffer, 0, Length / 4);
+    _audio->FillMonoAudioBuffer(DeviceBuffer, 0, Length / 2);
 }
 
 void audioSetup(){
@@ -108,14 +107,12 @@ void audioSetup(){
     SDL_memset(&want, 0, sizeof(want));
     want.freq = SAMPLERATE;
     want.format = AUDIO_S16LSB;
-    want.channels = 2;
-    want.samples = 4096;
+    want.channels = 1;
+    want.samples = 512;
     want.callback = FillAudioDeviceBuffer;
     
-
     AO_OpenAudio(&want);
     AO_PauseAudio(0);
-
     audioInitialized = true;
 }
 
@@ -195,7 +192,7 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     SDL_WM_SetCaption("FAKE-08", NULL);
     SDL_ShowCursor(SDL_DISABLE);
 
-    int flags = SDL_HWSURFACE;
+    int flags = SDL_SWSURFACE;
 
     window = SDL_SetVideoMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, SCREEN_BPP, flags);
 
@@ -252,9 +249,9 @@ void Host::changeStretch(){
         StretchOption newStretch = stretch;
 
         if (stretch == StretchAndOverflow) {
-            newStretch = PixelPerfect;
+            newStretch = PixelPerfectStretch;
         }
-        else if (stretch == PixelPerfect) {
+        else if (stretch == PixelPerfectStretch) {
             newStretch = StretchToFill;
         }
         else{

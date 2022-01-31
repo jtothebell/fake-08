@@ -4,11 +4,15 @@
 #include <pthread.h>
 #include <linux/input.h>
 #include <SDL/SDL.h>
+#if UNIONTOOLCHAIN
 #include <mi_sys.h>
 #include <mi_ao.h>
+#else
+#include <sdkdir/mi_sys.h>
+#include <sdkdir/mi_ao.h>
+#endif
 
-#define	NUM_FRAMES		4	// 8192/(512*2*2)
-//#define	NUM_FRAMES		2
+#define	NUM_FRAMES		2	// 512(samples)*2(16bit) *2 = 2048 bytes
 #define	USLEEP_MIN		0	// Threshold time for reading ahead without usleep
 					//	when the time remaining until the next frame is less
 					// (usleep resolution is 10000us(10ms) in the case of miyoomini)
