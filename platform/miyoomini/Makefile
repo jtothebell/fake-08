@@ -12,16 +12,23 @@ SOURCES		:=	${SOURCES} source
 INCLUDES	:=	${INCLUDES} source
 
 #---------------------------------------------------------------------------------
-# options for code generation
+# union toolchain (has these in PATH)
 #---------------------------------------------------------------------------------
 
 CC = arm-linux-gnueabihf-gcc
 CXX = arm-linux-gnueabihf-g++
 STRIP = arm-linux-gnueabihf-strip
 
+#---------------------------------------------------------------------------------
+# other toolchain. possible TODO: detect/parameterize
+#---------------------------------------------------------------------------------
+#CC = /opt/miyoomini/bin/arm-linux-gnueabihf-gcc
+#CXX = /opt/miyoomini/bin/arm-linux-gnueabihf-g++
+#STRIP = /opt/miyoomini/bin/arm-linux-gnueabihf-strip
+
 CC = $(CXX)
 
-CFLAGS	:=	-Wall -Ofast -ffunction-sections -Iinc -D_BITTBOY -DVER_STR=\"$(APP_VERSION)\" -marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -O3 -march=armv7ve \
+CFLAGS	:=	-Wall -Ofast -ffunction-sections -Iinc -D_BITTBOY -DVER_STR=\"$(APP_VERSION)\" -marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7ve \
 			$(DEFINES)
 
 CFLAGS	+=	$(INCLUDE)
