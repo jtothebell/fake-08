@@ -283,7 +283,6 @@ void Host::setTargetFps(int targetFps){
 
 void Host::changeStretch(){
     if (stretchKeyPressed) {
-        printf("stretch pressed. stretch: %d\n", stretch);
         StretchOption newStretch = stretch;
 
         if (stretch == PixelPerfectStretch) {
@@ -303,8 +302,6 @@ void Host::changeStretch(){
         }
 
         _changeStretch(newStretch);
-
-        printf("new stretch: %d\n", newStretch);
 
         stretch = newStretch;
         scaleX = _screenWidth / (float)PicoScreenWidth;
