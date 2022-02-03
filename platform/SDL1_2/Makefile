@@ -8,8 +8,11 @@
 #---------------------------------------------------------------------------------
 TARGET		:=	FAKE08
 BUILD		:=	build
-SOURCES		:=	${SOURCES} ../miyoomini/source source
+SOURCES		:=	${SOURCES} source
 INCLUDES	:=	${INCLUDES}
+
+IMITATE		:= miyoomini
+#IMITATE		:= bittboy
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -31,6 +34,17 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -std=gnu++17
 LIBS	:= -lSDL 
 
 LDFLAGS	:= $(LIBS)
+
+ifeq ($(IMITATE),miyoomini)
+
+SOURCES += ../miyoomini/source/MiyooMiniHost.cpp
+CXXFLAGS += -D_DESKTOP
+
+else
+
+SOURCES += ../bittboy/source
+
+endif
 
 
 #---------------------------------------------------------------------------------

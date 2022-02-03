@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <unistd.h>
 #include <string.h>
 #include <dirent.h>
 #include <errno.h>
@@ -13,7 +14,10 @@ using namespace std;
 #include "../../../source/nibblehelpers.h"
 #include "../../../source/logger.h"
 #include "../../../source/filehelpers.h"
+
+#ifndef _DESKTOP
 #include "ao.h"
+#endif
 
 // sdl
 #include <SDL/SDL.h>
@@ -88,11 +92,20 @@ void postFlipFunction(){
 }
 
 void audioCleanup(){
+    #ifdef _DESKTOP
+    SDL_PauseAudio(1);
+
+    audioInitialized = false;
+
+    SDL_CloseAudio();
+
+    #else
     AO_PauseAudio(1);
 
     audioInitialized = false;
 
     AO_CloseAudio();
+    #endif
 }
 
 
@@ -110,10 +123,23 @@ void audioSetup(){
     want.channels = 1;
     want.samples = 512;
     want.callback = FillAudioDeviceBuffer;
-    
+
+    #ifdef _DESKTOP
+    int audioOpenRes = SDL_OpenAudio(&want, &have);
+    if (audioOpenRes < 0) {
+        Logger_Write("Failed to open audio: %s", SDL_GetError());
+    } else {
+        if (have.format != want.format) { 
+            Logger_Write("We didn't get requested audio format.");
+        }
+        SDL_PauseAudio(0); 
+        audioInitialized = true;
+    }
+    #else
     AO_OpenAudio(&want);
     AO_PauseAudio(0);
     audioInitialized = true;
+    #endif
 }
 
 void _setSourceRect(int xoffset, int yoffset) {
@@ -177,8 +203,19 @@ void _changeStretch(StretchOption newStretch){
 
 
 Host::Host() {
+    #ifdef _DESKTOP
+    std::string home = getenv("HOME");
+    
+    _cartDirectory = home + "/p8carts";
+    _logFilePrefix = home + "/fake08";
+
+    #else
     _cartDirectory = "/mnt/SDCARD/Roms/PICO";
-    _logFilePrefix = "/mnt/SDCARD/Roms/PICO/";
+    char cwdbuf[256];
+	getcwd(cwdbuf, 255);
+	strcat(cwdbuf, "/");
+	_logFilePrefix = cwdbuf;
+    #endif
 
  }
 
@@ -249,10 +286,13 @@ void Host::changeStretch(){
         StretchOption newStretch = stretch;
 
         if (stretch == StretchAndOverflow) {
+            newStretch = StretchToFit;
+        }
+        if (stretch == StretchToFit) {
             newStretch = PixelPerfectStretch;
         }
         else if (stretch == PixelPerfectStretch) {
-            newStretch = StretchToFill;
+            newStretch = StretchAndOverflow;
         }
         else{
             newStretch = StretchAndOverflow;
