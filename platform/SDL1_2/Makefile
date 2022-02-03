@@ -11,6 +11,7 @@ BUILD		:=	build
 SOURCES		:=	${SOURCES} source
 INCLUDES	:=	${INCLUDES}
 
+#which platformm to use its host file
 IMITATE		:= miyoomini
 #IMITATE		:= bittboy
 
@@ -37,8 +38,8 @@ LDFLAGS	:= $(LIBS)
 
 ifeq ($(IMITATE),miyoomini)
 
-SOURCES += ../miyoomini/source/MiyooMiniHost.cpp
-CXXFLAGS += -D_DESKTOP
+SOURCES += ../miyoomini/source
+CXXFLAGS += -D_DESKTOP=1
 
 else
 
@@ -64,6 +65,11 @@ export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
 CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
+
+ifeq ($(IMITATE),miyoomini)
+#ao.c is only for building on the actual mini
+CFILES := $(filter-out ao.c,$(CFILES))
+endif
 
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C

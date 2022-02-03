@@ -283,22 +283,28 @@ void Host::setTargetFps(int targetFps){
 
 void Host::changeStretch(){
     if (stretchKeyPressed) {
+        printf("stretch pressed. stretch: %d\n", stretch);
         StretchOption newStretch = stretch;
 
-        if (stretch == StretchAndOverflow) {
+        if (stretch == PixelPerfectStretch) {
             newStretch = StretchToFit;
         }
-        if (stretch == StretchToFit) {
+        else if (stretch == StretchToFit) {
+            newStretch = StretchToFill;
+        }
+        else if (stretch == StretchToFill) {
+            newStretch = StretchAndOverflow;
+        }
+        else if (stretch == StretchAndOverflow) {
             newStretch = PixelPerfectStretch;
         }
-        else if (stretch == PixelPerfectStretch) {
-            newStretch = StretchAndOverflow;
-        }
-        else{
-            newStretch = StretchAndOverflow;
+        else {
+            newStretch = PixelPerfectStretch;
         }
 
         _changeStretch(newStretch);
+
+        printf("new stretch: %d\n", newStretch);
 
         stretch = newStretch;
         scaleX = _screenWidth / (float)PicoScreenWidth;
