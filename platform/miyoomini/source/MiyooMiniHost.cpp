@@ -605,10 +605,10 @@ const char* Host::logFilePrefix() {
 
 std::string Host::customBiosLua() {
     return "cartpath = \"roms/pico/\"\n"
-        "selectbtn = \"z\"\n"
-        "pausebtn = \"esc\""
-        "exitbtn = \"close window\""
-        "sizebtn = \"\"";
+        "selectbtn = \"a\"\n"
+        "pausebtn = \"start\""
+        "exitbtn = \"menu\""
+        "sizebtn = \"select\"";
 }
 
 std::string Host::getCartDirectory() {
