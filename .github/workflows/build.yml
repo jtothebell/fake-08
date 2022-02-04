@@ -108,8 +108,28 @@ jobs:
           path: |
             platform/bittboy/FAKE08
             platform/bittboy/pico8.elf
-            
+
   sixth:
+    name: MiyooMini
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir jondbell/union-miyoomini-toolchain /bin/sh -ex /build_dir/.github/workflows/buildMiyooMini.sh
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: MiyooMini
+          path: |
+            platform/miyoomini/FAKE08
+            
+  seventh:
     name: Tests
     runs-on: ubuntu-latest
 
