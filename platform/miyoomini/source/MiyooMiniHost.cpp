@@ -545,7 +545,11 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
                 uint8_t c = getPixelNibble(x, y, picoFb);
                 uint32_t col = _mapped32BitColors[screenPaletteMap[c]];
 
+                #ifdef _DESKTOP
+                base = ((uint32_t *)pixels) + (y * PicoScreenHeight + x);
+                #else
                 base = ((uint32_t *)pixels) + ((127 - y) * PicoScreenHeight + (127 - x));
+                #endif
                 base[0] = col;
             }
         }
