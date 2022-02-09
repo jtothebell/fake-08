@@ -42,6 +42,9 @@ clean-sdl:
 clean-bittboy:
 	@$(MAKE) -C platform/bittboy clean
 
+clean-miyoomini:
+	@$(MAKE) -C platform/miyoomini clean
+
 3ds:
 	@$(MAKE) -C platform/3ds
 
@@ -65,6 +68,9 @@ sdl:
 
 bittboy:
 	@$(MAKE) -C platform/bittboy
+
+miyoomini:
+	@$(MAKE) -C platform/miyoomini
 
 clean-tests:
 	@$(MAKE) -C test clean

@@ -9,43 +9,44 @@
 TARGET		:=	FAKE08
 BUILD		:=	build
 SOURCES		:=	${SOURCES} source
-INCLUDES	:=	${INCLUDES}
+INCLUDES	:=	${INCLUDES} source
 
-#which platformm to use its host file
-IMITATE		:= miyoomini
-#IMITATE		:= bittboy
+TOOLCHAIN   := union
 
+
+ifeq ($(TOOLCHAIN),union)
 #---------------------------------------------------------------------------------
-# options for code generation
+# union toolchain (has these in PATH)
 #---------------------------------------------------------------------------------
+CC = arm-linux-gnueabihf-gcc
+CXX = arm-linux-gnueabihf-g++
+STRIP = arm-linux-gnueabihf-strip
+
+else
+#---------------------------------------------------------------------------------
+# other toolchain. possible TODO: detect instead of manually changing?
+#---------------------------------------------------------------------------------
+CC = /opt/miyoomini/bin/arm-linux-gnueabihf-gcc
+CXX = /opt/miyoomini/bin/arm-linux-gnueabihf-g++
+STRIP = /opt/miyoomini/bin/arm-linux-gnueabihf-strip
+endif
+
 CC = $(CXX)
 
-CFLAGS	:=	-g -Wall -Ofast -ffunction-sections -DVER_STR=\"$(APP_VERSION)\" \
+CFLAGS	:=	-Wall -Ofast -ffunction-sections -Iinc -D_BITTBOY -DVER_STR=\"$(APP_VERSION)\" -marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7ve \
 			$(DEFINES)
+
+ifeq ($(TOOLCHAIN),union)
+CFLAGS	+=	-DUNIONTOOLCHAIN=1
+endif
 
 CFLAGS	+=	$(INCLUDE)
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -std=gnu++17
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -std=gnu++17 
 
-#to profile, link to gperftools profiler
-#LIBS	:= -Wl,--no-as-needed -lprofiler -Wl,--as-needed -lSDL 
-#alternatively, use operf
-#sudo operf ./platform/SDL1_2/FAKE08 ~/p8carts/png-x-zero.p8.png 
-#opreport --demangle=smart --symbols > fake08-x-zero-master-preoptim2.txt
-LIBS	:= -lSDL 
+LIBS	:= -lSDL -lpthread -lmi_sys -lmi_ao -lcam_os_wrapper -s
 
 LDFLAGS	:= $(LIBS)
-
-ifeq ($(IMITATE),miyoomini)
-
-SOURCES += ../miyoomini/source
-CXXFLAGS += -D_DESKTOP=1
-
-else
-
-SOURCES += ../bittboy/source
-
-endif
 
 
 #---------------------------------------------------------------------------------
@@ -65,11 +66,6 @@ export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
 CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
-
-ifeq ($(IMITATE),miyoomini)
-#ao.c is only for building on the actual mini
-CFILES := $(filter-out ao.c,$(CFILES))
-endif
 
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
@@ -114,7 +110,7 @@ clean:
 
 #---------------------------------------------------------------------------------
 else
-.PHONY:	all
+.PHONY: clean all
 
 DEPENDS	:=	$(OFILES:.o=.d)
 
@@ -127,6 +123,11 @@ $(OUTPUT)		:	$(OFILES)
 	$(CC) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 $(OFILES_SRC)	: $(HFILES_BIN)
+
+#---------------------------------------------------------------------------------
+clean:
+	@echo clean ...
+	@rm -fr $(BUILD) $(TARGET)
 
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data
