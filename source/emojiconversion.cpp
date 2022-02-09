@@ -23,6 +23,7 @@
 #include <cstring>
 #include <regex>
 #include <string_view>
+#include <map>
 
 #include "emojiconversion.h"
 
