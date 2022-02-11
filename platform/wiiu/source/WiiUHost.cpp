@@ -203,7 +203,7 @@ Host::Host() {
         std::string cartDirectory) {}
 
 
-void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
+void Host::oneTimeSetup(Audio* audio){
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
         fprintf(stderr, "SDL could not initialize\n");
