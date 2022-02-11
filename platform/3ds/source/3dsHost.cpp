@@ -53,7 +53,6 @@ int touchLocationX;
 int touchLocationY;
 uint8_t mouseBtnState;
 
-Color* _paletteColors;
 uint16_t _rgb565Colors[144];
 uint32_t _rgba8Colors[144];
 Audio* _audio;
@@ -299,7 +298,7 @@ Host::Host() {
         std::string cartDirectory) {}
 
 
-void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
+void Host::oneTimeSetup(Audio* audio){
     osSetSpeedupEnable(true);
 
     stretch = StretchAndOverflow;
@@ -334,7 +333,6 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     currKDown32 = 0;
     currKHeld32 = 0;
 
-    _paletteColors = paletteColors;
     for(int i = 0; i < 144; i++){
         _rgba8Colors[i] = 0xFF | (_paletteColors[i].Blue << 8) | (_paletteColors[i].Green << 16) | (_paletteColors[i].Red << 24);
         _rgb565Colors[i] = (((_paletteColors[i].Red & 0xf8)<<8) + ((_paletteColors[i].Green & 0xfc)<<3)+(_paletteColors[i].Blue>>3));

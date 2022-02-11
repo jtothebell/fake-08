@@ -11,7 +11,7 @@
 #include "../source/hostVmShared.h"
 #include "../source/nibblehelpers.h"
 
-bool verifyScreenshot(Vm* vm, std::string screenshotFilename) {
+bool verifyScreenshot(Vm* vm, Host* host, std::string screenshotFilename) {
     std::vector<unsigned char> png;
     std::vector<unsigned char> image; //the raw pixels
     unsigned width, height;
@@ -30,7 +30,8 @@ bool verifyScreenshot(Vm* vm, std::string screenshotFilename) {
 
     uint8_t* picoFb = vm->GetPicoInteralFb();
 	uint8_t* screenPaletteMap = vm->GetScreenPaletteMap();
-	Color* paletteColors = vm->GetPaletteColors();
+    host->setUpPaletteColors();
+	Color* paletteColors = host->GetPaletteColors();
 
     size_t imageBytes = image.size();
 
@@ -108,7 +109,7 @@ TEST_CASE("Loading and running carts") {
         SUBCASE("sceen matches screenshot"){
             vm->UpdateAndDraw();
 
-            CHECK(verifyScreenshot(vm, "carts/screenshots/pset00-test_f01.png"));
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/pset00-test_f01.png"));
         }
 
         vm->CloseCart();
@@ -122,7 +123,7 @@ TEST_CASE("Loading and running carts") {
         SUBCASE("sceen matches screenshot"){
             vm->UpdateAndDraw();
 
-            CHECK(verifyScreenshot(vm, "carts/screenshots/pset3pix_f01.png"));
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/pset3pix_f01.png"));
         }
 
         vm->CloseCart();
@@ -136,7 +137,7 @@ TEST_CASE("Loading and running carts") {
         SUBCASE("sceen matches screenshot"){
             vm->UpdateAndDraw();
 
-            CHECK(verifyScreenshot(vm, "carts/screenshots/psetall_f01.png"));
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/psetall_f01.png"));
         }
 
         vm->CloseCart();
@@ -150,7 +151,7 @@ TEST_CASE("Loading and running carts") {
         SUBCASE("sceen matches screenshot"){
             vm->UpdateAndDraw();
 
-            CHECK(verifyScreenshot(vm, "carts/screenshots/cliptest_f01.png"));
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/cliptest_f01.png"));
         }
 
         vm->CloseCart();
@@ -164,7 +165,7 @@ TEST_CASE("Loading and running carts") {
         SUBCASE("sceen matches screenshot"){
             vm->UpdateAndDraw();
 
-            CHECK(verifyScreenshot(vm, "carts/screenshots/memorytest_f01.png"));
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/memorytest_f01.png"));
         }
 
         vm->CloseCart();
@@ -178,7 +179,7 @@ TEST_CASE("Loading and running carts") {
         SUBCASE("sceen matches screenshot"){
             vm->UpdateAndDraw();
 
-            CHECK(verifyScreenshot(vm, "carts/screenshots/cartdatatest_f01.png"));
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/cartdatatest_f01.png"));
         }
 
         vm->CloseCart();
@@ -436,7 +437,7 @@ TEST_CASE("Loading and running carts") {
         SUBCASE("sceen matches screenshot"){
             vm->UpdateAndDraw();
 
-            CHECK(verifyScreenshot(vm, "carts/screenshots/fillptest_f01.png"));
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/fillptest_f01.png"));
         }
 
         vm->CloseCart();
@@ -452,7 +453,7 @@ TEST_CASE("Loading and running carts") {
             vm->UpdateAndDraw();
             vm->UpdateAndDraw();
 
-            CHECK(verifyScreenshot(vm, "carts/screenshots/peek4test_f02.png"));
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/peek4test_f02.png"));
         }
 
         vm->CloseCart();
@@ -466,7 +467,7 @@ TEST_CASE("Loading and running carts") {
         SUBCASE("sceen matches screenshot"){
             vm->UpdateAndDraw();
 
-            CHECK(verifyScreenshot(vm, "carts/screenshots/paltabletest_f01.png"));
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/paltabletest_f01.png"));
         }
 
         vm->CloseCart();
@@ -480,7 +481,7 @@ TEST_CASE("Loading and running carts") {
         SUBCASE("sceen matches screenshot"){
             vm->UpdateAndDraw();
 
-            CHECK(verifyScreenshot(vm, "carts/screenshots/nilpairstest_f01.png"));
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/nilpairstest_f01.png"));
         }
 
         vm->CloseCart();
@@ -494,7 +495,7 @@ TEST_CASE("Loading and running carts") {
         SUBCASE("sceen matches screenshot"){
             vm->UpdateAndDraw();
 
-            CHECK(verifyScreenshot(vm, "carts/screenshots/splittest_f01.png"));
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/splittest_f01.png"));
         }
 
         vm->CloseCart();
@@ -533,7 +534,7 @@ TEST_CASE("Loading and running carts") {
         SUBCASE("sceen matches screenshot"){
             vm->UpdateAndDraw();
 
-            CHECK(verifyScreenshot(vm, "carts/screenshots/includetest_f01.png"));
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/includetest_f01.png"));
         }
 
         vm->CloseCart();
@@ -547,7 +548,7 @@ TEST_CASE("Loading and running carts") {
         SUBCASE("sceen matches screenshot"){
             vm->UpdateAndDraw();
 
-            CHECK(verifyScreenshot(vm, "carts/screenshots/subtest_f01.png"));
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/subtest_f01.png"));
         }
 
         vm->CloseCart();

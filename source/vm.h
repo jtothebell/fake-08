@@ -73,7 +73,6 @@ class Vm {
 
     uint8_t* GetPicoInteralFb();
     uint8_t* GetScreenPaletteMap();
-    Color* GetPaletteColors();
 
     void FillAudioBuffer(void *audioBuffer, size_t offset, size_t size);
 

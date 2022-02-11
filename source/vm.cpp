@@ -501,11 +501,6 @@ uint8_t* Vm::GetScreenPaletteMap(){
     return _graphics->GetScreenPaletteMap();
 }
 
-Color* Vm::GetPaletteColors(){
-    return _graphics->GetPaletteColors();
-}
-
-
 void Vm::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
    _audio->FillAudioBuffer(audioBuffer, offset, size);
 }

@@ -30,8 +30,7 @@ class Host {
     int mouseOffsetX = 0;
     int mouseOffsetY = 0;
     int quit = 0;
-
-
+    
     std::string _logFilePrefix;
     std::string _customBiosLua;
     std::string _cartDirectory;
@@ -41,10 +40,13 @@ class Host {
 
     std::string getCartDataFile(std::string cartDataKey);
 
+    Color _paletteColors[144];
+
     public:
     Host();
 
-    void oneTimeSetup(Color* paletteColors, Audio* audio);
+    void setUpPaletteColors();
+    void oneTimeSetup(Audio* audio);
     
     void setTargetFps(int targetFps);
 
@@ -79,6 +81,8 @@ class Host {
     void saveCartData(std::string cartDataKey, std::string contents);
 
     std::string getCartDirectory();
+
+    Color* GetPaletteColors();
 
     void setPlatformParams(
         int windowWidth,

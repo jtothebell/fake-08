@@ -62,9 +62,6 @@ uint32_t now_time;
 uint32_t frame_time;
 uint32_t targetFrameTimeMs;
 
-
-Color* _paletteColors;
-
 Audio* _audio;
 
 SDL_Window* window;
@@ -261,8 +258,6 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 
     currKDown = 0;
     currKHeld = 0;
-
-    _paletteColors = paletteColors;
 
     loadSettingsIni();
 

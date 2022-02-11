@@ -49,42 +49,6 @@ TEST_CASE("graphics class behaves as expected") {
     Graphics* graphics = new Graphics(fontdata, &picoRam);
     graphics->cls();
 
-    SUBCASE("Palette set up in constructor") {
-        Color* palette = graphics->GetPaletteColors();
-        Color testColor;
-        testColor = {  2,   4,   8, 255};
-        CHECK(colorsEqual(& palette[0], & testColor) == true);
-        testColor = { 29,  43,  83, 255};
-        CHECK(colorsEqual(& palette[1], & testColor) == true);
-        testColor = {126,  37,  83, 255};
-        CHECK(colorsEqual(& palette[2], & testColor) == true);
-        testColor = {  0, 135,  81, 255};
-        CHECK(colorsEqual(& palette[3], & testColor) == true);
-        testColor = {171,  82,  54, 255};
-        CHECK(colorsEqual(& palette[4], & testColor) == true);
-        testColor = { 95,  87,  79, 255};
-        CHECK(colorsEqual(& palette[5], & testColor) == true);
-        testColor = {194, 195, 199, 255};
-        CHECK(colorsEqual(& palette[6], & testColor) == true);
-        testColor = {255, 241, 232, 255};
-        CHECK(colorsEqual(& palette[7], & testColor) == true);
-        testColor = {255,   0,  77, 255};
-        CHECK(colorsEqual(& palette[8], & testColor) == true);
-        testColor = {255, 163,   0, 255};
-        CHECK(colorsEqual(& palette[9], & testColor) == true);
-        testColor = {255, 236,  39, 255};
-        CHECK(colorsEqual(& palette[10], & testColor) == true);
-        testColor = {  0, 228,  54, 255};
-        CHECK(colorsEqual(& palette[11], & testColor) == true);
-        testColor = { 41, 173, 255, 255};
-        CHECK(colorsEqual(& palette[12], & testColor) == true);
-        testColor = {131, 118, 156, 255};
-        CHECK(colorsEqual(& palette[13], & testColor) == true);
-        testColor = {255, 119, 168, 255};
-        CHECK(colorsEqual(& palette[14], & testColor) == true);
-        testColor = {255, 204, 170, 255};
-        CHECK(colorsEqual(& palette[15], & testColor) == true);
-    }
     SUBCASE("Constructor sets default clip") {
         CHECK(picoRam.drawState.clip_xb == 0);
         CHECK(picoRam.drawState.clip_yb == 0);

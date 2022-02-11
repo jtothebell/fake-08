@@ -47,7 +47,6 @@ uint8_t currKDown;
 uint8_t currKHeld;
 bool stretchKeyPressed = false;
 
-Color* _paletteColors;
 Audio* _audio;
 
 SDL_Window* window;
@@ -186,7 +185,7 @@ void Host::setPlatformParams(
 }
 
 
-void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
+void Host::oneTimeSetup(Audio* audio){
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
         fprintf(stderr, "SDL could not initialize\n");
@@ -235,8 +234,6 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 
     currKDown = 0;
     currKHeld = 0;
-
-    _paletteColors = paletteColors;
 
     loadSettingsIni();
 

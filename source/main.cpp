@@ -26,7 +26,8 @@ int main(int argc, char* argv[])
 	
 	Vm *vm = new Vm(host, memory, nullptr, nullptr, audio);
 	
-	host->oneTimeSetup(vm->GetPaletteColors(), audio);
+	host->setUpPaletteColors();
+	host->oneTimeSetup(audio);
 	
 	Logger_Write("initialized Vm and host\n");
 

@@ -53,7 +53,6 @@ uint32_t targetFrameTimeMs;
 uint8_t currKDown;
 uint8_t currKHeld;
 
-Color* _paletteColors;
 Audio* _audio;
 
 SDL_Event event;
@@ -180,7 +179,7 @@ Host::Host() {
     #endif
  }
 
-void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
+void Host::oneTimeSetup(Audio* audio){
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {
         fprintf(stderr, "SDL could not initialize\n");
@@ -203,8 +202,6 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     now_time = 0;
     frame_time = 0;
     targetFrameTimeMs = 0;
-
-    _paletteColors = paletteColors;
 
     SDL_PixelFormat *f = window->format;
 
