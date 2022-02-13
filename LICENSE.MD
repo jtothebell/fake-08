@@ -2,7 +2,7 @@
 - Website: https://github.com/jtothebell/fake-08
 - License: MIT
 
-**Note: this software is related to Pico-8, or othwerwise related to or supported by Lexaloffle Software
+**Note: this software is NOT related to Pico-8, or othwerwise related to or supported by Lexaloffle Software
 
 
 ## Z8lua
