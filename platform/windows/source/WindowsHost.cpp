@@ -20,8 +20,8 @@ using namespace std;
 // sdl
 #include <SDL2/SDL.h>
 
-#define WINDOW_SIZE_X 1280
-#define WINDOW_SIZE_Y 720
+#define WINDOW_SIZE_X 600
+#define WINDOW_SIZE_Y 512
 
 #define WINDOW_FLAGS 0
 
@@ -30,9 +30,9 @@ using namespace std;
 
 SDL_Event event;
 
-
-string _desktopSdl2SettingsDir = "fake08";
-string _desktopSdl2SettingsPrefix = "fake08/";
+string _windowsAppData = SDL_GetPrefPath("FAKE-08", "FAKE-08");
+string _desktopSdl2SettingsDir = _windowsAppData;
+string _desktopSdl2SettingsPrefix = _windowsAppData + "/";
 string _desktopSdl2customBiosLua = "cartpath = \"AppData\"\n"
         "selectbtn = \"z\"\n"
         "pausebtn = \"esc\"\n"
@@ -43,7 +43,7 @@ Host::Host()
 {
     struct stat st = {0};
 
-    int res = chdir(getenv("HOME"));
+    int res = chdir(getenv(_windowsAppData.c_str()));
     if (res == 0 && stat(_desktopSdl2SettingsDir.c_str(), &st) == -1) {
         res = mkdir(_desktopSdl2SettingsDir.c_str(), 0777);
     }
@@ -52,11 +52,12 @@ Host::Host()
     if (res == 0 && stat(cartdatadir.c_str(), &st) == -1) {
         res = mkdir(cartdatadir.c_str(), 0777);
     }
+	
 
-    std::string home = SDL_GetPrefPath("FAKE-08", "FAKE-08"); // C:\Users\(username)\AppData\Roaming\FAKE-08\FAKE-08\p8carts
+    std::string home = _windowsAppData; // C:\Users\(username)\AppData\Roaming\FAKE-08\FAKE-08\p8carts
     
     std::string fullCartDir = home + "/p8carts";
-
+	//fprintf( stderr, "hello" );
     setPlatformParams(
         WINDOW_SIZE_X,
         WINDOW_SIZE_Y,
@@ -68,6 +69,8 @@ Host::Host()
         fullCartDir
     );
 }
+
+
 
 
 InputState_t Host::scanInput(){
