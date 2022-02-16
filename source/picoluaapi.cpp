@@ -1291,6 +1291,12 @@ int loadbioscart(lua_State *L) {
     return 0;
 }
 
+int loadtermcart(lua_State *L) {
+    _vmForLuaApi->QueueCartChange("__FAKE08-TERM.p8");
+
+    return 0;
+}
+
 int togglepausemenu(lua_State *L) {
     _vmForLuaApi->togglePauseMenu();
 
