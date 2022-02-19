@@ -7,7 +7,7 @@ export APP_AUTHOR	= jtothebell
 export V_MAJOR	= 0
 export V_MINOR	= 0
 export V_PATCH	= 2
-export V_BUILD	= 14
+export V_BUILD	= 15
 export APP_VERSION	= v$(V_MAJOR).$(V_MINOR).$(V_PATCH).$(V_BUILD)
 
 
