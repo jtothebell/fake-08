@@ -168,20 +168,8 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "__resetcart", resetcart);
     lua_register(_luaState, "load", load);
 
-    //load in global lua fuctions for pico 8
-    //auto convertedGlobalLuaFunctions = convert_emojis(p8GlobalLuaFunctions);
-    auto convertedGlobalLuaFunctions = charset::utf8_to_pico8(p8GlobalLuaFunctions);
-    int loadedGlobals = luaL_dostring(_luaState, convertedGlobalLuaFunctions.c_str());
-
-    if (loadedGlobals != LUA_OK) {
-        _cartLoadError = "ERROR loading pico 8 lua globals";
-        Logger_Write("ERROR loading pico 8 lua globals\n");
-        Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
-        lua_pop(_luaState, 1);
-
-        return false;
-    }
-
+    //register global functions first, they will get local aliases when
+    //the rest of the api is registered
     //graphics
     lua_register(_luaState, "cls", cls);
     lua_register(_luaState, "pset", pset);
@@ -256,13 +244,28 @@ bool Vm::loadCart(Cart* cart) {
     //rng
     lua_register(_luaState, "rnd", rnd);
     lua_register(_luaState, "srand", srand);
-    
+
+    //load in global lua fuctions for pico 8- part of this is setting a local variable
+    //with the same name as all the globals we just registered
+    //auto convertedGlobalLuaFunctions = convert_emojis(p8GlobalLuaFunctions);
+    auto convertedGlobalLuaFunctions = charset::utf8_to_pico8(p8GlobalLuaFunctions);
+    int loadedGlobals = luaL_dostring(_luaState, convertedGlobalLuaFunctions.c_str());
+
+    if (loadedGlobals != LUA_OK) {
+        _cartLoadError = "ERROR loading pico 8 lua globals";
+        Logger_Write("ERROR loading pico 8 lua globals\n");
+        Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
+        lua_pop(_luaState, 1);
+
+        return false;
+    }
+
 
     int loadedCart = luaL_loadstring(_luaState, cart->LuaString.c_str());
     if (loadedCart != LUA_OK) {
-        _cartLoadError = "Error loading cart lua";
-        Logger_Write("ERROR loading cart\n");
-        Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
+        _cartLoadError = "Error loading cart lua:\n";
+        _cartLoadError.append(lua_tostring(_luaState, -1));
+        Logger_Write(_cartLoadError.c_str());
         lua_pop(_luaState, 1);
 
         return false;
