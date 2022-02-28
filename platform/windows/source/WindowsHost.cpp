@@ -92,6 +92,7 @@ InputState_t Host::scanInput(){
     stretchKeyPressed = false;
 	
 	currKBDown = false;
+	currKBKey = "";
 	
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
@@ -100,7 +101,7 @@ InputState_t Host::scanInput(){
 			case SDL_TEXTINPUT:
 				//Logger_Write(event.text.text);
 				//Logger_Write("\n");
-				
+				currKBKey = event.text.text;
 				currKBDown = true;
 				
 				break;
@@ -182,7 +183,8 @@ InputState_t Host::scanInput(){
         (int16_t)mouseX,
         (int16_t)mouseY,
         picoMouseState,
-		currKBDown
+		currKBDown,
+		currKBKey
     };
 }
 

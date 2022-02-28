@@ -56,9 +56,9 @@ void Input::SetMouse(int16_t mouseX, int16_t mouseY, uint8_t mouseBtnState){
     _mouseBtnState = mouseBtnState;
 }
 
-void Input::SetKeyboard(bool kbDown){
+void Input::SetKeyboard(bool kbDown, std::string kbKey){
 	_kbDown = kbDown;
-	
+	_kbKey = kbKey;
 }
 
 uint8_t Input::btn(){
@@ -105,3 +105,8 @@ uint8_t Input::getMouseBtnState() {
 bool Input::getKeyDown() {
     return _kbDown;
 }
+
+const char* Input::getKey() {
+    return _kbKey.c_str();
+}
+
