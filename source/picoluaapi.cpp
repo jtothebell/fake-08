@@ -910,6 +910,19 @@ int stat(lua_State *L) {
             lua_pushnumber(L, 32);
             return 1;
         break;
+        //bytestream availability (dropped file or image. not supported)
+        case 120:
+            lua_pushboolean(L, false);
+            return 1;
+        break;
+        case 121:
+            lua_pushboolean(L, false);
+            return 1;
+        break;
+        case 122:
+            lua_pushboolean(L, false);
+            return 1;
+        break;
     }
 
 
