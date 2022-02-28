@@ -21,6 +21,9 @@ enum StretchOption {
 class Host {
     uint8_t currKDown;
     uint8_t currKHeld;
+	
+    bool currKBDown = false;
+	
     bool lDown = false;
     bool rDown = false;
     bool stretchKeyPressed = false;

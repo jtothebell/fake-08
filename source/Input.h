@@ -12,11 +12,14 @@ class Input{
     int16_t _mouseX;
     int16_t _mouseY;
     uint8_t _mouseBtnState;
+	bool _kbDown;
 	
     public:
     Input(PicoRam* memory);
     void SetState(uint8_t kdown, uint8_t kheld);
     void SetMouse(int16_t mouseX, int16_t mouseY, uint8_t mouseBtnState);
+	
+    void SetKeyboard(bool kbdown);
 
 	uint8_t btn();
     uint8_t btnp();
@@ -30,4 +33,6 @@ class Input{
     int16_t getMouseX();
     int16_t getMouseY();
     uint8_t getMouseBtnState();
+	
+    bool getKeyDown();
 };

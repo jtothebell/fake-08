@@ -28,6 +28,12 @@ using namespace std;
 #define RENDERER_FLAGS SDL_RENDERER_ACCELERATED
 #define PIXEL_FORMAT SDL_PIXELFORMAT_ARGB8888
 
+#define KB_ENABLED true
+
+
+
+
+
 SDL_Event event;
 
 string _windowsAppData = SDL_GetPrefPath("FAKE-08", "FAKE-08");
@@ -38,6 +44,10 @@ string _desktopSdl2customBiosLua = "cartpath = \"AppData\"\n"
         "pausebtn = \"esc\"\n"
         "exitbtn = \"close window\"\n"
         "sizebtn = \"\"";
+
+
+
+
 
 Host::Host() 
 {
@@ -53,6 +63,9 @@ Host::Host()
         res = mkdir(cartdatadir.c_str(), 0777);
     }
 	
+	#if KB_ENABLED
+	SDL_StartTextInput();
+	#endif 
 
     std::string home = _windowsAppData; // C:\Users\(username)\AppData\Roaming\FAKE-08\FAKE-08\p8carts
     
@@ -77,9 +90,23 @@ InputState_t Host::scanInput(){
     currKDown = 0;
     currKHeld = 0;
     stretchKeyPressed = false;
-
+	
+	currKBDown = false;
+	
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
+			
+			#if KB_ENABLED
+			case SDL_TEXTINPUT:
+				//Logger_Write(event.text.text);
+				//Logger_Write("\n");
+				
+				currKBDown = true;
+				
+				break;
+			#endif
+			
+			
             case SDL_KEYDOWN:
                 switch (event.key.keysym.sym)
                 {
@@ -144,13 +171,18 @@ InputState_t Host::scanInput(){
     if(keystate[SDL_SCANCODE_C]){
         currKHeld |= P8_KEY_X;
     }
+	
+	//keyboard stuff
+	
+	
     
     return InputState_t {
         currKDown,
         currKHeld,
         (int16_t)mouseX,
         (int16_t)mouseY,
-        picoMouseState
+        picoMouseState,
+		currKBDown
     };
 }
 
