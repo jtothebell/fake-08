@@ -72,6 +72,7 @@ struct InputState_t {
 	int16_t mouseX;
 	int16_t mouseY;
 	uint8_t mouseBtnState;
+	bool KBdown;
 };
 
 enum PrintMode_t

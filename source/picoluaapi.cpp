@@ -861,12 +861,12 @@ int stat(lua_State *L) {
             lua_pushnumber(L, _audioForLuaApi->getMusicTickCount());
             return 1;
         break;
-        //was a key pressed (always false)
+        //was a key pressed 
         case 30:
-            lua_pushboolean(L, false);
+            lua_pushboolean(L, _inputForLuaApi->getKeyDown());			
             return 1;
         break;
-        //string of key pressed
+        //string of key pressed (blank for now)
         case 31:
             lua_pushstring(L, "");
             return 1;
