@@ -111,6 +111,18 @@ InputState_t Host::scanInput(){
 			
 			
             case SDL_KEYDOWN:
+			
+				#if KB_ENABLED
+				switch (event.key.keysym.scancode)
+				{
+					case SDL_SCANCODE_BACKSPACE: currKBDown = true; currKBKey = "\b"; break;
+					case SDL_SCANCODE_RETURN: currKBDown = true; currKBKey = "\r"; break;
+					case SDL_SCANCODE_ESCAPE: currKBDown = true; currKBKey = "\27"; break;
+					case SDL_SCANCODE_TAB: currKBDown = true; currKBKey = "\t"; break;
+					default : break;
+				}
+				#endif
+				
                 switch (event.key.keysym.sym)
                 {
                     case SDLK_ESCAPE:currKDown |= P8_KEY_PAUSE; break;
