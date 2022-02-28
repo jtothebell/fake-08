@@ -862,11 +862,11 @@ void Vm::update_buttons() {
     _input->SetState(inputState.KDown, inputState.KHeld);
     if (_memory->drawState.devkitMode) {
         _input->SetMouse(inputState.mouseX, inputState.mouseY, inputState.mouseBtnState);
-		_input->SetKeyboard(inputState.KBdown);
+		_input->SetKeyboard(inputState.KBdown,inputState.KBkey);
     }
     else {
         _input->SetMouse(0, 0, 0);
-        _input->SetKeyboard(false);
+        _input->SetKeyboard(false,"");
     }
 }
 

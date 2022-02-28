@@ -73,6 +73,7 @@ struct InputState_t {
 	int16_t mouseY;
 	uint8_t mouseBtnState;
 	bool KBdown;
+	std::string KBkey;
 };
 
 enum PrintMode_t

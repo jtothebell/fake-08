@@ -866,9 +866,9 @@ int stat(lua_State *L) {
             lua_pushboolean(L, _inputForLuaApi->getKeyDown());			
             return 1;
         break;
-        //string of key pressed (blank for now)
+        //string of key pressed
         case 31:
-            lua_pushstring(L, "");
+            lua_pushstring(L, _inputForLuaApi->getKey());
             return 1;
         break;
         //mouse x
