@@ -12,6 +12,9 @@ struct charset
 
     // Map 8-bit PICO-8 characters to UTF-8 string views
     static std::string_view to_utf8[256];
+	
+	// Map uppercase letters to PICO-8 glyphs
+    static std::string upper_to_emoji(std::string str);
 
 private:
     static std::regex static_init();

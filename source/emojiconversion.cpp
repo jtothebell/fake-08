@@ -112,3 +112,56 @@ std::string charset::pico8_to_utf8(std::string const &str)
     return ret;
 }
 
+
+
+std::string charset::upper_to_emoji(std::string str)
+{
+
+	std::map<std::string,std::string> uemap = {
+		{"A","█"},
+		{"B","▒"},
+		{"C","🐱"},
+		{"D","⬇️"},
+		{"E","░"},
+		{"F","✽"},
+		{"G","●"},
+		{"H","♥"},
+		{"I","☉"},
+		{"J","웃"},
+		{"K","⌂"},
+		{"L","⬅️"},
+		{"M","😐"},
+		{"N","♪"},
+		{"O","🅾️"},
+		{"P","◆"},
+		{"Q","…"},
+		{"R","➡️"},
+		{"S","★"},
+		{"T","⧗"},
+		{"U","⬆️"},
+		{"V","ˇ"},
+		{"W","∧"},
+		{"X","❎"},
+		{"Y","▤"},
+		{"Z","▥"}
+	};
+	
+	
+	std::string newstring = "";
+	
+	for(unsigned i = 0; i < str.length(); i++){
+		
+		std::string c = "";
+		c += str.at(i);
+		auto loc = uemap.find(c);
+		
+		if(loc == uemap.end()){
+			newstring += c;
+			
+		}else{
+			newstring += uemap.at(c);
+		}
+	}
+	
+    return charset::utf8_to_pico8(newstring);
+}
