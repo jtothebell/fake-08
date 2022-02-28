@@ -4,8 +4,8 @@
 
 #include "logger.h"
 
-#define LOGGER_ENABLED false
-#define PRINT_TO_CONSOLE false
+#define LOGGER_ENABLED true
+#define PRINT_TO_CONSOLE true
 
 FILE * m_file = nullptr;
 bool m_enabled = false;
@@ -58,10 +58,9 @@ void Logger_Write(const char * format, ...)
     #if PRINT_TO_CONSOLE
 	vfprintf(stdout, format, args);
 	#endif
+	
     #endif
-	#if PRINT_TO_CONSOLE
-	vfprintf(stdout, format, args);
-	#endif
+	
 }
 
 void Logger_WriteUnformatted(const char * message)
@@ -77,10 +76,8 @@ void Logger_WriteUnformatted(const char * message)
     #if PRINT_TO_CONSOLE
 	fprintf(stdout, "%s", message);
 	#endif
+	
     #endif
-	#if PRINT_TO_CONSOLE
-	fprintf(stdout, "%s", message);
-	#endif
 }
 
 void Logger_Exit()
