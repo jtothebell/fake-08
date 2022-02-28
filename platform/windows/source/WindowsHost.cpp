@@ -17,6 +17,8 @@ using namespace std;
 #include "../../../source/filehelpers.h"
 #include "../../../source/logger.h"
 
+#include "../../../source/emojiconversion.h"
+
 // sdl
 #include <SDL2/SDL.h>
 
@@ -99,9 +101,9 @@ InputState_t Host::scanInput(){
 			
 			#if KB_ENABLED
 			case SDL_TEXTINPUT:
-				//Logger_Write(event.text.text);
+				//Logger_Write( charset::upper_to_emoji(event.text.text).c_str() );
 				//Logger_Write("\n");
-				currKBKey = event.text.text;
+				currKBKey = charset::upper_to_emoji(event.text.text);
 				currKBDown = true;
 				
 				break;
