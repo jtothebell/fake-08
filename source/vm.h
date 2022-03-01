@@ -145,6 +145,9 @@ class Vm {
     int getHour();
     int getMinute();
     int getSecond();
+	
+	//settings
+	int getSetting(string sname);
 
     string getCartBreadcrumb();
     string getCartParam();

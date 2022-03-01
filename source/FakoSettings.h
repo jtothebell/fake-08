@@ -13,14 +13,14 @@ version 33
 __lua__
 function _init()
 	
-	if not __fakogetsetting then
+	if not __getsetting then
 		printh('not in fake-08 (or unimplemented...), stubbing get and set functions!')
-		function __fakogetsetting(sn)
+		function __getsetting(sn)
 			printh('trying to get setting ' .. sn)
-			return 1
+			return 0
 		end
 		
-		function __fakosetsetting(sn,v)
+		function __setsetting(sn,v)
 			printh('trying to set setting ' .. sn .. ' to '..v)
 		end
 		
@@ -29,7 +29,7 @@ function _init()
 	settinglist = {'kbmode','enableresize','stretch','menustyle'}
 	settings = {}
 	for i,v in ipairs(settinglist) do
-		settings[v] = __fakogetsetting(v)
+		settings[v] = __getsetting(v) + 1
 	end
 	
 	list = {
@@ -127,7 +127,7 @@ function updatecursor()
 		else
 			if inoption then
 				settings[cvariable] = cursorpos
-				__fakosetsetting(cvariable,cursorpos-1)
+				__setsetting(cvariable,cursorpos-1)
 			else
 				add(path,cursorpos)
 			end
@@ -157,7 +157,9 @@ function drawitem(n,y,x)
 end
 
 function drawcursor()
-	spr(5,13,18+(menuspace*cursorpos),1,2)
+	if cursorpos then --unknown why this matters?
+		spr(5,13,18+(menuspace*cursorpos),1,2)
+	end
 end
 
 function _draw()

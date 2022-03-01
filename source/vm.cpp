@@ -169,6 +169,10 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "__togglepausemenu", togglepausemenu);
     lua_register(_luaState, "__resetcart", resetcart);
     lua_register(_luaState, "load", load);
+	
+	//settings
+	lua_register(_luaState, "__getsetting", getsetting);
+	lua_register(_luaState, "__setsetting", setsetting);
 
     //register global functions first, they will get local aliases when
     //the rest of the api is registered
@@ -1033,4 +1037,12 @@ std::string Vm::getCartBreadcrumb() {
 
 std::string Vm::getCartParam() {
     return _cartParam;
+}
+
+
+//settings 
+int Vm::getSetting(std::string sname) {
+    
+	return _host->getSetting(sname);
+	
 }
