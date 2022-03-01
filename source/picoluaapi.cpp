@@ -1240,3 +1240,30 @@ int resetcart(lua_State *L) {
 
     return 0;
 }
+
+
+int getsetting(lua_State *L) {
+    //get setting from host
+	
+	const char * str = "";
+	if (lua_isstring(L, 1)){
+        str = lua_tolstring(L, 1, nullptr);
+    }
+	Logger_Write("loading setting ");
+	Logger_Write(str);
+	Logger_Write("\n");
+	//std::string sname = str;
+	
+	int val = _vmForLuaApi->getSetting(str);
+	
+	lua_pushnumber(L, val);
+
+    return 1;
+}
+
+int setsetting(lua_State *L) {
+    //get setting from host
+	
+
+    return 1;
+}

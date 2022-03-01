@@ -4,6 +4,8 @@
 #include "hostVmShared.h"
 #include "filehelpers.h"
 
+#include "logger.h"
+
 #include "SimpleIni.h"
 
 using namespace std;
@@ -119,4 +121,23 @@ void Host::saveCartData(std::string cartDataKey, std::string contents) {
         
         fclose(file);
 	}
+}
+
+//settings
+
+int Host::getSetting(std::string sname) {
+    
+	if(sname == "kbmode"){ //why cant you use strings in switch statements in c++ :(
+		Logger_Write("Returning KB mode setting\n");
+		return kbmode;
+	}else if(sname == "stretch"){
+		Logger_Write("Returning Stretch setting\n");
+		return stretch;
+	}else{
+		Logger_Write("Setting ");
+		Logger_Write(sname.c_str());
+		Logger_Write(" not found, returning 0!");
+		return 0;
+	}
+	
 }

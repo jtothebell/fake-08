@@ -95,6 +95,9 @@ class Host {
     void saveCartData(std::string cartDataKey, std::string contents);
 
     std::string getCartDirectory();
+	
+	//settings
+	int getSetting(std::string sname);
 
     Color* GetPaletteColors();
 

@@ -99,6 +99,11 @@ int loadsettingscart(lua_State *L);
 int togglepausemenu(lua_State *L);
 int resetcart(lua_State *L);
 
+//settings functions
+
+int getsetting(lua_State *L);
+int setsetting(lua_State *L);
+
 //system functions
 
 int rnd(lua_State *L);
