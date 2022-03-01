@@ -67,7 +67,7 @@ class Vm {
 
     void LoadBiosCart();
 	
-    void LoadTermCart();
+    void LoadSettingsCart();
 
     void LoadCart(string filename);
 

@@ -10,6 +10,11 @@ using namespace std;
 
 CSimpleIniA settingsIni;
 
+std::string defaultIni =
+"[settings]\n"
+"stretch = 1\n"
+"kbmode = 0\n";
+
 void Host::setUpPaletteColors(){
     _paletteColors[0] = COLOR_00;
 	_paletteColors[1] = COLOR_01;
@@ -56,23 +61,30 @@ Color* Host::GetPaletteColors(){
 
 void Host::loadSettingsIni(){
     std::string settingsIniStr = get_file_contents(_logFilePrefix + "settings.ini");
-
+	
 	//File does not exist, fill string with defaults
 	if(settingsIniStr.length() == 0 ){
-        settingsIniStr = "[settings]\nstretch = 1\n";
+        settingsIniStr = defaultIni;
 	}
 
     settingsIni.LoadData(settingsIniStr);
-
+	
+	//stretch
     long stretchSetting = settingsIni.GetLongValue("settings", "stretch", (long)PixelPerfectStretch);
     if (stretchSetting <= (int)AltScreenStretch){
         stretch = (StretchOption) stretchSetting;
     }
+	//kbmode
+    long kbmodeSetting = settingsIni.GetLongValue("settings", "kbmode", (long)Emoji);
+	kbmode = (KeyboardOption) kbmodeSetting;
 }
 
 void Host::saveSettingsIni(){
     //write out settings to persist
+	
     settingsIni.SetLongValue("settings", "stretch", stretch);
+    settingsIni.SetLongValue("settings", "kbmode", kbmode);
+	
     std::string settingsIniStr = "";
     settingsIni.Save(settingsIniStr, false);
 

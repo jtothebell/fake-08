@@ -6,6 +6,7 @@
 #include "hostVmShared.h"
 #include "Audio.h"
 
+
 enum StretchOption {
   PixelPerfect,
   PixelPerfectStretch,
@@ -18,6 +19,11 @@ enum StretchOption {
   FourByThreeStretch
 };
 
+enum KeyboardOption {
+  Emoji,
+  Lowercase
+};
+
 class Host {
     uint8_t currKDown;
     uint8_t currKHeld;
@@ -28,7 +34,11 @@ class Host {
     bool lDown = false;
     bool rDown = false;
     bool stretchKeyPressed = false;
+	
+	//settings
     StretchOption stretch = PixelPerfectStretch;
+    KeyboardOption kbmode = Emoji;
+	
     float scaleX = 1.0;
     float scaleY = 1.0;
     int mouseOffsetX = 0;
