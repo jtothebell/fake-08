@@ -22,7 +22,7 @@
 
 #include "FakoBios.h"
 
-#include "FakoTerm.h"
+#include "FakoSettings.h"
 
 
 static char const *legacyCompressionLut = "\n 0123456789abcdefghijklmnopqrstuvwxyz!#%(){}[]<>+=/*:;.,~_";
@@ -324,14 +324,14 @@ Cart::Cart(std::string filename, std::string cartDirectory){
 
     std::string firstFourChars = get_first_four_chars(FullCartPath);
     
-    if (FullCartPath == "__FAKE08-BIOS.p8" || FullCartPath == "__FAKE08-TERM.p8" || firstFourChars == "pico"){
+    if (FullCartPath == "__FAKE08-BIOS.p8" || FullCartPath == "__FAKE08-SETTINGS.p8" || firstFourChars == "pico"){
         std::string cartStr; 
 
         if (FullCartPath == "__FAKE08-BIOS.p8") {
             cartStr = fake08BiosP8;
         }
-		else if (FullCartPath == "__FAKE08-TERM.p8") {
-            cartStr = fake08TermP8;
+		else if (FullCartPath == "__FAKE08-SETTINGS.p8") {
+            cartStr = fake08SettingsP8;
         }
         else {
             cartStr = get_file_contents(FullCartPath.c_str());

@@ -32,7 +32,7 @@
 using namespace z8;
 
 static const char BiosCartName[] = "__FAKE08-BIOS.p8";
-static const char TermCartName[] = "__FAKE08-TERM.p8";
+static const char SettingsCartName[] = "__FAKE08-SETTINGS.p8";
 
 Vm::Vm(
     Host* host,
@@ -165,7 +165,7 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "__listcarts", listcarts);
     lua_register(_luaState, "__getbioserror", getbioserror);
     lua_register(_luaState, "__loadbioscart", loadbioscart);
-    lua_register(_luaState, "__loadtermcart", loadtermcart);
+    lua_register(_luaState, "__loadsettingscart", loadsettingscart);
     lua_register(_luaState, "__togglepausemenu", togglepausemenu);
     lua_register(_luaState, "__resetcart", resetcart);
     lua_register(_luaState, "load", load);
@@ -317,7 +317,7 @@ bool Vm::loadCart(Cart* cart) {
 
 
     //customize bios per host's requirements
-    if (cart->FullCartPath == BiosCartName || cart->FullCartPath == TermCartName) {
+    if (cart->FullCartPath == BiosCartName || cart->FullCartPath == SettingsCartName) {
         std::string customBiosLua = _host->customBiosLua();
 
         if (customBiosLua.length() > 0) {
@@ -351,10 +351,10 @@ void Vm::LoadBiosCart(){
     }
 }
 
-void Vm::LoadTermCart(){
+void Vm::LoadSettingsCart(){
     CloseCart();
 
-    Cart *cart = new Cart(TermCartName, "");
+    Cart *cart = new Cart(SettingsCartName, "");
 
     bool success = loadCart(cart);
 
@@ -368,8 +368,8 @@ void Vm::LoadCart(std::string filename){
         LoadBiosCart();
         return;
     }
-	if (filename == "__FAKE08-TERM.p8") {
-        LoadTermCart();
+	if (filename == "__FAKE08-SETTINGS.p8") {
+        LoadSettingsCart();
         return;
     }
     Logger_Write("Loading cart %s\n", filename.c_str());

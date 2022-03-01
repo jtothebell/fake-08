@@ -18,6 +18,11 @@ using namespace std;
 
 CSimpleIniA settingsIni;
 
+std::string defaultIni =
+"[settings]\n"
+"stretch = 1\n"
+"kbmode = 0\n";
+
 void Host::setUpPaletteColors(){
     _paletteColors[0] = COLOR_00;
 	_paletteColors[1] = COLOR_01;
@@ -118,18 +123,19 @@ void Host::unpackCarts(){
 
 void Host::loadSettingsIni(){
     std::string settingsIniStr = get_file_contents(_logFilePrefix + "settings.ini");
-
+	
 	//File does not exist, fill string with defaults
 	if(settingsIniStr.length() == 0 ){
 		#if LOAD_PACK_INS
-        settingsIniStr = "[settings]\nstretch = 1\npackinloaded = 0\n";
+        settingsIniStr = defaultIni + "packinloaded = 0\n";
 		#else
-		settingsIniStr = "[settings]\nstretch = 1\n";
+		settingsIniStr = defaultIni;
 		#endif
 	}
 
     settingsIni.LoadData(settingsIniStr);
-
+	
+	//stretch
     long stretchSetting = settingsIni.GetLongValue("settings", "stretch", (long)PixelPerfectStretch);
     if (stretchSetting <= (int)AltScreenStretch){
         stretch = (StretchOption) stretchSetting;
@@ -139,14 +145,21 @@ void Host::loadSettingsIni(){
 	long packinloadedSetting = settingsIni.GetLongValue("settings", "packinloaded", (long)Unloaded);
 	packinloaded = (PackinLoadOption) packinloadedSetting;
 	#endif
+	//kbmode
+    long kbmodeSetting = settingsIni.GetLongValue("settings", "kbmode", (long)Emoji);
+	kbmode = (KeyboardOption) kbmodeSetting;
 }
 
 void Host::saveSettingsIni(){
     //write out settings to persist
+	
     settingsIni.SetLongValue("settings", "stretch", stretch);
+	
 	#if LOAD_PACK_INS
     settingsIni.SetLongValue("settings", "packinloaded", packinloaded);
 	#endif
+    settingsIni.SetLongValue("settings", "kbmode", kbmode);
+	
     std::string settingsIniStr = "";
     settingsIni.Save(settingsIniStr, false);
 

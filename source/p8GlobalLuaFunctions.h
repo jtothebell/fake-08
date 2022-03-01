@@ -163,7 +163,7 @@ __f08_menu_items = {
     {nil, nil},
     {"reset cart", __resetcart},
     {"exit to menu", __loadbioscart},
-    {"exit to terminal", __loadtermcart}
+    {"exit to settings", __loadsettingscart}
 }
 
 __f08_menu_selected = 0
