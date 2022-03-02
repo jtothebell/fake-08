@@ -314,6 +314,15 @@ void Host::changeStretch(){
     }
 }
 
+void Host::forceStretch(StretchOption newStretch) {
+	_changeStretch(newStretch);
+	stretch = newStretch;
+	scaleX = _screenWidth / (float)PicoScreenWidth;
+	scaleY = _screenHeight / (float)PicoScreenHeight;
+	mouseOffsetX = DestR.x;
+	mouseOffsetY = DestR.y;
+}
+
 InputState_t Host::scanInput(){ 
     currKDown = 0;
     uint8_t kUp = 0;

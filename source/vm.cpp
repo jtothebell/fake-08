@@ -1046,3 +1046,9 @@ int Vm::getSetting(std::string sname) {
 	return _host->getSetting(sname);
 	
 }
+
+void Vm::setSetting(std::string sname, int sval) {
+    
+	_host->setSetting(sname,sval);
+	
+}

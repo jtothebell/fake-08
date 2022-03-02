@@ -1331,7 +1331,17 @@ int getsetting(lua_State *L) {
 
 int setsetting(lua_State *L) {
     //get setting from host
+	const char * str = "";
+	if (lua_isstring(L, 1)){
+        str = lua_tolstring(L, 1, nullptr);
+    }
+	Logger_Write("setting setting ");
+	Logger_Write(str);
+	Logger_Write("\n");
 	
-
+	int sval = lua_tonumber(L,2);
+	
+	_vmForLuaApi->setSetting(str,sval);
+	
     return 1;
 }

@@ -214,3 +214,27 @@ int Host::getSetting(std::string sname) {
 	}
 	
 }
+
+void Host::setSetting(std::string sname, int sval) {
+	if(sname == "kbmode"){ //why cant you use strings in switch statements in c++ :(
+		Logger_Write("setting KB mode\n");
+		kbmode = (KeyboardOption) sval;
+	}else if(sname == "stretch"){
+		Logger_Write("setting Stretch to");
+		std::string stringval = std::to_string(sval);
+		Logger_Write(stringval.c_str());
+		Logger_Write("\n");
+		
+		
+		stretch = (StretchOption) sval;
+		
+		//force change stretch
+		forceStretch(stretch);
+		
+	}else{
+		Logger_Write("Setting ");
+		Logger_Write(sname.c_str());
+		Logger_Write(" not found!");
+	}
+	
+}

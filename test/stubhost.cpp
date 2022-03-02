@@ -41,6 +41,10 @@ void Host::changeStretch(){
 
 }
 
+void Host::forceStretch(StretchOption newStretch) {
+	
+}
+
 void StubHost::stubInput(uint8_t kdown, uint8_t kheld) {
     stubCurrKDown = kdown;
     stubCurrKHeld = kheld;
@@ -109,6 +113,11 @@ void Host::saveCartData(std::string cartDataKey, std::string contents) {
 }
 
 int Host::getSetting(std::string sname) {
+	return 0;
+}
+
+void Host::setSetting(std::string sname, int sval) {
+	
 }
 
 std::string Host::getCartDirectory() {
