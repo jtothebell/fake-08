@@ -317,8 +317,8 @@ void Host::changeStretch(){
 void Host::forceStretch(StretchOption newStretch) {
 	_changeStretch(newStretch);
 	stretch = newStretch;
-	scaleX = _screenWidth / (float)PicoScreenWidth;
-	scaleY = _screenHeight / (float)PicoScreenHeight;
+	scaleX = screenWidth / (float)PicoScreenWidth;
+	scaleY = screenHeight / (float)PicoScreenHeight;
 	mouseOffsetX = DestR.x;
 	mouseOffsetY = DestR.y;
 }
