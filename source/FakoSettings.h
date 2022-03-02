@@ -118,6 +118,7 @@ function updatecursor()
 	cursorpos = (cursorpos % numitems) + 1
 	
 	if btnp( ❎ ) or btnp ( 🅾️ ) then
+		printh('cursorpos - 1: ' .. cursorpos-1)
 		if cursorpos == numitems then -- back
 			cursorpos = deli(path)
 			if not cursorpos then

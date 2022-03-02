@@ -70,6 +70,7 @@ class Host {
     bool shouldQuit();
 
     void changeStretch();
+    void forceStretch(StretchOption newStretch);
     
     void waitForTargetFps();
 
@@ -98,6 +99,7 @@ class Host {
 	
 	//settings
 	int getSetting(std::string sname);
+	void setSetting(std::string sname, int sdata);
 
     Color* GetPaletteColors();
 

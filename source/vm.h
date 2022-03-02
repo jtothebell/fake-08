@@ -146,6 +146,7 @@ class Vm {
 	
 	//settings
 	int getSetting(string sname);
+	void setSetting(string sname, int sval);
 
     string getCartBreadcrumb();
     string getCartParam();

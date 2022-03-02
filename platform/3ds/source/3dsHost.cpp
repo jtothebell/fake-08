@@ -439,6 +439,10 @@ void Host::changeStretch(){
     }
 }
 
+void Host::forceStretch(StretchOption newStretch) {
+	setRenderParamsFromStretch(stretch);
+}
+
 InputState_t Host::scanInput(){
     hidScanInput();
 
