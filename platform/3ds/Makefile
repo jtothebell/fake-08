@@ -212,8 +212,8 @@ $(GFXBUILD)/%.t3x	$(BUILD)/%.h	:	%.t3s
 $(TARGET)-strip.elf: $(BUILD)
 	@$(STRIP) $(TARGET).elf -o $(TARGET)-strip.elf
 #---------------------------------------------------------------------------------
-$(TARGET)-cia.bnr: banner/$(TARGET)-banner.png banner/$(TARGET).wav
-	@bannertool makebanner -i banner/$(TARGET)-banner.png -a banner/$(TARGET).wav -o $(TARGET)-cia.bnr
+$(TARGET)-cia.bnr: banner/$(TARGET).cgfx banner/$(TARGET).wav
+	@bannertool makebanner -ci banner/$(TARGET).cgfx -a banner/$(TARGET).wav -o $(TARGET)-cia.bnr
 #---------------------------------------------------------------------------------
 $(TARGET)-cia.smdh: banner/$(TARGET)-icon.png 
 	@bannertool makesmdh -s "$(TARGET)" -l "$(APP_TITLE)" -p "$(APP_AUTHOR)" -i banner/$(TARGET)-icon.png -o $(TARGET)-cia.smdh -r regionfree
