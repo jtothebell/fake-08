@@ -29,6 +29,9 @@ int main(int argc, char* argv[])
 	host->setUpPaletteColors();
 	host->oneTimeSetup(audio);
 	
+	//todo: make this only happen once, save if it has happened in settings.ini
+	host->unpackCarts();
+	
 	Logger_Write("initialized Vm and host\n");
 
 	Logger_Write("Setting cart list on vm\n");
