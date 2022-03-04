@@ -8,7 +8,10 @@
 
 #include "SimpleIni.h"
 
+
+#if !__VITA__
 #include "miniz.h"
+#endif
 
 using namespace std;
 
@@ -64,7 +67,10 @@ Color* Host::GetPaletteColors(){
 }
 
 void Host::unpackCarts(){
+	#if !__VITA__
 	Logger_Write("unzipping pack in carts to p8carts");
+	#endif
+	
 }
 
 void Host::loadSettingsIni(){
