@@ -8,6 +8,8 @@
 
 #include "SimpleIni.h"
 
+#include "miniz.h"
+
 using namespace std;
 
 CSimpleIniA settingsIni;
@@ -59,6 +61,10 @@ void Host::setUpPaletteColors(){
 
 Color* Host::GetPaletteColors(){
     return _paletteColors;
+}
+
+void Host::unpackCarts(){
+	Logger_Write("unzipping pack in carts to p8carts");
 }
 
 void Host::loadSettingsIni(){
