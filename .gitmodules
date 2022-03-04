@@ -1,3 +1,6 @@
 [submodule "libs/z8lua"]
 	path = libs/z8lua
 	url = https://github.com/jtothebell/z8lua.git
+[submodule "libs/miniz"]
+	path = libs/miniz
+	url = https://github.com/richgel999/miniz.git
