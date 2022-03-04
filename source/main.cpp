@@ -11,7 +11,10 @@
 #include "hostVmShared.h"
 
 #if __VITA__
+
 #include <vitasdk.h>
+#define MINIZ_NO_TIME
+
 #endif
 
 
