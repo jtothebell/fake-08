@@ -47,6 +47,8 @@ class Host {
 
     void setUpPaletteColors();
     void oneTimeSetup(Audio* audio);
+	
+	void unpackCarts();
     
     void setTargetFps(int targetFps);
 
