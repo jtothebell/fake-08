@@ -10,6 +10,8 @@
 
 #include "miniz.h"
 
+#include "cartzip.h"
+
 using namespace std;
 
 CSimpleIniA settingsIni;
@@ -65,6 +67,45 @@ Color* Host::GetPaletteColors(){
 
 void Host::unpackCarts(){
 	Logger_Write("unzipping pack in carts to p8carts");
+	
+	//based on https://github.com/richgel999/miniz/issues/38
+	
+	mz_zip_archive zip_archive;
+	memset(&zip_archive, 0, sizeof(zip_archive));
+
+	// init zip file
+	mz_zip_reader_init_mem(&zip_archive, source_carts_zip, source_carts_zip_len, 0);
+	
+	int fileCount = (int)mz_zip_reader_get_num_files(&zip_archive);
+	if (fileCount == 0)
+	{
+		mz_zip_reader_end(&zip_archive);
+	}
+	mz_zip_archive_file_stat file_stat;
+	if (!mz_zip_reader_file_stat(&zip_archive, 0, &file_stat)) 
+	{
+		mz_zip_reader_end(&zip_archive);
+	}
+	// Get root folder
+	string base = _cartDirectory + "\\"; // path delim on end
+
+	// Get and print information about each file in the archive.
+	for (int i = 0; i < fileCount; i++)
+	{
+		if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat)) continue;
+		if (mz_zip_reader_is_file_a_directory(&zip_archive, i)) continue; // skip directories for now
+		string fileName = base + file_stat.m_filename; // make path relative
+		Logger_Write(fileName.c_str());
+		string destFile = fileName; // make full dest path
+
+		mz_zip_reader_extract_to_file(&zip_archive, i, destFile.c_str(), 0);
+	}
+
+	// Close the archive, freeing any resources it was using
+	mz_zip_reader_end(&zip_archive);
+	
+	
+	
 }
 
 void Host::loadSettingsIni(){
