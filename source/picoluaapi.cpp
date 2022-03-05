@@ -990,20 +990,38 @@ int api_memset(lua_State *L) {
 }
 
 int peek(lua_State *L) {
+    int numArgs = lua_gettop(L);
+    int numToReturn = 1;
+
     int addr = lua_tonumber(L,1);
 
-    uint8_t val = _vmForLuaApi->vm_peek(addr);
+    if (numArgs > 1) {
+        numToReturn = lua_tonumber(L,2);
+    }
 
-    lua_pushinteger(L, val);
+    for(int i = 0; i < numToReturn; i++) {
+        uint8_t val = _vmForLuaApi->vm_peek(addr + i);
 
-    return 1;
+        lua_pushinteger(L, val);
+    }
+
+    return numToReturn;
 }
 
 int poke(lua_State *L) {
+    int numArgs = lua_gettop(L);
+
     int dest = lua_tonumber(L,1);
     uint8_t val = lua_tonumber(L,2);
 
     _vmForLuaApi->vm_poke(dest, val);
+
+    if (numArgs > 2) {
+        for(int i = 1; i <= (numArgs - 2); i++) {
+            val = lua_tonumber(L, 2 + i);
+            _vmForLuaApi->vm_poke(dest + i, val);
+        }
+    }
 
     return 0;
 }
