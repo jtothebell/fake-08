@@ -2274,7 +2274,7 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-SUBCASE("use extended ram for big map"){
+    SUBCASE("use extended ram for big map"){
         picoRam.data[0x5f56] = 0x80;
         
         for(int y = 0; y < 8; y++){
@@ -2365,6 +2365,39 @@ SUBCASE("use extended ram for big map"){
        };
 
         checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("map width set to 256 functions as expected"){
+        picoRam.data[0x5f56] = 0x80;
+        picoRam.data[0x5f57] = 0;
+        
+        for(int y = 0; y < 8; y++){
+            for(int x = 64; x < 96; x++) {
+                graphics->sset(x,y,(x/8) + 1);
+            }
+        }
+
+        graphics->mset(0, 0, 8);
+        graphics->mset(0, 1, 9);
+        graphics->mset(1, 0, 9);
+        graphics->mset(1, 1, 8);
+
+        graphics->mset(254, 126, 9);
+        graphics->mset(255, 0126, 10);
+        graphics->mset(254, 127, 10);
+        graphics->mset(255, 127, 9);
+
+        graphics->cls();
+
+        graphics->map(0, 0, 8, 8, 2, 2);
+        graphics->map(254, 126, 112, 112, 2, 2);
+
+        CHECK_EQ(picoRam.hwState.widthOfTheMap, 0);
+        CHECK_EQ(graphics->mget(0,0), 8);
+        CHECK_EQ(picoRam.data[0x8000], 8);
+        CHECK_EQ(picoRam.userData[0], 8);
+        CHECK_EQ(graphics->mget(255, 127), 9);
+        CHECK_EQ(picoRam.data[0xFFFF], 9);
+        CHECK_EQ(picoRam.userData[0x7FFF], 9);
     }
 
 
