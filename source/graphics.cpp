@@ -1280,7 +1280,22 @@ int Graphics::print(std::string str, int x, int y, uint8_t c) {
 
 	for (size_t n = 0; n < str.length(); n++) {
 		uint8_t ch = str[n];
-		if (ch >= 0x10 && ch < 0x80) {
+		if (ch == '\n') {
+			x = _memory->drawState.text_x;
+			y += 6;
+		}
+		else if (ch == '\t') {
+			while (x % 16 > 0) {
+				x++;
+			}
+		}
+		else if (ch == '\b') {
+			x -= 4;
+		}
+		else if (ch == '\r') {
+			x = _memory->drawState.text_x;
+		}
+		else if (ch >= 0x10 && ch < 0x80) {
 			int index = ch - 0x10;
 			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8, 4, 5, false, false);
 			x += 4;
@@ -1288,9 +1303,6 @@ int Graphics::print(std::string str, int x, int y, uint8_t c) {
 			int index = ch - 0x80;
 			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5, false, false);
 			x += 8;
-		} else if (ch == '\n') {
-			x = _memory->drawState.text_x;
-			y += 6;
 		}
 	}
 

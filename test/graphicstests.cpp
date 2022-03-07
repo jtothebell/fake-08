@@ -2399,6 +2399,51 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(picoRam.data[0xFFFF], 9);
         CHECK_EQ(picoRam.userData[0x7FFF], 9);
     }
+    SUBCASE("p8scii tab character advances to next x multiple of 16 (default tab size)") {
+        graphics->cls();
+
+        graphics->print("a\t:", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {17, 0, 0},
+            {17, 1, 6},
+            {17, 2, 0},
+            {17, 3, 6},
+            {17, 4, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("p8scii backspace character moves cursor backward 4 pixels (doesn't erase)") {
+        graphics->cls();
+
+        graphics->print("i\b-", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 0, 6}, {1, 0, 6}, {2, 0, 6},
+            {0, 1, 0}, {1, 1, 6}, {2, 1, 0},
+            {0, 2, 6}, {1, 2, 6}, {2, 2, 6},
+            {0, 3, 0}, {1, 3, 6}, {2, 3, 0},
+            {0, 4, 6}, {1, 4, 6}, {2, 4, 6},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("p8scii carriage return character moves cursor back to current cursor x(doesn't erase)") {
+        graphics->cls();
+
+        graphics->print("i\r-", 10, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {10, 0, 6}, {11, 0, 6}, {12, 0, 6},
+            {10, 1, 0}, {11, 1, 6}, {12, 1, 0},
+            {10, 2, 6}, {11, 2, 6}, {12, 2, 6},
+            {10, 3, 0}, {11, 3, 6}, {12, 3, 0},
+            {10, 4, 6}, {11, 4, 6}, {12, 4, 6},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
 
     
