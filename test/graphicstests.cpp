@@ -1790,9 +1790,19 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("palt({c}, {t}) sets transparency value for color") {
         graphics->palt(4, true);
+
+        CHECK(graphics->isColorTransparent(4) == true);
+
         graphics->palt(4, false);
 
         CHECK(graphics->isColorTransparent(4) == false);
+    }
+    SUBCASE("palt({c}, {t}) can set color 0 to opaque") {
+        CHECK(graphics->isColorTransparent(0) == true);
+
+        graphics->palt(0, false);
+
+        CHECK(graphics->isColorTransparent(0) == false);
     }
     SUBCASE("pal() resets all palette changes") {
         graphics->pal(14, 5, 0);
@@ -2444,6 +2454,97 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("p8scii repeat character (\\*) draws character x number of times") {
+        graphics->cls();
+
+        graphics->print("\x01""5:", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {17, 0, 0},
+            {17, 1, 6},
+            {17, 2, 0},
+            {17, 3, 6},
+            {17, 4, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("p8scii bg color character (\\#) changes bg color") {
+        graphics->cls();
+
+        graphics->print("\x02""1:", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {1, 0, 1},
+            {1, 1, 6},
+            {1, 2, 1},
+            {1, 3, 6},
+            {1, 4, 1}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("p8scii fg color character (\\f) changes bg color") {
+        graphics->cls();
+
+        graphics->print("\x0c""2:", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {1, 0, 0},
+            {1, 1, 2},
+            {1, 2, 0},
+            {1, 3, 2},
+            {1, 4, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("p8scii bg color character (\\#) changes bg color using hex") {
+        graphics->cls();
+
+        graphics->print("\x02""c:", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {1, 0, 12},
+            {1, 1, 6},
+            {1, 2, 12},
+            {1, 3, 6},
+            {1, 4, 12}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("p8scii horizontal move character (\\-) changes x location") {
+        graphics->cls();
+
+        graphics->print("\x03""a:", 10, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {5, 0, 0},
+            {5, 1, 6},
+            {5, 2, 0},
+            {5, 3, 6},
+            {5, 4, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("p8scii vertical move character (\\|) changes y location") {
+        graphics->cls();
+
+        graphics->print("\x05""ab:", 6, 5);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {1, 0, 0},
+            {1, 1, 6},
+            {1, 2, 0},
+            {1, 3, 6},
+            {1, 4, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+
 
 
     

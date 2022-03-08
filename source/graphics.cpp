@@ -1257,6 +1257,19 @@ int Graphics::print(std::string str, int x, int y) {
 	return this->print(str, x, y, _memory->drawState.color);
 }
 
+uint8_t p0CharToNum(uint8_t hexChar){
+	uint8_t num = 0;
+	if (hexChar > 47 && hexChar < 58){
+		num = hexChar - 48;
+	}
+	if (hexChar > 96) {
+		num = hexChar - 87;
+	}
+
+	return num;
+
+}
+
 //based on tac08 impl
 int Graphics::print(std::string str, int x, int y, uint8_t c) {
 	color(c);
@@ -1280,7 +1293,59 @@ int Graphics::print(std::string str, int x, int y, uint8_t c) {
 
 	for (size_t n = 0; n < str.length(); n++) {
 		uint8_t ch = str[n];
-		if (ch == '\n') {
+		if (ch == 1) { // "\*{p0}" repeat the next character p0 times
+			uint8_t timesChr = str[++n];
+			int times = p0CharToNum(timesChr);
+
+			ch = str[++n];
+			for(int i = 0; i < times; i++) {
+				x = drawCharacter(ch, x, y);
+			}
+		}
+		else if (ch == 2) { // "\#{p0}" draw text on a solid background color
+			uint8_t bgColChar = str[++n];
+			uint8_t bgCol = p0CharToNum(bgColChar);
+
+			_memory->drawState.drawPaletteMap[0] = bgCol;
+		}
+		else if (ch == 3) { // "\-{p0}" move text cursor horizontally by 16-p0 pixels
+			uint8_t pixelCountChar = str[++n];
+			int deltaX = p0CharToNum(pixelCountChar) - 16;
+
+			x += deltaX;
+			//update memory cursor state?
+		}
+		else if (ch == 4) { // "\|{p0}" move text cursor vertically by 16-p0 pixels
+			uint8_t pixelCountChar = str[++n];
+			int deltaY = p0CharToNum(pixelCountChar) - 16;
+
+			y += deltaY;
+			//update memory cursor state?
+		}
+		else if (ch == 5) { // "\+{p0}" move text cursor vertically by 16-p0 pixels
+			uint8_t pixelCountXChar = str[++n];
+			uint8_t pixelCountYChar = str[++n];
+			int deltaX = p0CharToNum(pixelCountXChar) - 16;
+			int deltaY = p0CharToNum(pixelCountYChar) - 16;
+
+			x += deltaX;
+			y += deltaY;
+			//update memory cursor state?
+		}
+		else if (ch == 6) { // "\^" special command
+			uint8_t commandChar = str[++n];
+			if (commandChar > 48 && commandChar < 58){
+				//pause for x num frames
+			}
+
+		}
+		else if (ch == 12) { //"\f{p0}" draw text with this foreground color
+			uint8_t fgColChar = str[++n];
+			uint8_t fgCol = p0CharToNum(fgColChar);
+			color(fgCol);
+			_memory->drawState.drawPaletteMap[7] = getDrawPalMappedColor(fgCol);
+		}
+		else if (ch == '\n') {
 			x = _memory->drawState.text_x;
 			y += 6;
 		}
@@ -1296,13 +1361,7 @@ int Graphics::print(std::string str, int x, int y, uint8_t c) {
 			x = _memory->drawState.text_x;
 		}
 		else if (ch >= 0x10 && ch < 0x80) {
-			int index = ch - 0x10;
-			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8, 4, 5, false, false);
-			x += 4;
-		} else if (ch >= 0x80) {
-			int index = ch - 0x80;
-			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5, false, false);
-			x += 8;
+			x = drawCharacter(ch, x, y);
 		}
 	}
 
@@ -1312,6 +1371,20 @@ int Graphics::print(std::string str, int x, int y, uint8_t c) {
 
 	//todo: auto scrolling
 	_memory->drawState.text_y += 6;
+
+	return x;
+}
+
+int Graphics::drawCharacter(uint8_t ch, int x, int y) {
+	if (ch >= 0x10 && ch < 0x80) {
+		int index = ch - 0x10;
+		copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8, 4, 5, false, false);
+		x += 4;
+	} else if (ch >= 0x80) {
+		int index = ch - 0x80;
+		copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5, false, false);
+		x += 8;
+	}
 
 	return x;
 }
