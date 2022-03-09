@@ -80,7 +80,7 @@ Vm::Vm(
 
     //this can probably go away when I'm loading actual carts and just have to expose api to lua
     Logger_Write("Initializing global api\n");
-    initPicoApi(_graphics, _input, this, _audio);
+    initPicoApi(_memory, _graphics, _input, this, _audio);
     //initGlobalApi(_graphics);
 
 }

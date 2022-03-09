@@ -108,10 +108,6 @@ class Graphics {
 
 	fix32 fillp(fix32 pat);
 
-	int print(std::string str);
-	int print(std::string str, int x, int y);
-	int print(std::string str, int x, int y, uint8_t c);
-
 	int drawCharacter(uint8_t ch, int x, int y);
 
 	void spr(
