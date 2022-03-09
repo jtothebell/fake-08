@@ -7,39 +7,7 @@
 #include "../source/fontdata.h"
 #include "../source/PicoRam.h"
 
-struct coloredPoint {
-    uint8_t x;
-    uint8_t y;
-    uint8_t c;
-};
-
-bool colorsEqual(Color* lhs, Color* rhs) {
-	return lhs->Alpha == rhs->Alpha &&
-		   lhs->Red == rhs->Red &&
-		   lhs->Green == rhs->Green &&
-		   lhs->Blue == rhs->Blue;
-}
-
-void debugScreen(Graphics* graphics) {
-    for (int x=0; x < 128; x++) {
-        for (int y = 0; y < 128; y++) {
- 	        uint8_t c = graphics->pget(x,y);
-            if (c != 0) {
-                printf("%d,%d,%d\n", x, y, c);
-            }
-        }
-    }
-}
-
-void checkPoints(Graphics* graphics, std::vector<coloredPoint> expectedPoints) {
-    bool isCorrect = true;
-    for(size_t i = 0; i < expectedPoints.size(); i++){
-        auto toCheck = expectedPoints[i];
-        isCorrect &= graphics->pget(toCheck.x, toCheck.y) == toCheck.c;
-    }
-
-    CHECK(isCorrect);
-}
+#include "testHelpers.h"
 
 TEST_CASE("graphics class behaves as expected") {
     //general setup
@@ -1982,11 +1950,14 @@ TEST_CASE("graphics class behaves as expected") {
         checkPoints(graphics, expectedPoints);
     }
     */
-
     SUBCASE("Remap spritesheet to screen"){
         graphics->cls();
-        //TODO: redo this test without print-- drawCharater?
-        //graphics->print("zo", 8, 0);
+
+        //emulate print("zo",8,0)
+        picoRam.drawState.drawPaletteMap[7] = 6;
+        graphics->drawCharacter(122, 8, 0);
+        graphics->drawCharacter(111, 12, 0);
+
         picoRam.hwState.spriteSheetMemMapping = 0x60;
 
         graphics->spr(1, 0, 64, 1.0, 1.0, false, false);
@@ -2033,49 +2004,10 @@ TEST_CASE("graphics class behaves as expected") {
             {2,68,6},
             {3,68,0},
             {4,68,6},
-            {5,68,6},
-            {6,68,0},
-            {7,68,0},
-            {8,68,0},
-            {0,69,0},
-            {1,69,0},
-            {2,69,0},
-            {3,69,0},
-            {4,69,0},
-            {5,69,0},
-            {6,69,0},
-            {7,69,0},
-            {8,69,0},
-            {0,70,0},
-            {1,70,0},
-            {2,70,0},
-            {3,70,0},
-            {4,70,0},
-            {5,70,0},
-            {6,70,0},
-            {7,70,0},
-            {8,70,0},
-            {0,71,0},
-            {1,71,0},
-            {2,71,0},
-            {3,71,0},
-            {4,71,0},
-            {5,71,0},
-            {6,71,0},
-            {7,71,0},
-            {8,71,0},
-            {0,72,0},
-            {1,72,0},
-            {2,72,0},
-            {3,72,0},
-            {4,72,0},
-            {5,72,0},
-            {6,72,0},
-            {7,72,0},
-            {8,72,0}
+            {5,68,6}
        };
 
-        //checkPoints(graphics, expectedPoints);
+        checkPoints(graphics, expectedPoints);
     }
     SUBCASE("Remap screen to spritesheet"){
         graphics->cls();
