@@ -441,7 +441,6 @@ void Vm::UpdateAndDraw() {
 
     _picoFrameCount++;
 
-    //todo: pause menu here, but for now just load bios
     if (_input->btnp(6)) {
         togglePauseMenu();
     }
@@ -861,8 +860,9 @@ void Vm::vm_flip() {
 
         //todo: pause menu here, but for now just load bios
         if (_input->btnp(6)) {
-            QueueCartChange(BiosCartName);
-            
+            //QueueCartChange(BiosCartName);
+            togglePauseMenu();
+
             //shouldn't get here
             return;
         }
@@ -873,6 +873,17 @@ void Vm::vm_flip() {
 
 		uint8_t* picoFb = GetPicoInteralFb();
 		uint8_t* screenPaletteMap = GetScreenPaletteMap();
+
+        if (_pauseMenu){
+            //pause menu probably needs refactor out of lua. For now this is better than just quitting
+            lua_getglobal(_luaState, "__f08_menu_update");
+            lua_call(_luaState, 0, 0);
+            lua_pop(_luaState, 0);
+
+            lua_getglobal(_luaState, "__f08_menu_draw");
+            lua_call(_luaState, 0, 0);
+            lua_pop(_luaState, 0);
+        }
 
 		_host->drawFrame(picoFb, screenPaletteMap, _memory->drawState.drawMode);
 
