@@ -93,9 +93,13 @@ int print(std::string str, int x, int y, uint8_t c) {
 	_ph_mem->drawState.drawPaletteMap[7] = effectiveC;
 	_ph_mem->drawState.drawPaletteMap[0] = 16; //transparent
 
+    int framesBetweenChars = 0;
+    int framesToPause = 0;
+
 
 	for (size_t n = 0; n < str.length(); n++) {
 		uint8_t ch = str[n];
+        framesToPause = framesBetweenChars;
 		if (ch == 1) { // "\*{p0}" repeat the next character p0 times
 			uint8_t timesChr = str[++n];
 			int times = p0CharToNum(timesChr);
@@ -137,6 +141,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 		}
 		else if (ch == 6) { // "\^" special command
 			uint8_t commandChar = str[++n];
+            // \^1 through \^9 skips a number of frames before continuing printing
 			if (commandChar > 48 && commandChar < 58){
 				//pause for x num frames
                 int frameCount = pow2(p0CharToNum(commandChar) - 1);
@@ -146,6 +151,11 @@ int print(std::string str, int x, int y, uint8_t c) {
                     frameCount--;
                 }
 			}
+            // \^d P0 causes subsequent printing to pause P0 frames between each character,
+            else if (commandChar == 'd') {
+                uint8_t framesChar = str[++n];
+                framesBetweenChars = p0CharToNum(framesChar);
+            }
 
 		}
 		else if (ch == 12) { //"\f{p0}" draw text with this foreground color
@@ -171,6 +181,11 @@ int print(std::string str, int x, int y, uint8_t c) {
 		}
 		else if (ch >= 0x10) {
 			x = _ph_graphics->drawCharacter(ch, x, y);
+            while (framesToPause > 0){
+                _ph_vm->vm_flip();
+
+                framesToPause--;
+            }
 		}
 	}
 
