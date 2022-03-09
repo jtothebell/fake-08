@@ -31,8 +31,10 @@ int main(int argc, char* argv[])
 	host->setUpPaletteColors();
 	host->oneTimeSetup(audio);
 	
+	#if LOAD_PACK_INS
 	//todo: make this only happen once, save if it has happened in settings.ini
 	host->unpackCarts();
+	#endif
 	
 	Logger_Write("initialized Vm and host\n");
 
