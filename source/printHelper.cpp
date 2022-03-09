@@ -29,7 +29,39 @@ uint8_t p0CharToNum(uint8_t hexChar){
 	}
 
 	return num;
+}
 
+int pow2(int power){
+    switch(power){
+        case 0:
+            return 1;
+            break;
+        case 1:
+            return 2;
+            break;
+        case 2:
+            return 4;
+            break;
+        case 3:
+            return 8;
+            break;
+        case 4:
+            return 16;
+            break;
+        case 5:
+            return 32;
+            break;
+        case 6:
+            return 64;
+            break;
+        case 7:
+            return 128;
+            break;
+        case 8:
+            return 255;
+            break;
+    }
+    return 0;
 }
 
 int print(std::string str) {
@@ -107,6 +139,12 @@ int print(std::string str, int x, int y, uint8_t c) {
 			uint8_t commandChar = str[++n];
 			if (commandChar > 48 && commandChar < 58){
 				//pause for x num frames
+                int frameCount = pow2(p0CharToNum(commandChar) - 1);
+                while (frameCount > 0){
+                    _ph_vm->vm_flip();
+
+                    frameCount--;
+                }
 			}
 
 		}
@@ -131,7 +169,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 		else if (ch == '\r') {
 			x = _ph_mem->drawState.text_x;
 		}
-		else if (ch >= 0x10 && ch < 0x80) {
+		else if (ch >= 0x10) {
 			x = _ph_graphics->drawCharacter(ch, x, y);
 		}
 	}
