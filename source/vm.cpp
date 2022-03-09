@@ -862,10 +862,7 @@ void Vm::vm_flip() {
         //todo: pause menu here, but for now just load bios
         if (_input->btnp(6)) {
             QueueCartChange(BiosCartName);
-            abortLua = true;
-            if (abortLua){
-                longjmp(place, 1);
-            }
+            
             //shouldn't get here
             return;
         }
