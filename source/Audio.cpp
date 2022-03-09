@@ -9,6 +9,8 @@
 #include <cmath>
 #include <float.h> // std::max
 
+
+
 //playback implemenation based on zetpo 8's
 //https://github.com/samhocevar/zepto8/blob/master/src/pico8/sfx.cpp
 
@@ -152,7 +154,9 @@ void Audio::set_music_pattern(int pattern) {
     };
 
     // Find music speed; it’s the speed of the fastest sfx
+	// While we are looping through this, find the lowest *valid* sfx length
     _audioState._musicChannel.master = _audioState._musicChannel.speed = -1;
+	_audioState._musicChannel.length = 32; //as far as i can tell, there is no way to make an sfx longer than 32.
     for (int i = 0; i < 4; ++i)
     {
         uint8_t n = channels[i];
@@ -166,7 +170,16 @@ void Audio::set_music_pattern(int pattern) {
             _audioState._musicChannel.master = i;
             _audioState._musicChannel.speed = std::max(1, (int)sfx.speed);
         }
+		
+		if(sfx.loopRangeStart != 0 && sfx.loopRangeEnd == 0){
+			_audioState._musicChannel.length = std::min(_audioState._musicChannel.length, sfx.loopRangeStart);			
+		}
+		
+		
+		
     }
+	
+	
 
     // Play music sfx on active channels
     for (int i = 0; i < 4; ++i)
@@ -289,7 +302,7 @@ int16_t Audio::getSampleForChannel(int channel){
             }
             _audioState._musicChannel.pattern = -1;
         }
-        else if (_audioState._musicChannel.offset >= 32.f)
+        else if (_audioState._musicChannel.offset >= _audioState._musicChannel.length)
         {
             int16_t next_pattern = _audioState._musicChannel.pattern + 1;
             int16_t next_count = _audioState._musicChannel.count + 1;
