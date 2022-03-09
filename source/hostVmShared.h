@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 /// Creates a bitmask from a bit number.
 #define BITMASK(n) (1U<<(n))
 
