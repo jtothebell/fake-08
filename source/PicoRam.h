@@ -127,6 +127,7 @@ struct musicChannel {
     float volume = 0.f;
     float volume_step = 0.f;
     float offset = 0.f;
+	uint8_t length = 0;
 };
 
 struct sfxChannel {
