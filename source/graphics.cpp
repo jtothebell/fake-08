@@ -1402,7 +1402,7 @@ std::tuple<uint8_t, uint8_t, uint8_t, uint8_t> Graphics::clip(int x, int y, int 
 
 uint8_t Graphics::mget(int celx, int cely){
 	const bool bigMap = _memory->hwState.mapMemMapping >= 0x80;
-	const int mapW = _memory->hwState.widthOfTheMap;
+	const int mapW = _memory->hwState.widthOfTheMap == 0 ? 256 : _memory->hwState.widthOfTheMap;
 	const int idx = cely * mapW + celx;
 
 	if (idx < 0) {
@@ -1432,7 +1432,7 @@ uint8_t Graphics::mget(int celx, int cely){
 
 void Graphics::mset(int celx, int cely, uint8_t snum){
 	const bool bigMap = _memory->hwState.mapMemMapping >= 0x80;
-	const int mapW = _memory->hwState.widthOfTheMap;
+	const int mapW = _memory->hwState.widthOfTheMap == 0 ? 256 : _memory->hwState.widthOfTheMap;
 	const int idx = cely * mapW + celx;
 
 	if (idx < 0) {
