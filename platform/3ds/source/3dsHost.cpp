@@ -285,6 +285,12 @@ Host::Host() {
     if (res == 0 && stat(cartdatadir.c_str(), &st) == -1) {
         res = mkdir(cartdatadir.c_str(), 0777);
     }
+	
+	string cartdir = "sdmc:" + _cartDirectory;
+	if (res == 0 && stat(cartdir.c_str(), &st) == -1) {
+        res = mkdir(cartdir.c_str(), 0777);
+    }
+	
  }
 
  void Host::setPlatformParams(
