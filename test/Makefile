@@ -9,14 +9,14 @@ all: runtests
 
 testrunner.a: testroot.o \
 	fontdatatests.o nibblehelperstests.o graphicstests.o audiotests.o \
-	carttests.o endtoendtests.o vmtests.o filehelperstests.o
+	carttests.o endtoendtests.o vmtests.o filehelperstests.o printHelperTests.o
 	g++ -I$(CURDIR)/include -L$(CURDIR)/lib \
 	testroot.o \
 	fontdata.o fontdatatests.o \
 	graphics.o graphicstests.o stringToDataHelpers.o mathhelpers.o \
 	Audio.o synth.o audiotests.o \
 	cart.o carttests.o nooplogger.o lodepng.o emojiconversion.o filehelpers.o \
-	vm.o endtoendtests.o picoluaapi.o Input.o \
+	vm.o endtoendtests.o picoluaapi.o printHelper.o Input.o \
 	vmtests.o stubhost.o \
 	nibblehelpers.o nibblehelperstests.o \
 	filehelperstests.o \
@@ -41,6 +41,9 @@ graphicstests.o: liblua.a fontdatatests.o graphicstests.cpp ../source/graphics.c
 	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \
 	graphicstests.cpp ../source/graphics.cpp \
 	../source/stringToDataHelpers.cpp ../source/nibblehelpers.cpp ../source/mathhelpers.cpp
+
+printHelperTests.o: graphicstests.o printHelperTests.cpp ../source/printHelper.cpp ../source/printHelper.h
+	g++ $(CFLAGS) -I$(CURDIR)/include printHelperTests.cpp ../source/printHelper.cpp
 
 audiotests.o: audiotests.cpp ../source/Audio.cpp ../source/Audio.h \
 	../source/synth.cpp ../source/synth.h \
@@ -71,7 +74,7 @@ carttests.o: carttests.cpp ../source/cart.cpp ../source/cart.h \
 	g++ $(CFLAGS) -I$(CURDIR)/include carttests.cpp ../source/cart.cpp ../libs/lodepng/lodepng.cpp \
 	nooplogger.cpp ../source/emojiconversion.cpp ../source/filehelpers.cpp 
 
-endtoendtests.o: carttests.o graphicstests.o audiotests.o \
+endtoendtests.o: carttests.o graphicstests.o audiotests.o printHelperTests.o\
 	endtoendtests.cpp \
 	../source/vm.cpp ../source/vm.h \
 	stubhost.cpp stubhost.h ../source/host.h \
