@@ -731,9 +731,10 @@ bool Vm::vm_cartdata(string key) {
     //todo: validate hex format
     if (cartDataStr.length() > 0) {
         deserializeCartDataToMemory(cartDataStr);
-    }
-
-    return true;
+		return true;
+    } else {
+		return false;
+	}
 
     //call host to get current cart data and init- set memory
     //file name should match pico 8: {key}.p8d.txt in the cdata directory

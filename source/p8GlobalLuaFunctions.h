@@ -181,11 +181,27 @@ function __f08_menu_update()
         until __f08_menu_items[__f08_menu_selected][1] ~= nil
     end
 
-    if btnp(4) or btnp(5) then
+    if btnp(0) or btnp(1) or btnp(4) or btnp(5) then
+		local bval = 0
+		local allowreturn = false
+		
+		if btnp(4) or btnp(5) then
+			bval = 16+32+64
+			allowreturn = true
+		else
+			if btnp(0) then 
+				bval = 1 
+			elseif btnp(1) then 
+				bval = 2			
+			end
+			
+		end
+		
         toexec = __f08_menu_items[__f08_menu_selected]
         if toexec and toexec[2] then
-            toexec[2]()
-            if __f08_menu_selected > 0 and __f08_menu_selected < 6 then
+            local toexec_result = toexec[2](bval)
+			
+            if __f08_menu_selected > 0 and __f08_menu_selected < 6 and allowreturn and not toexec_result then
                 __f08_menu_selected = 0
                 __togglepausemenu()
             end
