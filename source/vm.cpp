@@ -291,6 +291,23 @@ bool Vm::loadCart(Cart* cart) {
         //trigger closing of cart and reload of bios
         return false;
     }
+	
+	#if LOAD_PACK_INS
+	if(cart->FullCartPath == SettingsCartName){
+		
+		std::string enablepackins = "showpackinoptions = true";
+		int doStrRes = luaL_dostring(_luaState, enablepackins.c_str());
+
+		if (doStrRes != LUA_OK){
+			//bad lua passed
+			Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
+			lua_pop(_luaState, 1);
+		}
+		
+		
+	}
+	
+	#endif
 
     // Push the _init function on the top of the lua stack (or nil if it doesn't exist)
     lua_getglobal(_luaState, "_init");

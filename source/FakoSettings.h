@@ -11,6 +11,9 @@ const char * fake08SettingsP8 = R"#(
 pico-8 cartridge // http://www.pico-8.com
 version 33
 __lua__
+
+--showpackinoptions = true
+
 function _init()
 	
 	if not __getsetting then
@@ -64,6 +67,32 @@ function _init()
 		}}
 	}
 	
+	
+	if showpackinoptions then
+		add(list,
+			{name='pack-in carts',ops = {
+				{
+					name = 'install pack-in carts',
+					func = function() __installpackins() end,
+					ret = true
+				},
+				
+				{name='credits',ops = {
+					{name = 'celeste classic by maddy', ret = true},
+					{name = 'thorson + noel berry (cc4)', ret = true},
+					{name = '', ret = true},
+					{name = 'buzzsaw cat by dps2004', ret = true},
+					{name = '', ret = true},
+					{name = 'sixlets ii by aquova (cc0)', ret = true},
+					{name = '', ret = true},
+				}}
+			}}
+			
+			
+		)
+	
+	end
+	
 	path = {}
 	
 	menuspace = 10
@@ -89,7 +118,11 @@ function refreshinfo()
 
 	cpath = list
 	sectionname = 'main'
+	local oldcpath = list
+	local oldsectionname = 'main'
 	for i,v in ipairs(path) do
+		oldcpath = cpath
+		oldsectionname = sectionname
 		cpath = cpath[v]
 		sectionname = cpath.name
 		cvariable = cpath.vn
@@ -101,6 +134,15 @@ function refreshinfo()
 		if cpath.ch then
 			cpath = cpath.ch
 			inoption = true
+		end
+		if cpath.func then
+			cpath.func()
+		end
+		if cpath.ret then
+		
+			deli(path)
+			cpath = oldcpath
+			sectionname = oldsectionname
 		end
 	end
 
@@ -118,7 +160,6 @@ function updatecursor()
 	cursorpos = (cursorpos % numitems) + 1
 	
 	if btnp( ❎ ) or btnp ( 🅾️ ) then
-		printh('cursorpos - 1: ' .. cursorpos-1)
 		if cursorpos == numitems then -- back
 			cursorpos = deli(path)
 			if not cursorpos then
