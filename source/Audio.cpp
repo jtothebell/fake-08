@@ -9,8 +9,6 @@
 #include <cmath>
 #include <float.h> // std::max
 
-
-
 //playback implemenation based on zetpo 8's
 //https://github.com/samhocevar/zepto8/blob/master/src/pico8/sfx.cpp
 
@@ -105,12 +103,6 @@ void Audio::api_sfx(int sfx, int channel, int offset){
         _audioState._sfxChannels[channel].phi = 0.f;
         _audioState._sfxChannels[channel].can_loop = true;
         _audioState._sfxChannels[channel].is_music = false;
-        _audioState._sfxChannels[channel].length = 32;
-
-        auto &sfxObj = _memory->sfx[sfx];
-		if(sfxObj.loopRangeStart != 0 && sfxObj.loopRangeEnd == 0){
-			_audioState._sfxChannels[channel].length  = std::min(_audioState._sfxChannels[channel].length , sfxObj.loopRangeStart);			
-		}
         // Playing an instrument starting with the note C-2 and the
         // slide effect causes no noticeable pitch variation in PICO-8,
         // so I assume this is the default value for “previous key”.
@@ -160,9 +152,7 @@ void Audio::set_music_pattern(int pattern) {
     };
 
     // Find music speed; it’s the speed of the fastest sfx
-	// While we are looping through this, find the lowest *valid* sfx length
     _audioState._musicChannel.master = _audioState._musicChannel.speed = -1;
-	_audioState._musicChannel.length = 32; //as far as i can tell, there is no way to make an sfx longer than 32.
     for (int i = 0; i < 4; ++i)
     {
         uint8_t n = channels[i];
@@ -176,16 +166,7 @@ void Audio::set_music_pattern(int pattern) {
             _audioState._musicChannel.master = i;
             _audioState._musicChannel.speed = std::max(1, (int)sfx.speed);
         }
-		
-		if(sfx.loopRangeStart != 0 && sfx.loopRangeEnd == 0){
-			_audioState._musicChannel.length = std::min(_audioState._musicChannel.length, sfx.loopRangeStart);			
-		}
-		
-		
-		
     }
-	
-	
 
     // Play music sfx on active channels
     for (int i = 0; i < 4; ++i)
@@ -308,7 +289,7 @@ int16_t Audio::getSampleForChannel(int channel){
             }
             _audioState._musicChannel.pattern = -1;
         }
-        else if (_audioState._musicChannel.offset >= _audioState._musicChannel.length)
+        else if (_audioState._musicChannel.offset >= 32.f)
         {
             int16_t next_pattern = _audioState._musicChannel.pattern + 1;
             int16_t next_count = _audioState._musicChannel.count + 1;
@@ -366,7 +347,7 @@ int16_t Audio::getSampleForChannel(int channel){
         //volume all the way off. return silence, but make sure to set stuff
         _audioState._sfxChannels[channel].offset = next_offset;
 
-        if (next_offset >= _audioState._sfxChannels[channel].length) {
+        if (next_offset >= 32.f){
             _audioState._sfxChannels[channel].sfxId = -1;
         }
         else if (next_note_idx != note_idx){
@@ -449,7 +430,7 @@ int16_t Audio::getSampleForChannel(int channel){
 
     _audioState._sfxChannels[channel].offset = next_offset;
 
-    if (next_offset >= _audioState._sfxChannels[channel].length){
+    if (next_offset >= 32.f){
         _audioState._sfxChannels[channel].sfxId = -1;
     }
     else if (next_note_idx != note_idx){
