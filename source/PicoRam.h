@@ -138,6 +138,7 @@ struct sfxChannel {
     bool is_music = false;
     int8_t prev_key = 0;
     float prev_vol = 0;
+    uint8_t length = 0;
 };
 
 struct audioState {

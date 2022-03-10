@@ -105,6 +105,12 @@ void Audio::api_sfx(int sfx, int channel, int offset){
         _audioState._sfxChannels[channel].phi = 0.f;
         _audioState._sfxChannels[channel].can_loop = true;
         _audioState._sfxChannels[channel].is_music = false;
+        _audioState._sfxChannels[channel].length = 32;
+
+        auto &sfxObj = _memory->sfx[sfx];
+		if(sfxObj.loopRangeStart != 0 && sfxObj.loopRangeEnd == 0){
+			_audioState._sfxChannels[channel].length  = std::min(_audioState._sfxChannels[channel].length , sfxObj.loopRangeStart);			
+		}
         // Playing an instrument starting with the note C-2 and the
         // slide effect causes no noticeable pitch variation in PICO-8,
         // so I assume this is the default value for “previous key”.
@@ -360,7 +366,7 @@ int16_t Audio::getSampleForChannel(int channel){
         //volume all the way off. return silence, but make sure to set stuff
         _audioState._sfxChannels[channel].offset = next_offset;
 
-        if (next_offset >= 32.f){
+        if (next_offset >= _audioState._sfxChannels[channel].length) {
             _audioState._sfxChannels[channel].sfxId = -1;
         }
         else if (next_note_idx != note_idx){
@@ -443,7 +449,7 @@ int16_t Audio::getSampleForChannel(int channel){
 
     _audioState._sfxChannels[channel].offset = next_offset;
 
-    if (next_offset >= 32.f){
+    if (next_offset >= _audioState._sfxChannels[channel].length){
         _audioState._sfxChannels[channel].sfxId = -1;
     }
     else if (next_note_idx != note_idx){
