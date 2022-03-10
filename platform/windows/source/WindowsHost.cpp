@@ -110,7 +110,11 @@ InputState_t Host::scanInput(){
 			case SDL_TEXTINPUT:
 				//Logger_Write( charset::upper_to_emoji(event.text.text).c_str() );
 				//Logger_Write("\n");
-				currKBKey = charset::upper_to_emoji(event.text.text);
+				if(kbmode == Emoji){
+					currKBKey = charset::upper_to_emoji(event.text.text);
+				} else {
+					currKBKey = event.text.text;
+				}
 				currKBDown = true;
 				
 				break;
