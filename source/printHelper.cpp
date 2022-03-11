@@ -79,6 +79,8 @@ int print(std::string str, int x, int y, uint8_t c) {
 
 	_ph_mem->drawState.text_x = x;
 	_ph_mem->drawState.text_y = y;
+    int homeX = x;
+    int homeY = y;
 
 	uint8_t effectiveC = _ph_graphics->getDrawPalMappedColor(c);
 
@@ -159,8 +161,16 @@ int print(std::string str, int x, int y, uint8_t c) {
             else if (commandChar == 'c'){
                 uint8_t colChar = str[++n];
                 uint8_t col = p0CharToNum(colChar);
-                
+
                 _ph_graphics->cls(col);
+            }
+            else if (commandChar == 'g'){
+                x = homeX;
+                y = homeY;
+            }
+            else if (commandChar == 'h'){
+                homeX = x;
+                homeY = y;
             }
 
 		}

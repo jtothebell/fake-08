@@ -308,6 +308,36 @@ TEST_CASE("Print helper functions") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("p8scii special control code home the cursor(\\^g) ") {
+        graphics->cls();
+
+        print("\n\n\nstuff\x06""g:", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {1, 0, 0},
+            {1, 1, 6},
+            {1, 2, 0},
+            {1, 3, 6},
+            {1, 4, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("p8scii special control code update cursor home(\\^h) ") {
+        graphics->cls();
+
+        print("\n\n\n\x06""h\n\n\nmorestuff\x06""g:", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {1, 18, 0},
+            {1, 19, 6},
+            {1, 20, 0},
+            {1, 21, 6},
+            {1, 22, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
 
     delete stubHost;
