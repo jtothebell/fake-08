@@ -291,6 +291,23 @@ TEST_CASE("Print helper functions") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("p8scii special control code clear screen(\\^c) ") {
+        graphics->cls(2);
+
+        print("88888");
+
+        print("\x06""c3", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {1, 0, 3},
+            {1, 1, 3},
+            {1, 2, 3},
+            {1, 3, 3},
+            {1, 4, 3}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
 
     delete stubHost;

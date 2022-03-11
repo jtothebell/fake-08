@@ -156,6 +156,12 @@ int print(std::string str, int x, int y, uint8_t c) {
                 uint8_t framesChar = str[++n];
                 framesBetweenChars = p0CharToNum(framesChar);
             }
+            else if (commandChar == 'c'){
+                uint8_t colChar = str[++n];
+                uint8_t col = p0CharToNum(colChar);
+                
+                _ph_graphics->cls(col);
+            }
 
 		}
 		else if (ch == 12) { //"\f{p0}" draw text with this foreground color
