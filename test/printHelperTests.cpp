@@ -338,6 +338,22 @@ TEST_CASE("Print helper functions") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("p8scii special control code move cursor(\\^j) ") {
+        graphics->cls();
+
+        // coordinates x=40 ("a" = 10, 10 * 4 = 40), y=48 ("c" = 12, 12 * 4 = 48)
+        print("\x06""jac:", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {41, 48, 0},
+            {41, 49, 6},
+            {41, 50, 0},
+            {41, 51, 6},
+            {41, 52, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
 
     delete stubHost;

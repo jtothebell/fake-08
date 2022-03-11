@@ -172,6 +172,12 @@ int print(std::string str, int x, int y, uint8_t c) {
                 homeX = x;
                 homeY = y;
             }
+            else if (commandChar == 'j'){
+                uint8_t xChar = str[++n];
+                uint8_t yChar = str[++n];
+                x = p0CharToNum(xChar) * 4;
+                y = p0CharToNum(yChar) * 4;
+            }
 
 		}
 		else if (ch == 12) { //"\f{p0}" draw text with this foreground color
