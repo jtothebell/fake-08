@@ -19,12 +19,19 @@ enum StretchOption {
   FourByThreeStretch
 };
 
+
 #if LOAD_PACK_INS
 enum PackinLoadOption {
   Unloaded,
   Loaded
 };
 #endif
+
+enum ResizekeyOption {
+  NoResize,
+  YesResize
+};
+
 enum KeyboardOption {
   Emoji,
   Lowercase
@@ -48,6 +55,7 @@ class Host {
 	#endif
     StretchOption stretch = PixelPerfectStretch;
     KeyboardOption kbmode = Emoji;
+	ResizekeyOption resizekey = NoResize;
 	
     float scaleX = 1.0;
     float scaleY = 1.0;
