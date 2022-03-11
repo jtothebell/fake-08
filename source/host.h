@@ -19,6 +19,11 @@ enum StretchOption {
   FourByThreeStretch
 };
 
+enum ResizekeyOption {
+  NoResize,
+  YesResize
+};
+
 enum KeyboardOption {
   Emoji,
   Lowercase
@@ -38,6 +43,7 @@ class Host {
 	//settings
     StretchOption stretch = PixelPerfectStretch;
     KeyboardOption kbmode = Emoji;
+	ResizekeyOption resizekey = NoResize;
 	
     float scaleX = 1.0;
     float scaleY = 1.0;

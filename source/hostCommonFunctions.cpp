@@ -21,6 +21,7 @@ CSimpleIniA settingsIni;
 std::string defaultIni =
 "[settings]\n"
 "stretch = 1\n"
+"resizekey = 0\n"
 "kbmode = 0\n";
 
 void Host::setUpPaletteColors(){
@@ -130,15 +131,23 @@ void Host::loadSettingsIni(){
     if (stretchSetting <= (int)AltScreenStretch){
         stretch = (StretchOption) stretchSetting;
     }
+	
+	//resize hotkey
+	long resizekeySetting = settingsIni.GetLongValue("settings", "resizekey", (long)NoResize);
+	resizekey = (ResizekeyOption) resizekeySetting;
+	
 	//kbmode
     long kbmodeSetting = settingsIni.GetLongValue("settings", "kbmode", (long)Emoji);
 	kbmode = (KeyboardOption) kbmodeSetting;
+	
+	
 }
 
 void Host::saveSettingsIni(){
     //write out settings to persist
 	
     settingsIni.SetLongValue("settings", "stretch", stretch);
+    settingsIni.SetLongValue("settings", "resizekey", resizekey);
     settingsIni.SetLongValue("settings", "kbmode", kbmode);
 	
     std::string settingsIniStr = "";
@@ -184,6 +193,9 @@ int Host::getSetting(std::string sname) {
 	if(sname == "kbmode"){ //why cant you use strings in switch statements in c++ :(
 		Logger_Write("Returning KB mode setting\n");
 		return kbmode;
+	}else if(sname == "resizekey"){
+		Logger_Write("Returning resize key setting\n");
+		return resizekey;
 	}else if(sname == "stretch"){
 		Logger_Write("Returning Stretch setting\n");
 		return stretch;
@@ -200,6 +212,9 @@ void Host::setSetting(std::string sname, int sval) {
 	if(sname == "kbmode"){ //why cant you use strings in switch statements in c++ :(
 		Logger_Write("setting KB mode\n");
 		kbmode = (KeyboardOption) sval;
+	}else if(sname == "resizekey"){
+		Logger_Write("setting resize hotkey\n");
+		resizekey = (ResizekeyOption) sval;
 	}else if(sname == "stretch"){
 		Logger_Write("setting Stretch to");
 		std::string stringval = std::to_string(sval);

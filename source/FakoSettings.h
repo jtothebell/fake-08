@@ -29,7 +29,7 @@ function _init()
 		
 	end
 	
-	settinglist = {'kbmode','enableresize','stretch','menustyle'}
+	settinglist = {'kbmode','resizekey','stretch','menustyle','bgcolor'}
 	settings = {}
 	for i,v in ipairs(settinglist) do
 		settings[v] = __getsetting(v) + 1
@@ -49,7 +49,7 @@ function _init()
 		{name='video',ops = {
 			{
 				name = 'enable resize hotkeys',
-				vn = 'enableresize',
+				vn = 'resizekey',
 				ch ={'no','yes'}
 			},
 			{
@@ -63,6 +63,11 @@ function _init()
 				name = 'menu style',
 				vn = 'menustyle',
 				ch ={'classic','carts','splore'}
+			},
+			{
+				name = 'bg color',
+				vn = 'bgcolor',
+				ch ={'gray','black','blue','green'}
 			}
 		}}
 	}
