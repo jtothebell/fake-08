@@ -285,7 +285,7 @@ void Host::setTargetFps(int targetFps){
 }
 
 void Host::changeStretch(){
-    if (stretchKeyPressed) {
+    if (stretchKeyPressed && resizekey == YesResize) {
         if (stretch == PixelPerfectStretch) {
             stretch = PixelPerfect;
         }

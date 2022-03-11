@@ -403,7 +403,7 @@ void Host::setTargetFps(int targetFps){
 }
 
 void Host::changeStretch(){
-    if (currKDown32 & KEY_SELECT) {
+    if ((currKDown32 & KEY_SELECT) && resizekey == YesResize) {
         if (stretch == PixelPerfect) {
             stretch = StretchToFit;
             mouseOffsetX = (__3ds_BottomScreenWidth - __3ds_BottomScreenHeight) / 2;
