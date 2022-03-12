@@ -204,7 +204,10 @@ void Graphics::copyStretchSpriteToScreen(
 	int scr_w,
 	int scr_h,
 	bool flip_x,
-	bool flip_y) 
+	bool flip_y,
+	//skipStretchPx is currently only used for drawing stripey mode text,
+	//so it is only used when drawing in non-flipped mode
+	bool skipStretchPx)
 {
 	if (scr_w == 0 || scr_h == 0)
 		return;
@@ -287,18 +290,31 @@ void Graphics::copyStretchSpriteToScreen(
 		dy = -dy;
 	}
 
+	int prevSprX = -1;
+	int prevSprY = -1;
+
 	//ugly duplication but see if inlining helps
 	if (hwState.colorBitmask == 0xff){
 		for (int y = 0; y < scr_h; y++) {
-			uint8_t* spr = spritebuffer + (((spr_y + y * dy) >> 16) & 0x7f) * 64;
+			int sprY = ((spr_y + y * dy) >> 16);
+			uint8_t* spr = spritebuffer + (sprY & 0x7f) * 64;
+
+			if (skipStretchPx && prevSprY == sprY){
+				continue;
+			}
+			prevSprY = sprY;
 
 			if (!flip_x) {
 				for (int x = 0; x < scr_w; x++) {
-					int pixIndex = (spr_x + x * dx);
-					int combinedPixIdx = ((pixIndex / 2) >> 16) & 0x7f;
-					uint8_t bothPix = spr[combinedPixIdx];
+					int shiftedPixIndex = (spr_x + x * dx) >> 16;
+					if (skipStretchPx && prevSprX == shiftedPixIndex){
+						continue;
+					}
+					prevSprX = shiftedPixIndex;
+					int preShiftedCombinedPixIndex = (shiftedPixIndex / 2) & 0x7f;
+					uint8_t bothPix = spr[preShiftedCombinedPixIndex];
 
-					uint8_t c = (pixIndex >> 16) % 2 == 0 
+					uint8_t c = shiftedPixIndex % 2 == 0 
 						? bothPix & 0x0f //just first 4 bits
 						: bothPix >> 4;  //just last 4 bits
 
@@ -1253,6 +1269,7 @@ int Graphics::drawCharacter(uint8_t ch, int x, int y, uint8_t printMode) {
 	if ((printMode & PRINT_MODE_ON) == PRINT_MODE_ON){
 		int scrW = 4;
 		int scrH = 5;
+		bool evenPxOnly = false;
 
 		if ((printMode & PRINT_MODE_WIDE) == PRINT_MODE_WIDE) {
 			scrW *= 2;
@@ -1262,16 +1279,17 @@ int Graphics::drawCharacter(uint8_t ch, int x, int y, uint8_t printMode) {
 		}
 		if((printMode & PRINT_MODE_STRIPEY) == PRINT_MODE_STRIPEY) {
 			//draw every other pixel-- also kinda broken on pico 8 0.2.4 
+			evenPxOnly = true;
 		}
 		//TODO: other print modes
 
 		if (ch >= 0x10 && ch < 0x80) {
 			int index = ch - 0x10;
-			copyStretchSpriteToScreen(fontSpriteData, (index % 16) * 8, (index / 16) * 8, 4, 5, x, y, scrW, scrH, false, false);
+			copyStretchSpriteToScreen(fontSpriteData, (index % 16) * 8, (index / 16) * 8, 4, 5, x, y, scrW, scrH, false, false, evenPxOnly);
 		} else if (ch >= 0x80) {
 			int index = ch - 0x80;
 			extraCharWidth = 4;
-			copyStretchSpriteToScreen(fontSpriteData, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5, x, y, (scrW + extraCharWidth), scrH, false, false);
+			copyStretchSpriteToScreen(fontSpriteData, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5, x, y, (scrW + extraCharWidth), scrH, false, false, evenPxOnly);
 			
 		}
 
@@ -1318,7 +1336,7 @@ void Graphics::sspr(
         bool flip_x = false,
         bool flip_y = false)
 {
-	copyStretchSpriteToScreen(GetP8SpriteSheetBuffer(), sx, sy, sw, sh, dx, dy, dw, dh, flip_x, flip_y);
+	copyStretchSpriteToScreen(GetP8SpriteSheetBuffer(), sx, sy, sw, sh, dx, dy, dw, dh, flip_x, flip_y, false);
 }
 
 bool Graphics::fget(uint8_t n, uint8_t f){

@@ -204,13 +204,14 @@ int print(std::string str, int x, int y, uint8_t c) {
             else if (commandChar == 'w'){
                 printMode |= PRINT_MODE_ON;
                 printMode |= PRINT_MODE_WIDE;
-
+                charWidth *=2;
             }
             else if (commandChar == 't'){
                 printMode |= PRINT_MODE_ON;
                 printMode |= PRINT_MODE_TALL;
+                charHeight *=2;
             }
-            else if (commandChar == '.'){
+            else if (commandChar == '='){
                 printMode |= PRINT_MODE_ON;
                 printMode |= PRINT_MODE_STRIPEY;
             }
@@ -219,6 +220,8 @@ int print(std::string str, int x, int y, uint8_t c) {
                 printMode |= PRINT_MODE_WIDE;
                 printMode |= PRINT_MODE_TALL;
                 printMode |= PRINT_MODE_STRIPEY;
+                charWidth *=2;
+                charHeight *=2;
             }
             else if (commandChar == 'i'){
                 printMode |= PRINT_MODE_ON;

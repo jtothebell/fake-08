@@ -35,7 +35,8 @@ class Graphics {
 		int scr_w,
 		int scr_h,
 		bool flip_x,
-		bool flip_y);
+		bool flip_y,
+		bool skipStretchPx);
 
 	void swap(int *x, int *y);
 	void applyCameraToPoint(int *x, int *y);

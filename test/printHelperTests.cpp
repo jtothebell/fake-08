@@ -404,14 +404,14 @@ TEST_CASE("Print helper functions") {
     SUBCASE("p8scii special control code for wide character(\\^w) ") {
         graphics->cls();
 
-        print("\x06""w:", 0, 0);
+        print("\x06""w::", 0, 0);
 
         std::vector<coloredPoint> expectedPoints = {
-            {2, 0, 0}, {3, 0, 0},
-            {2, 1, 6}, {3, 1, 6},
-            {2, 2, 0}, {3, 2, 0},
-            {2, 3, 6}, {3, 3, 6},
-            {2, 4, 0}, {3, 4, 0}
+            {2, 0, 0}, {3, 0, 0},    {10, 0, 0}, {11, 0, 0},
+            {2, 1, 6}, {3, 1, 6},    {10, 1, 6}, {11, 1, 6},
+            {2, 2, 0}, {3, 2, 0},    {10, 2, 0}, {11, 2, 0},
+            {2, 3, 6}, {3, 3, 6},    {10, 3, 6}, {11, 3, 6},
+            {2, 4, 0}, {3, 4, 0},    {10, 4, 0}, {11, 4, 0},
         };
 
         checkPoints(graphics, expectedPoints);
@@ -419,7 +419,7 @@ TEST_CASE("Print helper functions") {
     SUBCASE("p8scii special control code for char height(\\^t) ") {
         graphics->cls();
 
-        print("\x06""t:", 0, 0);
+        print("\x06""t:\n:", 0, 0);
 
         std::vector<coloredPoint> expectedPoints = {
             {1, 0, 0},
@@ -430,7 +430,76 @@ TEST_CASE("Print helper functions") {
             {1, 5, 0},
             {1, 6, 6},
             {1, 7, 6},
-            {1, 8, 0}
+            {1, 8, 0},
+            {1, 9, 0},
+
+            {1, 10, 0},
+            {1, 11, 0},
+
+            {1, 12, 0},
+            {1, 13, 0},
+            {1, 14, 6},
+            {1, 15, 6},
+            {1, 16, 0},
+            {1, 17, 0},
+            {1, 18, 6},
+            {1, 19, 6},
+            {1, 20, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("p8scii special control code for wide character with stripey option(\\^w\\^=) ") {
+        graphics->cls();
+
+        print("\x06""w""\x06""=:", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {2, 0, 0}, {3, 0, 0},
+            {2, 1, 6}, {3, 1, 0},
+            {2, 2, 0}, {3, 2, 0},
+            {2, 3, 6}, {3, 3, 0},
+            {2, 4, 0}, {3, 4, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("p8scii special control code for char height with stripey option(\\^t\\^=) ") {
+        graphics->cls();
+
+        print("\x06""t""\x06""=:", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {1, 0, 0},
+            {1, 1, 0},
+            {1, 2, 6},
+            {1, 3, 0},
+            {1, 4, 0},
+            {1, 5, 0},
+            {1, 6, 6},
+            {1, 7, 0},
+            {1, 8, 0},
+            {1, 9, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("p8scii special control code for pinball option(\\^p) ") {
+        graphics->cls();
+
+        print("\x06""p:", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {2, 0, 0}, {3, 0, 0},
+            {2, 1, 0}, {3, 1, 0},
+            {2, 2, 6}, {3, 2, 0},
+            {2, 3, 0}, {3, 3, 0},
+            {2, 4, 0}, {3, 4, 0},
+            {2, 5, 0}, {3, 5, 0},
+            {2, 6, 6}, {3, 6, 0},
+            {2, 7, 0}, {3, 7, 0},
+            {2, 8, 0}, {3, 8, 0},
+            {2, 9, 0}, {3, 9, 0}
         };
 
         checkPoints(graphics, expectedPoints);
