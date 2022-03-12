@@ -354,6 +354,21 @@ TEST_CASE("Print helper functions") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("p8scii special control code tab stop width(\\^s) ") {
+        graphics->cls();
+
+        print("\x06""sc \t:", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {49, 0, 0},
+            {49, 1, 6},
+            {49, 2, 0},
+            {49, 3, 6},
+            {49, 4, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
 
     delete stubHost;

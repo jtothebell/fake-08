@@ -81,6 +81,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 	_ph_mem->drawState.text_y = y;
     int homeX = x;
     int homeY = y;
+    int tabStopWidth = 4;
 
 	uint8_t effectiveC = _ph_graphics->getDrawPalMappedColor(c);
 
@@ -178,6 +179,10 @@ int print(std::string str, int x, int y, uint8_t c) {
                 x = p0CharToNum(xChar) * 4;
                 y = p0CharToNum(yChar) * 4;
             }
+            else if (commandChar == 's'){
+                uint8_t tswChar = str[++n];
+                tabStopWidth = p0CharToNum(tswChar);
+            }
 
 		}
 		else if (ch == 12) { //"\f{p0}" draw text with this foreground color
@@ -191,7 +196,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 			y += 6;
 		}
 		else if (ch == '\t') {
-			while (x % 16 > 0) {
+			while (x % (tabStopWidth*4) > 0) {
 				x++;
 			}
 		}
