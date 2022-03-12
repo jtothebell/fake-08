@@ -73,3 +73,15 @@ struct InputState_t {
 	int16_t mouseY;
 	uint8_t mouseBtnState;
 };
+
+enum PrintMode_t
+{
+	PRINT_MODE_ON = 0x1,
+    PRINT_MODE_PADDING = 0x2,
+	PRINT_MODE_WIDE = 0x4,
+    PRINT_MODE_TALL = 0x8,
+	PRINT_MODE_SOLID_BG = 0x10,
+	PRINT_MODE_INVERTED = 0x20,
+	PRINT_MODE_STRIPEY = 0x40,
+	PRINT_MODE_CUSTOM_FONT = 0x80
+};

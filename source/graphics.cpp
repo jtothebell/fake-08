@@ -1248,15 +1248,43 @@ fix32 Graphics::fillp(fix32 pat) {
 }
 
 
-int Graphics::drawCharacter(uint8_t ch, int x, int y) {
+int Graphics::drawCharacter(uint8_t ch, int x, int y, uint8_t printMode) {
 	int extraCharWidth = 0;
-	if (ch >= 0x10 && ch < 0x80) {
-		int index = ch - 0x10;
-		copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8, 4, 5, false, false);
-	} else if (ch >= 0x80) {
-		int index = ch - 0x80;
-		copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5, false, false);
-		extraCharWidth = 4;
+	if ((printMode & PRINT_MODE_ON) == PRINT_MODE_ON){
+		int scrW = 4;
+		int scrH = 5;
+
+		if ((printMode & PRINT_MODE_WIDE) == PRINT_MODE_WIDE) {
+			scrW *= 2;
+		}
+		if((printMode & PRINT_MODE_TALL) == PRINT_MODE_TALL) {
+			scrH *= 2;
+		}
+		if((printMode & PRINT_MODE_STRIPEY) == PRINT_MODE_STRIPEY) {
+			//draw every other pixel-- also kinda broken on pico 8 0.2.4 
+		}
+		//TODO: other print modes
+
+		if (ch >= 0x10 && ch < 0x80) {
+			int index = ch - 0x10;
+			copyStretchSpriteToScreen(fontSpriteData, (index % 16) * 8, (index / 16) * 8, 4, 5, x, y, scrW, scrH, false, false);
+		} else if (ch >= 0x80) {
+			int index = ch - 0x80;
+			extraCharWidth = 4;
+			copyStretchSpriteToScreen(fontSpriteData, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5, x, y, (scrW + extraCharWidth), scrH, false, false);
+			
+		}
+
+	}
+	else{
+		if (ch >= 0x10 && ch < 0x80) {
+			int index = ch - 0x10;
+			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8, 4, 5, false, false);
+		} else if (ch >= 0x80) {
+			int index = ch - 0x80;
+			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5, false, false);
+			extraCharWidth = 4;
+		}
 	}
 
 	return extraCharWidth;

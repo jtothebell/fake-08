@@ -108,7 +108,7 @@ class Graphics {
 
 	fix32 fillp(fix32 pat);
 
-	int drawCharacter(uint8_t ch, int x, int y);
+	int drawCharacter(uint8_t ch, int x, int y, uint8_t printMode = 0);
 
 	void spr(
 		int n,

@@ -84,6 +84,7 @@ int print(std::string str, int x, int y, uint8_t c) {
     int tabStopWidth = 4;
     int charWidth = 4;
     int charHeight = 6;
+    uint8_t printMode = 0;
 
 	uint8_t effectiveC = _ph_graphics->getDrawPalMappedColor(c);
 
@@ -112,7 +113,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 
 			ch = str[++n];
 			for(int i = 0; i < times; i++) {
-				x += charWidth +  _ph_graphics->drawCharacter(ch, x, y);
+				x += charWidth +  _ph_graphics->drawCharacter(ch, x, y, printMode);
 			}
 		}
 		else if (ch == 2) { // "\#{p0}" draw text on a solid background color
@@ -200,6 +201,37 @@ int print(std::string str, int x, int y, uint8_t c) {
                 uint8_t charHeightChar = str[++n];
                 charHeight = p0CharToNum(charHeightChar);
             }
+            else if (commandChar == 'w'){
+                printMode |= PRINT_MODE_ON;
+                printMode |= PRINT_MODE_WIDE;
+
+            }
+            else if (commandChar == 't'){
+                printMode |= PRINT_MODE_ON;
+                printMode |= PRINT_MODE_TALL;
+            }
+            else if (commandChar == '.'){
+                printMode |= PRINT_MODE_ON;
+                printMode |= PRINT_MODE_STRIPEY;
+            }
+            else if (commandChar == 'p'){
+                printMode |= PRINT_MODE_ON;
+                printMode |= PRINT_MODE_WIDE;
+                printMode |= PRINT_MODE_TALL;
+                printMode |= PRINT_MODE_STRIPEY;
+            }
+            else if (commandChar == 'i'){
+                printMode |= PRINT_MODE_ON;
+                printMode |= PRINT_MODE_INVERTED;
+            }
+            else if (commandChar == 'b'){
+                printMode |= PRINT_MODE_ON;
+                printMode |= PRINT_MODE_PADDING;
+            }
+            else if (commandChar == '#'){
+                printMode |= PRINT_MODE_ON;
+                printMode |= PRINT_MODE_SOLID_BG;
+            }
 
 		}
 		else if (ch == 12) { //"\f{p0}" draw text with this foreground color
@@ -224,7 +256,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 			x = _ph_mem->drawState.text_x;
 		}
 		else if (ch >= 0x10) {
-			x += charWidth + _ph_graphics->drawCharacter(ch, x, y);
+			x += charWidth + _ph_graphics->drawCharacter(ch, x, y, printMode);
             while (framesToPause > 0){
                 _ph_vm->vm_flip();
 

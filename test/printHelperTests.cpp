@@ -401,6 +401,40 @@ TEST_CASE("Print helper functions") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("p8scii special control code for wide character(\\^w) ") {
+        graphics->cls();
+
+        print("\x06""w:", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {2, 0, 0}, {3, 0, 0},
+            {2, 1, 6}, {3, 1, 6},
+            {2, 2, 0}, {3, 2, 0},
+            {2, 3, 6}, {3, 3, 6},
+            {2, 4, 0}, {3, 4, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("p8scii special control code for char height(\\^t) ") {
+        graphics->cls();
+
+        print("\x06""t:", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {1, 0, 0},
+            {1, 1, 0},
+            {1, 2, 6},
+            {1, 3, 6},
+            {1, 4, 0},
+            {1, 5, 0},
+            {1, 6, 6},
+            {1, 7, 6},
+            {1, 8, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
 
     delete stubHost;
