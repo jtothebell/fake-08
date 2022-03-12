@@ -84,6 +84,7 @@ int print(std::string str, int x, int y, uint8_t c) {
     int tabStopWidth = 4;
     int charWidth = 4;
     int charHeight = 6;
+    int lineHeight = 6;
     uint8_t printMode = 0;
 
 	uint8_t effectiveC = _ph_graphics->getDrawPalMappedColor(c);
@@ -200,16 +201,18 @@ int print(std::string str, int x, int y, uint8_t c) {
                 //but not if there is a \n in the string. Not sure if this is a bug or not
                 uint8_t charHeightChar = str[++n];
                 charHeight = p0CharToNum(charHeightChar);
+                lineHeight = charHeight > lineHeight ? charHeight : lineHeight;
             }
             else if (commandChar == 'w'){
                 printMode |= PRINT_MODE_ON;
                 printMode |= PRINT_MODE_WIDE;
-                charWidth *=2;
+                charWidth = 8;
             }
             else if (commandChar == 't'){
                 printMode |= PRINT_MODE_ON;
                 printMode |= PRINT_MODE_TALL;
-                charHeight *=2;
+                charHeight = 12;
+                lineHeight = charHeight > lineHeight ? charHeight : lineHeight;
             }
             else if (commandChar == '='){
                 printMode |= PRINT_MODE_ON;
@@ -220,8 +223,8 @@ int print(std::string str, int x, int y, uint8_t c) {
                 printMode |= PRINT_MODE_WIDE;
                 printMode |= PRINT_MODE_TALL;
                 printMode |= PRINT_MODE_STRIPEY;
-                charWidth *=2;
-                charHeight *=2;
+                charWidth = 8;
+                charHeight = 12;
             }
             else if (commandChar == 'i'){
                 printMode |= PRINT_MODE_ON;
@@ -235,6 +238,40 @@ int print(std::string str, int x, int y, uint8_t c) {
                 printMode |= PRINT_MODE_ON;
                 printMode |= PRINT_MODE_SOLID_BG;
             }
+            else if (commandChar == '-'){
+                uint8_t turnOffModeChar = str[++n];
+                if (printMode) {
+                    if (turnOffModeChar == 'w') {
+                        printMode &= ~(PRINT_MODE_WIDE);
+                        charWidth = 4;
+                    }
+                    else if (turnOffModeChar == 't') {
+                        printMode &= ~(PRINT_MODE_TALL);
+                        charHeight = 6;
+                        lineHeight = charHeight > lineHeight ? charHeight : lineHeight;
+                    }
+                    else if (turnOffModeChar == '=') {
+                        printMode &= ~(PRINT_MODE_STRIPEY);
+                    }
+                    else if (turnOffModeChar == 'p') {
+                        printMode &= ~(PRINT_MODE_WIDE);
+                        printMode &= ~(PRINT_MODE_TALL);
+                        printMode &= ~(PRINT_MODE_STRIPEY);
+                        charWidth = 4;
+                        charHeight = 6;
+                        lineHeight = charHeight > lineHeight ? charHeight : lineHeight;
+                    }
+                    else if (turnOffModeChar == 'i') {
+                        printMode &= ~(PRINT_MODE_INVERTED);
+                    }
+                    else if (turnOffModeChar == 'b') {
+                        printMode &= ~(PRINT_MODE_PADDING);
+                    }
+                    else if (turnOffModeChar == 'b') {
+                        printMode &= ~(PRINT_MODE_SOLID_BG);
+                    }
+                }
+            }
 
 		}
 		else if (ch == 12) { //"\f{p0}" draw text with this foreground color
@@ -245,7 +282,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 		}
 		else if (ch == '\n') {
 			x = _ph_mem->drawState.text_x;
-			y += charHeight;
+			y += lineHeight;
 		}
 		else if (ch == '\t') {
 			while (x % (tabStopWidth*4) > 0) {
@@ -270,7 +307,7 @@ int print(std::string str, int x, int y, uint8_t c) {
         //soft wrap if enabled
         if (rhsWrap > 0 && x >= rhsWrap) {
             x = _ph_mem->drawState.text_x;
-			y += charHeight;
+			y += lineHeight;
         }
 	}
 
@@ -279,7 +316,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 	}
 
 	//todo: auto scrolling
-	_ph_mem->drawState.text_y += charHeight;
+	_ph_mem->drawState.text_y += lineHeight;
 
 	return x;
 }

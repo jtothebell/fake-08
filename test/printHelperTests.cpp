@@ -504,6 +504,37 @@ TEST_CASE("Print helper functions") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("p8scii special control code to turn off options(\\^-) ") {
+        graphics->cls();
+
+        print("\x06""w""\x06""t8" "\x06""-w""\x06""-t:", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {9, 0, 0},
+            {9, 1, 6},
+            {9, 2, 0},
+            {9, 3, 6},
+            {9, 4, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("p8scii special control code to turn off options uses biggest line height(\\^-) ") {
+        graphics->cls();
+
+        print("\x06""w""\x06""t8" "\x06""-w""\x06""-t:", 0, 0);
+        print(":");
+
+        std::vector<coloredPoint> expectedPoints = {
+            {1, 12, 0},
+            {1, 13, 6},
+            {1, 14, 0},
+            {1, 15, 6},
+            {1, 16, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
 
     delete stubHost;
