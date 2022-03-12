@@ -400,7 +400,7 @@ TEST_CASE("Print helper functions") {
         };
 
         checkPoints(graphics, expectedPoints);
-    }ß
+    }
 
 
     delete stubHost;
