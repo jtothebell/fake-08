@@ -369,6 +369,23 @@ TEST_CASE("Print helper functions") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("p8scii special control code for rhs wrap(\\^r) ") {
+        graphics->cls();
+
+        print("\x06""rsthis is a long string that should wrap somewhere", 0, 0);
+
+        //the "h" in "should" is the first character to wrap
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 6, 6},
+            {0, 7, 6},
+            {0, 8, 6},
+            {0, 9, 6},
+            {0, 10, 6},
+            {0, 11, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
 
     delete stubHost;

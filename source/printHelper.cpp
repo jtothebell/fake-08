@@ -98,6 +98,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 
     int framesBetweenChars = 0;
     int framesToPause = 0;
+    int rhsWrap = -1;
 
 
 	for (size_t n = 0; n < str.length(); n++) {
@@ -179,6 +180,10 @@ int print(std::string str, int x, int y, uint8_t c) {
                 x = p0CharToNum(xChar) * 4;
                 y = p0CharToNum(yChar) * 4;
             }
+            else if (commandChar == 'r'){
+                uint8_t rhsWrapChar = str[++n];
+                rhsWrap = p0CharToNum(rhsWrapChar) * 4;
+            }
             else if (commandChar == 's'){
                 uint8_t tswChar = str[++n];
                 tabStopWidth = p0CharToNum(tswChar);
@@ -214,6 +219,12 @@ int print(std::string str, int x, int y, uint8_t c) {
                 framesToPause--;
             }
 		}
+
+        //soft wrap if enabled
+        if (rhsWrap > 0 && x >= rhsWrap) {
+            x = _ph_mem->drawState.text_x;
+			y += 6;
+        }
 	}
 
 	for(int i = 0; i < 16; i++) {
