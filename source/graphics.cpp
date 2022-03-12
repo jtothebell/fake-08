@@ -1249,17 +1249,17 @@ fix32 Graphics::fillp(fix32 pat) {
 
 
 int Graphics::drawCharacter(uint8_t ch, int x, int y) {
+	int extraCharWidth = 0;
 	if (ch >= 0x10 && ch < 0x80) {
 		int index = ch - 0x10;
 		copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8, 4, 5, false, false);
-		x += 4;
 	} else if (ch >= 0x80) {
 		int index = ch - 0x80;
 		copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5, false, false);
-		x += 8;
+		extraCharWidth = 4;
 	}
 
-	return x;
+	return extraCharWidth;
 }
 
 void Graphics::spr(

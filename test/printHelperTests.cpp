@@ -386,6 +386,21 @@ TEST_CASE("Print helper functions") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("p8scii special control code for char width(\\^x) ") {
+        graphics->cls();
+
+        print("\x06""x7 :", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {8, 0, 0},
+            {8, 1, 6},
+            {8, 2, 0},
+            {8, 3, 6},
+            {8, 4, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }ß
 
 
     delete stubHost;

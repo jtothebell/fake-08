@@ -82,6 +82,8 @@ int print(std::string str, int x, int y, uint8_t c) {
     int homeX = x;
     int homeY = y;
     int tabStopWidth = 4;
+    int charWidth = 4;
+    int charHeight = 6;
 
 	uint8_t effectiveC = _ph_graphics->getDrawPalMappedColor(c);
 
@@ -110,7 +112,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 
 			ch = str[++n];
 			for(int i = 0; i < times; i++) {
-				x = _ph_graphics->drawCharacter(ch, x, y);
+				x += charWidth +  _ph_graphics->drawCharacter(ch, x, y);
 			}
 		}
 		else if (ch == 2) { // "\#{p0}" draw text on a solid background color
@@ -188,6 +190,14 @@ int print(std::string str, int x, int y, uint8_t c) {
                 uint8_t tswChar = str[++n];
                 tabStopWidth = p0CharToNum(tswChar);
             }
+            else if (commandChar == 'x'){
+                uint8_t charWidthChar = str[++n];
+                charWidth = p0CharToNum(charWidthChar);
+            }
+            else if (commandChar == 'y'){
+                uint8_t charHeightChar = str[++n];
+                charHeight = p0CharToNum(charHeightChar);
+            }
 
 		}
 		else if (ch == 12) { //"\f{p0}" draw text with this foreground color
@@ -198,7 +208,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 		}
 		else if (ch == '\n') {
 			x = _ph_mem->drawState.text_x;
-			y += 6;
+			y += charHeight;
 		}
 		else if (ch == '\t') {
 			while (x % (tabStopWidth*4) > 0) {
@@ -206,13 +216,13 @@ int print(std::string str, int x, int y, uint8_t c) {
 			}
 		}
 		else if (ch == '\b') {
-			x -= 4;
+			x -= charWidth;
 		}
 		else if (ch == '\r') {
 			x = _ph_mem->drawState.text_x;
 		}
 		else if (ch >= 0x10) {
-			x = _ph_graphics->drawCharacter(ch, x, y);
+			x += charWidth + _ph_graphics->drawCharacter(ch, x, y);
             while (framesToPause > 0){
                 _ph_vm->vm_flip();
 
@@ -223,7 +233,7 @@ int print(std::string str, int x, int y, uint8_t c) {
         //soft wrap if enabled
         if (rhsWrap > 0 && x >= rhsWrap) {
             x = _ph_mem->drawState.text_x;
-			y += 6;
+			y += charHeight;
         }
 	}
 
@@ -232,7 +242,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 	}
 
 	//todo: auto scrolling
-	_ph_mem->drawState.text_y += 6;
+	_ph_mem->drawState.text_y += charHeight;
 
 	return x;
 }
