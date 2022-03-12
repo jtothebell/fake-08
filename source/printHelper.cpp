@@ -195,6 +195,8 @@ int print(std::string str, int x, int y, uint8_t c) {
                 charWidth = p0CharToNum(charWidthChar);
             }
             else if (commandChar == 'y'){
+                //this behaves in a way I wouldn't expect in pico 8- it seems to apply to the next print statment
+                //but not if there is a \n in the string. Not sure if this is a bug or not
                 uint8_t charHeightChar = str[++n];
                 charHeight = p0CharToNum(charHeightChar);
             }
