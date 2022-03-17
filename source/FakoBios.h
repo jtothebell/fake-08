@@ -10,18 +10,9 @@
 
 const char * fake08BiosP8 = R"#(
 pico-8 cartridge // http://www.pico-8.com
-version 27
+version 35
 __lua__
-local carts={}
-local numcarts = 0
-
-local cidx=0
-local carttoload = ""
-local t=0
-local linebuffer=""
-local line
-local bgcolor=5
-local runcmd=false
+--all themes
 
 --start customizable per platform
 cartpath = "sdmc:/p8carts/"
@@ -32,7 +23,27 @@ exitbtn = "l + r"
 sizebtn = "select to cycle screen sizes"
 --end customizable per platform
 
-function _init()
+
+-->8
+--classic
+
+function classic_init()
+	
+	if __getsetting then
+			pal(1, __getsetting('p8_bgcolor'))
+			pal(7, __getsetting('p8_textcolor'))
+	end
+	carts={}
+	numcarts = 0
+	
+	cidx=0
+	carttoload = ""
+	t=0
+	linebuffer=""
+	
+	bgcolor=1
+	runcmd=false
+
 	if __listcarts then
 		carts = __listcarts()
 		numcarts = #carts
@@ -43,9 +54,8 @@ function _init()
 	end
 end
 
-function _update60()
+function classic_update()
 	t+=1
-	
 	if btnp(1) then
 		cidx = min((cidx + 1), numcarts)
 	end
@@ -91,10 +101,11 @@ function _update60()
 		
 end
 
-function _draw()
-	cls(bgcolor)
+function classic_draw()
+	cls()
+	rectfill(0,0,128,128,bgcolor)
 	spr(0, 1, 5, 6, 1)
-	color(6)
+	color(7)
 	cursor(0, 6*3)
 	print("welcome to fake-08")
 	print("a homebrew pico-8 emulator")
@@ -114,16 +125,38 @@ function _draw()
 	print("")
 	-- 18 pixels from cursor() call, then 
 	-- 24 more from 4 print calls
-	line=84
+	linenum=84
 
 
-	rectfill(0, line, 128, line+5, bgcolor)
+	rectfill(0, linenum, 128, linenum+5, bgcolor)
 	color(7)
-	print("> "..linebuffer, 0, line)
+	print("> "..linebuffer, 0, linenum)
 	if t%30<15 then
-		rectfill((#linebuffer+2)*4, line, (#linebuffer+2)*4+3, line+4, 8)
+		rectfill((#linebuffer+2)*4, linenum, (#linebuffer+2)*4+3, linenum+4, 8)
 	end
 end
+
+-->8
+--runner
+
+inits = {classic_init}
+function _init()
+	theme = 0 
+	
+	inits[theme+1]()
+end
+
+updates = {classic_update}
+function _update60()
+	updates[theme+1]()
+end
+
+draws = {classic_draw}
+function _draw()	
+	draws[theme+1]()
+end
+
+
 
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
