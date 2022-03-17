@@ -147,6 +147,9 @@ class Vm {
 	//settings
 	int getSetting(string sname);
 	void setSetting(string sname, int sval);
+	
+	//label
+	void loadLabel(string filename, bool mini, int minioffset);
 
     string getCartBreadcrumb();
     string getCartParam();

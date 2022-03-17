@@ -35,7 +35,7 @@ class Cart {
     void setMusic(std::string musicString);
 
     bool loadCartFromPng(std::string filename);
-
+	
     public:
     Cart (std::string filename, std::string cartDirectory);
     ~Cart();

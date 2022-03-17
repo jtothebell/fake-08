@@ -15,7 +15,6 @@ __lua__
 --showpackinoptions = true
 
 function _init()
-	
 	if not __getsetting then
 		printh('not in fake-08 (or unimplemented...), stubbing get and set functions!')
 		function __getsetting(sn)
@@ -27,7 +26,18 @@ function _init()
 			printh('trying to set setting ' .. sn .. ' to '..v)
 		end
 		
+		function refreshcolors()
+			pal(1, 1)
+			pal(7, 7)
+		end
+		
+	else
+		function refreshcolors()
+			pal(1, __getsetting('p8_bgcolor'))
+			pal(7, __getsetting('p8_textcolor'))
+		end
 	end
+	refreshcolors()
 	
 	settinglist = {'kbmode','resizekey','stretch','menustyle','bgcolor'}
 	settings = {}
@@ -67,7 +77,7 @@ function _init()
 			{
 				name = 'bg color',
 				vn = 'bgcolor',
-				ch ={'gray','black','blue','green'}
+				ch ={'gray','black','blue','green','purple','white'}
 			}
 		}}
 	}
@@ -175,6 +185,9 @@ function updatecursor()
 			if inoption then
 				settings[cvariable] = cursorpos
 				__setsetting(cvariable,cursorpos-1)
+				if cvariable == 'bgcolor' then
+					refreshcolors()
+				end
 			else
 				add(path,cursorpos)
 			end
@@ -210,7 +223,8 @@ function drawcursor()
 end
 
 function _draw()
-	cls(1)
+	cls()
+	rectfill(0,0,128,128,1)
 	spr(0,1,1,5,1)
 	
 
