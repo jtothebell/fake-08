@@ -1345,3 +1345,18 @@ int setsetting(lua_State *L) {
 	
     return 1;
 }
+
+int loadlabel(lua_State *L) {
+	
+	const char * cartname = "";
+	if (lua_isstring(L, 1)){
+        cartname = lua_tolstring(L, 1, nullptr);
+    }
+	std::string filename = cartname;
+	
+	bool mini = lua_toboolean(L,2);
+	int minioffset = lua_tonumber(L,3);
+	
+	_vmForLuaApi->loadLabel(filename, mini, minioffset);
+	return 1;
+}

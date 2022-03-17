@@ -22,7 +22,8 @@ std::string defaultIni =
 "[settings]\n"
 "stretch = 1\n"
 "resizekey = 0\n"
-"kbmode = 0\n";
+"kbmode = 0\n"
+"bgcolor = 0\n";
 
 void Host::setUpPaletteColors(){
     _paletteColors[0] = COLOR_00;
@@ -155,7 +156,9 @@ void Host::loadSettingsIni(){
     long kbmodeSetting = settingsIni.GetLongValue("settings", "kbmode", (long)Emoji);
 	kbmode = (KeyboardOption) kbmodeSetting;
 	
-	
+	//bgcolor
+	long bgcolorSetting = settingsIni.GetLongValue("settings", "bgcolor", (long)Gray);
+	bgcolor = (BgColorOption) bgcolorSetting;
 }
 
 void Host::saveSettingsIni(){
@@ -170,6 +173,7 @@ void Host::saveSettingsIni(){
     settingsIni.SetLongValue("settings", "resizekey", resizekey);
 	
     settingsIni.SetLongValue("settings", "kbmode", kbmode);
+    settingsIni.SetLongValue("settings", "bgcolor", bgcolor);
 	
     std::string settingsIniStr = "";
     settingsIni.Save(settingsIniStr, false);
@@ -220,6 +224,31 @@ int Host::getSetting(std::string sname) {
 	}else if(sname == "stretch"){
 		Logger_Write("Returning Stretch setting\n");
 		return stretch;
+	}else if(sname == "bgcolor"){
+		Logger_Write("Returning bg color setting\n");
+		return bgcolor;
+	}else if(sname == "p8_bgcolor"){
+		
+		Logger_Write("Returning pico 8 bg color setting\n");
+		std::string bgcolorstr = std::to_string(bgcolor) + "\n";
+		Logger_Write(bgcolorstr.c_str());
+		switch(bgcolor)
+		{
+			case Gray: return   05;
+			case Black: return  00;
+			case Blue: return   01;
+			case Green: return  03;
+			case Purple: return 13;
+			case White: return  07;
+			default:     return 02;
+		}
+	}else if(sname == "p8_textcolor"){
+		Logger_Write("Returning pico 8 text color setting\n");
+		if(bgcolor == White){
+			return 0;
+		}else{
+			return 7;
+		}
 	}else{
 		Logger_Write("Setting ");
 		Logger_Write(sname.c_str());
@@ -247,6 +276,9 @@ void Host::setSetting(std::string sname, int sval) {
 		
 		//force change stretch
 		forceStretch(stretch);
+	}else if(sname == "bgcolor"){
+		Logger_Write("setting bgcolor\n");
+		bgcolor = (BgColorOption) sval;
 		
 	}else{
 		Logger_Write("Setting ");

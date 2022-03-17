@@ -15,12 +15,15 @@
 #include "graphics.h"
 #include "fontdata.h"
 #include "cart.h"
+#include "stringToDataHelpers.h"
 #include "picoluaapi.h"
 #include "logger.h"
 #include "Input.h"
 #include "p8GlobalLuaFunctions.h"
 #include "hostVmShared.h"
 #include "emojiconversion.h"
+
+#include "NoLabel.h"
 
 //extern "C" {
   #include <lua.h>
@@ -173,7 +176,9 @@ bool Vm::loadCart(Cart* cart) {
 	//settings
 	lua_register(_luaState, "__getsetting", getsetting);
 	lua_register(_luaState, "__setsetting", setsetting);
-
+	//label
+	lua_register(_luaState, "__loadlabel", loadlabel);
+	
     //register global functions first, they will get local aliases when
     //the rest of the api is registered
     //graphics
@@ -1067,5 +1072,22 @@ int Vm::getSetting(std::string sname) {
 void Vm::setSetting(std::string sname, int sval) {
     
 	_host->setSetting(sname,sval);
+	
+}
+
+void Vm::loadLabel(std::string filename, bool mini, int minioffset) {
+	
+	auto cartDir = _host->getCartDirectory();
+    Cart *labelcart = new Cart(filename, cartDir);
+	std::string labelstr = labelcart->LabelString;
+	if(labelstr.length() == 0){
+		labelstr = NoLabelString;
+	}
+	if (mini) {
+		copy_mini_label_to_sprite_memory(_memory->spriteSheetData, labelstr, minioffset);
+	} else {
+		copy_string_to_sprite_memory(_memory->spriteSheetData, labelstr);
+	}
+	delete labelcart;
 	
 }

@@ -37,6 +37,15 @@ enum KeyboardOption {
   Lowercase
 };
 
+enum BgColorOption {
+  Gray,
+  Black,
+  Blue,
+  Green,
+  Purple,
+  White
+};
+
 class Host {
     uint8_t currKDown;
     uint8_t currKHeld;
@@ -56,6 +65,7 @@ class Host {
     StretchOption stretch = PixelPerfectStretch;
     KeyboardOption kbmode = Emoji;
 	ResizekeyOption resizekey = NoResize;
+	BgColorOption bgcolor = Gray;
 	
     float scaleX = 1.0;
     float scaleY = 1.0;
