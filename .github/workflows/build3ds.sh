@@ -10,12 +10,15 @@ curl -LJO https://github.com/jakcron/Project_CTR/releases/download/v0."$ctr_ver"
 7z e makerom_0"$ctr_ver"_ctrtool.zip -o/usr/bin Ubuntu/makerom
 
 #build bannertool
-git clone https://github.com/Steveice10/bannertool.git --recurse-submodules
-cd bannertool
-make
-sudo cp output/linux-x86_64/bannertool /usr/bin/
 
-chmod +x /usr/bin/makerom && chmod +x /usr/bin/bannertool
+#temporary fix, no cia building for now!
+
+#git clone https://github.com/Steveice10/bannertool.git --recurse-submodules
+#cd bannertool
+#make
+#sudo cp output/linux-x86_64/bannertool /usr/bin/
+
+chmod +x /usr/bin/makerom #&& chmod +x /usr/bin/bannertool
 
 cd /build_dir
 
@@ -23,5 +26,5 @@ cd /build_dir
 make 3ds
 
 #Build cia
-make cia
+#make cia
 
