@@ -23,7 +23,7 @@ CFLAGS	:= -Wall -Ofast -fdata-sections -ffunction-sections -fno-PIC -mno-shared 
 else
 CC = /opt/gcw0-toolchain/bin/mipsel-linux-g++
 CXX = /opt/gcw0-toolchain/bin/mipsel-linux-g++
-CFLAGS	:= -Wall -Ofast -fdata-sections -ffunction-sections -fno-PIC -mno-shared -mplt -flto -DVER_STR=\"$(APP_VERSION)\" $(DEFINES)
+CFLAGS	:= -Wall -Ofast -fdata-sections -ffunction-sections -fno-PIC -mno-shared -mplt -flto -DVER_STR=\"$(APP_VERSION)\" $(DEFINES) -D_GCW0
 endif
 
 

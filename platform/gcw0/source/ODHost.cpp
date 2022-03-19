@@ -12,15 +12,33 @@ using namespace std;
 #include "../../../source/hostVmShared.h"
 #include "../../../source/nibblehelpers.h"
 #include "../../../source/logger.h"
+#include "../../../source/filehelpers.h"
 
 // sdl
 #include <SDL/SDL.h>
 
+#define SCREEN_SIZE_X 640
+#define SCREEN_SIZE_Y 480
+
 #define SCREEN_BPP 16
 
 #define SAMPLERATE 22050
+
+const int __screenWidth = SCREEN_SIZE_X;
+const int __screenHeight = SCREEN_SIZE_Y;
+
+int _windowWidth = 128;
+int _windowHeight = 128;
+
+int _screenWidth = 128;
+int _screenHeight = 128;
+
+int _maxNoStretchWidth = 128;
+int _maxNoStretchHeight = 128;
+
 const int PicoScreenWidth = 128;
 const int PicoScreenHeight = 128;
+const int pixelBlocksPerLine = PicoScreenWidth / 8;
 
 
 StretchOption stretch;
@@ -32,7 +50,6 @@ uint32_t targetFrameTimeMs;
 uint8_t currKDown;
 uint8_t currKHeld;
 
-Color* _paletteColors;
 Audio* _audio;
 
 SDL_Event event;
@@ -44,6 +61,13 @@ void *pixels;
 uint16_t *base;
 int pitch;
 
+SDL_Rect SrcR;
+SDL_Rect DestR;
+
+int textureAngle;
+uint8_t flip; //0 none, 1 horizontal, 2 vertical - match SDL2's SDL_RendererFlip
+int drawModeScaleX = 1;
+int drawModeScaleY = 1;
 bool audioInitialized = false;
 
 uint16_t _mapped16BitColors[144];
@@ -101,18 +125,63 @@ void audioSetup(){
     }
 }
 
+void _setSourceRect(int xoffset, int yoffset) {
+    SrcR.x = xoffset;
+    SrcR.y = yoffset;
+    SrcR.w = PicoScreenWidth / drawModeScaleX - (xoffset * 2);
+    SrcR.h = PicoScreenHeight / drawModeScaleY - (yoffset * 2);
+}
+
+void _changeStretch(StretchOption newStretch){
+    int xoffset = 0;
+    int yoffset = 0;
+
+    if (newStretch == PixelPerfect) {
+        _screenWidth = PicoScreenWidth;
+        _screenHeight = PicoScreenHeight;
+    }
+    else if (newStretch == StretchAndOverflow) {
+        yoffset = 4 / drawModeScaleY;
+        _screenWidth = PicoScreenWidth * 2;
+        _screenHeight = _windowHeight;
+    }
+    //default to StretchToFill)
+    else {
+        _screenWidth = _windowWidth;
+        _screenHeight = _windowHeight; 
+    }
+    
+
+    DestR.x = _windowWidth / 2 - _screenWidth / 2;
+    DestR.y = _windowHeight / 2 - _screenHeight / 2;
+    DestR.w = _screenWidth;
+    DestR.h = _screenHeight;
+
+    _setSourceRect(xoffset, yoffset);
+
+    textureAngle = 0;
+    flip = 0;
+
+    //clear the screen so nothing is left over behind current stretch
+    SDL_FillRect(window, NULL, SDL_MapRGB(window->format, 0, 0, 0));
+}
+
+
+
 
 Host::Host() {
-    #ifdef _BITTBOY
-    _cartDirectory = "/mnt/roms/PICO-8";
+    #ifdef _GCW0
+    _cartDirectory = "/media/sdcard/roms/PICO8";
+    _logFilePrefix = "/media/sdcard/roms/PICO8/";
     #else
     std::string home = getenv("HOME");
     
     _cartDirectory = home + "/p8carts";
+    _logFilePrefix = home + "/fake08";
     #endif
  }
 
-void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
+void Host::oneTimeSetup(Audio* audio){
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {
         fprintf(stderr, "SDL could not initialize\n");
@@ -127,7 +196,8 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 	#ifdef OPENDINGUX_IPU
     window = SDL_SetVideoMode(128, 128, SCREEN_BPP, flags);
     #else
-    window = SDL_SetVideoMode(0, 0, SCREEN_BPP, flags);
+    //todo: 0, 0 video mode, then check later to get actual resolution. handle 320x240 and 640x40
+    window = SDL_SetVideoMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, SCREEN_BPP, flags);
     texture = SDL_CreateRGBSurface(flags, PicoScreenWidth, PicoScreenHeight, SCREEN_BPP, 0, 0, 0, 0);
     #endif
     _audio = audio;
@@ -138,21 +208,33 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     frame_time = 0;
     targetFrameTimeMs = 0;
 
-    _paletteColors = paletteColors;
-
     SDL_PixelFormat *f = window->format;
 
     for(int i = 0; i < 144; i++){
         _mapped16BitColors[i] = SDL_MapRGB(f, _paletteColors[i].Red, _paletteColors[i].Green, _paletteColors[i].Blue);
     }
+
+
+    _windowWidth = SCREEN_SIZE_X;
+    _windowHeight = SCREEN_SIZE_Y;
+
+    //TODO: store in settings INI
+    stretch = StretchToFill;
+    loadSettingsIni();
+
+    _changeStretch(stretch);
 }
 
 void Host::oneTimeCleanup(){
     audioCleanup();
 
+    //saving seems to increase the number of hard locks
+    saveSettingsIni();
+
     //SDL_DestroyRenderer(renderer);
     //SDL_DestroyWindow(window);
 
+    SDL_FreeSurface(texture);
     SDL_FreeSurface(window);
 
     SDL_Quit();
@@ -163,11 +245,33 @@ void Host::setTargetFps(int targetFps){
 }
 
 void Host::changeStretch(){
+    if (stretchKeyPressed) {
+        StretchOption newStretch = stretch;
+
+        if (stretch == StretchAndOverflow) {
+            newStretch = PixelPerfect;
+        }
+        else if (stretch == PixelPerfect) {
+            newStretch = StretchToFill;
+        }
+        else{
+            newStretch = StretchAndOverflow;
+        }
+
+        _changeStretch(newStretch);
+
+        stretch = newStretch;
+        scaleX = _screenWidth / (float)PicoScreenWidth;
+        scaleY = _screenHeight / (float)PicoScreenHeight;
+        mouseOffsetX = DestR.x;
+        mouseOffsetY = DestR.y;
+    }
 }
 
 InputState_t Host::scanInput(){
     currKDown = 0;
     currKHeld = 0;
+    stretchKeyPressed = false;
 
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
@@ -184,6 +288,7 @@ InputState_t Host::scanInput(){
                     case SDLK_LALT:  currKDown |= P8_KEY_X; break;
                     case SDLK_LCTRL: currKDown |= P8_KEY_O; break;
                     case SDLK_RCTRL: case SDLK_HOME: done = SDL_TRUE; break;
+                    case SDLK_ESCAPE: stretchKeyPressed = true; break;
                     default: break;
                 }
                 break;
@@ -278,18 +383,185 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
     #ifdef OPENDINGUX_IPU
     pixels = window->pixels;
     #else
-	pixels = texture->pixels;
-    #endif
+	drawModeScaleX = 1;
+    drawModeScaleY = 1;
+    switch(drawMode){
+        case 1:
+            drawModeScaleX = 2;
+            textureAngle = 0;
+            flip = 0;
+            break;
+        case 2:
+            drawModeScaleY = 2;
+            textureAngle = 0;
+            flip = 0;
+            break;
+        case 3:
+            drawModeScaleX = 2;
+            drawModeScaleY = 2;
+            textureAngle = 0;
+            flip = 0;
+            break;
+        //todo: mirroring
+        //case 4,6,7
+        case 129:
+            textureAngle = 0;
+            flip = 1;
+            break;
+        case 130:
+            textureAngle = 0;
+            flip = 2;
+            break;
+        case 131:
+            textureAngle = 0;
+            flip = 3;
+            break;
+        case 133:
+            textureAngle = 90;
+            flip = 0;
+            break;
+        case 134:
+            textureAngle = 180;
+            flip = 0;
+            break;
+        case 135:
+            textureAngle = 270;
+            flip = 0;
+            break;
+        default:
+            
+            textureAngle = 0;
+            flip = 0;
+            break;
+    }
+    int yoffset = stretch == StretchAndOverflow ? 4 / drawModeScaleX : 0;
 
-    for (int y = 0; y < (PicoScreenHeight); y ++){
-        for (int x = 0; x < PicoScreenWidth; x ++){
-            uint8_t c = getPixelNibble(x, y, picoFb);
-            uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+    _setSourceRect(0, yoffset);
 
-            base = ((uint16_t *)pixels) + ( y * PicoScreenHeight + x);
-            base[0] = col;
+    pixels = texture->pixels;
+
+    //horizontal flip
+    if (textureAngle == 0 && flip == 1) {
+        for (int y = 0; y < PicoScreenHeight; y ++){
+            for (int x = 0; x < PicoScreenWidth; x ++){
+                uint8_t c = getPixelNibble(x, y, picoFb);
+                uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+
+                base = ((uint16_t *)pixels) + ( y * PicoScreenHeight + (127 - x));
+                base[0] = col;
+            }
         }
     }
+    //vertical flip
+    else if (textureAngle == 0 && flip == 2) {
+        for (int y = 0; y < PicoScreenHeight; y ++){
+            for (int x = 0; x < PicoScreenWidth; x ++){
+                uint8_t c = getPixelNibble(x, y, picoFb);
+                uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+
+                base = ((uint16_t *)pixels) + ((127 - y) * PicoScreenHeight + x);
+                base[0] = col;
+            }
+        }
+    }
+    //horizontal and vertical flip
+    else if (textureAngle == 0 && flip == 3) {
+        for (int y = 0; y < PicoScreenHeight; y ++){
+            for (int x = 0; x < PicoScreenWidth; x ++){
+                uint8_t c = getPixelNibble(x, y, picoFb);
+                uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+
+                base = ((uint16_t *)pixels) + ((127 - y) * PicoScreenHeight + (127 - x));
+                base[0] = col;
+            }
+        }
+    }
+    //rotated 90 degrees
+    else if (textureAngle == 90 && flip == 0) { 
+        for (int y = 0; y < PicoScreenHeight; y ++){
+            for (int x = 0; x < PicoScreenWidth; x ++){
+                uint8_t c = getPixelNibble(x, y, picoFb);
+                uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+
+                base = ((uint16_t *)pixels) + (x * PicoScreenHeight + (127 - y));
+                base[0] = col;
+            }
+        }
+    }
+    //rotated 180 degrees
+    else if (textureAngle == 180 && flip == 0) { 
+        for (int y = 0; y < PicoScreenHeight; y ++){
+            for (int x = 0; x < PicoScreenWidth; x ++){
+                uint8_t c = getPixelNibble(x, y, picoFb);
+                uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+
+                base = ((uint16_t *)pixels) + ((127 - y) * PicoScreenHeight + (127 - x));
+                base[0] = col;
+            }
+        }
+    }
+    //rotated 270 degrees
+    else if (textureAngle == 270 && flip == 0) { 
+        for (int y = 0; y < PicoScreenHeight; y ++){
+            for (int x = 0; x < PicoScreenWidth; x ++){
+                uint8_t c = getPixelNibble(x, y, picoFb);
+                uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+
+                base = ((uint16_t *)pixels) + ((127 - x) * PicoScreenHeight + y);
+                base[0] = col;
+            }
+        }
+    }
+    else { //default
+        for (int y = 0; y < PicoScreenHeight; y ++){
+            for (int x = 0; x < pixelBlocksPerLine; x ++){
+                int32_t eightPix = ((int32_t*)picoFb)[y * pixelBlocksPerLine + x];
+
+                int h = (eightPix >> 28) & 0x0f;
+                int g = (eightPix >> 24) & 0x0f;
+                int f = (eightPix >> 20) & 0x0f;
+                int e = (eightPix >> 16) & 0x0f;
+                int d = (eightPix >> 12) & 0x0f;
+                int c = (eightPix >>  8) & 0x0f;
+                int b = (eightPix >>  4) & 0x0f;
+                int a = (eightPix)       & 0x0f;
+
+                int32_t cola = _mapped16BitColors[screenPaletteMap[a]];
+                int32_t colb = _mapped16BitColors[screenPaletteMap[b]];
+                int32_t colc = _mapped16BitColors[screenPaletteMap[c]];
+                int32_t cold = _mapped16BitColors[screenPaletteMap[d]];
+                int32_t cole = _mapped16BitColors[screenPaletteMap[e]];
+                int32_t colf = _mapped16BitColors[screenPaletteMap[f]];
+                int32_t colg = _mapped16BitColors[screenPaletteMap[g]];
+                int32_t colh = _mapped16BitColors[screenPaletteMap[h]];
+
+                
+                base = ((uint16_t *)pixels + (y * PicoScreenHeight + x * 8));
+                base[0] = cola;
+                base[1] = colb;
+                base[2] = colc;
+                base[3] = cold;
+                base[4] = cole;
+                base[5] = colf;
+                base[6] = colg;
+                base[7] = colh;
+                
+
+                //----OR something like this for further optimization?
+                //not exactly this. its broken
+                /*
+                int32_t* base32 = ((int32_t *)pixels + (y * PicoScreenHeight + x * 8));
+                base32[0] = cola << 16 & colb;
+                base32[1] = colc << 16 & cold;
+                base32[2] = cole << 16 & colf;
+                base32[3] = colg << 16 & colh;
+                */
+                
+                
+            }
+        }
+    }
+    #endif
 
     postFlipFunction();
 }
@@ -325,7 +597,9 @@ vector<string> Host::listcarts(){
     if ((dir = opendir (_cartDirectory.c_str())) != NULL) {
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
-            carts.push_back(_cartDirectory + "/" + ent->d_name);
+            if (isCartFile(ent->d_name)){
+                carts.push_back(_cartDirectory + "/" + ent->d_name);
+            }
         }
         closedir (dir);
     } else {
