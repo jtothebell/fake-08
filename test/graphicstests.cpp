@@ -7,39 +7,7 @@
 #include "../source/fontdata.h"
 #include "../source/PicoRam.h"
 
-struct coloredPoint {
-    uint8_t x;
-    uint8_t y;
-    uint8_t c;
-};
-
-bool colorsEqual(Color* lhs, Color* rhs) {
-	return lhs->Alpha == rhs->Alpha &&
-		   lhs->Red == rhs->Red &&
-		   lhs->Green == rhs->Green &&
-		   lhs->Blue == rhs->Blue;
-}
-
-void debugScreen(Graphics* graphics) {
-    for (int x=0; x < 128; x++) {
-        for (int y = 0; y < 128; y++) {
- 	        uint8_t c = graphics->pget(x,y);
-            if (c != 0) {
-                printf("%d,%d,%d\n", x, y, c);
-            }
-        }
-    }
-}
-
-void checkPoints(Graphics* graphics, std::vector<coloredPoint> expectedPoints) {
-    bool isCorrect = true;
-    for(size_t i = 0; i < expectedPoints.size(); i++){
-        auto toCheck = expectedPoints[i];
-        isCorrect &= graphics->pget(toCheck.x, toCheck.y) == toCheck.c;
-    }
-
-    CHECK(isCorrect);
-}
+#include "testHelpers.h"
 
 TEST_CASE("graphics class behaves as expected") {
     //general setup
@@ -657,95 +625,7 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("print({str}) uses current color, ignoring transparency") {
-        graphics->cls();
-        graphics->color(2);
-        graphics->palt(2, true);
-
-        graphics->print("t");
-
-        std::vector<coloredPoint> expectedPoints = {
-            {0, 0, 2},
-            {1, 0, 2},
-            {2, 0, 2},
-            {1, 1, 2},
-            {1, 2, 2},
-            {1, 3, 2},
-            {1, 4, 2}
-        };
-
-        checkPoints(graphics, expectedPoints);
-    }
-    SUBCASE("print({str}) uses current text location") {
-        graphics->cls();
-        graphics->color(3);
-        picoRam.drawState.text_x = 15;
-        picoRam.drawState.text_y = 98;
-
-        graphics->print("t");
-
-        std::vector<coloredPoint> expectedPoints = {
-            {15, 98, 3},
-            {16, 98, 3},
-            {17, 98, 3},
-            {16, 99, 3},
-            {16, 100, 3},
-            {16, 101, 3},
-            {16, 102, 3}
-        };
-
-        checkPoints(graphics, expectedPoints);
-    }
-    SUBCASE("print({str}) increments text location y by 6") {
-        graphics->cls();
-        picoRam.drawState.text_x = 15;
-        picoRam.drawState.text_y = 110;
-
-        graphics->print("doesnt matter");
-
-        CHECK(picoRam.drawState.text_y == 116);
-    }
-    SUBCASE("print({str}, {x}, {y}) updates text location ") {
-        graphics->cls();
-        picoRam.drawState.text_x = 3;
-        picoRam.drawState.text_y = 4;
-
-        graphics->print("doesnt matter", 42, 99);
-
-        CHECK(picoRam.drawState.text_x == 42);
-        CHECK(picoRam.drawState.text_y == 105);
-    }
-    SUBCASE("print({str}, {x}, {y}, {c}) updates text location and color") {
-        graphics->cls();
-        picoRam.drawState.text_x = 3;
-        picoRam.drawState.text_y = 4;
-        picoRam.drawState.color = 10;
-
-        graphics->print("doesnt matter", 16, 18, 14);
-        
-        CHECK(picoRam.drawState.text_x == 16);
-        CHECK(picoRam.drawState.text_y == 24);
-        CHECK(picoRam.drawState.color == 14);
-    }
-    SUBCASE("print({str}) uses pal mapped color") {
-        graphics->cls();
-        graphics->color(2);
-        graphics->pal(2, 12, 0);
-
-        graphics->print("t");
-
-        std::vector<coloredPoint> expectedPoints = {
-            {0, 0, 12},
-            {1, 0, 12},
-            {2, 0, 12},
-            {1, 1, 12},
-            {1, 2, 12},
-            {1, 3, 12},
-            {1, 4, 12}
-        };
-
-        checkPoints(graphics, expectedPoints);
-    }
+    
     SUBCASE("spr(...) draws to screen at location") {
         graphics->cls();
         for(uint8_t i = 0; i < 16; i++) {
@@ -1305,25 +1185,6 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("camera values apply to print")
-    {
-        graphics->cls();
-        graphics->camera(-100, -100);
-        graphics->print("t");
-        graphics->camera();
-
-        std::vector<coloredPoint> expectedPoints = {
-            {100, 100, 6},
-            {101, 100, 6},
-            {102, 100, 6},
-            {101, 101, 6},
-            {101, 102, 6},
-            {101, 103, 6},
-            {101, 104, 6}
-        };
-
-        checkPoints(graphics, expectedPoints);
-    }
     SUBCASE("camera values apply to spr")
     {
         for(uint8_t i = 0; i < 16; i++) {
@@ -1540,25 +1401,6 @@ TEST_CASE("graphics class behaves as expected") {
             {100, 100, 3},
             {100, 101, 3},
             {100, 102, 3},
-        };
-
-        checkPoints(graphics, expectedPoints);
-    }
-    SUBCASE("clip values apply to print") {
-        graphics->cls();
-        graphics->clip(101, 101, 27, 27);
-        graphics->camera(-100, -100);
-        graphics->print("t");
-        graphics->camera();
-
-        std::vector<coloredPoint> expectedPoints = {
-            {100, 100, 0},
-            {101, 100, 0},
-            {102, 100, 0},
-            {101, 101, 6},
-            {101, 102, 6},
-            {101, 103, 6},
-            {101, 104, 6}
         };
 
         checkPoints(graphics, expectedPoints);
@@ -1790,9 +1632,19 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("palt({c}, {t}) sets transparency value for color") {
         graphics->palt(4, true);
+
+        CHECK(graphics->isColorTransparent(4) == true);
+
         graphics->palt(4, false);
 
         CHECK(graphics->isColorTransparent(4) == false);
+    }
+    SUBCASE("palt({c}, {t}) can set color 0 to opaque") {
+        CHECK(graphics->isColorTransparent(0) == true);
+
+        graphics->palt(0, false);
+
+        CHECK(graphics->isColorTransparent(0) == false);
     }
     SUBCASE("pal() resets all palette changes") {
         graphics->pal(14, 5, 0);
@@ -2098,10 +1950,14 @@ TEST_CASE("graphics class behaves as expected") {
         checkPoints(graphics, expectedPoints);
     }
     */
-
     SUBCASE("Remap spritesheet to screen"){
         graphics->cls();
-        graphics->print("zo", 8, 0);
+
+        //emulate print("zo",8,0)
+        picoRam.drawState.drawPaletteMap[7] = 6;
+        graphics->drawCharacter(122, 8, 0);
+        graphics->drawCharacter(111, 12, 0);
+
         picoRam.hwState.spriteSheetMemMapping = 0x60;
 
         graphics->spr(1, 0, 64, 1.0, 1.0, false, false);
@@ -2148,46 +2004,7 @@ TEST_CASE("graphics class behaves as expected") {
             {2,68,6},
             {3,68,0},
             {4,68,6},
-            {5,68,6},
-            {6,68,0},
-            {7,68,0},
-            {8,68,0},
-            {0,69,0},
-            {1,69,0},
-            {2,69,0},
-            {3,69,0},
-            {4,69,0},
-            {5,69,0},
-            {6,69,0},
-            {7,69,0},
-            {8,69,0},
-            {0,70,0},
-            {1,70,0},
-            {2,70,0},
-            {3,70,0},
-            {4,70,0},
-            {5,70,0},
-            {6,70,0},
-            {7,70,0},
-            {8,70,0},
-            {0,71,0},
-            {1,71,0},
-            {2,71,0},
-            {3,71,0},
-            {4,71,0},
-            {5,71,0},
-            {6,71,0},
-            {7,71,0},
-            {8,71,0},
-            {0,72,0},
-            {1,72,0},
-            {2,72,0},
-            {3,72,0},
-            {4,72,0},
-            {5,72,0},
-            {6,72,0},
-            {7,72,0},
-            {8,72,0}
+            {5,68,6}
        };
 
         checkPoints(graphics, expectedPoints);
@@ -2399,6 +2216,8 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(picoRam.data[0xFFFF], 9);
         CHECK_EQ(picoRam.userData[0x7FFF], 9);
     }
+    
+
 
 
     

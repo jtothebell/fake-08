@@ -285,7 +285,7 @@ TEST_CASE("Vm memory functions") {
     SUBCASE("poking print attributes") {
         vm->vm_poke(0x5f58, 53);
 
-        CHECK_EQ(memory->hwState.printAttributes[0], 53);
+        CHECK_EQ(memory->hwState.printAttributes, 53);
     }
     SUBCASE("poking btnp repeat delay") {
         vm->vm_poke(0x5f5c, 10);

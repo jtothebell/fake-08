@@ -9,11 +9,12 @@ all: runtests
 
 testrunner.a: testroot.o \
 	fontdatatests.o nibblehelperstests.o graphicstests.o audiotests.o \
-	carttests.o endtoendtests.o vmtests.o filehelperstests.o
+	carttests.o endtoendtests.o vmtests.o filehelperstests.o printHelperTests.o
 	g++ -I$(CURDIR)/include -L$(CURDIR)/lib \
 	testroot.o \
 	fontdata.o fontdatatests.o \
-	graphics.o graphicstests.o stringToDataHelpers.o mathhelpers.o \
+	graphics.o graphicstests.o stringToDataHelpers.o testHelpers.o mathhelpers.o \
+	printHelper.o printHelperTests.o \
 	Audio.o synth.o audiotests.o \
 	cart.o carttests.o nooplogger.o lodepng.o emojiconversion.o filehelpers.o \
 	vm.o endtoendtests.o picoluaapi.o Input.o \
@@ -32,15 +33,18 @@ fontdatatests.o: fontdatatests.cpp ../source/fontdata.cpp ../source/fontdata.h
 nibblehelperstests.o: nibblehelperstests.cpp ../source/nibblehelpers.cpp ../source/nibblehelpers.h
 	g++ $(CFLAGS) nibblehelperstests.cpp ../source/nibblehelpers.cpp
 
-graphicstests.o: liblua.a fontdatatests.o graphicstests.cpp ../source/graphics.cpp ../source/graphics.h \
+graphicstests.o: liblua.a fontdatatests.o graphicstests.cpp testHelpers.cpp ../source/graphics.cpp ../source/graphics.h \
 	../source/fontdata.cpp ../source/fontdata.h \
 	../source/PicoRam.h ../source/hostVmShared.h \
 	../source/stringToDataHelpers.h ../source/stringToDataHelpers.cpp \
 	../source/mathhelpers.h ../source/mathhelpers.cpp \
 	../source/nibblehelpers.h ../source/nibblehelpers.cpp
 	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \
-	graphicstests.cpp ../source/graphics.cpp \
+	graphicstests.cpp ../source/graphics.cpp testHelpers.cpp \
 	../source/stringToDataHelpers.cpp ../source/nibblehelpers.cpp ../source/mathhelpers.cpp
+
+printHelperTests.o: graphicstests.o printHelperTests.cpp testHelpers.cpp ../source/printHelper.cpp ../source/printHelper.h
+	g++ $(CFLAGS) -I$(CURDIR)/include printHelperTests.cpp ../source/printHelper.cpp testHelpers.cpp
 
 audiotests.o: audiotests.cpp ../source/Audio.cpp ../source/Audio.h \
 	../source/synth.cpp ../source/synth.h \
@@ -71,7 +75,7 @@ carttests.o: carttests.cpp ../source/cart.cpp ../source/cart.h \
 	g++ $(CFLAGS) -I$(CURDIR)/include carttests.cpp ../source/cart.cpp ../libs/lodepng/lodepng.cpp \
 	nooplogger.cpp ../source/emojiconversion.cpp ../source/filehelpers.cpp 
 
-endtoendtests.o: carttests.o graphicstests.o audiotests.o \
+endtoendtests.o: carttests.o graphicstests.o audiotests.o printHelperTests.o\
 	endtoendtests.cpp \
 	../source/vm.cpp ../source/vm.h \
 	stubhost.cpp stubhost.h ../source/host.h \
