@@ -179,6 +179,8 @@ bool Vm::loadCart(Cart* cart) {
 	//label
 	lua_register(_luaState, "__loadlabel", loadlabel);
 	
+	lua_register(_luaState, "__getlualine", getlualine);
+	
     //register global functions first, they will get local aliases when
     //the rest of the api is registered
     //graphics
@@ -1053,5 +1055,24 @@ void Vm::loadLabel(std::string filename, bool mini, int minioffset) {
 		copy_string_to_sprite_memory(_memory->spriteSheetData, labelstr);
 	}
 	delete labelcart;
+	
+}
+
+std::string Vm::getLuaLine(string filename, int linenumber) {
+	
+	auto cartDir = _host->getCartDirectory();
+    Cart *luacart = new Cart(filename, cartDir);
+	std::string luastr = luacart->LuaString;
+	
+	std::string line;
+	std::istringstream luastream(luastr);
+	
+	while (linenumber-- >= 0){
+		std::getline(luastream,line);
+	}
+	
+	delete luacart;
+	
+	return line;
 	
 }

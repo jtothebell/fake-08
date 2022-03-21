@@ -1299,6 +1299,7 @@ int setsetting(lua_State *L) {
     return 1;
 }
 
+
 int loadlabel(lua_State *L) {
 	
 	const char * cartname = "";
@@ -1311,5 +1312,22 @@ int loadlabel(lua_State *L) {
 	int minioffset = lua_tonumber(L,3);
 	
 	_vmForLuaApi->loadLabel(filename, mini, minioffset);
+	return 1;
+}
+
+
+int getlualine(lua_State *L) {	
+	const char * cartname = "";
+	if (lua_isstring(L, 1)){
+        cartname = lua_tolstring(L, 1, nullptr);
+    }
+	std::string filename = cartname;
+	
+	int linenumber = lua_tonumber(L,2);
+	
+	std::string resultstring = _vmForLuaApi->getLuaLine(filename, linenumber);
+	
+	lua_pushstring(L, resultstring.c_str());
+	
 	return 1;
 }

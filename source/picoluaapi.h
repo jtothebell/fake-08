@@ -109,6 +109,8 @@ int setsetting(lua_State *L);
 
 int loadlabel(lua_State *L);
 
+int getlualine(lua_State *L);
+
 //system functions
 
 int rnd(lua_State *L);

@@ -150,7 +150,9 @@ class Vm {
 	
 	//label
 	void loadLabel(string filename, bool mini, int minioffset);
-
+	
+	string getLuaLine(string filename, int linenumber);
+	
     string getCartBreadcrumb();
     string getCartParam();
 };
