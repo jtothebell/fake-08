@@ -53,9 +53,9 @@ function _init()
 				ch ={'emoji','lowercase'}
 			}
 		}},
-		{name='audio',ops = {
-			
-		}},
+		--{name='audio',ops = {
+		--
+		--}},
 		{name='video',ops = {
 			{
 				name = 'enable resize hotkeys',
@@ -72,7 +72,7 @@ function _init()
 			{
 				name = 'menu style',
 				vn = 'menustyle',
-				ch ={'classic','fancy','splore'}
+				ch ={'classic','fancy'}--'splore'
 			},
 			{
 				name = 'bg color',
