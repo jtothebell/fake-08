@@ -197,7 +197,6 @@ function fancy_init()
 	cpos = 0
 	dcpos = 0
 	loadedimages = {}
-
 	if __listcarts then
 		cartnames = __listcarts()
 		numcarts = #cartnames
@@ -213,8 +212,27 @@ function fancy_init()
 		newcart.name = v
 		newcart.id = i - 1
 		newcart.sprite = newcart.id%4
+		newcart.text = {"a","e"}
 		
-
+		if __getlualine then
+			for linei = 0,1 do
+				local l = __getlualine(v,linei)
+				if sub(l,1,2) == '--' then
+					l = sub(l,3,#l)
+					if sub(l,1,1) == ' ' then
+						l = sub(l,2,#l)
+					end
+					newcart.text[linei+1] = l
+				else
+					newcart.text[linei+1] = v
+				end
+			end
+		else
+			newcart.text[1] = v
+			newcart.text[2] = v
+		end
+		printh(newcart.text[1])
+		
 		add(carts,newcart)
 	end
 	updatecarts()
@@ -271,8 +289,25 @@ end
 function drawcart(v)
 	local cartx = (v.id-dcpos+1)*44+4
 	local carty = 60
-	
+	local textx = cartx +16
+	local texty = -6
 	carty+= sin((v.id-dcpos+1)/4)*10
+	texty-= sin((v.id-dcpos+1)/4)*24
+	
+	for li = 1,2 do
+		local drawline = true
+		if li == 2 then
+			if v.text[1] == v.text[2] then
+				drawline = false
+			end
+		end
+		
+		if drawline then
+			print(v.text[li],textx-(#v.text[li])*2,texty+ li*8,textcolor)
+		end
+		
+	end
+	
 	--base
 	rectfill(cartx - 4,
 	carty-6,
@@ -317,7 +352,7 @@ function fancydrawmain()
 			drawcart(v)
 		end
 		--rect(44,44,83,83,7)
-		print(carts[cpos+1].name,0,0,textcolor)
+		--print(carts[cpos+1].name,0,0,textcolor)
 		rect(0,120,127,127,textcolor)
 		
 		local barx = dcpos/(numcarts-1)*128-3
@@ -335,6 +370,8 @@ function fancy_draw()
 	pal()
 	palt(0,false)
 	fancydrawmain()
+	
+	
 	
 	if showerror then
 		rect(9,9,118,118,7)
@@ -361,6 +398,7 @@ function _init()
 	else
 		theme = 1 
 	end
+	theme = theme % #inits --don't load a nonexistant menu style
 	
 	inits[theme+1]()
 end
