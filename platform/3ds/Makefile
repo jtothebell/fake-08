@@ -73,7 +73,7 @@ CFLAGS	:=	-g -Wall -Ofast -mword-relocations \
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS -DVER_STR=\"$(APP_VERSION)\"
 
 # enable pack in games with this platform
-CFLAGS  +=  -DLOAD_PACK_INS
+# CFLAGS  +=  -DLOAD_PACK_INS
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
 

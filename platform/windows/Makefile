@@ -22,7 +22,7 @@ CFLAGS	:=	-g -Wall -Wno-deprecated -ffunction-sections -std=c++17 \
 CFLAGS	+=	$(INCLUDE) -DVER_STR=\"$(APP_VERSION)\"
 
 # enable pack in games with this platform
-CFLAGS  +=  -DLOAD_PACK_INS
+# CFLAGS  +=  -DLOAD_PACK_INS
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions 
 #-std=gnu++11 was used before... not sure of difference
