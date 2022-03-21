@@ -93,13 +93,13 @@ function _init()
 				},
 				
 				{name='credits',ops = {
-					{name = 'celeste classic by maddy', ret = true},
-					{name = 'thorson + noel berry (cc4)', ret = true},
-					{name = '', ret = true},
+					--{name = 'celeste classic by maddy', ret = true},
+					--{name = 'thorson + noel berry (cc4)', ret = true},
+					--{name = '', ret = true},
 					{name = 'buzzsaw cat by dps2004', ret = true},
 					{name = '', ret = true},
-					{name = 'sixlets ii by aquova (cc0)', ret = true},
-					{name = '', ret = true},
+					--{name = 'sixlets ii by aquova (cc0)', ret = true},
+					--{name = '', ret = true},
 				}}
 			}}
 			
