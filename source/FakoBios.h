@@ -356,7 +356,11 @@ end
 
 inits = {classic_init,fancy_init}
 function _init()
-	theme = 1 
+	if __getsetting then
+		theme = __getsetting('menustyle')
+	else
+		theme = 1 
+	end
 	
 	inits[theme+1]()
 end
