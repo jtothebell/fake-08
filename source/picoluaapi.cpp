@@ -9,6 +9,7 @@ using namespace std;
 #include "Input.h"
 #include "vm.h"
 #include "logger.h"
+#include "printHelper.h"
 
 //extern "C" {
   #include <lua.h>
@@ -21,11 +22,13 @@ Input* _inputForLuaApi;
 Vm* _vmForLuaApi;
 Audio* _audioForLuaApi;
 
-void initPicoApi(Graphics* graphics, Input* input, Vm* vm, Audio* audio){
+void initPicoApi(PicoRam* memory, Graphics* graphics, Input* input, Vm* vm, Audio* audio){
     _graphicsForLuaApi = graphics;
     _inputForLuaApi = input;
     _vmForLuaApi = vm;
     _audioForLuaApi = audio;
+
+    initPrintHelper(memory, _graphicsForLuaApi, _vmForLuaApi, _audioForLuaApi);
 }
 
 int noop(const char * name) {
@@ -318,19 +321,19 @@ int print(lua_State *L){
     }
 
     if (numArgs < 2) {
-        newx = _graphicsForLuaApi->print(str);
+        newx = print(str);
     }
     else if (numArgs == 2) {
         uint8_t c = lua_tonumber(L,2);
 
         _graphicsForLuaApi->color(c);
-        newx = _graphicsForLuaApi->print(str);
+        newx = print(str);
     }
     else if (numArgs == 3) {
         int x = lua_tonumber(L,2);
         int y = lua_tonumber(L,3);
 
-        newx = _graphicsForLuaApi->print(str, x, y);
+        newx = print(str, x, y);
     }
     else {
         int x = lua_tonumber(L,2);
@@ -338,7 +341,7 @@ int print(lua_State *L){
 
         uint8_t c = lua_tonumber(L,4);
 
-        newx = _graphicsForLuaApi->print(str, x, y, c);
+        newx = print(str, x, y, c);
     }
 
     lua_pushinteger(L, newx);

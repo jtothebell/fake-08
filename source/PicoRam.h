@@ -218,8 +218,14 @@ struct hwState_t {
     uint8_t mapMemMapping;
     //0x5f57
     uint8_t widthOfTheMap;
-    //0x5f58..0x5f5b
-    uint8_t printAttributes[4];
+    //0x5f58
+    uint8_t printAttributes;
+    //0x5f59
+    uint8_t printCharDimensions;
+    //0x5f5a
+    uint8_t printTabWidth;
+    //0x5f5b
+    uint8_t printOffsetDimensions;
     //0x5f5c
     uint8_t btnpRepeatDelay;
     //0x5f5d
