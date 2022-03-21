@@ -37,6 +37,12 @@ enum KeyboardOption {
   Lowercase
 };
 
+enum MenuStyleOption {
+  Classic,
+  Fancy,
+  Splore
+};
+
 enum BgColorOption {
   Gray,
   Black,
@@ -65,6 +71,7 @@ class Host {
     StretchOption stretch = PixelPerfectStretch;
     KeyboardOption kbmode = Emoji;
 	ResizekeyOption resizekey = NoResize;
+	MenuStyleOption menustyle = Fancy;
 	BgColorOption bgcolor = Gray;
 	
     float scaleX = 1.0;

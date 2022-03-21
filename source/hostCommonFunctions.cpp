@@ -23,6 +23,7 @@ std::string defaultIni =
 "stretch = 1\n"
 "resizekey = 0\n"
 "kbmode = 0\n"
+"menustyle = 1\n"
 "bgcolor = 0\n";
 
 void Host::setUpPaletteColors(){
@@ -157,6 +158,10 @@ void Host::loadSettingsIni(){
 	kbmode = (KeyboardOption) kbmodeSetting;
 	
 	//bgcolor
+	long menustyleSetting = settingsIni.GetLongValue("settings", "menustyle", (long)Fancy);
+	menustyle = (MenuStyleOption) menustyleSetting;
+	
+	//bgcolor
 	long bgcolorSetting = settingsIni.GetLongValue("settings", "bgcolor", (long)Gray);
 	bgcolor = (BgColorOption) bgcolorSetting;
 }
@@ -173,6 +178,7 @@ void Host::saveSettingsIni(){
     settingsIni.SetLongValue("settings", "resizekey", resizekey);
 	
     settingsIni.SetLongValue("settings", "kbmode", kbmode);
+    settingsIni.SetLongValue("settings", "menustyle", menustyle);
     settingsIni.SetLongValue("settings", "bgcolor", bgcolor);
 	
     std::string settingsIniStr = "";
@@ -224,6 +230,9 @@ int Host::getSetting(std::string sname) {
 	}else if(sname == "stretch"){
 		Logger_Write("Returning Stretch setting\n");
 		return stretch;
+	}else if(sname == "menustyle"){
+		Logger_Write("Returning menu style setting\n");
+		return menustyle;
 	}else if(sname == "bgcolor"){
 		Logger_Write("Returning bg color setting\n");
 		return bgcolor;
@@ -276,6 +285,10 @@ void Host::setSetting(std::string sname, int sval) {
 		
 		//force change stretch
 		forceStretch(stretch);
+	}else if(sname == "menustyle"){
+		Logger_Write("setting menustyle\n");
+		menustyle = (MenuStyleOption) sval;
+		
 	}else if(sname == "bgcolor"){
 		Logger_Write("setting bgcolor\n");
 		bgcolor = (BgColorOption) sval;
