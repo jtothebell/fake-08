@@ -2,6 +2,10 @@
 
 A Pico 8 player for homebrew consoles. Not related to or supported by Lexaloffle Software. [Latest release](https://github.com/jtothebell/fake-08/releases) includes releases for Nintendo 3DS, Nintendo Switch, Sony PS Vita, Nintendo Wii U, the Miyoo CFW for bittboy and similar consoles, and the Miyoo Mini. If you are feeling extra brave, you can also download build aftifacts from the latest CI runs in the [Actions section](https://github.com/jtothebell/fake-08/actions)
 
+# Project Goals
+
+The goal of Fake-08 is to make Pico-8 games playable on platforms that aren't officially supported. As such, I will only be providing builds for platforms that won't run Pico-8 proper (No Windows, Mac, Linux, Raspberry Pi, or web builds). As maintainer, my focus is on improving compatibility having fun. If you would like a specific feature or bug fixed, feel free to add an issue (but be patient- it may not be worked on immediately) or submit a pull request (see Other Notes below).
+
 ## Usage:
 Installation will vary by console and executable type. If it is a console with a homebrew menu (Switch, Wii U, 3DS using .3dsx), place the executable file in the directory with other executables. If it is a console with installable hombrew (3ds with .cia, or PS Vita) install executable (VitaShell on Vita or FBI on 3DS).
 
@@ -73,6 +77,8 @@ If you are trying to play a multi cart game, it should be noted that you must pr
 Compatibility is improving, but not perfect. I think many carts _should_ work, but this is still a project in the early stages, and it is my first real foray into C or C++ development and low level game dev in general. I'm mostly doing this project as a fun way to learn.
 
 Feel free to write up any issues you come across, and attach or link to a cart that reproduces the issue. My main goal is to improve compatibility with Pico 8, and then improve speed of carts that are too slow on New 3DS systems.
+
+Pull requests are also welcome. There are some requirements noted in the pull request template. Notably that all platforms build cleanly, the tests pass, new tests are added if applicable, and each PR is limited to a single feature or bug fix.
 
 ## Postcard Image From Vita Sprite Credits:
 * Rabu Rabu Monster (https://www.lexaloffle.com/bbs/?pid=13897#p) by pedroavelar (No License)
