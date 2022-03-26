@@ -57,6 +57,8 @@ uint16_t _rgb565Colors[144];
 uint32_t _rgba8Colors[144];
 Audio* _audio;
 
+u8 consoleModel = 0;
+
 static C2D_Image pico_image;
 
 C3D_Tex *pico_tex;
@@ -306,7 +308,14 @@ void Host::oneTimeSetup(Audio* audio){
     _audio = audio;
     audioSetup();
 
+    Result res = cfguInit();
+	if (R_SUCCEEDED(res)) {
+		CFGU_GetSystemModel(&consoleModel);
+		cfguExit();
+	}
+
     gfxInitDefault();
+    gfxSetWide(consoleModel != 3);	
     //C3D_Init(C3D_DEFAULT_CMDBUF_SIZE); default is 0x40000
     C3D_Init(0x10000);
 	//C2D_Init(C2D_DEFAULT_MAX_OBJECTS); //4096
