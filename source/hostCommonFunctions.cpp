@@ -4,6 +4,8 @@
 #include "hostVmShared.h"
 #include "filehelpers.h"
 
+#include "logger.h"
+
 #include "SimpleIni.h"
 
 #include "miniz.h"
