@@ -56,6 +56,10 @@
 - Website: https://github.com/brofield/simpleini
 - License: MIT
 
+# miniz
+- Website: https://github.com/richgel999/miniz
+- License: MIT
+
 # Miyoo Mini audio (ao.c, ao.h)
 - Website: https://www.dropbox.com/sh/hqcsr1h1d7f8nr3/AABtSOygIX_e4mio3rkLetWTa
 - License: Public Domain (per conversation with eggs on discord)

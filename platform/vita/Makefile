@@ -24,7 +24,7 @@ PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
 CXX      = $(PREFIX)-g++
 STRIP := $(PREFIX)-strip
-CFLAGS  = -g -Wl,-q -O2 -ftree-vectorize -D__VITA__ -DVER_STR=\"$(APP_VERSION)\" $(INCLUDE)
+CFLAGS  = -g -Wl,-q -O2 -ftree-vectorize -D__VITA__ -DMINIZ_NO_TIME -DVER_STR=\"$(APP_VERSION)\" $(INCLUDE)
 CXXFLAGS  = $(CFLAGS) -fexceptions -std=gnu++17 -fpermissive
 ASFLAGS = $(CFLAGS)
 

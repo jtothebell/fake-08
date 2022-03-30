@@ -11,7 +11,9 @@
 #include "hostVmShared.h"
 
 #if __VITA__
+
 #include <vitasdk.h>
+
 #endif
 
 
@@ -28,6 +30,10 @@ int main(int argc, char* argv[])
 	
 	host->setUpPaletteColors();
 	host->oneTimeSetup(audio);
+	
+	#if LOAD_PACK_INS
+	host->unpackCarts();
+	#endif
 	
 	Logger_Write("initialized Vm and host\n");
 
