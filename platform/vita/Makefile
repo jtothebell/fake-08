@@ -9,7 +9,7 @@ SOURCES	:=	${SOURCES} ../SDL2Common/source source
 INCLUDES	:=	${INCLUDES}
 
 LIBS = -lSDL2 -lScePower_stub  -lSceDisplay_stub -lSceCtrl_stub -lSceAudio_stub \
-		-lSceSysmodule_stub -lSceGxm_stub -lSceCommonDialog_stub \
+		-lSceAudioIn_stub -lSceSysmodule_stub -lSceGxm_stub -lSceCommonDialog_stub \
 		-lSceAppMgr_stub -lSceTouch_stub -lSceHid_stub -lSceMotion_stub -lm
 
 CFILES   := $(foreach dir,$(SOURCES), $(wildcard $(dir)/*.c))
