@@ -269,7 +269,7 @@ void audioSetup(){
 Host::Host() {
     _logFilePrefix = "sdmc:/3ds/fake08/";
 
-    _cartDirectory = "/p8carts/";
+    _cartDirectory = "/p8carts";
 
     struct stat st = {0};
 
@@ -716,14 +716,14 @@ vector<string> Host::listcarts(){
     //force to SD card root
     chdir("sdmc:/");
 
-    DIR* dir = opendir("/p8carts");
+    DIR* dir = opendir(_cartDirectory.c_str());
     struct dirent *ent;
 
     if (dir) {
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
             if (isCartFile(ent->d_name)){
-                carts.push_back(_cartDirectory + ent->d_name);
+                carts.push_back(_cartDirectory + "/" + ent->d_name);
             }
         }
         closedir (dir);
