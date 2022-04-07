@@ -535,6 +535,46 @@ TEST_CASE("Print helper functions") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("Poke default print mode but not turned on") {
+        graphics->cls();
+
+        //not turned on
+        //                   wide  tall  dotty/stripey
+        vm->vm_poke(0x5f58, (0x4 | 0x8 | 0x40));
+        print(":", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {1, 0, 0},
+            {1, 1, 6},
+            {1, 2, 0},
+            {1, 3, 6},
+            {1, 4, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("Poke default print mode (pinball)") {
+        graphics->cls();
+
+        //                  on    wide  tall  dotty/stripey
+        vm->vm_poke(0x5f58, (0x1 | 0x4 | 0x8 | 0x40));
+        print(":", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {2, 0, 0}, {3, 0, 0},
+            {2, 1, 0}, {3, 1, 0},
+            {2, 2, 6}, {3, 2, 0},
+            {2, 3, 0}, {3, 3, 0},
+            {2, 4, 0}, {3, 4, 0},
+            {2, 5, 0}, {3, 5, 0},
+            {2, 6, 6}, {3, 6, 0},
+            {2, 7, 0}, {3, 7, 0},
+            {2, 8, 0}, {3, 8, 0},
+            {2, 9, 0}, {3, 9, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
 
     delete stubHost;

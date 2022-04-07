@@ -85,7 +85,12 @@ int print(std::string str, int x, int y, uint8_t c) {
     int charWidth = 4;
     int charHeight = 6;
     int lineHeight = 6;
-    uint8_t printMode = 0;
+
+    uint8_t printMode = _ph_mem->hwState.printAttributes;
+
+    if ((printMode & 0x1) == 0) {
+        printMode = 0;
+    }
 
 	uint8_t effectiveC = _ph_graphics->getDrawPalMappedColor(c);
 
