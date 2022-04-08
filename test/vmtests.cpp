@@ -586,7 +586,7 @@ TEST_CASE("Vm memory functions") {
 
         CHECK(matches);
     }
-    SUBCASE("getDeserializedCartData with 0-255"){
+    SUBCASE("deserializeCartDataToMemory with 0-255"){
         vm->vm_cartdata("serializeTest");
         for(int i = 0; i < 256; i++) {
             memory->cartData[i] = 1;
@@ -651,6 +651,29 @@ TEST_CASE("Vm memory functions") {
             "0000000000000000000000000000000000000000000000000000000000000000\n";
 
         CHECK_EQ(expected, actual);
+    }
+    SUBCASE("deserializeCartDataToMemory with negative ints"){
+        vm->vm_cartdata("serializeTest");
+        for(int i = 0; i < 256; i++) {
+            memory->cartData[i] = 0;
+        }
+
+        std::string values = 
+            "ffff0000000100007fff00008000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n";
+
+        vm->deserializeCartDataToMemory(values);
+
+        CHECK_EQ(vm->vm_dget(0), (fix32)-1);
+        CHECK_EQ(vm->vm_dget(1), (fix32)1);
+        CHECK_EQ(vm->vm_dget(2), (fix32)32767);
+        CHECK_EQ(vm->vm_dget(3), (fix32)-32768);
     }
     SUBCASE("SFX Note getters match expected values"){
         memory->sfx[0].notes[0].data[0] = 205;

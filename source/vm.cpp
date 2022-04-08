@@ -395,14 +395,14 @@ void Vm::togglePauseMenu(){
 
 
 //https://stackoverflow.com/a/30606613
-std::vector<int32_t> hexToInts(std::string hex) {
-  std::vector<int32_t> bytes;
+std::vector<uint8_t> HexToBytes(std::string hex) {
+  std::vector<uint8_t> bytes;
 
   hex.erase(std::remove(hex.begin(), hex.end(), '\n'), hex.end());
 
-  for (unsigned int i = 0; i < hex.length(); i += 8) {
-    std::string intString = hex.substr(i, 8);
-    int32_t byte = (int32_t) strtol(intString.c_str(), NULL, 16);
+  for (unsigned int i = 0; i < hex.length(); i += 2) {
+    std::string byteString = hex.substr(i, 2);
+    uint8_t byte = (uint8_t) strtol(byteString.c_str(), NULL, 16);
     bytes.push_back(byte);
   }
 
@@ -435,10 +435,19 @@ std::string Vm::getSerializedCartData() {
 
 void Vm::deserializeCartDataToMemory(std::string cartDataStr) {
     //populate from string (assume correct length? TODO: validation)
-    auto intsVector = hexToInts(cartDataStr);
+    std::vector<uint8_t> bytesVector = HexToBytes(cartDataStr);
 
-    for(size_t i = 0; i < intsVector.size(); i++) {
-        vm_dset(i, fix32::frombits(intsVector[i]));
+    //ATTN: writing one byte at a time instead of one 32 bit int at a time
+    //to ensure same behavior across platforms and cpu architectures
+    for(int i = 0; i < 64; i++){
+        int idxStart = (i*4);
+        int idxEnd = idxStart + 3;
+        if (idxEnd < bytesVector.size()){
+            _memory->data[0x5e00 + idxStart + 0] = bytesVector[idxEnd];
+            _memory->data[0x5e00 + idxStart + 1] = bytesVector[idxEnd - 1];
+            _memory->data[0x5e00 + idxStart + 2] = bytesVector[idxEnd - 2];
+            _memory->data[0x5e00 + idxStart + 3] = bytesVector[idxEnd - 3];
+        }
     }
 
 }
