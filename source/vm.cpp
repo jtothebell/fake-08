@@ -414,13 +414,16 @@ std::string Vm::getSerializedCartData() {
 
     char hex_string[9] = "00000000";
 
+    //ATTN: writing one byte at a time instead of one 32 bit int at a time
+    //to ensure same behavior across platforms and cpu architectures
     for(int i = 0; i < 64; i++){
-        fix32 val = vm_dget((uint8_t)i);
-        int32_t bitsVal = val.bits();
+        for(int b = 3; b >= 0; b--){
+            uint8_t byte = _memory->data[0x5e00 + (i*4) + b];
 
-        sprintf(hex_string, "%08x", bitsVal);
+            sprintf(hex_string, "%02x", byte);
 
-        outputstr.append(hex_string);
+            outputstr.append(hex_string);
+        }
 
         if ((i + 1) % 8 == 0) {
             outputstr.append("\n");
