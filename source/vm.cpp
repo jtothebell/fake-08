@@ -410,20 +410,24 @@ std::vector<int32_t> hexToInts(std::string hex) {
 }
 
 std::string Vm::getSerializedCartData() {
-    std::stringstream outputstr;
+    std::string outputstr = "";
+
+    char hex_string[9] = "00000000";
 
     for(int i = 0; i < 64; i++){
         fix32 val = vm_dget((uint8_t)i);
         int32_t bitsVal = val.bits();
-        
-        outputstr << std::setfill('0') << std::setw(8) << std::hex << bitsVal;
+
+        sprintf(hex_string, "%08x", bitsVal);
+
+        outputstr.append(hex_string);
 
         if ((i + 1) % 8 == 0) {
-            outputstr << "\n";
+            outputstr.append("\n");
         }
     }
 
-    return outputstr.str();
+    return outputstr;
 }
 
 void Vm::deserializeCartDataToMemory(std::string cartDataStr) {

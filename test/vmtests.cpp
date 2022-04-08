@@ -631,6 +631,27 @@ TEST_CASE("Vm memory functions") {
 
         CHECK_EQ(expected, actual);
     }
+    SUBCASE("dset then getSerializedCartData with negatives returns correct values"){
+        vm->vm_cartdata("serializeTest");
+        vm->vm_dset(0, -1);
+	    vm->vm_dset(1, 1);
+	    vm->vm_dset(2, 32767);
+	    vm->vm_dset(3, -32768);
+
+        auto actual = vm->getSerializedCartData();
+
+        std::string expected = 
+            "ffff0000000100007fff00008000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n";
+
+        CHECK_EQ(expected, actual);
+    }
     SUBCASE("SFX Note getters match expected values"){
         memory->sfx[0].notes[0].data[0] = 205;
         memory->sfx[0].notes[0].data[1] = 233;
