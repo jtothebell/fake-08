@@ -401,14 +401,14 @@ void Vm::togglePauseMenu(){
 
 
 //https://stackoverflow.com/a/30606613
-std::vector<int32_t> hexToInts(std::string hex) {
-  std::vector<int32_t> bytes;
+std::vector<uint8_t> HexToBytes(std::string hex) {
+  std::vector<uint8_t> bytes;
 
   hex.erase(std::remove(hex.begin(), hex.end(), '\n'), hex.end());
 
-  for (unsigned int i = 0; i < hex.length(); i += 8) {
-    std::string intString = hex.substr(i, 8);
-    int32_t byte = (int32_t) strtol(intString.c_str(), NULL, 16);
+  for (unsigned int i = 0; i < hex.length(); i += 2) {
+    std::string byteString = hex.substr(i, 2);
+    uint8_t byte = (uint8_t) strtol(byteString.c_str(), NULL, 16);
     bytes.push_back(byte);
   }
 
@@ -416,28 +416,44 @@ std::vector<int32_t> hexToInts(std::string hex) {
 }
 
 std::string Vm::getSerializedCartData() {
-    std::stringstream outputstr;
+    std::string outputstr = "";
 
+    char hex_string[9] = "00000000";
+
+    //ATTN: writing one byte at a time instead of one 32 bit int at a time
+    //to ensure same behavior across platforms and cpu architectures
     for(int i = 0; i < 64; i++){
-        fix32 val = vm_dget((uint8_t)i);
-        int32_t bitsVal = val.bits();
-        
-        outputstr << std::setfill('0') << std::setw(8) << std::hex << bitsVal;
+        for(int b = 3; b >= 0; b--){
+            uint8_t byte = _memory->data[0x5e00 + (i*4) + b];
+
+            sprintf(hex_string, "%02x", byte);
+
+            outputstr.append(hex_string);
+        }
 
         if ((i + 1) % 8 == 0) {
-            outputstr << "\n";
+            outputstr.append("\n");
         }
     }
 
-    return outputstr.str();
+    return outputstr;
 }
 
 void Vm::deserializeCartDataToMemory(std::string cartDataStr) {
     //populate from string (assume correct length? TODO: validation)
-    auto intsVector = hexToInts(cartDataStr);
+    std::vector<uint8_t> bytesVector = HexToBytes(cartDataStr);
 
-    for(size_t i = 0; i < intsVector.size(); i++) {
-        vm_dset(i, fix32::frombits(intsVector[i]));
+    //ATTN: writing one byte at a time instead of one 32 bit int at a time
+    //to ensure same behavior across platforms and cpu architectures
+    for(int i = 0; i < 64; i++){
+        int idxStart = (i*4);
+        int idxEnd = idxStart + 3;
+        if (idxEnd < bytesVector.size()){
+            _memory->data[0x5e00 + idxStart + 0] = bytesVector[idxEnd];
+            _memory->data[0x5e00 + idxStart + 1] = bytesVector[idxEnd - 1];
+            _memory->data[0x5e00 + idxStart + 2] = bytesVector[idxEnd - 2];
+            _memory->data[0x5e00 + idxStart + 3] = bytesVector[idxEnd - 3];
+        }
     }
 
 }
