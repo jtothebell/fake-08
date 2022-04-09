@@ -661,6 +661,20 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ("Qcart.p8", sorted[2]);
         CHECK_EQ("Zcart.p8.png", sorted[3]);
     }
+    SUBCASE("reset sets hw and draw state back to defaults"){
+        graphics->pal(4, 5, 0);
+        graphics->color(14);
+
+        memory->hwState.widthOfTheMap = 17;
+        memory->hwState.alternatePaletteFlag = 2;
+
+        vm->vm_reset();
+
+        CHECK_EQ(128, memory->hwState.widthOfTheMap);
+        CHECK_EQ(6, memory->drawState.color);
+        CHECK_EQ(4, graphics->getDrawPalMappedColor(4));
+        CHECK_EQ(0, memory->hwState.alternatePaletteFlag);
+    }
 
     delete stubHost;
     delete graphics;

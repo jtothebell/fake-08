@@ -228,6 +228,7 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "peek4", peek4);
     lua_register(_luaState, "poke4", poke4);
     lua_register(_luaState, "reload", reload);
+    lua_register(_luaState, "reset", reset);
 
     //cart data
     lua_register(_luaState, "cartdata", cartdata);
@@ -919,6 +920,20 @@ void Vm::vm_load(std::string filename, std::string breadcrumb, std::string param
     }
 
     QueueCartChange(filename);
+}
+
+void Vm::vm_reset(){
+    memset(&_memory->data[0x5f00], 0, 0x7f);
+
+    _memory->hwState.colorBitmask = 0xff;
+    _memory->hwState.spriteSheetMemMapping = 0x00;
+    _memory->hwState.screenDataMemMapping = 0x60;
+    _memory->hwState.mapMemMapping = 0x20;
+    _memory->hwState.widthOfTheMap = 128;
+
+    _graphics->color();
+    _graphics->clip();
+    _graphics->pal();
 }
 
 int Vm::getFps(){

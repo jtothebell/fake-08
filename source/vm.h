@@ -54,7 +54,7 @@ class Vm {
 
     bool loadCart(Cart* cart);
     void vm_reload(int destaddr, int sourceaddr, int len, Cart* cart);
-    
+
 
     public:
     Vm(
@@ -131,6 +131,8 @@ class Vm {
     void vm_extcmd(string  cmd);
 
     void vm_load(string filename, string breadcrumb, string param);
+
+    void vm_reset();
 
     int getFps();
     int getTargetFps();
