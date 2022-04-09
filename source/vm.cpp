@@ -374,6 +374,11 @@ void Vm::LoadCart(std::string filename){
 }
 
 void Vm::togglePauseMenu(){
+    if (_memory->drawState.suppressPause) {
+        _memory->drawState.suppressPause = 0;
+        return;
+    }
+
     _pauseMenu = !_pauseMenu;
 
     if (_pauseMenu){
