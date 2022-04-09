@@ -445,9 +445,9 @@ void Vm::deserializeCartDataToMemory(std::string cartDataStr) {
 
     //ATTN: writing one byte at a time instead of one 32 bit int at a time
     //to ensure same behavior across platforms and cpu architectures
-    for(int i = 0; i < 64; i++){
-        int idxStart = (i*4);
-        int idxEnd = idxStart + 3;
+    for(size_t i = 0; i < 64; i++){
+        size_t idxStart = (i*4);
+        size_t idxEnd = idxStart + 3;
         if (idxEnd < bytesVector.size()){
             _memory->data[0x5e00 + idxStart + 0] = bytesVector[idxEnd];
             _memory->data[0x5e00 + idxStart + 1] = bytesVector[idxEnd - 1];

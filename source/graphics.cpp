@@ -195,213 +195,64 @@ void Graphics::copySpriteToScreen(
 //uses ints so we can shift bits and do integer division instead of floating point
 void Graphics::copyStretchSpriteToScreen(
 	uint8_t* spritebuffer,
-	int spr_x,
-	int spr_y,
-	int spr_w,
-	int spr_h,
-	int scr_x,
-	int scr_y,
-	int scr_w,
-	int scr_h,
+	int sx,
+	int sy,
+	int sw,
+	int sh,
+	int dx,
+	int dy,
+	int dw,
+	int dh,
 	bool flip_x,
 	bool flip_y,
 	//skipStretchPx is currently only used for drawing stripey mode text,
 	//so it is only used when drawing in non-flipped mode
 	bool skipStretchPx)
 {
-	if (scr_w == 0 || scr_h == 0)
+	if (dw == 0 || dh == 0)
 		return;
 
-	if (spr_h == scr_h && spr_w == scr_w && !flip_x) {
+	if (sh == dh && sw == dw && !flip_x) {
 		// use faster non stretch blitter if sprite is not stretched 
 		//(or flipped horizontally - but skipping for that is just a hacky fix)
-		copySpriteToScreen(spritebuffer, scr_x, scr_y, spr_x, spr_y, scr_w, scr_h, flip_x, flip_y);
+		copySpriteToScreen(spritebuffer, dx, dy, sx, sy, dw, dh, flip_x, flip_y);
 		return;
 	}
 
-	auto &drawState = _memory->drawState;
+	auto &ds = _memory->drawState;
 	auto &hwState = _memory->hwState;
 	uint8_t *screenBuffer = GetP8FrameBuffer();
 
-	const uint8_t writeMask = hwState.colorBitmask & 15;
-	const uint8_t readMask = hwState.colorBitmask >> 4;
+    dx -= ds.camera_x;
+    dy -= ds.camera_y;
 
-	scr_x -= drawState.camera_x;
-	scr_y -= drawState.camera_y;
+    // Support negative dw and dh by flipping the target rectangle
+    if (dw < 0) { dw = -dw; dx -= dw - 1; flip_x = !flip_x; }
+    if (dh < 0) { dh = -dh; dy -= dh - 1; flip_y = !flip_y; }
 
-	if (scr_w < 0){
-		flip_x = !flip_x;
-		scr_w = -scr_w;
-		scr_x -= scr_w;
-	}
-	if (scr_h < 0) {
-		flip_y = !flip_y;
-		scr_h = -scr_h;
-		scr_y -= scr_h;
-	}
+    // Iterate over destination pixels
+    // FIXME: maybe clamp if target area is too big?
+    for (int j = 0; j < dh; ++j)
+    for (int i = 0; i < dw; ++i)
+    {
+        int di = flip_x ? dw - 1 - i : i;
+        int dj = flip_y ? dh - 1 - j : j;
 
-	//shift bits to avoid floating point math
-	spr_x = spr_x << 16;
-	spr_y = spr_y << 16;
-	spr_w = spr_w << 16;
-	spr_h = spr_h << 16;
+        // Find source
+        int x = sx + sw * di / dw;
+        int y = sy + sh * dj / dh;
 
-	int dx = spr_w / scr_w;
-	int dy = spr_h / scr_h;
-
-	// left clip
-	if (scr_x < drawState.clip_xb) {
-		int nclip = drawState.clip_xb - scr_x;
-		scr_x = drawState.clip_xb;
-		scr_w -= nclip;
-		if (!flip_x) {
-			spr_x += nclip * dx;
-		} else {
-			spr_w -= nclip * dx;
+		if (x < 0 || x > 127 || y < 0 || y > 64){
+			continue;
 		}
-	}
 
-	// right clip
-	if (scr_x + scr_w > drawState.clip_xe) {
-		int nclip = (scr_x + scr_w) - drawState.clip_xe;
-		scr_w -= nclip;
-	}
-
-	// top clip
-	if (scr_y < drawState.clip_yb) {
-		int nclip = drawState.clip_yb - scr_y;
-		scr_y = drawState.clip_yb;
-		scr_h -= nclip;
-		if (!flip_y) {
-			spr_y += nclip * dy;
-		} else {
-			spr_h -= nclip * dy;
-		}
-	}
-
-	// bottom clip
-	if (scr_y + scr_h > drawState.clip_ye) {
-		int nclip = (scr_y + scr_h) - drawState.clip_ye;
-		scr_h -= nclip;
-	}
-
-	if (flip_y) {
-		spr_y += spr_h - 1 * dy;
-		dy = -dy;
-	}
-
-	int prevSprX = -1;
-	int prevSprY = -1;
-
-	//ugly duplication but see if inlining helps
-	if (hwState.colorBitmask == 0xff){
-		for (int y = 0; y < scr_h; y++) {
-			int sprY = ((spr_y + y * dy) >> 16);
-			uint8_t* spr = spritebuffer + (sprY & 0x7f) * 64;
-
-			if (skipStretchPx && prevSprY == sprY){
-				continue;
-			}
-			prevSprY = sprY;
-
-			if (!flip_x) {
-				for (int x = 0; x < scr_w; x++) {
-					int shiftedPixIndex = (spr_x + x * dx) >> 16;
-					if (skipStretchPx && prevSprX == shiftedPixIndex){
-						continue;
-					}
-					prevSprX = shiftedPixIndex;
-					int preShiftedCombinedPixIndex = (shiftedPixIndex / 2) & 0x7f;
-					uint8_t bothPix = spr[preShiftedCombinedPixIndex];
-
-					uint8_t c = shiftedPixIndex % 2 == 0 
-						? bothPix & 0x0f //just first 4 bits
-						: bothPix >> 4;  //just last 4 bits
-
-					if (_memory->drawState.drawPaletteMap[c] >> 4){
-						continue;
-					}
-					c = drawState.drawPaletteMap[c] & 0x0f;
-					setPixelNibble(scr_x + x, scr_y + y, c, screenBuffer);
-				}
-			} else {
-				for (int x = 0; x < scr_w; x++) {
-					int pixIndex = (spr_x + spr_w - (x + 1) * dx);
-					int combinedPixIdx = ((pixIndex / 2) >> 16) & 0x7f;
-					uint8_t bothPix = spr[combinedPixIdx];
-
-					uint8_t c = (pixIndex >> 16) % 2 == 0 
-						? bothPix & 0x0f //just first 4 bits
-						: bothPix >> 4;  //just last 4 bits
-					
-					if (_memory->drawState.drawPaletteMap[c] >> 4){
-						continue;
-					}
-					c = drawState.drawPaletteMap[c] & 0x0f;
-					setPixelNibble(scr_x + x, scr_y + y, c, screenBuffer);
-				}
-			}
-		}
-	}
-	else {
-		for (int y = 0; y < scr_h; y++) {
-			uint8_t* spr = spritebuffer + (((spr_y + y * dy) >> 16) & 0x7f) * 64;
-
-			if (!flip_x) {
-				for (int x = 0; x < scr_w; x++) {
-					int pixIndex = (spr_x + x * dx);
-					int combinedPixIdx = ((pixIndex / 2) >> 16) & 0x7f;
-					uint8_t bothPix = spr[combinedPixIdx];
-
-					uint8_t c = (pixIndex >> 16) % 2 == 0 
-						? bothPix & 0x0f //just first 4 bits
-						: bothPix >> 4;  //just last 4 bits
-
-					if (_memory->drawState.drawPaletteMap[c] >> 4){
-						continue;
-					}
-					c = drawState.drawPaletteMap[c] & 0x0f;
-
-					const int finalx = scr_x + x;
-					const int finaly = scr_y + y;
-
-					uint8_t source = (BITMASK(0) & finalx) == 0 
-							? screenBuffer[COMBINED_IDX(finalx, finaly)] & 0x0f //just first 4 bits
-							: screenBuffer[COMBINED_IDX(finalx, finaly)] >> 4;
-
-					c = (source & ~writeMask) | (c & writeMask & readMask);
-
-					setPixelNibble(finalx, finaly, c, screenBuffer);
-				}
-			} else {
-				for (int x = 0; x < scr_w; x++) {
-					int pixIndex = (spr_x + spr_w - (x + 1) * dx);
-					int combinedPixIdx = ((pixIndex / 2) >> 16) & 0x7f;
-					uint8_t bothPix = spr[combinedPixIdx];
-
-					uint8_t c = (pixIndex >> 16) % 2 == 0 
-						? bothPix & 0x0f //just first 4 bits
-						: bothPix >> 4;  //just last 4 bits
-
-					if (_memory->drawState.drawPaletteMap[c] >> 4){
-						continue;
-					}
-					c = drawState.drawPaletteMap[c] & 0x0f;
-					
-					const int finalx = scr_x + x;
-					const int finaly = scr_y + y;
-					
-					uint8_t source = (BITMASK(0) & finalx) == 0 
-							? screenBuffer[COMBINED_IDX(finalx, finaly)] & 0x0f //just first 4 bits
-							: screenBuffer[COMBINED_IDX(finalx, finaly)] >> 4;
-
-					c = (source & ~writeMask) | (c & writeMask & readMask);
-
-					setPixelNibble(finalx, finaly, c, screenBuffer);
-				}
-			}
-		}
-	}
+        uint8_t col = getPixelNibble(x, y, spritebuffer);
+        if (! isColorTransparent(col))
+        {
+			col = getDrawPalMappedColor(col);
+			_setPixelFromSprite(dx +i, dy+j, col);
+        }
+    }
 }
 
 void Graphics::swap(int *x, int *y) {
