@@ -21,14 +21,16 @@ Graphics* _graphicsForLuaApi;
 Input* _inputForLuaApi;
 Vm* _vmForLuaApi;
 Audio* _audioForLuaApi;
+PicoRam* _ramForLuaApi;
 
 void initPicoApi(PicoRam* memory, Graphics* graphics, Input* input, Vm* vm, Audio* audio){
     _graphicsForLuaApi = graphics;
     _inputForLuaApi = input;
     _vmForLuaApi = vm;
     _audioForLuaApi = audio;
+    _ramForLuaApi = memory;
 
-    initPrintHelper(memory, _graphicsForLuaApi, _vmForLuaApi, _audioForLuaApi);
+    initPrintHelper(_ramForLuaApi, _graphicsForLuaApi, _vmForLuaApi, _audioForLuaApi);
 }
 
 int noop(const char * name) {
@@ -538,7 +540,16 @@ int mset(lua_State *L) {
 }
 
 int gfx_map(lua_State *L) {
-    int celx = 0, cely = 0, sx = 0, sy = 0, celw = 128, celh = 32, argc;
+    const bool bigMap = _ramForLuaApi->hwState.mapMemMapping >= 0x80;
+	const int bigMapLocation = _ramForLuaApi->hwState.mapMemMapping << 8;
+	const int mapSize = bigMap 
+		? 0x10000 - bigMapLocation
+		: 8192;
+
+	const int mapW = _ramForLuaApi->hwState.widthOfTheMap == 0 ? 256 : _ramForLuaApi->hwState.widthOfTheMap;
+	const int mapH = mapSize / mapW;
+
+    int celx = 0, cely = 0, sx = 0, sy = 0, celw = mapW, celh = mapH, argc;
     argc = lua_gettop(L);
     if (argc > 0) {
         celx = lua_tonumber(L,1);
@@ -1015,7 +1026,10 @@ int poke(lua_State *L) {
     int numArgs = lua_gettop(L);
 
     int dest = lua_tonumber(L,1);
-    uint8_t val = lua_tonumber(L,2);
+    uint8_t val = 0;
+    if (numArgs > 1) {
+        val = lua_tonumber(L,2);
+    }
 
     _vmForLuaApi->vm_poke(dest, val);
 
@@ -1040,10 +1054,23 @@ int peek2(lua_State *L) {
 }
 
 int poke2(lua_State *L) {
+    int numArgs = lua_gettop(L);
+
     int dest = lua_tonumber(L,1);
-    int val = lua_tonumber(L,2);
+
+    int val = 0;
+    if (numArgs > 1) {
+        val = lua_tonumber(L,2);
+    }
 
     _vmForLuaApi->vm_poke2(dest, (int16_t)val);
+
+    if (numArgs > 2) {
+        for(int i = 1; i <= (numArgs - 2); i++) {
+            val = lua_tonumber(L, 2 + i);
+            _vmForLuaApi->vm_poke2(dest + i, (int16_t)val);
+        }
+    }
 
     return 0;
 }
@@ -1059,10 +1086,23 @@ int peek4(lua_State *L) {
 }
 
 int poke4(lua_State *L) {
+    int numArgs = lua_gettop(L);
+
     int dest = lua_tonumber(L,1);
-    fix32 val = lua_tonumber(L,2);
+
+    fix32 val = 0;
+    if (numArgs > 1) {
+        val = lua_tonumber(L,2);
+    }
 
     _vmForLuaApi->vm_poke4(dest, val);
+
+    if (numArgs > 2) {
+        for(int i = 1; i <= (numArgs - 2); i++) {
+            val = lua_tonumber(L, 2 + i);
+            _vmForLuaApi->vm_poke4(dest + i, val);
+        }
+    }
 
     return 0;
 }
