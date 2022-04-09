@@ -50,7 +50,7 @@ uint8_t* Graphics::GetScreenPaletteMap(){
 //start helper methods
 //based on tac08 implementation of blitter()
 void Graphics::copySpriteToScreen(
-	uint8_t spritebuffer[],
+	uint8_t* spritebuffer,
 	int scr_x,
 	int scr_y,
 	int spr_x,
@@ -194,7 +194,7 @@ void Graphics::copySpriteToScreen(
 //based on tac08 implementation of stretch_blitter()
 //uses ints so we can shift bits and do integer division instead of floating point
 void Graphics::copyStretchSpriteToScreen(
-	uint8_t spritebuffer[],
+	uint8_t* spritebuffer,
 	int spr_x,
 	int spr_y,
 	int spr_w,
@@ -1406,19 +1406,21 @@ std::tuple<uint8_t, uint8_t, uint8_t, uint8_t> Graphics::clip(int x, int y, int 
 
 uint8_t Graphics::mget(int celx, int cely){
 	const bool bigMap = _memory->hwState.mapMemMapping >= 0x80;
+	const int bigMapLocation = _memory->hwState.mapMemMapping << 8;
+	const int mapSize = bigMap 
+		? 0x10000 - bigMapLocation
+		: 8192;
+
 	const int mapW = _memory->hwState.widthOfTheMap == 0 ? 256 : _memory->hwState.widthOfTheMap;
+	const int mapH = mapSize / mapW;
+
 	const int idx = cely * mapW + celx;
 
-	if (idx < 0) {
+	if (celx < 0 || celx > mapW || cely < 0 || cely > mapH) {
         return 0;
 	}
 	
 	if (bigMap){
-		const int mapLocation = _memory->hwState.mapMemMapping << 8;
-		const int mapSize = 0x10000 - mapLocation;
-		if (idx >= mapSize){
-			return 0;
-		}
 		const int offset = 0x8000 - mapSize;
 		return _memory->userData[offset + idx];
 	}
@@ -1436,19 +1438,21 @@ uint8_t Graphics::mget(int celx, int cely){
 
 void Graphics::mset(int celx, int cely, uint8_t snum){
 	const bool bigMap = _memory->hwState.mapMemMapping >= 0x80;
+	const int bigMapLocation = _memory->hwState.mapMemMapping << 8;
+	const int mapSize = bigMap 
+		? 0x10000 - bigMapLocation
+		: 8192;
+
 	const int mapW = _memory->hwState.widthOfTheMap == 0 ? 256 : _memory->hwState.widthOfTheMap;
+	const int mapH = mapSize / mapW;
+
 	const int idx = cely * mapW + celx;
 
-	if (idx < 0) {
+	if (celx < 0 || celx > mapW || cely < 0 || cely > mapH) {
         return;
 	}
 
 	if (bigMap){
-		const int mapLocation = _memory->hwState.mapMemMapping << 8;
-		const int mapSize = 0x10000 - mapLocation;
-		if (idx >= mapSize){
-			return;
-		}
 		const int offset = 0x8000 - mapSize;
 		_memory->userData[offset + idx] = snum;
 	}

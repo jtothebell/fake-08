@@ -14,7 +14,7 @@ class Graphics {
 	PicoRam* _memory;
 
 	void copySpriteToScreen(
-		uint8_t spritebuffer[],
+		uint8_t* spritebuffer,
 		int scr_x,
 		int scr_y,
 		int spr_x,
@@ -25,7 +25,7 @@ class Graphics {
 		bool flip_y);
 
 	void copyStretchSpriteToScreen(
-		uint8_t spritebuffer[],
+		uint8_t* spritebuffer,
 		int spr_x,
 		int spr_y,
 		int spr_w,

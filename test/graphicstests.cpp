@@ -1480,6 +1480,11 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(71, result);
     }
     SUBCASE("mget out of bounds returns 0"){
+        for(int y = 0; y < 64; y++){
+            for(int x = 0; x < 128; x++){
+                graphics->mset(x,y,1);
+            }
+        }
         auto result1 = graphics->mget(-1, 16);
         auto result2 = graphics->mget(129, 16);
         auto result3 = graphics->mget(10, -1);
