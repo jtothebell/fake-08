@@ -32,10 +32,6 @@ using namespace std;
 
 #define KB_ENABLED true
 
-
-
-
-
 SDL_Event event;
 
 string _windowsAppData = SDL_GetPrefPath("FAKE-08", "FAKE-08");
@@ -72,7 +68,7 @@ Host::Host()
     std::string home = _windowsAppData; // C:\Users\(username)\AppData\Roaming\FAKE-08\FAKE-08\p8carts
     
     std::string fullCartDir = home + "/p8carts";
-	//fprintf( stderr, "hello" );
+	
     setPlatformParams(
         WINDOW_SIZE_X,
         WINDOW_SIZE_Y,
@@ -186,10 +182,6 @@ InputState_t Host::scanInput(){
     if(keystate[SDL_SCANCODE_C]){
         currKHeld |= P8_KEY_X;
     }
-	
-	//keyboard stuff
-	
-	
     
     return InputState_t {
         currKDown,

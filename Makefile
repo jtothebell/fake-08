@@ -46,7 +46,7 @@ clean-miyoomini:
 	@$(MAKE) -C platform/miyoomini clean
 
 clean-windows:
-	@$(MAKE) -C platform/miyoomini clean
+	@$(MAKE) -C platform/windows clean
 
 3ds:
 	@$(MAKE) -C platform/3ds
