@@ -56,6 +56,11 @@ void Input::SetMouse(int16_t mouseX, int16_t mouseY, uint8_t mouseBtnState){
     _mouseBtnState = mouseBtnState;
 }
 
+void Input::SetKeyboard(bool kbDown, std::string kbKey){
+	_kbDown = kbDown;
+	_kbKey = kbKey;
+}
+
 uint8_t Input::btn(){
     return _memory->hwState.buttonStates[0];
 }
@@ -96,3 +101,12 @@ int16_t Input::getMouseY() {
 uint8_t Input::getMouseBtnState() {
     return _mouseBtnState;
 }
+
+bool Input::getKeyDown() {
+    return _kbDown;
+}
+
+const char* Input::getKey() {
+    return _kbKey.c_str();
+}
+

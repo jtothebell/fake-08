@@ -28,6 +28,10 @@ enum PackinLoadOption {
 class Host {
     uint8_t currKDown;
     uint8_t currKHeld;
+	
+    bool currKBDown = false;
+	std::string currKBKey = "";
+	
     bool lDown = false;
     bool rDown = false;
     bool stretchKeyPressed = false;

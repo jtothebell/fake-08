@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#include <string>
+
 /// Creates a bitmask from a bit number.
 #define BITMASK(n) (1U<<(n))
 
@@ -72,6 +74,8 @@ struct InputState_t {
 	int16_t mouseX;
 	int16_t mouseY;
 	uint8_t mouseBtnState;
+	bool KBdown;
+	std::string KBkey;
 };
 
 enum PrintMode_t
