@@ -83,6 +83,9 @@ InputState_t Host::scanInput(){
     currKHeld = 0;
     stretchKeyPressed = false;
 
+    currKBDown = false;
+	currKBKey = "";
+
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
 			
