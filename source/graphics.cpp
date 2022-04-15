@@ -821,6 +821,14 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my){
 	);
 }
 
+fix32 getTlineMask(uint8_t dim){
+	if (dim == 0) {
+		return fix32::frombits(0xffffff);
+	}
+
+	return fix32(dim) - fix32::frombits(1);
+}
+
 //ported from zepto 8 impl
 void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 mdx, fix32 mdy){
 	applyCameraToPoint(&x0, &y0);
@@ -841,8 +849,8 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 m
 	auto &ds = _memory->drawState;
 
 	// Retrieve masks for wrap-around and subtract 0x0.0001
-	fix32 xmask = fix32(ds.tlineMapWidth) - fix32::frombits(1);
-    fix32 ymask = fix32(ds.tlineMapHeight) - fix32::frombits(1);
+	fix32 xmask = getTlineMask(ds.tlineMapWidth);
+	fix32 ymask = getTlineMask(ds.tlineMapHeight);
 
 	// Advance texture coordinates; do it in steps to avoid overflows
     int delta = abs(xDifGreater ? x - x0 : y - y0);
@@ -855,8 +863,8 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 m
 
 	for (;;) {
         // Find sprite in map memory
-        int sx = (ds.tlineMapXOffset + int(mx));
-        int sy = (ds.tlineMapYOffset + int(my));
+        int sx = (ds.tlineMapXOffset + int(mx & xmask));
+        int sy = (ds.tlineMapYOffset + int(my & ymask));
 		uint8_t sprite = mget(sx, sy);
         //uint8_t bits = fget(sprite);
 
