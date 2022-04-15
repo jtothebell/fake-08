@@ -33,8 +33,8 @@ int _windowHeight = 128;
 int _screenWidth = 128;
 int _screenHeight = 128;
 
-int _maxNoStretchWidth = 128;
-int _maxNoStretchHeight = 128;
+int _maxNoStretchWidth = 384;
+int _maxNoStretchHeight = 384;
 
 const int PicoScreenWidth = 128;
 const int PicoScreenHeight = 128;
@@ -68,6 +68,7 @@ int textureAngle;
 uint8_t flip; //0 none, 1 horizontal, 2 vertical - match SDL2's SDL_RendererFlip
 int drawModeScaleX = 1;
 int drawModeScaleY = 1;
+
 bool audioInitialized = false;
 
 uint16_t _mapped16BitColors[144];
@@ -85,7 +86,7 @@ void postFlipFunction(){
 #ifdef OPENDINGUX_IPU
     SDL_Flip(window);
 #else
-    SDL_SoftStretch(texture, nullptr, window, nullptr);
+    SDL_SoftStretch(texture, &SrcR, window, &DestR);
     SDL_Flip(window);
 #endif
 }
@@ -140,9 +141,25 @@ void _changeStretch(StretchOption newStretch){
         _screenWidth = PicoScreenWidth;
         _screenHeight = PicoScreenHeight;
     }
+    else if (newStretch == StretchToFit) {
+        _screenWidth = _windowHeight;
+        _screenHeight = _windowHeight;
+    }
+    else if (newStretch == StretchToFill){
+        _screenWidth = _windowWidth;
+        _screenHeight = _windowHeight; 
+    }
+    else if (newStretch == PixelPerfectStretch) {
+        _screenWidth = _maxNoStretchWidth;
+        _screenHeight = _maxNoStretchHeight; 
+    }
+    else if (newStretch == FourByThreeVertPerfect) {
+        _screenWidth = _maxNoStretchHeight * 4 / 3;
+        _screenHeight = _maxNoStretchHeight; 
+    }
     else if (newStretch == StretchAndOverflow) {
         yoffset = 4 / drawModeScaleY;
-        _screenWidth = PicoScreenWidth * 2;
+        _screenWidth = PicoScreenWidth * 4;
         _screenHeight = _windowHeight;
     }
     //default to StretchToFill)
@@ -191,7 +208,7 @@ void Host::oneTimeSetup(Audio* audio){
     SDL_WM_SetCaption("FAKE-08", NULL);
     SDL_ShowCursor(SDL_DISABLE);
 
-    int flags = SDL_HWSURFACE | SDL_TRIPLEBUF;
+    int flags = SDL_HWSURFACE;
 
 	#ifdef OPENDINGUX_IPU
     window = SDL_SetVideoMode(128, 128, SCREEN_BPP, flags);
@@ -200,6 +217,7 @@ void Host::oneTimeSetup(Audio* audio){
     window = SDL_SetVideoMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, SCREEN_BPP, flags);
     texture = SDL_CreateRGBSurface(flags, PicoScreenWidth, PicoScreenHeight, SCREEN_BPP, 0, 0, 0, 0);
     #endif
+
     _audio = audio;
     audioSetup();
     
@@ -214,9 +232,13 @@ void Host::oneTimeSetup(Audio* audio){
         _mapped16BitColors[i] = SDL_MapRGB(f, _paletteColors[i].Red, _paletteColors[i].Green, _paletteColors[i].Blue);
     }
 
+    const SDL_VideoInfo* info = SDL_GetVideoInfo();
+    _windowWidth = info->current_w;
+    _windowHeight = info->current_h;
 
-    _windowWidth = SCREEN_SIZE_X;
-    _windowHeight = SCREEN_SIZE_Y;
+    if (_windowWidth < _maxNoStretchWidth || _windowHeight < _maxNoStretchHeight){
+        _maxNoStretchWidth = _maxNoStretchHeight = 128;
+    }
 
     //TODO: store in settings INI
     stretch = StretchToFill;
@@ -248,14 +270,20 @@ void Host::changeStretch(){
     if (stretchKeyPressed) {
         StretchOption newStretch = stretch;
 
-        if (stretch == StretchAndOverflow) {
-            newStretch = PixelPerfect;
+        if (stretch == PixelPerfectStretch) {
+            newStretch = StretchToFit;
         }
-        else if (stretch == PixelPerfect) {
+        else if (stretch == StretchToFit) {
             newStretch = StretchToFill;
         }
-        else{
+        else if (stretch == StretchToFill) {
             newStretch = StretchAndOverflow;
+        }
+        else if (stretch == StretchAndOverflow) {
+            newStretch = PixelPerfectStretch;
+        }
+        else {
+            newStretch = PixelPerfectStretch;
         }
 
         _changeStretch(newStretch);
@@ -287,7 +315,7 @@ InputState_t Host::scanInput(){
                     case SDLK_LSHIFT:currKDown |= P8_KEY_O; break;
                     case SDLK_LALT:  currKDown |= P8_KEY_X; break;
                     case SDLK_LCTRL: currKDown |= P8_KEY_O; break;
-                    case SDLK_RCTRL: case SDLK_HOME: done = SDL_TRUE; break;
+                    case SDLK_HOME: done = SDL_TRUE; break;
                     case SDLK_ESCAPE: stretchKeyPressed = true; break;
                     default: break;
                 }
@@ -616,11 +644,11 @@ const char* Host::logFilePrefix() {
 }
 
 std::string Host::customBiosLua() {
-    return "cartpath = \"roms/pico-8/\"\n"
-        "selectbtn = \"z\"\n"
-        "pausebtn = \"esc\""
-        "exitbtn = \"close window\""
-        "sizebtn = \"\"";
+    return "cartpath = \"roms/PICO8/\"\n"
+        "selectbtn = \"a\"\n"
+        "pausebtn = \"start\""
+        "exitbtn = \"power\""
+        "sizebtn = \"select\"";
 }
 
 std::string Host::getCartDirectory() {
