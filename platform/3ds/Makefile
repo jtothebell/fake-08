@@ -75,7 +75,7 @@ CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS -DVER_STR=\"$(APP_VERSION)\"
 # enable pack in games with this platform
 # CFLAGS  +=  -DLOAD_PACK_INS
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++17
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
