@@ -40,4 +40,6 @@ platform/vita/param.sfo
 platform/SDL1_2/FAKE08
 platform/bittboy/FAKE08
 platform/miyoomini/FAKE08
+platform/gcw0/FAKE08
+platform/gcw0/fake08_gcw0.opk
 source/carts.zip

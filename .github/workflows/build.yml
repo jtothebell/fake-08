@@ -128,8 +128,28 @@ jobs:
           name: MiyooMini
           path: |
             platform/miyoomini/FAKE08
-            
+
   seventh:
+    name: Opendingux
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir jondbell/gcw0 /bin/sh -ex /build_dir/.github/workflows/buildGcw0.sh
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Gcw0
+          path: |
+            platform/gcw0/fake08_gcw0.opk
+            
+  eighth:
     name: Tests
     runs-on: ubuntu-latest
 
