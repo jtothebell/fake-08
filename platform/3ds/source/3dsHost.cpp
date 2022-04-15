@@ -57,6 +57,8 @@ uint16_t _rgb565Colors[144];
 uint32_t _rgba8Colors[144];
 Audio* _audio;
 
+u8 consoleModel = 0;
+
 static C2D_Image pico_image;
 
 C3D_Tex *pico_tex;
@@ -267,7 +269,7 @@ void audioSetup(){
 Host::Host() {
     _logFilePrefix = "sdmc:/3ds/fake08/";
 
-    _cartDirectory = "/p8carts/";
+    _cartDirectory = "/p8carts";
 
     struct stat st = {0};
 
@@ -285,6 +287,12 @@ Host::Host() {
     if (res == 0 && stat(cartdatadir.c_str(), &st) == -1) {
         res = mkdir(cartdatadir.c_str(), 0777);
     }
+	
+	string cartdir = "sdmc:" + _cartDirectory;
+	if (res == 0 && stat(cartdir.c_str(), &st) == -1) {
+        res = mkdir(cartdir.c_str(), 0777);
+    }
+	
  }
 
  void Host::setPlatformParams(
@@ -306,7 +314,14 @@ void Host::oneTimeSetup(Audio* audio){
     _audio = audio;
     audioSetup();
 
+    Result res = cfguInit();
+	if (R_SUCCEEDED(res)) {
+		CFGU_GetSystemModel(&consoleModel);
+		cfguExit();
+	}
+
     gfxInitDefault();
+    gfxSetWide(consoleModel != 3);	
     //C3D_Init(C3D_DEFAULT_CMDBUF_SIZE); default is 0x40000
     C3D_Init(0x10000);
 	//C2D_Init(C2D_DEFAULT_MAX_OBJECTS); //4096
@@ -701,14 +716,14 @@ vector<string> Host::listcarts(){
     //force to SD card root
     chdir("sdmc:/");
 
-    DIR* dir = opendir("/p8carts");
+    DIR* dir = opendir(_cartDirectory.c_str());
     struct dirent *ent;
 
     if (dir) {
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
             if (isCartFile(ent->d_name)){
-                carts.push_back(_cartDirectory + ent->d_name);
+                carts.push_back(_cartDirectory + "/" + ent->d_name);
             }
         }
         closedir (dir);

@@ -18,13 +18,28 @@ enum StretchOption {
   FourByThreeStretch
 };
 
+#if LOAD_PACK_INS
+enum PackinLoadOption {
+  Unloaded,
+  Loaded
+};
+#endif
+
 class Host {
     uint8_t currKDown;
     uint8_t currKHeld;
+	
+    bool currKBDown = false;
+	std::string currKBKey = "";
+	
     bool lDown = false;
     bool rDown = false;
     bool stretchKeyPressed = false;
+	#if LOAD_PACK_INS
+    PackinLoadOption packinloaded = Unloaded;
+	#endif
     StretchOption stretch = PixelPerfectStretch;
+	
     float scaleX = 1.0;
     float scaleY = 1.0;
     int mouseOffsetX = 0;
@@ -47,6 +62,8 @@ class Host {
 
     void setUpPaletteColors();
     void oneTimeSetup(Audio* audio);
+	
+	void unpackCarts();
     
     void setTargetFps(int targetFps);
 

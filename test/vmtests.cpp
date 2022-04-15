@@ -285,7 +285,7 @@ TEST_CASE("Vm memory functions") {
     SUBCASE("poking print attributes") {
         vm->vm_poke(0x5f58, 53);
 
-        CHECK_EQ(memory->hwState.printAttributes[0], 53);
+        CHECK_EQ(memory->hwState.printAttributes, 53);
     }
     SUBCASE("poking btnp repeat delay") {
         vm->vm_poke(0x5f5c, 10);
@@ -586,7 +586,7 @@ TEST_CASE("Vm memory functions") {
 
         CHECK(matches);
     }
-    SUBCASE("getDeserializedCartData with 0-255"){
+    SUBCASE("deserializeCartDataToMemory with 0-255"){
         vm->vm_cartdata("serializeTest");
         for(int i = 0; i < 256; i++) {
             memory->cartData[i] = 1;
@@ -631,6 +631,50 @@ TEST_CASE("Vm memory functions") {
 
         CHECK_EQ(expected, actual);
     }
+    SUBCASE("dset then getSerializedCartData with negatives returns correct values"){
+        vm->vm_cartdata("serializeTest");
+        vm->vm_dset(0, -1);
+	    vm->vm_dset(1, 1);
+	    vm->vm_dset(2, 32767);
+	    vm->vm_dset(3, -32768);
+
+        auto actual = vm->getSerializedCartData();
+
+        std::string expected = 
+            "ffff0000000100007fff00008000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n";
+
+        CHECK_EQ(expected, actual);
+    }
+    SUBCASE("deserializeCartDataToMemory with negative ints"){
+        vm->vm_cartdata("serializeTest");
+        for(int i = 0; i < 256; i++) {
+            memory->cartData[i] = 0;
+        }
+
+        std::string values = 
+            "ffff0000000100007fff00008000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n";
+
+        vm->deserializeCartDataToMemory(values);
+
+        CHECK_EQ(vm->vm_dget(0), (fix32)-1);
+        CHECK_EQ(vm->vm_dget(1), (fix32)1);
+        CHECK_EQ(vm->vm_dget(2), (fix32)32767);
+        CHECK_EQ(vm->vm_dget(3), (fix32)-32768);
+    }
     SUBCASE("SFX Note getters match expected values"){
         memory->sfx[0].notes[0].data[0] = 205;
         memory->sfx[0].notes[0].data[1] = 233;
@@ -660,6 +704,20 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ("Jcart.p8.png", sorted[1]);
         CHECK_EQ("Qcart.p8", sorted[2]);
         CHECK_EQ("Zcart.p8.png", sorted[3]);
+    }
+    SUBCASE("reset sets hw and draw state back to defaults"){
+        graphics->pal(4, 5, 0);
+        graphics->color(14);
+
+        memory->hwState.widthOfTheMap = 17;
+        memory->hwState.alternatePaletteFlag = 2;
+
+        vm->vm_reset();
+
+        CHECK_EQ(128, memory->hwState.widthOfTheMap);
+        CHECK_EQ(6, memory->drawState.color);
+        CHECK_EQ(4, graphics->getDrawPalMappedColor(4));
+        CHECK_EQ(0, memory->hwState.alternatePaletteFlag);
     }
 
     delete stubHost;

@@ -11,9 +11,10 @@
 #include "graphics.h"
 #include "Input.h"
 #include "vm.h"
+#include "PicoRam.h"
 
 //this can probably go away when I'm loading actual carts and just have to expose api to lua
-void initPicoApi(Graphics* graphics, Input* input, Vm* vm, Audio* audio);
+void initPicoApi(PicoRam* memory, Graphics* graphics, Input* input, Vm* vm, Audio* audio);
 
 //graphics api
 int cls(lua_State *L);
@@ -106,6 +107,7 @@ int _update_buttons(lua_State *L);
 int run(lua_State *L);
 int extcmd(lua_State *L);
 int load(lua_State *L);
+int reset(lua_State *L);
 
 //api.tonum(val)
 

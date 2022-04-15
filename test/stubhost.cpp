@@ -16,6 +16,9 @@ using namespace std;
 
 static uint8_t stubCurrKDown;
 static uint8_t stubCurrKHeld;
+static bool stubCurrKBdown = false;
+static std::string stubCurrKBkey = "";
+
 
 
 Host::Host() { }
@@ -44,7 +47,7 @@ void StubHost::stubInput(uint8_t kdown, uint8_t kheld) {
 }
 
 InputState_t Host::scanInput(){
-    return InputState_t {stubCurrKDown, stubCurrKHeld};
+    return InputState_t {stubCurrKDown, stubCurrKHeld, 0, 0, 0, stubCurrKBdown, stubCurrKBkey};
 }
 
 bool Host::shouldQuit() {

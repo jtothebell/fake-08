@@ -50,7 +50,7 @@ uint8_t* Graphics::GetScreenPaletteMap(){
 //start helper methods
 //based on tac08 implementation of blitter()
 void Graphics::copySpriteToScreen(
-	uint8_t spritebuffer[],
+	uint8_t* spritebuffer,
 	int scr_x,
 	int scr_y,
 	int spr_x,
@@ -194,7 +194,7 @@ void Graphics::copySpriteToScreen(
 //based on tac08 implementation of stretch_blitter()
 //uses ints so we can shift bits and do integer division instead of floating point
 void Graphics::copyStretchSpriteToScreen(
-	uint8_t spritebuffer[],
+	uint8_t* spritebuffer,
 	int spr_x,
 	int spr_y,
 	int spr_w,
@@ -204,7 +204,10 @@ void Graphics::copyStretchSpriteToScreen(
 	int scr_w,
 	int scr_h,
 	bool flip_x,
-	bool flip_y) 
+	bool flip_y,
+	//skipStretchPx is currently only used for drawing stripey mode text,
+	//so it is only used when drawing in non-flipped mode
+	bool skipStretchPx)
 {
 	if (scr_w == 0 || scr_h == 0)
 		return;
@@ -287,18 +290,31 @@ void Graphics::copyStretchSpriteToScreen(
 		dy = -dy;
 	}
 
+	int prevSprX = -1;
+	int prevSprY = -1;
+
 	//ugly duplication but see if inlining helps
 	if (hwState.colorBitmask == 0xff){
 		for (int y = 0; y < scr_h; y++) {
-			uint8_t* spr = spritebuffer + (((spr_y + y * dy) >> 16) & 0x7f) * 64;
+			int sprY = ((spr_y + y * dy) >> 16);
+			uint8_t* spr = spritebuffer + (sprY & 0x7f) * 64;
+
+			if (skipStretchPx && prevSprY == sprY){
+				continue;
+			}
+			prevSprY = sprY;
 
 			if (!flip_x) {
 				for (int x = 0; x < scr_w; x++) {
-					int pixIndex = (spr_x + x * dx);
-					int combinedPixIdx = ((pixIndex / 2) >> 16) & 0x7f;
-					uint8_t bothPix = spr[combinedPixIdx];
+					int shiftedPixIndex = (spr_x + x * dx) >> 16;
+					if (skipStretchPx && prevSprX == shiftedPixIndex){
+						continue;
+					}
+					prevSprX = shiftedPixIndex;
+					int preShiftedCombinedPixIndex = (shiftedPixIndex / 2) & 0x7f;
+					uint8_t bothPix = spr[preShiftedCombinedPixIndex];
 
-					uint8_t c = (pixIndex >> 16) % 2 == 0 
+					uint8_t c = shiftedPixIndex % 2 == 0 
 						? bothPix & 0x0f //just first 4 bits
 						: bothPix >> 4;  //just last 4 bits
 
@@ -1247,61 +1263,49 @@ fix32 Graphics::fillp(fix32 pat) {
 	return z8::fix32::frombits(prev);
 }
 
-int Graphics::print(std::string str) {
-	int result = this->print(str, _memory->drawState.text_x, _memory->drawState.text_y);
 
-	return result;
-}
+int Graphics::drawCharacter(uint8_t ch, int x, int y, uint8_t printMode) {
+	int extraCharWidth = 0;
+	if ((printMode & PRINT_MODE_ON) == PRINT_MODE_ON){
+		int scrW = 4;
+		int scrH = 5;
+		bool evenPxOnly = false;
 
-int Graphics::print(std::string str, int x, int y) {
-	return this->print(str, x, y, _memory->drawState.color);
-}
+		if ((printMode & PRINT_MODE_WIDE) == PRINT_MODE_WIDE) {
+			scrW *= 2;
+		}
+		if((printMode & PRINT_MODE_TALL) == PRINT_MODE_TALL) {
+			scrH *= 2;
+		}
+		if((printMode & PRINT_MODE_STRIPEY) == PRINT_MODE_STRIPEY) {
+			//draw every other pixel-- also kinda broken on pico 8 0.2.4 
+			evenPxOnly = true;
+		}
+		//TODO: other print modes
 
-//based on tac08 impl
-int Graphics::print(std::string str, int x, int y, uint8_t c) {
-	color(c);
+		if (ch >= 0x10 && ch < 0x80) {
+			int index = ch - 0x10;
+			copyStretchSpriteToScreen(fontSpriteData, (index % 16) * 8, (index / 16) * 8, 4, 5, x, y, scrW, scrH, false, false, evenPxOnly);
+		} else if (ch >= 0x80) {
+			int index = ch - 0x80;
+			extraCharWidth = 4;
+			copyStretchSpriteToScreen(fontSpriteData, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5, x, y, (scrW + extraCharWidth), scrH, false, false, evenPxOnly);
+			
+		}
 
-	_memory->drawState.text_x = x;
-	_memory->drawState.text_y = y;
-
-	uint8_t effectiveC = getDrawPalMappedColor(c);
-
-	//font sprite sheet has text as color 7, with 0 as transparent. We need to override
-	//these values and restore them after
-	uint8_t prevDrawPal[16];
-	for(uint8_t i = 0; i < 16; i++) {
-		prevDrawPal[i] = _memory->drawState.drawPaletteMap[i];
-		_memory->drawState.drawPaletteMap[i] = i;
 	}
-
-	_memory->drawState.drawPaletteMap[7] = effectiveC;
-	_memory->drawState.drawPaletteMap[0] = 16; //transparent
-
-
-	for (size_t n = 0; n < str.length(); n++) {
-		uint8_t ch = str[n];
+	else{
 		if (ch >= 0x10 && ch < 0x80) {
 			int index = ch - 0x10;
 			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8, 4, 5, false, false);
-			x += 4;
 		} else if (ch >= 0x80) {
 			int index = ch - 0x80;
 			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5, false, false);
-			x += 8;
-		} else if (ch == '\n') {
-			x = _memory->drawState.text_x;
-			y += 6;
+			extraCharWidth = 4;
 		}
 	}
 
-	for(int i = 0; i < 16; i++) {
-		_memory->drawState.drawPaletteMap[i] = prevDrawPal[i];
-	}
-
-	//todo: auto scrolling
-	_memory->drawState.text_y += 6;
-
-	return x;
+	return extraCharWidth;
 }
 
 void Graphics::spr(
@@ -1332,7 +1336,7 @@ void Graphics::sspr(
         bool flip_x = false,
         bool flip_y = false)
 {
-	copyStretchSpriteToScreen(GetP8SpriteSheetBuffer(), sx, sy, sw, sh, dx, dy, dw, dh, flip_x, flip_y);
+	copyStretchSpriteToScreen(GetP8SpriteSheetBuffer(), sx, sy, sw, sh, dx, dy, dw, dh, flip_x, flip_y, false);
 }
 
 bool Graphics::fget(uint8_t n, uint8_t f){
@@ -1402,19 +1406,21 @@ std::tuple<uint8_t, uint8_t, uint8_t, uint8_t> Graphics::clip(int x, int y, int 
 
 uint8_t Graphics::mget(int celx, int cely){
 	const bool bigMap = _memory->hwState.mapMemMapping >= 0x80;
+	const int bigMapLocation = _memory->hwState.mapMemMapping << 8;
+	const int mapSize = bigMap 
+		? 0x10000 - bigMapLocation
+		: 8192;
+
 	const int mapW = _memory->hwState.widthOfTheMap == 0 ? 256 : _memory->hwState.widthOfTheMap;
+	const int mapH = mapSize / mapW;
+
 	const int idx = cely * mapW + celx;
 
-	if (idx < 0) {
+	if (celx < 0 || celx > mapW || cely < 0 || cely > mapH) {
         return 0;
 	}
 	
 	if (bigMap){
-		const int mapLocation = _memory->hwState.mapMemMapping << 8;
-		const int mapSize = 0x10000 - mapLocation;
-		if (idx >= mapSize){
-			return 0;
-		}
 		const int offset = 0x8000 - mapSize;
 		return _memory->userData[offset + idx];
 	}
@@ -1432,19 +1438,21 @@ uint8_t Graphics::mget(int celx, int cely){
 
 void Graphics::mset(int celx, int cely, uint8_t snum){
 	const bool bigMap = _memory->hwState.mapMemMapping >= 0x80;
+	const int bigMapLocation = _memory->hwState.mapMemMapping << 8;
+	const int mapSize = bigMap 
+		? 0x10000 - bigMapLocation
+		: 8192;
+
 	const int mapW = _memory->hwState.widthOfTheMap == 0 ? 256 : _memory->hwState.widthOfTheMap;
+	const int mapH = mapSize / mapW;
+
 	const int idx = cely * mapW + celx;
 
-	if (idx < 0) {
+	if (celx < 0 || celx > mapW || cely < 0 || cely > mapH) {
         return;
 	}
 
 	if (bigMap){
-		const int mapLocation = _memory->hwState.mapMemMapping << 8;
-		const int mapSize = 0x10000 - mapLocation;
-		if (idx >= mapSize){
-			return;
-		}
 		const int offset = 0x8000 - mapSize;
 		_memory->userData[offset + idx] = snum;
 	}

@@ -14,7 +14,7 @@ class Graphics {
 	PicoRam* _memory;
 
 	void copySpriteToScreen(
-		uint8_t spritebuffer[],
+		uint8_t* spritebuffer,
 		int scr_x,
 		int scr_y,
 		int spr_x,
@@ -25,7 +25,7 @@ class Graphics {
 		bool flip_y);
 
 	void copyStretchSpriteToScreen(
-		uint8_t spritebuffer[],
+		uint8_t* spritebuffer,
 		int spr_x,
 		int spr_y,
 		int spr_w,
@@ -35,7 +35,8 @@ class Graphics {
 		int scr_w,
 		int scr_h,
 		bool flip_x,
-		bool flip_y);
+		bool flip_y,
+		bool skipStretchPx);
 
 	void swap(int *x, int *y);
 	void applyCameraToPoint(int *x, int *y);
@@ -108,9 +109,7 @@ class Graphics {
 
 	fix32 fillp(fix32 pat);
 
-	int print(std::string str);
-	int print(std::string str, int x, int y);
-	int print(std::string str, int x, int y, uint8_t c);
+	int drawCharacter(uint8_t ch, int x, int y, uint8_t printMode = 0);
 
 	void spr(
 		int n,

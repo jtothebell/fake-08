@@ -9,6 +9,7 @@ using namespace std;
 #include "Input.h"
 #include "vm.h"
 #include "logger.h"
+#include "printHelper.h"
 
 //extern "C" {
   #include <lua.h>
@@ -20,12 +21,16 @@ Graphics* _graphicsForLuaApi;
 Input* _inputForLuaApi;
 Vm* _vmForLuaApi;
 Audio* _audioForLuaApi;
+PicoRam* _ramForLuaApi;
 
-void initPicoApi(Graphics* graphics, Input* input, Vm* vm, Audio* audio){
+void initPicoApi(PicoRam* memory, Graphics* graphics, Input* input, Vm* vm, Audio* audio){
     _graphicsForLuaApi = graphics;
     _inputForLuaApi = input;
     _vmForLuaApi = vm;
     _audioForLuaApi = audio;
+    _ramForLuaApi = memory;
+
+    initPrintHelper(_ramForLuaApi, _graphicsForLuaApi, _vmForLuaApi, _audioForLuaApi);
 }
 
 int noop(const char * name) {
@@ -318,19 +323,19 @@ int print(lua_State *L){
     }
 
     if (numArgs < 2) {
-        newx = _graphicsForLuaApi->print(str);
+        newx = print(str);
     }
     else if (numArgs == 2) {
         uint8_t c = lua_tonumber(L,2);
 
         _graphicsForLuaApi->color(c);
-        newx = _graphicsForLuaApi->print(str);
+        newx = print(str);
     }
     else if (numArgs == 3) {
         int x = lua_tonumber(L,2);
         int y = lua_tonumber(L,3);
 
-        newx = _graphicsForLuaApi->print(str, x, y);
+        newx = print(str, x, y);
     }
     else {
         int x = lua_tonumber(L,2);
@@ -338,7 +343,7 @@ int print(lua_State *L){
 
         uint8_t c = lua_tonumber(L,4);
 
-        newx = _graphicsForLuaApi->print(str, x, y, c);
+        newx = print(str, x, y, c);
     }
 
     lua_pushinteger(L, newx);
@@ -535,7 +540,16 @@ int mset(lua_State *L) {
 }
 
 int gfx_map(lua_State *L) {
-    int celx = 0, cely = 0, sx = 0, sy = 0, celw = 128, celh = 32, argc;
+    const bool bigMap = _ramForLuaApi->hwState.mapMemMapping >= 0x80;
+	const int bigMapLocation = _ramForLuaApi->hwState.mapMemMapping << 8;
+	const int mapSize = bigMap 
+		? 0x10000 - bigMapLocation
+		: 8192;
+
+	const int mapW = _ramForLuaApi->hwState.widthOfTheMap == 0 ? 256 : _ramForLuaApi->hwState.widthOfTheMap;
+	const int mapH = mapSize / mapW;
+
+    int celx = 0, cely = 0, sx = 0, sy = 0, celw = mapW, celh = mapH, argc;
     argc = lua_gettop(L);
     if (argc > 0) {
         celx = lua_tonumber(L,1);
@@ -847,14 +861,14 @@ int stat(lua_State *L) {
             lua_pushnumber(L, _audioForLuaApi->getMusicTickCount());
             return 1;
         break;
-        //was a key pressed (always false)
+        //was a key pressed 
         case 30:
-            lua_pushboolean(L, false);
+            lua_pushboolean(L, _inputForLuaApi->getKeyDown());			
             return 1;
         break;
         //string of key pressed
         case 31:
-            lua_pushstring(L, "");
+            lua_pushstring(L, _inputForLuaApi->getKey());
             return 1;
         break;
         //mouse x
@@ -1012,7 +1026,10 @@ int poke(lua_State *L) {
     int numArgs = lua_gettop(L);
 
     int dest = lua_tonumber(L,1);
-    uint8_t val = lua_tonumber(L,2);
+    uint8_t val = 0;
+    if (numArgs > 1) {
+        val = lua_tonumber(L,2);
+    }
 
     _vmForLuaApi->vm_poke(dest, val);
 
@@ -1037,10 +1054,23 @@ int peek2(lua_State *L) {
 }
 
 int poke2(lua_State *L) {
+    int numArgs = lua_gettop(L);
+
     int dest = lua_tonumber(L,1);
-    int val = lua_tonumber(L,2);
+
+    int val = 0;
+    if (numArgs > 1) {
+        val = lua_tonumber(L,2);
+    }
 
     _vmForLuaApi->vm_poke2(dest, (int16_t)val);
+
+    if (numArgs > 2) {
+        for(int i = 1; i <= (numArgs - 2); i++) {
+            val = lua_tonumber(L, 2 + i);
+            _vmForLuaApi->vm_poke2(dest + i, (int16_t)val);
+        }
+    }
 
     return 0;
 }
@@ -1056,10 +1086,23 @@ int peek4(lua_State *L) {
 }
 
 int poke4(lua_State *L) {
+    int numArgs = lua_gettop(L);
+
     int dest = lua_tonumber(L,1);
-    fix32 val = lua_tonumber(L,2);
+
+    fix32 val = 0;
+    if (numArgs > 1) {
+        val = lua_tonumber(L,2);
+    }
 
     _vmForLuaApi->vm_poke4(dest, val);
+
+    if (numArgs > 2) {
+        for(int i = 1; i <= (numArgs - 2); i++) {
+            val = lua_tonumber(L, 2 + i);
+            _vmForLuaApi->vm_poke4(dest + i, val);
+        }
+    }
 
     return 0;
 }
@@ -1203,6 +1246,12 @@ int load(lua_State *L) {
 
         _vmForLuaApi->vm_load(filename, breadcrumb, param);
     }
+
+    return 0;
+}
+
+int reset(lua_State *L) {
+    _vmForLuaApi->vm_reset();
 
     return 0;
 }

@@ -9,7 +9,7 @@ SOURCES	:=	${SOURCES} ../SDL2Common/source source
 INCLUDES	:=	${INCLUDES}
 
 LIBS = -lSDL2 -lScePower_stub  -lSceDisplay_stub -lSceCtrl_stub -lSceAudio_stub \
-		-lSceSysmodule_stub -lSceGxm_stub -lSceCommonDialog_stub \
+		-lSceAudioIn_stub -lSceSysmodule_stub -lSceGxm_stub -lSceCommonDialog_stub \
 		-lSceAppMgr_stub -lSceTouch_stub -lSceHid_stub -lSceMotion_stub -lm
 
 CFILES   := $(foreach dir,$(SOURCES), $(wildcard $(dir)/*.c))
@@ -24,7 +24,7 @@ PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
 CXX      = $(PREFIX)-g++
 STRIP := $(PREFIX)-strip
-CFLAGS  = -g -Wl,-q -O2 -ftree-vectorize -D__VITA__ -DVER_STR=\"$(APP_VERSION)\" $(INCLUDE)
+CFLAGS  = -g -Wl,-q -O2 -ftree-vectorize -D__VITA__ -DMINIZ_NO_TIME -DVER_STR=\"$(APP_VERSION)\" $(INCLUDE)
 CXXFLAGS  = $(CFLAGS) -fexceptions -std=gnu++17 -fpermissive
 ASFLAGS = $(CFLAGS)
 
