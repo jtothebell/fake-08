@@ -122,6 +122,7 @@ int run(lua_State *L);
 int extcmd(lua_State *L);
 int load(lua_State *L);
 int reset(lua_State *L);
+int setFps(lua_State *L);
 
 //api.tonum(val)
 

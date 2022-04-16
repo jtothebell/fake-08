@@ -257,6 +257,7 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "_update_buttons", _update_buttons);
     lua_register(_luaState, "run", run);
     lua_register(_luaState, "extcmd", extcmd);
+    lua_register(_luaState, "_set_fps", setFps);
 
     //rng
     lua_register(_luaState, "rnd", rnd);
@@ -1005,6 +1006,10 @@ void Vm::vm_reset(){
     _graphics->color();
     _graphics->clip();
     _graphics->pal();
+}
+
+void Vm::setTargetFps(int targetFps){
+    _targetFps = targetFps;
 }
 
 int Vm::getFps(){
