@@ -4,6 +4,8 @@
 #include <string.h>
 #include <dirent.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include <fstream>
 #include <iostream>
@@ -210,10 +212,19 @@ Host::Host() {
 
     #else
     _cartDirectory = "/mnt/SDCARD/Roms/PICO";
-    char cwdbuf[256];
-	getcwd(cwdbuf, 255);
-	strcat(cwdbuf, "/");
-	_logFilePrefix = cwdbuf;
+	_logFilePrefix = "/mnt/SDCARD/Roms/PICO/";
+
+    struct stat st = {0};
+    int res = 0;
+
+    string cartdatadir = _logFilePrefix + "cdata";
+    if (stat(cartdatadir.c_str(), &st) == -1) {
+        res = mkdir(cartdatadir.c_str(), 0777);
+    }
+
+    if (res != 0){
+        Logger_Write("error creating cdata directory. Cart data will not save.\n");
+    }
     #endif
 
  }
