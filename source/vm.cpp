@@ -535,8 +535,14 @@ void Vm::UpdateAndDraw() {
         // Push the _update function on the top of the lua stack
         if (_targetFps == 60) {
             lua_getglobal(_luaState, "_update60");
+            if (!lua_isfunction(_luaState, -1)) {
+                lua_getglobal(_luaState, "_update");
+            }
         } else {
             lua_getglobal(_luaState, "_update");
+            if (!lua_isfunction(_luaState, -1)) {
+                lua_getglobal(_luaState, "_update60");
+            }
         }
 
         if (lua_isfunction(_luaState, -1)) {
