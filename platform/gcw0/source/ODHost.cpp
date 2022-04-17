@@ -3,6 +3,9 @@
 #include <string.h>
 #include <dirent.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 
 #include <fstream>
 #include <iostream>
@@ -196,6 +199,14 @@ Host::Host() {
     _cartDirectory = home + "/p8carts";
     _logFilePrefix = home + "/fake08";
     #endif
+
+    struct stat st = {0};
+    int res = 0;
+
+    string cartdatadir = _logFilePrefix + "cdata";
+    if (stat(cartdatadir.c_str(), &st) == -1) {
+        res = mkdir(cartdatadir.c_str(), 0777);
+    }
  }
 
 void Host::oneTimeSetup(Audio* audio){
