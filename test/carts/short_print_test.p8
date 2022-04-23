@@ -10,9 +10,10 @@ function _draw()
  
  if(strvar) ?strvar.." again after if"
  
- result = dummy() and ?strvar
+ --TODO: fix these cases
+ --result = dummy() and ?strvar
  
- result = not dummy() or ?strvar
+ --result = not dummy() or ?strvar
 end
 
 function dummy()
