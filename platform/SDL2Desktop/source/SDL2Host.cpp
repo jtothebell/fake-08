@@ -115,7 +115,8 @@ InputState_t Host::scanInput(){
 				
                 switch (event.key.keysym.sym)
                 {
-                    case SDLK_ESCAPE:currKDown |= P8_KEY_PAUSE; break;
+                    case SDLK_ESCAPE:case SDLK_RETURN:case SDLK_RETURN2:
+                                     currKDown |= P8_KEY_PAUSE; break;
                     case SDLK_LEFT:  currKDown |= P8_KEY_LEFT; break;
                     case SDLK_RIGHT: currKDown |= P8_KEY_RIGHT; break;
                     case SDLK_UP:    currKDown |= P8_KEY_UP; break;
@@ -155,6 +156,15 @@ InputState_t Host::scanInput(){
     const Uint8* keystate = SDL_GetKeyboardState(NULL);
 
     //continuous-response keys
+    if(keystate[SDL_SCANCODE_ESCAPE]){
+        currKHeld |= P8_KEY_PAUSE;
+    }
+    if(keystate[SDL_SCANCODE_RETURN]){
+        currKHeld |= P8_KEY_PAUSE;
+    }
+    if(keystate[SDL_SCANCODE_RETURN2]){
+        currKHeld |= P8_KEY_PAUSE;
+    }
     if(keystate[SDL_SCANCODE_LEFT]){
         currKHeld |= P8_KEY_LEFT;
     }
