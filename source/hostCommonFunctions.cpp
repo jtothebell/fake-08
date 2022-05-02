@@ -21,7 +21,7 @@ CSimpleIniA settingsIni;
 std::string defaultIni =
 "[settings]\n"
 "stretch = 1\n"
-"resizekey = 0\n"
+"resizekey = 1\n"
 "kbmode = 0\n"
 "menustyle = 1\n"
 "bgcolor = 0\n";
