@@ -1347,6 +1347,15 @@ int setsetting(lua_State *L) {
 }
 
 
+
+int installpackins(lua_State *L) {
+    #if LOAD_PACK_INS
+	_vmForLuaApi->installPackins();
+	#endif
+    return 1;
+}
+
+
 int loadlabel(lua_State *L) {
 	
 	const char * cartname = "";

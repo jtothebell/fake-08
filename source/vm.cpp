@@ -176,6 +176,9 @@ bool Vm::loadCart(Cart* cart) {
 	//settings
 	lua_register(_luaState, "__getsetting", getsetting);
 	lua_register(_luaState, "__setsetting", setsetting);
+	
+	lua_register(_luaState, "__installpackins", installpackins);
+	
 	//label
 	lua_register(_luaState, "__loadlabel", loadlabel);
 	
@@ -1076,6 +1079,17 @@ void Vm::setSetting(std::string sname, int sval) {
 	_host->setSetting(sname,sval);
 	
 }
+
+
+void Vm::installPackins() {
+    #if LOAD_PACK_INS
+	_host->setSetting("packinloaded",0);
+	_host->unpackCarts();
+	#endif
+}
+
+
+
 
 void Vm::loadLabel(std::string filename, bool mini, int minioffset) {
 	

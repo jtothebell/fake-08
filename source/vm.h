@@ -150,6 +150,8 @@ class Vm {
 	int getSetting(string sname);
 	void setSetting(string sname, int sval);
 	
+	void installPackins();
+	
 	//label
 	void loadLabel(string filename, bool mini, int minioffset);
 	

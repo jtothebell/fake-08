@@ -105,6 +105,8 @@ int resetcart(lua_State *L);
 int getsetting(lua_State *L);
 int setsetting(lua_State *L);
 
+int installpackins(lua_State *L);
+
 //label
 
 int loadlabel(lua_State *L);

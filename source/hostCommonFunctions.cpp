@@ -293,6 +293,13 @@ void Host::setSetting(std::string sname, int sval) {
 		Logger_Write("setting bgcolor\n");
 		bgcolor = (BgColorOption) sval;
 		
+	}else if(sname == "packinloaded"){
+		Logger_Write("setting packinloaded\n");
+		
+		#if LOAD_PACK_INS
+		packinloaded = (PackinLoadOption) sval;
+		#endif
+		
 	}else{
 		Logger_Write("Setting ");
 		Logger_Write(sname.c_str());
