@@ -72,7 +72,7 @@ function _init()
 			{
 				name = 'menu style',
 				vn = 'menustyle',
-				ch ={'classic','fancy','splore'}
+				ch ={'classic','fancy','list'}
 			},
 			{
 				name = 'bg color',

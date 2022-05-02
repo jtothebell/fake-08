@@ -218,7 +218,7 @@ function fancy_init()
 
 end
 
-function updatecarts()
+function fancy_updatecarts()
 	for i,v in ipairs(carts) do
 		if v.id >= cpos -1 and v.id <= cpos+1 then
 			v.visible = true
@@ -248,11 +248,11 @@ function fancy_update()
 		elseif #carts > 0 then
 			if btnp(➡️) then
 				cpos = (cpos + 1)%numcarts
-				updatecarts()
+				fancy_updatecarts()
 			end
 			if btnp(⬅️) then
 				cpos = (cpos - 1)%numcarts
-				updatecarts()
+				fancy_updatecarts()
 			end
 			dcpos = (cpos*0.5 + dcpos*1.5) / 2
 			
@@ -267,38 +267,37 @@ function fancy_update()
 		
 		local i = loadnumber
 		local v = cartnames[i]
-		
-		local newcart = {}
-		newcart.name = v
-		newcart.id = i - 1
-		newcart.sprite = newcart.id%4
-		newcart.text = {"a","e"}
-		
-		if __getlualine then
-			for linei = 0,1 do
-				local l = __getlualine(v,linei)
+		if loadnumber <= loadtotal then
+			local newcart = {}
+			newcart.name = v
+			newcart.id = i - 1
+			newcart.sprite = newcart.id%4
+			newcart.text = {"a","e"}
+			
+			if __getlualine then
+				local l = __getlualine(v,0)
 				if sub(l,1,2) == '--' then
 					l = sub(l,3,#l)
 					if sub(l,1,1) == ' ' then
 						l = sub(l,2,#l)
 					end
-					newcart.text[linei+1] = l
+					newcart.text[2] = l
+					newcart.text[1] = v
 				else
-					newcart.text[linei+1] = v
+					newcart.text[1] = v
+					newcart.text[2] = ''
 				end
+			else
+				newcart.text[1] = v
+				newcart.text[2] = 'name'
 			end
+			printh(newcart.text[1])
+			
+			add(carts,newcart)
+			
+			loadnumber += 1
 		else
-			newcart.text[1] = v
-			newcart.text[2] = v
-		end
-		printh(newcart.text[1])
-		
-		add(carts,newcart)
-		
-		loadnumber += 1
-		
-		if loadnumber > loadtotal then
-			updatecarts()
+			fancy_updatecarts()
 			loading = false
 		end
 		
@@ -306,7 +305,7 @@ function fancy_update()
 	
 end
 
-function drawcart(v)
+function fancy_drawcart(v)
 	local cartx = (v.id-dcpos+1)*44+4
 	local carty = 60
 	local textx = cartx +16
@@ -370,7 +369,7 @@ function fancydrawmain()
 	if not loading then
 		if #carts > 0 then
 			for i,v in ipairs(carts) do
-				drawcart(v)
+				fancy_drawcart(v)
 			end
 			--rect(44,44,83,83,7)
 			--print(carts[cpos+1].name,0,0,textcolor)
@@ -418,26 +417,267 @@ end
 
 
 -->8
+--list
+
+function list_init()
+	carts={}
+	numcarts = 0
+	
+	usestring = true
+	
+	showerror = false
+	bioserror = ''
+	errortable = {'error! press ❎ to close.'}
+	if __getbioserror then
+		bioserror = __getbioserror()
+	end
+	
+	if bioserror != '' then
+		showerror = true
+		while true do
+			if #bioserror >= 26 then
+				add(errortable,sub(bioserror,1,26))
+				bioserror = sub(bioserror,27,-1)
+			else
+				add(errortable,bioserror)
+				break
+			end
+		end
+	end
+	
+	if __getsetting then
+			bgcolor = __getsetting('p8_bgcolor')
+			textcolor = __getsetting('p8_textcolor')
+	else
+		bgcolor=1
+		textcolor = 7
+	end
+	
+	if bgcolor == 1 or bgcolor == 0 then
+		bgcolor = 13
+	end
+	
+	
+	cidx=0
+	carttoload = ""
+	t=0
+	linebuffer=""
+	
+	
+	runcmd=false
+	
+	cpos = 0
+	dcpos = 0
+	
+	if __listcarts then
+		cartnames = __listcarts()
+		numcarts = #cartnames
+	else
+		--cartnames = {'cart1.p8','cart2.p8.png','thirdcart.p8','cart4.p8','5cart.p8','c6.p8','theseventhcart.p8.png'}
+		cartnames = {}
+		numcarts = #cartnames
+		usestring = false
+	end
+	
+	loading = true
+	
+	loadtotal = #cartnames
+	loadnumber = 1
+	
+
+	
+
+
+end
+
+function list_updatecarts()
+	for i,v in ipairs(carts) do
+		if v.id == cpos and not v.visible then
+			v.visible = true
+			
+			if __loadlabel then
+				__loadlabel(v.name,false,0)
+			end
+		
+		else
+			v.visible = false
+		end
+		if v.id == cpos then
+			carttoload = v.name
+		end
+	end
+end
+
+function list_update()
+	if not loading then
+		if showerror then
+			if btnp(❎) then
+				showerror = false
+			end
+		elseif #carts > 0 then
+			if btnp(⬇️) then
+				cpos = (cpos + 1)%numcarts
+				list_updatecarts()
+			end
+			if btnp(⬆️) then
+				cpos = (cpos - 1)%numcarts
+				list_updatecarts()
+			end
+			if btnp(⬅️) then
+				cpos = (cpos - 7)%numcarts
+				list_updatecarts()
+			end
+			if btnp(➡️) then
+				cpos = (cpos + 7)%numcarts
+				list_updatecarts()
+			end
+			dcpos = (cpos*0.5 + dcpos*1.5) / 2
+			
+			if btnp(❎) then
+				if load and carttoload then
+					load(carttoload)
+				end
+			end
+		end
+	else
+		
+		
+		local i = loadnumber
+		local v = cartnames[i]
+		if loadnumber <= loadtotal then
+			local newcart = {}
+			newcart.name = v
+			newcart.id = i - 1
+			newcart.sprite = newcart.id%4
+			newcart.text = {"a","e"}
+			newcart.visible = false
+			
+			if __getlualine then
+				local l = __getlualine(v,0)
+				if sub(l,1,2) == '--' then
+					l = sub(l,3,#l)
+					if sub(l,1,1) == ' ' then
+						l = sub(l,2,#l)
+					end
+					newcart.text[2] = l
+					newcart.text[1] = v
+				else
+					newcart.text[1] = v
+					newcart.text[2] = ''
+				end
+			else
+				newcart.text[1] = v
+				newcart.text[2] = 'name'
+			end
+			
+			add(carts,newcart)
+			
+			loadnumber += 1
+		else
+			list_updatecarts()
+			loading = false
+		end
+		
+	end
+	
+end
+
+
+
+function listdrawbg()
+	rectfill(0,0,128,128,bgcolor)
+	spr(0,0,0,16,16)
+	clip(10,72,108,56)
+	pal(darkenpal)
+	spr(0,0,0,16,16)
+	pal()
+end
+
+
+function list_draw()
+	cls()
+	
+	
+	
+	
+	if not loading then
+		clip()
+		pal()
+		palt(0,false)
+		listdrawbg()
+		if showerror then
+			rect(9,9,118,118,7)
+			pal(darkenpal)
+			clip(10,10,108,108)
+			spr(0,0,0,16,16)
+			pal()
+			for i,v in ipairs(errortable) do
+				print(v,12,i*8+4,7)
+			end
+			
+			
+		else
+			print(cartpath,12,74,7)
+			line(12,81,116,81,6)
+			
+			
+			if #carts > 0 then
+				clip(12,82,106,46)
+				for i,v in ipairs(carts) do
+					local drawpos = (i - 1 - dcpos)*7+0.5
+					if cpos + 1 == i then
+						
+						local hoffset = 16 + #v.text[1]*4
+						
+						rectfill(12,99 + drawpos,hoffset,105+drawpos,bgcolor)
+						
+						rectfill(hoffset,99+drawpos,hoffset + (#v.text[2])*4+6,105+drawpos,textcolor)
+						
+						print(v.text[2],hoffset+4,100+drawpos,bgcolor)
+						
+						rect(0,98+drawpos,128,106+drawpos,0)
+						
+						color(textcolor)
+					else
+						color(7)
+					end
+					print(v.text[1],13,100+drawpos)
+				end
+			else
+				print('no carts found!',14,86,7)
+			end
+		end
+	else
+		rectfill(0,0,128,128,bgcolor)
+		color(textcolor)
+		print('loading carts',37,50)
+		local lstr = loadnumber .. ' / ' .. loadtotal
+		print(lstr,64 - (#lstr*2),60)
+	end
+end
+
+
+-->8
 --runner
 
-inits = {classic_init,fancy_init}
+inits = {classic_init,fancy_init,list_init}
 function _init()
 	if __getsetting then
 		theme = __getsetting('menustyle')
 	else
-		theme = 1
+		theme = 2
 	end
 	theme = theme % #inits --don't load a nonexistant menu style
 	
 	inits[theme+1]()
 end
 
-updates = {classic_update,fancy_update}
+updates = {classic_update,fancy_update,list_update}
 function _update60()
 	updates[theme+1]()
 end
 
-draws = {classic_draw,fancy_draw}
+draws = {classic_draw,fancy_draw,list_draw}
 function _draw()	
 	draws[theme+1]()
 end
