@@ -189,6 +189,8 @@ void _changeStretch(StretchOption newStretch){
 
 
 
+
+
 Host::Host() {
     #ifdef _GCW0
     _cartDirectory = "/media/sdcard/roms/PICO8";
@@ -305,6 +307,15 @@ void Host::changeStretch(){
         mouseOffsetX = DestR.x;
         mouseOffsetY = DestR.y;
     }
+}
+
+void Host::forceStretch(StretchOption newStretch) {
+	_changeStretch(newStretch);
+	stretch = newStretch;
+	scaleX = _screenWidth / (float)PicoScreenWidth;
+	scaleY = _screenHeight / (float)PicoScreenHeight;
+	mouseOffsetX = DestR.x;
+	mouseOffsetY = DestR.y;
 }
 
 InputState_t Host::scanInput(){
