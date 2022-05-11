@@ -66,7 +66,7 @@ class Vm {
     ~Vm();
 
     void LoadBiosCart();
-	
+    
     void LoadSettingsCart();
 
     void LoadCart(string filename);
@@ -145,18 +145,18 @@ class Vm {
     int getHour();
     int getMinute();
     int getSecond();
-	
-	//settings
-	int getSetting(string sname);
-	void setSetting(string sname, int sval);
-	
-	void installPackins();
-	
-	//label
-	void loadLabel(string filename, bool mini, int minioffset);
-	
-	string getLuaLine(string filename, int linenumber);
-	
+    
+    //settings
+    int getSetting(string sname);
+    void setSetting(string sname, int sval);
+    
+    void installPackins();
+    
+    //label
+    void loadLabel(string filename, bool mini, int minioffset);
+    
+    string getLuaLine(string filename, int linenumber);
+    
     string getCartBreadcrumb();
     string getCartParam();
 };
