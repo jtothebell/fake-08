@@ -1291,6 +1291,12 @@ int loadbioscart(lua_State *L) {
     return 0;
 }
 
+int loadsettingscart(lua_State *L) {
+    _vmForLuaApi->QueueCartChange("__FAKE08-SETTINGS.p8");
+
+    return 0;
+}
+
 int togglepausemenu(lua_State *L) {
     _vmForLuaApi->togglePauseMenu();
 
@@ -1301,4 +1307,83 @@ int resetcart(lua_State *L) {
     _vmForLuaApi->QueueCartChange(_vmForLuaApi->CurrentCartFilename());
 
     return 0;
+}
+
+
+int getsetting(lua_State *L) {
+    //get setting from host
+	
+	const char * str = "";
+	if (lua_isstring(L, 1)){
+        str = lua_tolstring(L, 1, nullptr);
+    }
+	Logger_Write("loading setting ");
+	Logger_Write(str);
+	Logger_Write("\n");
+	//std::string sname = str;
+	
+	int val = _vmForLuaApi->getSetting(str);
+	
+	lua_pushnumber(L, val);
+
+    return 1;
+}
+
+int setsetting(lua_State *L) {
+    //get setting from host
+	const char * str = "";
+	if (lua_isstring(L, 1)){
+        str = lua_tolstring(L, 1, nullptr);
+    }
+	Logger_Write("setting setting ");
+	Logger_Write(str);
+	Logger_Write("\n");
+	
+	int sval = lua_tonumber(L,2);
+	
+	_vmForLuaApi->setSetting(str,sval);
+	
+    return 1;
+}
+
+
+
+int installpackins(lua_State *L) {
+    #if LOAD_PACK_INS
+	_vmForLuaApi->installPackins();
+	#endif
+    return 1;
+}
+
+
+int loadlabel(lua_State *L) {
+	
+	const char * cartname = "";
+	if (lua_isstring(L, 1)){
+        cartname = lua_tolstring(L, 1, nullptr);
+    }
+	std::string filename = cartname;
+	
+	bool mini = lua_toboolean(L,2);
+	int minioffset = lua_tonumber(L,3);
+	
+	_vmForLuaApi->loadLabel(filename, mini, minioffset);
+	return 1;
+}
+
+
+int getlualine(lua_State *L) {	
+	const char * cartname = "";
+	if (lua_isstring(L, 1)){
+        cartname = lua_tolstring(L, 1, nullptr);
+    }
+	std::string filename = cartname;
+	
+	int linenumber = lua_tonumber(L,2);
+	
+	std::string resultstring = _vmForLuaApi->getLuaLine(filename, linenumber);
+	
+	lua_pushstring(L, resultstring.c_str());
+	
+	return 1;
 }

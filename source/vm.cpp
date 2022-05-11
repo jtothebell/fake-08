@@ -15,12 +15,15 @@
 #include "graphics.h"
 #include "fontdata.h"
 #include "cart.h"
+#include "stringToDataHelpers.h"
 #include "picoluaapi.h"
 #include "logger.h"
 #include "Input.h"
 #include "p8GlobalLuaFunctions.h"
 #include "hostVmShared.h"
 #include "emojiconversion.h"
+
+#include "NoLabel.h"
 
 //extern "C" {
   #include <lua.h>
@@ -32,6 +35,7 @@
 using namespace z8;
 
 static const char BiosCartName[] = "__FAKE08-BIOS.p8";
+static const char SettingsCartName[] = "__FAKE08-SETTINGS.p8";
 
 Vm::Vm(
     Host* host,
@@ -164,10 +168,22 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "__listcarts", listcarts);
     lua_register(_luaState, "__getbioserror", getbioserror);
     lua_register(_luaState, "__loadbioscart", loadbioscart);
+    lua_register(_luaState, "__loadsettingscart", loadsettingscart);
     lua_register(_luaState, "__togglepausemenu", togglepausemenu);
     lua_register(_luaState, "__resetcart", resetcart);
     lua_register(_luaState, "load", load);
-
+	
+    //settings
+    lua_register(_luaState, "__getsetting", getsetting);
+    lua_register(_luaState, "__setsetting", setsetting);
+    
+    lua_register(_luaState, "__installpackins", installpackins);
+    
+    //label
+    lua_register(_luaState, "__loadlabel", loadlabel);
+    
+    lua_register(_luaState, "__getlualine", getlualine);
+    
     //register global functions first, they will get local aliases when
     //the rest of the api is registered
     //graphics
@@ -286,6 +302,23 @@ bool Vm::loadCart(Cart* cart) {
         //trigger closing of cart and reload of bios
         return false;
     }
+    
+    #if LOAD_PACK_INS
+    if(cart->FullCartPath == SettingsCartName){
+        
+        std::string enablepackins = "showpackinoptions = true";
+        int doStrRes = luaL_dostring(_luaState, enablepackins.c_str());
+
+        if (doStrRes != LUA_OK){
+            //bad lua passed
+            Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
+            lua_pop(_luaState, 1);
+        }
+        
+        
+    }
+    
+    #endif
 
     // Push the _init function on the top of the lua stack (or nil if it doesn't exist)
     lua_getglobal(_luaState, "_init");
@@ -315,7 +348,7 @@ bool Vm::loadCart(Cart* cart) {
 
 
     //customize bios per host's requirements
-    if (cart->FullCartPath == BiosCartName) {
+    if (cart->FullCartPath == BiosCartName || cart->FullCartPath == SettingsCartName) {
         std::string customBiosLua = _host->customBiosLua();
 
         if (customBiosLua.length() > 0) {
@@ -340,8 +373,19 @@ bool Vm::loadCart(Cart* cart) {
 
 void Vm::LoadBiosCart(){
     CloseCart();
-
     Cart *cart = new Cart(BiosCartName, "");
+
+    bool success = loadCart(cart);
+
+    if (!success) {
+        CloseCart();
+    }
+}
+
+void Vm::LoadSettingsCart(){
+    CloseCart();
+
+    Cart *cart = new Cart(SettingsCartName, "");
 
     bool success = loadCart(cart);
 
@@ -353,6 +397,10 @@ void Vm::LoadBiosCart(){
 void Vm::LoadCart(std::string filename){
     if (filename == "__FAKE08-BIOS.p8") {
         LoadBiosCart();
+        return;
+    }
+    if (filename == "__FAKE08-SETTINGS.p8") {
+        LoadSettingsCart();
         return;
     }
     Logger_Write("Loading cart %s\n", filename.c_str());
@@ -584,33 +632,33 @@ string Vm::GetBiosError() {
 
 void Vm::GameLoop() {
     while (_host->shouldRunMainLoop())
-	{
-		//shouldn't need to set this every frame
-		_host->setTargetFps(_targetFps);
+    {
+        //shouldn't need to set this every frame
+        _host->setTargetFps(_targetFps);
 
-		//is this better at the end of the loop?
-		_host->waitForTargetFps();
+        //is this better at the end of the loop?
+        _host->waitForTargetFps();
 
-		if (_host->shouldQuit()) break; // break in order to return to hbmenu
-		//this should probably be handled just in the host class
-		_host->changeStretch();
+        if (_host->shouldQuit()) break; // break in order to return to hbmenu
+        //this should probably be handled just in the host class
+        _host->changeStretch();
 
-		//update buttons needs to be callable from the cart, and also flip
-		//it should update call the pico part of scanInput and set the values in memory
-		//then we don't need to pass them in here
-		UpdateAndDraw();
+        //update buttons needs to be callable from the cart, and also flip
+        //it should update call the pico part of scanInput and set the values in memory
+        //then we don't need to pass them in here
+        UpdateAndDraw();
 
-		uint8_t* picoFb = GetPicoInteralFb();
-		uint8_t* screenPaletteMap = GetScreenPaletteMap();
+        uint8_t* picoFb = GetPicoInteralFb();
+        uint8_t* screenPaletteMap = GetScreenPaletteMap();
 
-		_host->drawFrame(picoFb, screenPaletteMap, _memory->drawState.drawMode);
+        _host->drawFrame(picoFb, screenPaletteMap, _memory->drawState.drawMode);
 
-		if (_host->shouldFillAudioBuff()) {
-			FillAudioBuffer(_host->getAudioBufferPointer(), 0, _host->getAudioBufferSize());
+        if (_host->shouldFillAudioBuff()) {
+            FillAudioBuffer(_host->getAudioBufferPointer(), 0, _host->getAudioBufferSize());
 
-			_host->playFilledAudioBuffer();
-		}
-	}
+            _host->playFilledAudioBuffer();
+        }
+    }
 }
 
 bool Vm::ExecuteLua(string luaString, string callbackFunction){
@@ -731,10 +779,10 @@ bool Vm::vm_cartdata(string key) {
     //todo: validate hex format
     if (cartDataStr.length() > 0) {
         deserializeCartDataToMemory(cartDataStr);
-		return true;
+        return true;
     } else {
-		return false;
-	}
+        return false;
+    }
 
     //call host to get current cart data and init- set memory
     //file name should match pico 8: {key}.p8d.txt in the cdata directory
@@ -862,7 +910,7 @@ void Vm::update_buttons() {
     _input->SetState(inputState.KDown, inputState.KHeld);
     if (_memory->drawState.devkitMode) {
         _input->SetMouse(inputState.mouseX, inputState.mouseY, inputState.mouseBtnState);
-		_input->SetKeyboard(inputState.KBdown,inputState.KBkey);
+        _input->SetKeyboard(inputState.KBdown,inputState.KBkey);
     }
     else {
         _input->SetMouse(0, 0, 0);
@@ -896,8 +944,8 @@ void Vm::vm_flip() {
 
         _host->setTargetFps(_targetFps);
 
-		uint8_t* picoFb = GetPicoInteralFb();
-		uint8_t* screenPaletteMap = GetScreenPaletteMap();
+        uint8_t* picoFb = GetPicoInteralFb();
+        uint8_t* screenPaletteMap = GetScreenPaletteMap();
 
         if (_pauseMenu){
             //pause menu probably needs refactor out of lua. For now this is better than just quitting
@@ -910,10 +958,10 @@ void Vm::vm_flip() {
             lua_pop(_luaState, 0);
         }
 
-		_host->drawFrame(picoFb, screenPaletteMap, _memory->drawState.drawMode);
+        _host->drawFrame(picoFb, screenPaletteMap, _memory->drawState.drawMode);
 
         //is this better at the end of the loop?
-		_host->waitForTargetFps();
+        _host->waitForTargetFps();
     }
 }
 
@@ -1016,4 +1064,65 @@ std::string Vm::getCartBreadcrumb() {
 
 std::string Vm::getCartParam() {
     return _cartParam;
+}
+
+
+//settings 
+int Vm::getSetting(std::string sname) {
+    
+    return _host->getSetting(sname);
+    
+}
+
+void Vm::setSetting(std::string sname, int sval) {
+    
+    _host->setSetting(sname,sval);
+    
+}
+
+
+void Vm::installPackins() {
+    #if LOAD_PACK_INS
+    _host->setSetting("packinloaded",0);
+    _host->unpackCarts();
+    #endif
+}
+
+
+
+
+void Vm::loadLabel(std::string filename, bool mini, int minioffset) {
+    
+    auto cartDir = _host->getCartDirectory();
+    Cart *labelcart = new Cart(filename, cartDir);
+    std::string labelstr = labelcart->LabelString;
+    if(labelstr.length() == 0){
+        labelstr = NoLabelString;
+    }
+    if (mini) {
+        copy_mini_label_to_sprite_memory(_memory->spriteSheetData, labelstr, minioffset);
+    } else {
+        copy_string_to_sprite_memory(_memory->spriteSheetData, labelstr);
+    }
+    delete labelcart;
+    
+}
+
+std::string Vm::getLuaLine(string filename, int linenumber) {
+    
+    auto cartDir = _host->getCartDirectory();
+    Cart *luacart = new Cart(filename, cartDir);
+    std::string luastr = luacart->LuaString;
+    
+    std::string line;
+    std::istringstream luastream(luastr);
+    
+    while (linenumber-- >= 0){
+        std::getline(luastream,line);
+    }
+    
+    delete luacart;
+    
+    return line;
+    
 }

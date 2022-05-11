@@ -412,7 +412,7 @@ void Host::setTargetFps(int targetFps){
 }
 
 void Host::changeStretch(){
-    if (currKDown32 & KEY_SELECT) {
+    if ((currKDown32 & KEY_SELECT) && resizekey == YesResize) {
         if (stretch == PixelPerfect) {
             stretch = StretchToFit;
             mouseOffsetX = (__3ds_BottomScreenWidth - __3ds_BottomScreenHeight) / 2;
@@ -452,6 +452,10 @@ void Host::changeStretch(){
         setRenderParamsFromStretch(stretch);
 
     }
+}
+
+void Host::forceStretch(StretchOption newStretch) {
+	setRenderParamsFromStretch(stretch);
 }
 
 InputState_t Host::scanInput(){
@@ -680,6 +684,8 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
                 flipHorizontal,
                 flipVertical);
         }
+		
+		//keyboard goes here probably
 
 		C2D_Flush();
 

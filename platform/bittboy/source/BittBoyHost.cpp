@@ -254,7 +254,7 @@ void Host::setTargetFps(int targetFps){
 }
 
 void Host::changeStretch(){
-    if (stretchKeyPressed) {
+    if (stretchKeyPressed && resizekey == YesResize) {
         StretchOption newStretch = stretch;
 
         if (stretch == StretchAndOverflow) {
@@ -278,6 +278,15 @@ void Host::changeStretch(){
         mouseOffsetX = DestR.x;
         mouseOffsetY = DestR.y;
     }
+}
+
+void Host::forceStretch(StretchOption newStretch) {
+	_changeStretch(newStretch);
+	stretch = newStretch;
+	scaleX = _screenWidth / (float)PicoScreenWidth;
+	scaleY = _screenHeight / (float)PicoScreenHeight;
+	mouseOffsetX = DestR.x;
+	mouseOffsetY = DestR.y;
 }
 
 InputState_t Host::scanInput(){

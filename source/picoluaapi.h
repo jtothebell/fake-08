@@ -96,8 +96,22 @@ int listcarts(lua_State *L);
 
 int getbioserror(lua_State *L);
 int loadbioscart(lua_State *L);
+int loadsettingscart(lua_State *L);
 int togglepausemenu(lua_State *L);
 int resetcart(lua_State *L);
+
+//settings functions
+
+int getsetting(lua_State *L);
+int setsetting(lua_State *L);
+
+int installpackins(lua_State *L);
+
+//label
+
+int loadlabel(lua_State *L);
+
+int getlualine(lua_State *L);
 
 //system functions
 

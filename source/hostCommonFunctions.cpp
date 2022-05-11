@@ -18,6 +18,14 @@ using namespace std;
 
 CSimpleIniA settingsIni;
 
+std::string defaultIni =
+"[settings]\n"
+"stretch = 1\n"
+"resizekey = 1\n"
+"kbmode = 0\n"
+"menustyle = 1\n"
+"bgcolor = 0\n";
+
 void Host::setUpPaletteColors(){
     _paletteColors[0] = COLOR_00;
 	_paletteColors[1] = COLOR_01;
@@ -63,7 +71,7 @@ Color* Host::GetPaletteColors(){
 }
 
 void Host::unpackCarts(){
-	
+
 	#if LOAD_PACK_INS
 	if(packinloaded == Unloaded){
 		Logger_Write("unzipping pack in carts to p8carts\n");
@@ -118,18 +126,19 @@ void Host::unpackCarts(){
 
 void Host::loadSettingsIni(){
     std::string settingsIniStr = get_file_contents(_logFilePrefix + "settings.ini");
-
+	
 	//File does not exist, fill string with defaults
 	if(settingsIniStr.length() == 0 ){
 		#if LOAD_PACK_INS
-        settingsIniStr = "[settings]\nstretch = 1\npackinloaded = 0\n";
+        settingsIniStr = defaultIni + "packinloaded = 0\n";
 		#else
-		settingsIniStr = "[settings]\nstretch = 1\n";
+		settingsIniStr = defaultIni;
 		#endif
 	}
 
     settingsIni.LoadData(settingsIniStr);
-
+	
+	//stretch
     long stretchSetting = settingsIni.GetLongValue("settings", "stretch", (long)PixelPerfectStretch);
     if (stretchSetting <= (int)AltScreenStretch){
         stretch = (StretchOption) stretchSetting;
@@ -139,14 +148,39 @@ void Host::loadSettingsIni(){
 	long packinloadedSetting = settingsIni.GetLongValue("settings", "packinloaded", (long)Unloaded);
 	packinloaded = (PackinLoadOption) packinloadedSetting;
 	#endif
+	
+	//resize hotkey
+	long resizekeySetting = settingsIni.GetLongValue("settings", "resizekey", (long)NoResize);
+	resizekey = (ResizekeyOption) resizekeySetting;
+	
+	//kbmode
+    long kbmodeSetting = settingsIni.GetLongValue("settings", "kbmode", (long)Emoji);
+	kbmode = (KeyboardOption) kbmodeSetting;
+	
+	//bgcolor
+	long menustyleSetting = settingsIni.GetLongValue("settings", "menustyle", (long)Fancy);
+	menustyle = (MenuStyleOption) menustyleSetting;
+	
+	//bgcolor
+	long bgcolorSetting = settingsIni.GetLongValue("settings", "bgcolor", (long)Gray);
+	bgcolor = (BgColorOption) bgcolorSetting;
 }
 
 void Host::saveSettingsIni(){
     //write out settings to persist
+	
     settingsIni.SetLongValue("settings", "stretch", stretch);
+	
 	#if LOAD_PACK_INS
     settingsIni.SetLongValue("settings", "packinloaded", packinloaded);
 	#endif
+	
+    settingsIni.SetLongValue("settings", "resizekey", resizekey);
+	
+    settingsIni.SetLongValue("settings", "kbmode", kbmode);
+    settingsIni.SetLongValue("settings", "menustyle", menustyle);
+    settingsIni.SetLongValue("settings", "bgcolor", bgcolor);
+	
     std::string settingsIniStr = "";
     settingsIni.Save(settingsIniStr, false);
 
@@ -181,4 +215,95 @@ void Host::saveCartData(std::string cartDataKey, std::string contents) {
         
         fclose(file);
 	}
+}
+
+//settings
+
+int Host::getSetting(std::string sname) {
+    
+	if(sname == "kbmode"){ //why cant you use strings in switch statements in c++ :(
+		Logger_Write("Returning KB mode setting\n");
+		return kbmode;
+	}else if(sname == "resizekey"){
+		Logger_Write("Returning resize key setting\n");
+		return resizekey;
+	}else if(sname == "stretch"){
+		Logger_Write("Returning Stretch setting\n");
+		return stretch;
+	}else if(sname == "menustyle"){
+		Logger_Write("Returning menu style setting\n");
+		return menustyle;
+	}else if(sname == "bgcolor"){
+		Logger_Write("Returning bg color setting\n");
+		return bgcolor;
+	}else if(sname == "p8_bgcolor"){
+		
+		Logger_Write("Returning pico 8 bg color setting\n");
+		std::string bgcolorstr = std::to_string(bgcolor) + "\n";
+		Logger_Write(bgcolorstr.c_str());
+		switch(bgcolor)
+		{
+			case Gray: return   05;
+			case Black: return  00;
+			case Blue: return   01;
+			case Green: return  03;
+			case Purple: return 13;
+			case White: return  07;
+			default:     return 02;
+		}
+	}else if(sname == "p8_textcolor"){
+		Logger_Write("Returning pico 8 text color setting\n");
+		if(bgcolor == White){
+			return 0;
+		}else{
+			return 7;
+		}
+	}else{
+		Logger_Write("Setting ");
+		Logger_Write(sname.c_str());
+		Logger_Write(" not found, returning 0!");
+		return 0;
+	}
+	
+}
+
+void Host::setSetting(std::string sname, int sval) {
+	if(sname == "kbmode"){ //why cant you use strings in switch statements in c++ :(
+		Logger_Write("setting KB mode\n");
+		kbmode = (KeyboardOption) sval;
+	}else if(sname == "resizekey"){
+		Logger_Write("setting resize hotkey\n");
+		resizekey = (ResizekeyOption) sval;
+	}else if(sname == "stretch"){
+		Logger_Write("setting Stretch to");
+		std::string stringval = std::to_string(sval);
+		Logger_Write(stringval.c_str());
+		Logger_Write("\n");
+		
+		
+		stretch = (StretchOption) sval;
+		
+		//force change stretch
+		forceStretch(stretch);
+	}else if(sname == "menustyle"){
+		Logger_Write("setting menustyle\n");
+		menustyle = (MenuStyleOption) sval;
+		
+	}else if(sname == "bgcolor"){
+		Logger_Write("setting bgcolor\n");
+		bgcolor = (BgColorOption) sval;
+		
+	}else if(sname == "packinloaded"){
+		Logger_Write("setting packinloaded\n");
+		
+		#if LOAD_PACK_INS
+		packinloaded = (PackinLoadOption) sval;
+		#endif
+		
+	}else{
+		Logger_Write("Setting ");
+		Logger_Write(sname.c_str());
+		Logger_Write(" not found!");
+	}
+	
 }

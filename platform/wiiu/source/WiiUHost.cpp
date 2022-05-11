@@ -285,7 +285,7 @@ void Host::setTargetFps(int targetFps){
 }
 
 void Host::changeStretch(){
-    if (stretchKeyPressed) {
+    if (stretchKeyPressed && resizekey == YesResize) {
         if (stretch == PixelPerfectStretch) {
             stretch = PixelPerfect;
         }
@@ -312,6 +312,15 @@ void Host::changeStretch(){
         mouseOffsetX = DestR.x;
         mouseOffsetY = DestR.y;
     }
+}
+
+void Host::forceStretch(StretchOption newStretch) {
+	_changeStretch(newStretch);
+	stretch = newStretch;
+	scaleX = screenWidth / (float)PicoScreenWidth;
+	scaleY = screenHeight / (float)PicoScreenHeight;
+	mouseOffsetX = DestR.x;
+	mouseOffsetY = DestR.y;
 }
 
 InputState_t Host::scanInput(){ 

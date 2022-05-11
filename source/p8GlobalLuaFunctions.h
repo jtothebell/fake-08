@@ -162,7 +162,8 @@ __f08_menu_items = {
     {nil, nil},
     {nil, nil},
     {"reset cart", __resetcart},
-    {"exit to menu", __loadbioscart}
+    {"exit to menu", __loadbioscart},
+    {"exit to settings", __loadsettingscart}
 }
 
 __f08_menu_selected = 0

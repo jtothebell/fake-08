@@ -6,6 +6,7 @@
 #include "hostVmShared.h"
 #include "Audio.h"
 
+
 enum StretchOption {
   PixelPerfect,
   PixelPerfectStretch,
@@ -18,12 +19,38 @@ enum StretchOption {
   FourByThreeStretch
 };
 
+
 #if LOAD_PACK_INS
 enum PackinLoadOption {
   Unloaded,
   Loaded
 };
 #endif
+
+enum ResizekeyOption {
+  NoResize,
+  YesResize
+};
+
+enum KeyboardOption {
+  Emoji,
+  Lowercase
+};
+
+enum MenuStyleOption {
+  Classic,
+  Fancy,
+  Splore
+};
+
+enum BgColorOption {
+  Gray,
+  Black,
+  Blue,
+  Green,
+  Purple,
+  White
+};
 
 class Host {
     uint8_t currKDown;
@@ -35,10 +62,17 @@ class Host {
     bool lDown = false;
     bool rDown = false;
     bool stretchKeyPressed = false;
+	
+	
+	//settings
 	#if LOAD_PACK_INS
     PackinLoadOption packinloaded = Unloaded;
 	#endif
     StretchOption stretch = PixelPerfectStretch;
+    KeyboardOption kbmode = Emoji;
+	ResizekeyOption resizekey = NoResize;
+	MenuStyleOption menustyle = Fancy;
+	BgColorOption bgcolor = Gray;
 	
     float scaleX = 1.0;
     float scaleY = 1.0;
@@ -73,6 +107,7 @@ class Host {
     bool shouldQuit();
 
     void changeStretch();
+    void forceStretch(StretchOption newStretch);
     
     void waitForTargetFps();
 
@@ -98,6 +133,10 @@ class Host {
     void saveCartData(std::string cartDataKey, std::string contents);
 
     std::string getCartDirectory();
+	
+	//settings
+	int getSetting(std::string sname);
+	void setSetting(std::string sname, int sdata);
 
     Color* GetPaletteColors();
 
