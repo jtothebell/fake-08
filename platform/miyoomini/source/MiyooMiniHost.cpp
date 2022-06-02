@@ -144,8 +144,13 @@ void audioSetup(){
 }
 
 void _setSourceRect(int xoffset, int yoffset) {
-    SrcR.x = xoffset;
-    SrcR.y = yoffset;
+    //miyoo mini has an upside down screen, so the texture is flipped and we need to offset these values
+    int scalexoffset = drawModeScaleX == 2 ? 64 : 0;
+    int scaleyoffset = drawModeScaleY == 2 ? 64 : 0;
+
+    SrcR.x = xoffset + scalexoffset;
+    SrcR.y = yoffset + scaleyoffset;
+
     SrcR.w = PicoScreenWidth / drawModeScaleX - (xoffset * 2);
     SrcR.h = PicoScreenHeight / drawModeScaleY - (yoffset * 2);
 }
