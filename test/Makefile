@@ -1,120 +1,128 @@
-#match flags from 3ds and switch makefiles. This may not all be necessary
-# removed -O2 to make debugging tests easier
-CFLAGS := -Wall -Wno-deprecated -std=c++17 -g -c \
-		  -fno-rtti -fno-exceptions 
+
+#---------------------------------------------------------------------------------
+# TARGET is the name of the output
+# BUILD is the directory where object files & intermediate files will be placed
+# SOURCES is a list of directories containing source code
+# INCLUDES is a list of directories containing header files
+#
+#---------------------------------------------------------------------------------
+TARGET		:=	testrunner.a
+BUILD		:=	build
+SOURCES   	:= ../source ../libs/z8lua ../libs/utf8-util ../libs/lodepng ../libs/simpleini ../libs/miniz ./
+INCLUDES  	:= ../source ../include ../libs/z8lua ../libs/utf8-util ../libs/lodepng ../libs/simpleini ../libs/miniz ./
+#SOURCES		:=	${SOURCES} source
+#INCLUDES	:=	${INCLUDES}
+
+#---------------------------------------------------------------------------------
+# options for code generation
+#---------------------------------------------------------------------------------
+CC = $(CXX)
+
+CFLAGS	:=	-g -Wall -Wno-deprecated -ffunction-sections -std=c++17 \
+			$(DEFINES)
+
+CFLAGS	+=	$(INCLUDE) -DVER_STR=\"$(APP_VERSION)\"
+
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions 
+#-std=gnu++11 was used before... not sure of difference
+
+#LIBS	:= -lSDL2
+
+LDFLAGS	:= $(LIBS)
 
 
-all: runtests
+#---------------------------------------------------------------------------------
+# no real need to edit anything past this point unless you need to add additional
+# rules for different file extensions
+#---------------------------------------------------------------------------------
+ifneq ($(BUILD),$(notdir $(CURDIR)))
+#---------------------------------------------------------------------------------
+
+export OUTPUT	:=	$(CURDIR)/$(TARGET)
+export TOPDIR	:=	$(CURDIR)
+
+export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
+			$(foreach dir,$(DATA),$(CURDIR)/$(dir))
+
+export DEPSDIR	:=	$(CURDIR)/$(BUILD)
+
+CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
+CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 
 
-testrunner.a: testroot.o \
-	fontdatatests.o nibblehelperstests.o graphicstests.o audiotests.o \
-	carttests.o endtoendtests.o vmtests.o cartloadingtest.o filehelperstests.o printHelperTests.o
-	g++ -I$(CURDIR)/include -L$(CURDIR)/lib \
-	testroot.o \
-	fontdata.o fontdatatests.o \
-	graphics.o graphicstests.o stringToDataHelpers.o testHelpers.o mathhelpers.o \
-	printHelper.o printHelperTests.o \
-	Audio.o synth.o audiotests.o \
-	cart.o carttests.o nooplogger.o lodepng.o emojiconversion.o filehelpers.o \
-	vm.o endtoendtests.o picoluaapi.o Input.o \
-	vmtests.o stubhost.o \
-	cartloadingtest.o \
-	nibblehelpers.o nibblehelperstests.o \
-	filehelperstests.o \
-	-llua -ldl \
-	-o testrunner.a
+#ao.c is only for building on the actual mini
+CPPFILES := $(filter-out logger.cpp,$(CPPFILES))
+CPPFILES := $(filter-out main.cpp,$(CPPFILES))
+CPPFILES := $(filter-out hostCommonFunctions.cpp,$(CPPFILES))
 
-testroot.o: testroot.cpp doctest.h
-	g++ $(CFLAGS) testroot.cpp 
+#---------------------------------------------------------------------------------
+# use CXX for linking C++ projects, CC for standard C
+#---------------------------------------------------------------------------------
+ifeq ($(strip $(CPPFILES)),)
+#---------------------------------------------------------------------------------
+	export LD	:=	$(CC)
+#---------------------------------------------------------------------------------
+else
+#---------------------------------------------------------------------------------
+	export LD	:=	$(CXX)
+#---------------------------------------------------------------------------------
+endif
+#---------------------------------------------------------------------------------
 
-fontdatatests.o: fontdatatests.cpp ../source/fontdata.cpp ../source/fontdata.h
-	g++ $(CFLAGS) fontdatatests.cpp ../source/fontdata.cpp
+export OFILES_BIN	:=	$(addsuffix .o,$(BINFILES))
+export OFILES_SRC	:=	$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
+export OFILES 		:=	$(OFILES_BIN) $(OFILES_SRC)
+export HFILES_BIN	:=	$(addsuffix .h,$(subst .,_,$(BINFILES)))
 
-nibblehelperstests.o: nibblehelperstests.cpp ../source/nibblehelpers.cpp ../source/nibblehelpers.h
-	g++ $(CFLAGS) nibblehelperstests.cpp ../source/nibblehelpers.cpp
+export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
+			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+			-I$(CURDIR)/$(BUILD)
 
-graphicstests.o: liblua.a fontdatatests.o graphicstests.cpp testHelpers.cpp ../source/graphics.cpp ../source/graphics.h \
-	../source/fontdata.cpp ../source/fontdata.h \
-	../source/PicoRam.h ../source/hostVmShared.h \
-	../source/stringToDataHelpers.h ../source/stringToDataHelpers.cpp \
-	../source/mathhelpers.h ../source/mathhelpers.cpp \
-	../source/nibblehelpers.h ../source/nibblehelpers.cpp
-	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \
-	graphicstests.cpp ../source/graphics.cpp testHelpers.cpp \
-	../source/stringToDataHelpers.cpp ../source/nibblehelpers.cpp ../source/mathhelpers.cpp
-
-printHelperTests.o: graphicstests.o printHelperTests.cpp testHelpers.cpp ../source/printHelper.cpp ../source/printHelper.h
-	g++ $(CFLAGS) -I$(CURDIR)/include printHelperTests.cpp ../source/printHelper.cpp testHelpers.cpp
-
-audiotests.o: audiotests.cpp ../source/Audio.cpp ../source/Audio.h \
-	../source/synth.cpp ../source/synth.h \
-	../source/mathhelpers.h ../source/mathhelpers.cpp \
-	../source/PicoRam.h ../source/hostVmShared.h
-	g++ $(CFLAGS) audiotests.cpp ../source/Audio.cpp ../source/synth.cpp ../source/mathhelpers.cpp
-	
-liblua.a: 
-	@echo 'starting lua build\n' &&\
-	cd ../libs/z8lua && make a && \
-	cd ../../test && \
-	mkdir -p lib && \
-	mkdir -p include && \
-	cp ../libs/z8lua/liblua.a lib/liblua.a && \
-	cp ../libs/z8lua/lua.h include/lua.h && \
-	cp ../libs/z8lua/luaconf.h include/luaconf.h && \
-	cp ../libs/z8lua/lualib.h include/lualib.h && \
-	cp ../libs/z8lua/lauxlib.h include/lauxlib.h && \
-	cp ../libs/z8lua/fix32.h include/fix32.h 
-#make lua (cd ../libs/z8lua make linux, cp liblua.a, lua.h luaconf.h lualib.h lauxlib.h
-
-carttests.o: carttests.cpp ../source/cart.cpp ../source/cart.h \
-	../libs/lodepng/lodepng.cpp ../libs/lodepng/lodepng.h \
-	../source/logger.h ../source/emojiconversion.h ../source/emojiconversion.cpp \
-	../source/filehelpers.h ../source/filehelpers.cpp
-	cp ../libs/lodepng/lodepng.h include/lodepng.h && \
-	cp ../source/logger.h include/logger.h && \
-	g++ $(CFLAGS) -I$(CURDIR)/include carttests.cpp ../source/cart.cpp ../libs/lodepng/lodepng.cpp \
-	nooplogger.cpp ../source/emojiconversion.cpp ../source/filehelpers.cpp 
-
-endtoendtests.o: carttests.o graphicstests.o audiotests.o printHelperTests.o\
-	endtoendtests.cpp \
-	../source/vm.cpp ../source/vm.h \
-	stubhost.cpp stubhost.h ../source/host.h \
-	../source/Input.cpp ../source/Input.h \
-	../source/picoluaapi.cpp ../source/picoluaapi.h
-	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \
-	endtoendtests.cpp stubhost.cpp ../source/vm.cpp  ../source/picoluaapi.cpp ../source/Input.cpp
-
-vmtests.o: endtoendtests.o \
-	vmtests.cpp stubhost.cpp
-	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \
-	vmtests.cpp stubhost.cpp ../source/vm.cpp  ../source/picoluaapi.cpp ../source/Input.cpp
-
-cartloadingtest.o: vmtests.o \
-	cartloadingtest.cpp
-	g++ $(CFLAGS) -I$(CURDIR)/include -L$(CURDIR)/lib \
-	cartloadingtest.cpp
-
-filehelperstests.o: filehelperstests.cpp ../source/filehelpers.cpp ../source/filehelpers.h
-	g++ $(CFLAGS) filehelperstests.cpp ../source/filehelpers.cpp
-
-	
+export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
 
-runtests: testrunner.a
-	./testrunner.a
+.PHONY: $(BUILD) clean all
 
+#---------------------------------------------------------------------------------
+
+
+$(BUILD):
+	@[ -d $@ ] || mkdir -p $@
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+
+#---------------------------------------------------------------------------------
 clean:
-	-rm -f testrunner.a *.o && \
-	rm -rf lib && \
-	rm -rf include && \
-	cd ../libs/z8lua && make clean
+	@echo clean ...
+	@rm -fr $(BUILD) $(TARGET)
 
-echo:
-	@echo "CURDIR= $(CURDIR)"
-	@echo "CC= $(CC)"
-	@echo "CFLAGS= $(CFLAGS)"
-	@echo "LDFLAGS= $(SYSLDFLAGS)"
-	@echo "LIBS= $(LIBS)"
 
-.PHONY: all buildtests runtests clean
+#---------------------------------------------------------------------------------
+else
+.PHONY:	all run
+
+DEPENDS	:=	$(OFILES:.o=.d)
+
+#---------------------------------------------------------------------------------
+# main targets
+#---------------------------------------------------------------------------------
+all	:	$(OUTPUT)
+
+
+$(OUTPUT)		:	$(OFILES)
+	$(CC) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+
+$(OFILES_SRC)	: $(HFILES_BIN)
+
+#---------------------------------------------------------------------------------
+# you need a rule like this for each extension you use as binary data
+#---------------------------------------------------------------------------------
+%.bin.o	%_bin.h :	%.bin
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@$(bin2o)
+
+-include $(DEPENDS)
+
+#---------------------------------------------------------------------------------------
+endif
+#---------------------------------------------------------------------------------------
