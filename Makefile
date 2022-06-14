@@ -101,3 +101,4 @@ clean-tests:
 
 tests:
 	@$(MAKE) -C test
+	cd test && ./testrunner.a

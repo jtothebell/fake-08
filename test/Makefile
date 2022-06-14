@@ -10,8 +10,6 @@ TARGET		:=	testrunner.a
 BUILD		:=	build
 SOURCES   	:= ../source ../libs/z8lua ../libs/utf8-util ../libs/lodepng ../libs/simpleini ../libs/miniz ./
 INCLUDES  	:= ../source ../include ../libs/z8lua ../libs/utf8-util ../libs/lodepng ../libs/simpleini ../libs/miniz ./
-#SOURCES		:=	${SOURCES} source
-#INCLUDES	:=	${INCLUDES}
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -26,7 +24,6 @@ CFLAGS	+=	$(INCLUDE) -DVER_STR=\"$(APP_VERSION)\"
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions 
 #-std=gnu++11 was used before... not sure of difference
 
-#LIBS	:= -lSDL2
 
 LDFLAGS	:= $(LIBS)
 
@@ -98,7 +95,7 @@ clean:
 
 #---------------------------------------------------------------------------------
 else
-.PHONY:	all run
+.PHONY:	all
 
 DEPENDS	:=	$(OFILES:.o=.d)
 
