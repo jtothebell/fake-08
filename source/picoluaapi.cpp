@@ -613,6 +613,11 @@ int pal(lua_State *L) {
         }
 
         return 0;
+    } else if (numArgs == 1) {
+        p = lua_tonumber(L, 0);
+        _graphicsForLuaApi->pal(p);
+        lua_pushnumber(L, 0);
+        return 1;
     }
 
 
