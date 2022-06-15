@@ -1668,6 +1668,26 @@ TEST_CASE("graphics class behaves as expected") {
 
         CHECK(isDefault);
     }
+    SUBCASE("pal(0) resets draw palette only") {
+        graphics->pal(14, 5, 0);
+        graphics->pal(13, 4, 1);
+        graphics->palt(15, true);
+
+        graphics->pal(0);
+
+        CHECK_EQ(14, graphics->getDrawPalMappedColor(14));
+        CHECK_EQ(4, graphics->getScreenPalMappedColor(13));
+    }
+    SUBCASE("pal(1) resets screen palette only") {
+        graphics->pal(14, 5, 0);
+        graphics->pal(13, 4, 1);
+        graphics->palt(15, true);
+
+        graphics->pal(1);
+
+        CHECK_EQ(5, graphics->getDrawPalMappedColor(14));
+        CHECK_EQ(13, graphics->getScreenPalMappedColor(13));
+    }
     SUBCASE("pal changes sprite colors"){
         for(int i = 0; i < 128; i++) {
             for (int j = 0; j < 32; j++)

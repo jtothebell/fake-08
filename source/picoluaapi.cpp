@@ -585,10 +585,7 @@ int pal(lua_State *L) {
     if (numArgs == 0) {
         _graphicsForLuaApi->pal();
 
-        //I think this always returns 0, not nil
-        lua_pushnumber(L, 0);
-        
-        return 1;
+        return 0;
     }
 
     uint8_t p = 0;
@@ -614,10 +611,11 @@ int pal(lua_State *L) {
 
         return 0;
     } else if (numArgs == 1) {
-        p = lua_tonumber(L, 0);
+        p = lua_tonumber(L, 1);
+        
         _graphicsForLuaApi->pal(p);
-        lua_pushnumber(L, 0);
-        return 1;
+
+        return 0;
     }
 
 
