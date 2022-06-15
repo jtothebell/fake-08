@@ -1498,6 +1498,16 @@ void Graphics::pal() {
 	this->palt();
 }
 
+void Graphics::pal(uint8_t p) {
+	for (uint8_t c = 0; c < 16; c++) {
+		if (p == 0) {
+			_memory->drawState.drawPaletteMap[c] = c;
+		} else if (p == 1) {
+			_memory->drawState.screenPaletteMap[c] = c;
+		}
+	}
+}
+
 uint8_t Graphics::pal(uint8_t c0, uint8_t c1, uint8_t p){
 	//0-15 alowed
 	c0 &= 0x0f;
