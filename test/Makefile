@@ -21,7 +21,7 @@ CFLAGS	:=	-g -Wall -Wno-deprecated -ffunction-sections -std=c++17 \
 
 CFLAGS	+=	$(INCLUDE) -DVER_STR=\"$(APP_VERSION)\"
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions 
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions 
 #-std=gnu++11 was used before... not sure of difference
 
 
