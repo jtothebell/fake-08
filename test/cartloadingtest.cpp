@@ -76,6 +76,14 @@ const vector<string> cartsToIgore ({
     "29283.p8.png",
     "29420.p8.png",
     "29559.p8.png",
+    "29562.p8.png",
+    "29844.p8.png",
+    "29982.p8.png",
+    "30091.p8.png",
+    "30427.p8.png",
+    "30617.p8.png",
+    "30625.p8.png",
+    "30785.p8.png",
 });
 
 string checkCart(Vm* vm, string cartDirectory, string cart){
@@ -98,7 +106,7 @@ string checkCart(Vm* vm, string cartDirectory, string cart){
 
     return "";
 }
-/*
+
 string checkCart_wrapper(string cartDirectory, string cart)
 {
     std::mutex m;
@@ -131,7 +139,7 @@ string checkCart_wrapper(string cartDirectory, string cart)
 
     return retValue;    
 }
-*/
+
 
 TEST_CASE("Loading and running carts") {
     vector<string> carts;
@@ -158,15 +166,15 @@ TEST_CASE("Loading and running carts") {
     sort(carts.begin(), carts.end());
 
 
-    Host* host = new Host();
-    Vm* vm = new Vm(host);
+    //Host* host = new Host();
+    //Vm* vm = new Vm(host);
 
 
     for(int i = 0; i < carts.size(); i++) {
         try {
-            //string result = checkCart_wrapper(_cartDirectory, carts[i]);
+            string result = checkCart_wrapper(_cartDirectory, carts[i]);
 
-            string result = checkCart(vm, _cartDirectory, carts[i]);
+            //string result = checkCart(vm, _cartDirectory, carts[i]);
 
             if (result.length() > 0) {
                 errors.push_back(carts[i] + ": " + result);
@@ -177,8 +185,8 @@ TEST_CASE("Loading and running carts") {
         }
     }
     
-    delete vm;
-    delete host;
+    //delete vm;
+    //delete host;
     
 }
 
