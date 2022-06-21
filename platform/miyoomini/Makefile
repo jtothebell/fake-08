@@ -33,7 +33,7 @@ endif
 
 CC = $(CXX)
 
-CFLAGS	:=	-Wall -ffunction-sections -DVER_STR=\"$(APP_VERSION)\" -marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7ve \
+CFLAGS	:=	-Wall -Ofast -ffunction-sections -DVER_STR=\"$(APP_VERSION)\" -marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7ve \
 			$(DEFINES)
 
 ifeq ($(TOOLCHAIN),union)
