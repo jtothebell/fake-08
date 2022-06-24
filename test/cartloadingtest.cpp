@@ -351,6 +351,7 @@ const vector<string> cartsToIgnore ({
     "picochallenge-0.p8.png",
     "picoenix-0.p8.png",
     "picoforth-0.p8.png",
+    "picolander-0.p8.png", //sigsegv - intermittent?
     "picosolo-4.p8.png",
     "picoteras_1-0.p8.png",
     "picotrainsim-2.p8.png",
