@@ -480,7 +480,7 @@ string checkCart(Vm* vm, string cartDirectory, string cart){
 
     return "";
 }
-
+/*
 string checkCart_wrapper(string cartDirectory, string cart)
 {
     std::mutex m;
@@ -513,6 +513,7 @@ string checkCart_wrapper(string cartDirectory, string cart)
 
     return retValue;    
 }
+*/
 
 
 TEST_CASE("Loading and running carts") {
