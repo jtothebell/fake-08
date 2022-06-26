@@ -101,3 +101,8 @@ bool isCartFile (std::string const &fullString) {
         (hasEnding(fullString, ".p8") || hasEnding(fullString, ".png"));
 }
 
+bool isCPostFile (std::string const &fullString) {
+    return !isHiddenFile(fullString) && 
+       fullString.rfind("cpost", 0) == 0;
+}
+

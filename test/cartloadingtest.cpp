@@ -529,7 +529,9 @@ TEST_CASE("Loading and running carts") {
     if ((dir = opendir (_cartDirectory.c_str())) != NULL) {
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
-            if (isCartFile(ent->d_name) && std::find(cartsToIgnore.begin(), cartsToIgnore.end(), ent->d_name) == cartsToIgnore.end()){
+            if (isCartFile(ent->d_name) 
+                && ! isCPostFile(ent->d_name)
+                && std::find(cartsToIgnore.begin(), cartsToIgnore.end(), ent->d_name) == cartsToIgnore.end()) {
                 carts.push_back(ent->d_name);
             }
         }
@@ -566,6 +568,12 @@ TEST_CASE("Loading and running carts") {
         catch(std::runtime_error& e) {
             errors.push_back(carts[i] + ": Timeout" + e.what());
         }
+    }
+
+    printf("\n");
+    printf("ERRORS:\n");
+    for (int i = 0; i < errors.size(); i++) {
+        printf("%s\n", errors[i].c_str());
     }
     
     delete vm;
