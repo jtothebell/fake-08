@@ -4,9 +4,9 @@
 
 #include "logger.h"
 
-#define LOGGER_ENABLED true
+#define LOGGER_ENABLED false
 
-#define PRINT_TO_CONSOLE true
+#define PRINT_TO_CONSOLE false
 
 FILE * m_file = nullptr;
 bool m_enabled = false;
@@ -60,9 +60,6 @@ void Logger_Write(const char * format, ...)
 	vfprintf(stdout, format, args);
 	#endif
     #endif
-	#if PRINT_TO_CONSOLE
-	vfprintf(stdout, format, args);
-	#endif
 }
 
 void Logger_WriteUnformatted(const char * message)
