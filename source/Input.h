@@ -6,6 +6,7 @@
 class Input{
     PicoRam* _memory;
 	uint8_t _currentKDown;
+    uint8_t _currentKHeld;
 
 	uint16_t _framesHeld[8];
 

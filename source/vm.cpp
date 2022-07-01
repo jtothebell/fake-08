@@ -423,7 +423,8 @@ void Vm::LoadCart(std::string filename){
 }
 
 void Vm::togglePauseMenu(){
-    if (_memory->drawState.suppressPause) {
+    _input->SetState(0, 0);
+    if (_memory->drawState.suppressPause) {    
         _memory->drawState.suppressPause = 0;
         return;
     }
@@ -512,10 +513,6 @@ void Vm::UpdateAndDraw() {
 
     _picoFrameCount++;
 
-    if (_input->btnp(6)) {
-        togglePauseMenu();
-    }
-
     if (_cartChangeQueued) {
         _prevCartKey = CurrentCartFilename();
         LoadCart(_nextCartKey);
@@ -568,6 +565,10 @@ void Vm::UpdateAndDraw() {
             }
         }
         lua_pop(_luaState, 0);
+
+        if (_input->btnp(6)) {
+            togglePauseMenu();
+        }
     }
 
 }

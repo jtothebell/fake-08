@@ -80,7 +80,7 @@ Host::Host()
 
 InputState_t Host::scanInput(){
     currKDown = 0;
-    currKHeld = 0;
+    uint8_t kUp = 0;
     stretchKeyPressed = false;
 
     currKBDown = false;
@@ -127,6 +127,21 @@ InputState_t Host::scanInput(){
                     case SDLK_r:     stretchKeyPressed = true; break;
                 }
                 break;
+            
+            case SDL_KEYUP:
+                switch (event.key.keysym.sym)
+                {
+                    case SDLK_ESCAPE:case SDLK_RETURN:case SDLK_RETURN2:
+                                     kUp |= P8_KEY_PAUSE; break;
+                    case SDLK_LEFT:  kUp |= P8_KEY_LEFT; break;
+                    case SDLK_RIGHT: kUp |= P8_KEY_RIGHT; break;
+                    case SDLK_UP:    kUp |= P8_KEY_UP; break;
+                    case SDLK_DOWN:  kUp |= P8_KEY_DOWN; break;
+                    case SDLK_z:     kUp |= P8_KEY_X; break;
+                    case SDLK_x:     kUp |= P8_KEY_O; break;
+                    case SDLK_c:     kUp |= P8_KEY_X; break;
+                }
+                break;
 
             case SDL_QUIT:
                 quit = 1;
@@ -153,39 +168,8 @@ InputState_t Host::scanInput(){
         picoMouseState |= 2;
     }
 
-    const Uint8* keystate = SDL_GetKeyboardState(NULL);
-
-    //continuous-response keys
-    if(keystate[SDL_SCANCODE_ESCAPE]){
-        currKHeld |= P8_KEY_PAUSE;
-    }
-    if(keystate[SDL_SCANCODE_RETURN]){
-        currKHeld |= P8_KEY_PAUSE;
-    }
-    if(keystate[SDL_SCANCODE_RETURN2]){
-        currKHeld |= P8_KEY_PAUSE;
-    }
-    if(keystate[SDL_SCANCODE_LEFT]){
-        currKHeld |= P8_KEY_LEFT;
-    }
-    if(keystate[SDL_SCANCODE_RIGHT]){
-        currKHeld |= P8_KEY_RIGHT;;
-    }
-    if(keystate[SDL_SCANCODE_UP]){
-        currKHeld |= P8_KEY_UP;
-    }
-    if(keystate[SDL_SCANCODE_DOWN]){
-        currKHeld |= P8_KEY_DOWN;
-    }
-    if(keystate[SDL_SCANCODE_Z]){
-        currKHeld |= P8_KEY_X;
-    }
-    if(keystate[SDL_SCANCODE_X]){
-        currKHeld |= P8_KEY_O;
-    }
-    if(keystate[SDL_SCANCODE_C]){
-        currKHeld |= P8_KEY_X;
-    }
+    currKHeld |= currKDown;
+    currKHeld ^= kUp;
     
     return InputState_t {
         currKDown,
