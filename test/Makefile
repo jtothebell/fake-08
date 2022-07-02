@@ -1,6 +1,6 @@
 #match flags from 3ds and switch makefiles. This may not all be necessary
 # removed -O2 to make debugging tests easier
-CFLAGS := -Wall -Wno-deprecated -std=c++17 -g -c \
+CFLAGS := -Wall -O2 -Wno-deprecated -std=c++17 -g -c \
 		  -fno-rtti -fno-exceptions 
 
 
