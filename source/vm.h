@@ -69,7 +69,7 @@ class Vm {
     
     void LoadSettingsCart();
 
-    void LoadCart(string filename);
+    void LoadCart(string filename, bool loadBiosOnFail = true);
 
     void UpdateAndDraw();
 

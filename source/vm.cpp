@@ -395,7 +395,7 @@ void Vm::LoadSettingsCart(){
     }
 }
 
-void Vm::LoadCart(std::string filename){
+void Vm::LoadCart(std::string filename, bool loadBiosOnFail){
     if (filename == "__FAKE08-BIOS.p8") {
         LoadBiosCart();
         return;
@@ -415,7 +415,7 @@ void Vm::LoadCart(std::string filename){
 
     bool success = loadCart(cart);
 
-    if (!success) {
+    if (loadBiosOnFail && !success) {
         CloseCart();
         //todo: show an error message on the bios?
         LoadBiosCart();

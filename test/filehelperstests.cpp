@@ -135,3 +135,27 @@ TEST_CASE("get_first_four_chars") {
         CHECK_EQ(get_first_four_chars("carts/test_legacypng_cart.p8.png"), "\x89PNG");
     }
 }
+
+TEST_CASE("isCPostFile") {
+    SUBCASE("empty string") {
+        CHECK_EQ(isCPostFile(""), false);
+    }
+    SUBCASE("filename no etension") {
+        CHECK_EQ(isCPostFile("file"), false);
+    }
+    SUBCASE("cart file") {
+        CHECK_EQ(isCPostFile("cart.p8"), false);
+    }
+    SUBCASE("filename with etension") {
+        CHECK_EQ(isCPostFile("cpost1234.png"), true);
+    }
+    SUBCASE("hidden file") {
+        CHECK_EQ(isCPostFile(".bash_rc"), false);
+    }
+    SUBCASE("macOS filesystem thing p8") {
+        CHECK_EQ(isCPostFile("._cpost1234.p8"), false);
+    }
+    SUBCASE("macOS filesystem thing png") {
+        CHECK_EQ(isCPostFile("._cpost1234.p8.png"), false);
+    }
+}

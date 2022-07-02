@@ -76,7 +76,7 @@ TEST_CASE("Loading and running carts") {
     Vm* vm = new Vm(host);
 
     SUBCASE("Load simple cart"){
-        vm->LoadCart("cartparsetest.p8");
+        vm->LoadCart("cartparsetest.p8", false);
 
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
@@ -101,7 +101,7 @@ TEST_CASE("Loading and running carts") {
         vm->CloseCart();
     }
     SUBCASE("pset 0,0 test cart renders correctly"){
-        vm->LoadCart("pset00-test.p8");
+        vm->LoadCart("pset00-test.p8", false);
 
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
@@ -115,7 +115,7 @@ TEST_CASE("Loading and running carts") {
         vm->CloseCart();
     }
     SUBCASE("pset 3 pix top left test cart renders correctly"){
-        vm->LoadCart("pset3pix.p8");
+        vm->LoadCart("pset3pix.p8", false);
 
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
@@ -129,7 +129,7 @@ TEST_CASE("Loading and running carts") {
         vm->CloseCart();
     }
     SUBCASE("pset all pixels test cart renders correctly"){
-        vm->LoadCart("psetall.p8");
+        vm->LoadCart("psetall.p8", false);
 
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
@@ -143,7 +143,7 @@ TEST_CASE("Loading and running carts") {
         vm->CloseCart();
     }
     SUBCASE("Clip test cart renders correctly"){
-        vm->LoadCart("cliptest.p8");
+        vm->LoadCart("cliptest.p8", false);
 
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
@@ -157,7 +157,7 @@ TEST_CASE("Loading and running carts") {
         vm->CloseCart();
     }
     SUBCASE("Memory function test cart"){
-        vm->LoadCart("memorytest.p8");
+        vm->LoadCart("memorytest.p8", false);
 
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
@@ -171,7 +171,7 @@ TEST_CASE("Loading and running carts") {
         vm->CloseCart();
     }
     SUBCASE("Cart data function test cart"){
-        vm->LoadCart("cartdatatest.p8");
+        vm->LoadCart("cartdatatest.p8", false);
 
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
@@ -185,7 +185,7 @@ TEST_CASE("Loading and running carts") {
         vm->CloseCart();
     }
     SUBCASE("tonum test cart"){
-        vm->LoadCart("tonumtest2.p8");
+        vm->LoadCart("tonumtest2.p8", false);
 
         SUBCASE("can parse positive int"){
             vm->UpdateAndDraw();
@@ -283,7 +283,7 @@ TEST_CASE("Loading and running carts") {
         vm->CloseCart();
     }
     SUBCASE("Simple Arithmetic Cart"){
-        vm->LoadCart("arithmetictest.p8");
+        vm->LoadCart("arithmetictest.p8", false);
 
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
@@ -382,7 +382,7 @@ TEST_CASE("Loading and running carts") {
 
     SUBCASE("api loaded with cart load") {
 
-        vm->LoadCart("cartparsetest.p8");
+        vm->LoadCart("cartparsetest.p8", false);
 
         SUBCASE("all api functions exist"){
             vector<string> apiFunctions {
@@ -417,19 +417,19 @@ TEST_CASE("Loading and running carts") {
         vm->CloseCart();
     }
     SUBCASE("calling reload from init doesn't crash") {
-        vm->LoadCart("reloadininit.p8");
+        vm->LoadCart("reloadininit.p8", false);
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
         }
     }
     SUBCASE("rnd with table argument works") {
-        vm->LoadCart("tablerndtest.p8");
+        vm->LoadCart("tablerndtest.p8", false);
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
         }
     }
     SUBCASE("Fill pattern test cart"){
-        vm->LoadCart("fillptest.p8");
+        vm->LoadCart("fillptest.p8", false);
 
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
@@ -443,7 +443,7 @@ TEST_CASE("Loading and running carts") {
         vm->CloseCart();
     }
     SUBCASE("Peek4/poke4 test cart"){
-        vm->LoadCart("peek4test.p8");
+        vm->LoadCart("peek4test.p8", false);
 
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
@@ -459,7 +459,7 @@ TEST_CASE("Loading and running carts") {
         vm->CloseCart();
     }
     SUBCASE("pal (with table) test cart"){
-        vm->LoadCart("paltabletest.p8");
+        vm->LoadCart("paltabletest.p8", false);
 
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
@@ -473,7 +473,7 @@ TEST_CASE("Loading and running carts") {
         vm->CloseCart();
     }
     SUBCASE("pairs() with nil arg test"){
-        vm->LoadCart("nilpairstest.p8");
+        vm->LoadCart("nilpairstest.p8", false);
 
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
@@ -487,7 +487,7 @@ TEST_CASE("Loading and running carts") {
         vm->CloseCart();
     }
     SUBCASE("split() test"){
-        vm->LoadCart("splittest.p8");
+        vm->LoadCart("splittest.p8", false);
 
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
@@ -501,7 +501,7 @@ TEST_CASE("Loading and running carts") {
         vm->CloseCart();
     }
     SUBCASE("General use memory persists across cart loads"){
-        vm->LoadCart("cartparsetest.p8");
+        vm->LoadCart("cartparsetest.p8", false);
         auto origFirstByte = vm->vm_peek(0);
         vm->vm_poke(0x0000, 12);
         vm->vm_poke(0x42ff, 92);
@@ -511,7 +511,7 @@ TEST_CASE("Loading and running carts") {
 
         vm->vm_poke(0x5600, 71);
         vm->vm_poke(0x7fff, 223);
-        vm->LoadCart("cartparsetest.p8");
+        vm->LoadCart("cartparsetest.p8", false);
 
         CHECK_EQ(vm->vm_peek(0x0000), origFirstByte);
         CHECK_EQ(vm->vm_peek(0x42ff), 0);
@@ -526,7 +526,7 @@ TEST_CASE("Loading and running carts") {
         vm->CloseCart();
     }
     SUBCASE("#include test"){
-        vm->LoadCart("includetest.p8");
+        vm->LoadCart("includetest.p8", false);
 
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
@@ -540,7 +540,7 @@ TEST_CASE("Loading and running carts") {
         vm->CloseCart();
     }
     SUBCASE("sub test"){
-        vm->LoadCart("subtest.p8");
+        vm->LoadCart("subtest.p8", false);
 
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
@@ -554,7 +554,7 @@ TEST_CASE("Loading and running carts") {
         vm->CloseCart();
     }
     SUBCASE("peek and poke extra args test"){
-        vm->LoadCart("peek_poke_extraargs.p8");
+        vm->LoadCart("peek_poke_extraargs.p8", false);
 
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
@@ -568,7 +568,7 @@ TEST_CASE("Loading and running carts") {
         vm->CloseCart();
     }
     SUBCASE("tline test"){
-        vm->LoadCart("tline_test.p8");
+        vm->LoadCart("tline_test.p8", false);
 
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
@@ -582,7 +582,7 @@ TEST_CASE("Loading and running carts") {
         vm->CloseCart();
     }
     SUBCASE("shorthand print (?) test"){
-        vm->LoadCart("short_print_test.p8");
+        vm->LoadCart("short_print_test.p8", false);
 
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");

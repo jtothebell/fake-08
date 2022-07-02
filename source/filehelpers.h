@@ -10,6 +10,8 @@ bool hasEnding (std::string const &fullString, std::string const &ending);
 
 bool isCartFile (std::string const &fullString);
 
+bool isCPostFile (std::string const &fullString);
+
 bool isHiddenFile (std::string const &fullString);
 
 bool isAbsolutePath (std::string const &path);
