@@ -20,7 +20,7 @@ IMITATE		:= miyoomini
 #---------------------------------------------------------------------------------
 CC = $(CXX)
 
-CFLAGS	:=	-g -Wall -Ofast -ffunction-sections -DVER_STR=\"$(APP_VERSION)\" \
+CFLAGS	:=	-g -Wall -ffunction-sections -DVER_STR=\"$(APP_VERSION)\" \
 			$(DEFINES)
 
 CFLAGS	+=	$(INCLUDE)

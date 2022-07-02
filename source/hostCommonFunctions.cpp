@@ -23,7 +23,7 @@ std::string defaultIni =
 "stretch = 1\n"
 "resizekey = 1\n"
 "kbmode = 0\n"
-"menustyle = 1\n"
+"menustyle = 0\n"
 "bgcolor = 0\n";
 
 void Host::setUpPaletteColors(){
@@ -150,7 +150,7 @@ void Host::loadSettingsIni(){
 	#endif
 	
 	//resize hotkey
-	long resizekeySetting = settingsIni.GetLongValue("settings", "resizekey", (long)NoResize);
+	long resizekeySetting = settingsIni.GetLongValue("settings", "resizekey", (long)YesResize);
 	resizekey = (ResizekeyOption) resizekeySetting;
 	
 	//kbmode
@@ -158,7 +158,7 @@ void Host::loadSettingsIni(){
 	kbmode = (KeyboardOption) kbmodeSetting;
 	
 	//bgcolor
-	long menustyleSetting = settingsIni.GetLongValue("settings", "menustyle", (long)Fancy);
+	long menustyleSetting = settingsIni.GetLongValue("settings", "menustyle", (long)Classic);
 	menustyle = (MenuStyleOption) menustyleSetting;
 	
 	//bgcolor

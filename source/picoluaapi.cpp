@@ -864,6 +864,16 @@ int stat(lua_State *L) {
             lua_pushnumber(L, _audioForLuaApi->getMusicTickCount());
             return 1;
         break;
+        //if SDL scancode is pressed. always false for now
+        case 28:
+            lua_pushboolean(L, false);
+            return 1;
+        break;
+        //unknown. appears to always be 0
+        case 29:
+            lua_pushnumber(L, 0);
+            return 1;
+        break;
         //was a key pressed 
         case 30:
             lua_pushboolean(L, _inputForLuaApi->getKeyDown());			
@@ -1256,6 +1266,12 @@ int load(lua_State *L) {
 
 int reset(lua_State *L) {
     _vmForLuaApi->vm_reset();
+
+    return 0;
+}
+
+int setFps(lua_State *L){
+    _vmForLuaApi->setTargetFps(lua_tointeger(L, 1));
 
     return 0;
 }
