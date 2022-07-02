@@ -271,16 +271,12 @@ TEST_CASE("Vm memory functions") {
 
         CHECK_EQ(memory->hwState.rngState[0], 20);
     }
-    SUBCASE("poking button state") {
+    SUBCASE("poking button state doesn't affect input") {
         //0000 1010
         vm->vm_poke(0x5f4c, 10);
 
         CHECK_EQ(memory->hwState.buttonStates[0], 10);
-        CHECK_EQ(input->btn(), 10);
-        CHECK_EQ(input->btn(0), false);
-        CHECK_EQ(input->btn(1), true);
-        CHECK_EQ(input->btn(2), false);
-        CHECK_EQ(input->btn(3), true);
+        CHECK_EQ(input->btn(), 0);
     }
     SUBCASE("poking print attributes") {
         vm->vm_poke(0x5f58, 53);

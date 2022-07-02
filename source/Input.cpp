@@ -5,7 +5,8 @@
 #include "PicoRam.h"
 
 Input::Input(PicoRam* memory):
-    _currentKDown(0)
+    _currentKDown(0),
+    _currentKHeld(0)
 {
     _memory = memory;
 
@@ -14,7 +15,13 @@ Input::Input(PicoRam* memory):
 
 void Input::SetState(uint8_t kdown, uint8_t kheld){
     _currentKDown = kdown;
-    _memory->hwState.buttonStates[0] = kheld;
+    _currentKHeld = kheld;
+    //key 6 (PAUSE MENU) only fires for one frame, even if held
+    if ((_currentKHeld & BITMASK(6)) && !(_currentKDown & BITMASK(6))) {
+        _currentKHeld = _currentKHeld & ~(BITMASK(6));
+    }
+    //memory only stores buttons 0-5, not 6 or 7
+    _memory->hwState.buttonStates[0] = kheld & 0x3F;
 
     uint8_t repeatDelay = _memory->hwState.btnpRepeatDelay == 0 
         ? 15 
@@ -28,7 +35,7 @@ void Input::SetState(uint8_t kdown, uint8_t kheld){
         ? 4 
         : _memory->hwState.btnpRepeatDelay;
 
-    for (int i = 0; i < 8; i ++) {
+    for (int i = 0; i < 7; i ++) {
         bool down = BITMASK(i) & kheld;
 
         _framesHeld[i] = down ? _framesHeld[i] + 1 : 0;
@@ -62,7 +69,7 @@ void Input::SetKeyboard(bool kbDown, std::string kbKey){
 }
 
 uint8_t Input::btn(){
-    return _memory->hwState.buttonStates[0];
+    return _currentKHeld;
 }
 
 //todo: repetition behavior to match pico 8
