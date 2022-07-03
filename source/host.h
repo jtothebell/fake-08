@@ -57,7 +57,7 @@ class Host {
     uint8_t currKHeld;
 	
     bool currKBDown = false;
-	std::string currKBKey = "";
+    std::string currKBKey = "";
 	
     bool lDown = false;
     bool rDown = false;
@@ -70,9 +70,9 @@ class Host {
 	#endif
     StretchOption stretch = PixelPerfectStretch;
     KeyboardOption kbmode = Emoji;
-	ResizekeyOption resizekey = NoResize;
-	MenuStyleOption menustyle = Fancy;
-	BgColorOption bgcolor = Gray;
+    ResizekeyOption resizekey = NoResize;
+    MenuStyleOption menustyle = Fancy;
+    BgColorOption bgcolor = Gray;
 	
     float scaleX = 1.0;
     float scaleY = 1.0;
@@ -97,7 +97,7 @@ class Host {
     void setUpPaletteColors();
     void oneTimeSetup(Audio* audio);
 	
-	void unpackCarts();
+    void unpackCarts();
     
     void setTargetFps(int targetFps);
 
@@ -134,9 +134,9 @@ class Host {
 
     std::string getCartDirectory();
 	
-	//settings
-	int getSetting(std::string sname);
-	void setSetting(std::string sname, int sdata);
+    //settings
+    int getSetting(std::string sname);
+    void setSetting(std::string sname, int sdata);
 
     Color* GetPaletteColors();
 
