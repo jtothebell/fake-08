@@ -250,7 +250,7 @@ struct PicoRam
     void Reset() {
         memset(data, 0, 0x4300);
         //leave general use memory
-        memset(data + 0x5600, 0, 0x10000 - 0x5600);
+        memset(data + 0x5f00, 0, 0x8000 - 0x5f00);
         //colorBitmask starts at 255
         hwState.colorBitmask = 0xff;
         hwState.spriteSheetMemMapping = 0x00;

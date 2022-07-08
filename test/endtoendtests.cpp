@@ -510,6 +510,8 @@ TEST_CASE("Loading and running carts") {
         vm->vm_poke(0x55ff, 129);
 
         vm->vm_poke(0x5600, 71);
+
+        vm->vm_poke(0x5f00, 73);
         vm->vm_poke(0x7fff, 223);
         vm->LoadCart("cartparsetest.p8", false);
 
@@ -519,7 +521,8 @@ TEST_CASE("Loading and running carts") {
         CHECK_EQ(vm->vm_peek(0x4300), 33);
         CHECK_EQ(vm->vm_peek(0x55ff), 129);
 
-        CHECK_EQ(vm->vm_peek(0x5600), 0);
+        CHECK_EQ(vm->vm_peek(0x5600), 71);
+        CHECK_EQ(vm->vm_peek(0x5f00), 16);
         CHECK_EQ(vm->vm_peek(0x7fff), 0);
 
 
@@ -619,6 +622,20 @@ TEST_CASE("Loading and running carts") {
             vm->UpdateAndDraw();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/loop_max_val_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
+    SUBCASE("peek over 0x8000 works"){
+        vm->LoadCart("peek_high_addr.p8");
+
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("sceen matches screenshot"){
+            vm->UpdateAndDraw();
+
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/peek_high_addr_f01.png"));
         }
 
         vm->CloseCart();

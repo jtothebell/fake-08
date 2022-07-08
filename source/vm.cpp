@@ -455,6 +455,7 @@ std::vector<uint8_t> HexToBytes(std::string hex) {
   std::vector<uint8_t> bytes;
 
   hex.erase(std::remove(hex.begin(), hex.end(), '\n'), hex.end());
+  hex.erase(std::remove(hex.begin(), hex.end(), '\r'), hex.end());
 
   for (unsigned int i = 0; i < hex.length(); i += 2) {
     std::string byteString = hex.substr(i, 2);
