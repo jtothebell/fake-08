@@ -997,9 +997,9 @@ int cstore(lua_State *L) {
 }
 
 int api_memcpy(lua_State *L) {
-    int dest = lua_tonumber(L,1);
-    int src = lua_tonumber(L,2);
-    int len = lua_tonumber(L,3);
+    uint16_t dest = (uint16_t)lua_tointeger(L,1);
+    uint16_t src = (uint16_t)lua_tointeger(L,2);
+    uint16_t len = (uint16_t)lua_tointeger(L,3);
 
     _vmForLuaApi->vm_memcpy(dest, src, len);
 
@@ -1007,9 +1007,9 @@ int api_memcpy(lua_State *L) {
 }
 
 int api_memset(lua_State *L) {
-    int dest = lua_tonumber(L,1);
-    int val = lua_tonumber(L,2);
-    int len = lua_tonumber(L,3);
+    uint16_t dest = (uint16_t)lua_tointeger(L,1);
+    uint16_t val = (uint16_t)lua_tointeger(L,2);
+    uint16_t len = (uint16_t)lua_tointeger(L,3);
 
     _vmForLuaApi->vm_memset(dest, val, len);
 
@@ -1020,7 +1020,7 @@ int peek(lua_State *L) {
     int numArgs = lua_gettop(L);
     int numToReturn = 1;
 
-    int addr = lua_tonumber(L,1);
+    uint16_t addr = (uint16_t)lua_tointeger(L,1);
 
     if (numArgs > 1) {
         numToReturn = lua_tonumber(L,2);
@@ -1038,7 +1038,7 @@ int peek(lua_State *L) {
 int poke(lua_State *L) {
     int numArgs = lua_gettop(L);
 
-    int dest = lua_tonumber(L,1);
+    uint16_t dest = (uint16_t)lua_tointeger(L,1);
     uint8_t val = 0;
     if (numArgs > 1) {
         val = lua_tonumber(L,2);
@@ -1057,7 +1057,7 @@ int poke(lua_State *L) {
 }
 
 int peek2(lua_State *L) {
-    int addr = lua_tonumber(L,1);
+    uint16_t addr = (uint16_t)lua_tointeger(L,1);
 
     int16_t val = _vmForLuaApi->vm_peek2(addr);
 
@@ -1069,7 +1069,7 @@ int peek2(lua_State *L) {
 int poke2(lua_State *L) {
     int numArgs = lua_gettop(L);
 
-    int dest = lua_tonumber(L,1);
+    uint16_t dest = (uint16_t)lua_tointeger(L,1);
 
     int val = 0;
     if (numArgs > 1) {
@@ -1089,7 +1089,7 @@ int poke2(lua_State *L) {
 }
 
 int peek4(lua_State *L) {
-    int addr = lua_tonumber(L,1);
+    uint16_t addr = (uint16_t)lua_tointeger(L,1);
 
     fix32 val = _vmForLuaApi->vm_peek4(addr);
 
@@ -1101,7 +1101,7 @@ int peek4(lua_State *L) {
 int poke4(lua_State *L) {
     int numArgs = lua_gettop(L);
 
-    int dest = lua_tonumber(L,1);
+    uint16_t dest = (uint16_t)lua_tointeger(L,1);
 
     fix32 val = 0;
     if (numArgs > 1) {
@@ -1121,18 +1121,18 @@ int poke4(lua_State *L) {
 }
 
 int reload(lua_State *L) {
-    int dest = 0;
-    int src = 0;
-    int len = 0x4300;
+    uint16_t dest = 0;
+    uint16_t src = 0;
+    uint16_t len = 0x4300;
     const char * str = "";
     if (lua_gettop(L) > 0) {
-        dest = lua_tonumber(L,1);
+        dest = (uint16_t)lua_tointeger(L,1);
     }
     if (lua_gettop(L) > 1) {
-        src = lua_tonumber(L,2);
+        src = (uint16_t)lua_tointeger(L,2);
     }
     if (lua_gettop(L) > 2) {
-        len = lua_tonumber(L,3);
+        len = (uint16_t)lua_tointeger(L,3);
     }
     if (lua_gettop(L) > 3) {
         str = lua_tolstring(L, 4, nullptr);

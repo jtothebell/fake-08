@@ -32,7 +32,7 @@ TEST_CASE("Vm memory functions") {
         memory->Reset();
 
         bool correctValues = true;
-        for(int i = 0; i < 0x10000; ++i) {
+        for(int i = 0; i < 0x8000; ++i) {
             if (i == 0x5f5e) {
                 correctValues &= memory->data[i] == 255;
             }
@@ -45,7 +45,7 @@ TEST_CASE("Vm memory functions") {
             else if (i == 0x5f57) {
                 correctValues &= memory->data[i] == 128;
             }
-            else if (i < 0x4300 || i > 0x55ff) {
+            else if (i < 0x4300 || i > 0x5eff) {
                 correctValues &= memory->data[i] == 0;
             }
         }
