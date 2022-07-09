@@ -401,6 +401,22 @@ TEST_CASE("Print helper functions") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("p8scii special control code for char width(\\^x) affects bg color ") {
+        graphics->cls();
+
+        print("\x06""xz\x06""j00\x02""9 ", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {30, 0, 9},
+            {31, 1, 9},
+            {32, 2, 9},
+            {33, 3, 9},
+            {34, 4, 9},
+            {35, 5, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
     SUBCASE("p8scii special control code for wide character(\\^w) ") {
         graphics->cls();
 

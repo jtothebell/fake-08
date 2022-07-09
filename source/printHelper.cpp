@@ -85,6 +85,7 @@ int print(std::string str, int x, int y, uint8_t c) {
     int charWidth = 4;
     int charHeight = 6;
     int lineHeight = 6;
+    uint8_t bgColor = 0;
 
     uint8_t printMode = _ph_mem->hwState.printAttributes;
 
@@ -103,8 +104,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 	}
 
 	_ph_mem->drawState.drawPaletteMap[7] = effectiveC;
-	_ph_mem->drawState.drawPaletteMap[0] = 16; //transparent
-
+    _ph_mem->drawState.drawPaletteMap[0] = 16;
     int framesBetweenChars = 0;
     int framesToPause = 0;
     int rhsWrap = -1;
@@ -124,9 +124,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 		}
 		else if (ch == 2) { // "\#{p0}" draw text on a solid background color
 			uint8_t bgColChar = str[++n];
-			uint8_t bgCol = p0CharToNum(bgColChar);
-
-			_ph_mem->drawState.drawPaletteMap[0] = bgCol;
+			bgColor = p0CharToNum(bgColChar);
 		}
 		else if (ch == 3) { // "\-{p0}" move text cursor horizontally by 16-p0 pixels
 			uint8_t pixelCountChar = str[++n];
@@ -206,7 +204,8 @@ int print(std::string str, int x, int y, uint8_t c) {
                 //but not if there is a \n in the string. Not sure if this is a bug or not
                 uint8_t charHeightChar = str[++n];
                 charHeight = p0CharToNum(charHeightChar);
-                lineHeight = charHeight > lineHeight ? charHeight : lineHeight;
+                //lineHeight = charHeight > lineHeight ? charHeight : lineHeight;
+                lineHeight = charHeight;
             }
             else if (commandChar == 'w'){
                 printMode |= PRINT_MODE_ON;
@@ -301,6 +300,11 @@ int print(std::string str, int x, int y, uint8_t c) {
 			x = _ph_mem->drawState.text_x;
 		}
 		else if (ch >= 0x10) {
+            if (bgColor != 0) {
+                uint8_t prevPenColor = _ph_mem->drawState.color;
+                _ph_graphics->rectfill(x-1, y-1, x + charWidth-1, y + lineHeight-1, bgColor);
+                _ph_mem->drawState.color = prevPenColor;
+            }
 			x += charWidth + _ph_graphics->drawCharacter(ch, x, y, printMode);
             while (framesToPause > 0){
                 _ph_vm->vm_flip();
