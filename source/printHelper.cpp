@@ -12,18 +12,15 @@ Graphics* _ph_graphics;
 Vm* _ph_vm;
 Audio* _ph_audio;
 
-std::vector<uint8_t> oneOffCharToBytes(std::string hex) {
-  std::vector<uint8_t> bytes;
+void oneOffCharToBytes(std::string hex, uint8_t byteBuff[]) {
   char buff[3];
   buff[2] = 0;
   for (unsigned int i = 0; i < hex.length(); i += 2) {
-    buff[0] = hex[i+ 1];
-    buff[1] = hex[i];
+    buff[0] = hex[i];
+    buff[1] = hex[i+1];
     uint8_t byte = (uint8_t) strtol(buff, NULL, 16);
-    bytes.push_back(byte);
+    byteBuff[i/2] = byte;
   }
-
-  return bytes;
 }
 
 void initPrintHelper(PicoRam* memory, Graphics* graphics, Vm* vm, Audio* audio) {
@@ -100,7 +97,8 @@ int print(std::string str, int x, int y, uint8_t c) {
     int charHeight = 6;
     int lineHeight = 6;
     uint8_t bgColor = 0;
-    std::vector<uint8_t> charBytes;
+    uint8_t fgColor = _ph_mem->drawState.color;
+    uint8_t charBytes[8];
 
     uint8_t printMode = _ph_mem->hwState.printAttributes;
 
@@ -257,19 +255,34 @@ int print(std::string str, int x, int y, uint8_t c) {
                 printMode |= PRINT_MODE_ON;
                 printMode |= PRINT_MODE_SOLID_BG;
             }
-            else if (commandChar == ':'){
-                std::string hexStr = str.substr(n, 16);
-                n+=16;
-                charBytes = oneOffCharToBytes(hexStr);
+            else if (commandChar == ':' || commandChar == '.'){
+                lineHeight = 8;
+                charHeight = 8;
+                if (commandChar == ':') {
+                    std::string hexStr = str.substr(n+1, 16);
+                    n+=16;
+                    oneOffCharToBytes(hexStr, charBytes);
+                }
+                else {
+                    std::string binStr = str.substr(n+1, 8);
+                    n+=8;
+                    for(size_t i = 0; i < 8; i++) {
+                        charBytes[i] = binStr[i];
+                    }
+                }
 
                 //TODO: combine with other text rendering
-                x += charWidth + _ph_graphics->drawCharacterFromBytes(charBytes, x, y, printMode);
-            }
-            else if (commandChar == '.'){
-                std::string binStr = str.substr(n, 8);
-                n+=8;
-                //todo: convert bin string to char bytes
-                
+                auto values = _ph_graphics->drawCharacterFromBytes(
+                    charBytes,
+                    x,
+                    y,
+                    prevDrawPal[fgColor & 0x0f],
+                    bgColor,
+                    printMode);
+
+                x += 8 + get<0>(values);
+                charHeight = charHeight + get<1>(values);
+                lineHeight = charHeight > lineHeight ? charHeight : lineHeight;
             }
             else if (commandChar == '-'){
                 uint8_t turnOffModeChar = str[++n];
@@ -309,9 +322,9 @@ int print(std::string str, int x, int y, uint8_t c) {
 		}
 		else if (ch == 12) { //"\f{p0}" draw text with this foreground color
 			uint8_t fgColChar = str[++n];
-			uint8_t fgCol = p0CharToNum(fgColChar);
-			_ph_graphics->color(fgCol);
-			_ph_mem->drawState.drawPaletteMap[7] = _ph_graphics->getDrawPalMappedColor(fgCol);
+			fgColor = p0CharToNum(fgColChar);
+			_ph_graphics->color(fgColor);
+			_ph_mem->drawState.drawPaletteMap[7] = _ph_graphics->getDrawPalMappedColor(fgColor);
 		}
 		else if (ch == '\n') {
 			x = _ph_mem->drawState.text_x;
