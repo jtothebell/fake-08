@@ -2,6 +2,7 @@
 
 #include <string>
 #include <tuple>
+#include <vector>
 #include "hostVmShared.h"
 #include "PicoRam.h"
 #include <fix32.h>
@@ -110,6 +111,7 @@ class Graphics {
 	fix32 fillp(fix32 pat);
 
 	int drawCharacter(uint8_t ch, int x, int y, uint8_t printMode = 0);
+	int drawCharacterFromBytes(std::vector<uint8_t> chBytes, int x, int y, uint8_t printMode = 0);
 
 	void spr(
 		int n,

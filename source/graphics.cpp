@@ -4,6 +4,7 @@
 #include <string.h>
 #include <string>
 #include <algorithm>
+#include <vector>
 
 #include "graphics.h"
 #include "hostVmShared.h"
@@ -1310,6 +1311,25 @@ int Graphics::drawCharacter(uint8_t ch, int x, int y, uint8_t printMode) {
 			int index = ch - 0x80;
 			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5, false, false);
 			extraCharWidth = 4;
+		}
+	}
+
+	return extraCharWidth;
+}
+
+int Graphics::drawCharacterFromBytes(std::vector<uint8_t> chBytes, int x, int y, uint8_t printMode) {
+	int extraCharWidth = 0;
+	if (chBytes.size() != 8){
+		return 0;
+	}
+	//TODO: character modes
+
+	for (size_t i = 0; i < chBytes.size(); i++) {
+		for(uint8_t bitn = 0; bitn < 8; bitn++) {
+			bool on = BITMASK(bitn) & chBytes[i];
+			if (on) {
+				pset(x + bitn, y+ i);
+			}
 		}
 	}
 
