@@ -4,6 +4,7 @@
 #include <string.h>
 #include <string>
 #include <algorithm>
+#include <vector>
 
 #include "graphics.h"
 #include "hostVmShared.h"
@@ -1314,6 +1315,67 @@ int Graphics::drawCharacter(uint8_t ch, int x, int y, uint8_t printMode) {
 	}
 
 	return extraCharWidth;
+}
+
+std::tuple<int, int> Graphics::drawCharacterFromBytes(
+	uint8_t chBytes[],
+	int x,
+	int y,
+	uint8_t fgColor,
+	uint8_t bgColor,
+	uint8_t printMode) {
+	
+	applyCameraToPoint(&x, &y);
+	uint8_t *screenBuffer = GetP8FrameBuffer();
+	
+	int extraCharWidth = 0;
+	int extraCharHeight = 0;
+	//these may need to get passed in later when drawing normal chars
+	int charWidth = 8;
+	int charHeight = 8;
+	int wFactor = 1;
+	int hFactor = 1;
+	//TODO: character modes
+	bool evenPxOnly = false;
+
+	if ((printMode & PRINT_MODE_ON) == PRINT_MODE_ON){
+		if ((printMode & PRINT_MODE_WIDE) == PRINT_MODE_WIDE) {
+			wFactor = 2;
+			extraCharWidth = 8;
+		}
+		if((printMode & PRINT_MODE_TALL) == PRINT_MODE_TALL) {
+			hFactor = 2;
+			extraCharHeight = 8;
+		}
+		if((printMode & PRINT_MODE_STRIPEY) == PRINT_MODE_STRIPEY) {
+			//draw every other pixel-- also kinda broken on pico 8 0.2.4 
+			evenPxOnly = true;
+		}
+		//TODO: other print modes
+	}
+
+	if (bgColor != 0) {
+		uint8_t prevPenColor = _memory->drawState.color;
+		rectfill(x-1, y-1, x + charWidth*wFactor - 1, y + charHeight*hFactor - 1, bgColor);
+		_memory->drawState.color = prevPenColor;
+	}
+
+	for (size_t i = 0; i < charHeight * hFactor; i++) {
+		for(uint8_t bitn = 0; bitn < charWidth * wFactor; bitn++) {
+			bool on = BITMASK(bitn / wFactor) & chBytes[i / hFactor];
+			on &= wFactor == 1 || !evenPxOnly || (i % 2 == 0);
+			on &= wFactor == 1 || !evenPxOnly || (bitn % 2 == 0);
+			const int pixX = x + bitn;
+			const int pixY = y + i;
+			if (on && isWithinClip(pixX, pixY)) {
+				setPixelNibble(pixX, pixY, fgColor, screenBuffer);				
+			}
+		}
+	}
+
+	std::tuple<int, int> retVal (extraCharWidth, extraCharHeight);
+
+	return retVal;
 }
 
 void Graphics::spr(

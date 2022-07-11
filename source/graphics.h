@@ -110,6 +110,13 @@ class Graphics {
 	fix32 fillp(fix32 pat);
 
 	int drawCharacter(uint8_t ch, int x, int y, uint8_t printMode = 0);
+	std::tuple<int, int> drawCharacterFromBytes(
+		uint8_t chBytes[],
+		int x,
+		int y,
+		uint8_t fgColor,
+		uint8_t bgColor,
+		uint8_t printMode);
 
 	void spr(
 		int n,

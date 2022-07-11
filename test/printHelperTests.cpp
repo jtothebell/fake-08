@@ -551,6 +551,64 @@ TEST_CASE("Print helper functions") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("p8scii special control code for one off character(\\^:) (colored)") {
+        graphics->cls();
+
+        print("\x0c""2\x06"":447cb67c3e7f0106", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 0, 0},
+            {1, 0, 0},
+            {2, 0, 2},
+            {3, 0, 0},
+            {4, 0, 0},
+            {5, 0, 0},
+            {6, 0, 2},
+            {7, 0, 0},
+            {0, 1, 0},
+            {1, 1, 0},
+            {2, 1, 2},
+            {3, 1, 2},
+            {4, 1, 2},
+            {5, 1, 2},
+            {6, 1, 2},
+            {7, 1, 0},
+            {0, 2, 0},
+            {1, 2, 2},
+            {2, 2, 2},
+            {3, 2, 0},
+            {4, 2, 2},
+            {5, 2, 2},
+            {6, 2, 0},
+            {7, 2, 2},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("p8scii special control code for one off character(\\^:) (pinballed with bg)") {
+        graphics->cls();
+
+        print("\x02""4\x06""p\x06"":447cb67c3e7f0106", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 0, 4},
+            {1, 0, 4},
+            {2, 0, 4},
+            {3, 0, 4},
+            {4, 0, 6},
+            {5, 0, 4},
+            {6, 0, 4},
+            {7, 0, 4},
+            {8, 0, 4},
+            {9, 0, 4},
+            {10, 0, 4},
+            {11, 0, 4},
+            {12, 0, 6},
+            {13, 0, 4},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
     SUBCASE("Poke default print mode but not turned on") {
         graphics->cls();
 
