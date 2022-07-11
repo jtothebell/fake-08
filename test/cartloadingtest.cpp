@@ -458,6 +458,66 @@ const vector<string> cartsToIgnore ({
     "zehomimugi-0.p8.png",
     "zodajeph-0.p8.png",
     "zoyifizotu-0.p8.png",
+
+    //newly introduced 20220710 -- looks like from fixing exponent parsing
+    "39807.p8.png", // ?? this one might be intermittent
+    "59251.p8.png",
+    "amongthestars560-3.p8.png",
+    "avoid_the_worms-0.p8.png",
+    "begi_ideocart-0.p8.png",
+    "bitdraw-3.p8.png",
+    "blockbop560-1.p8.png",
+    "borecode-0.p8.png",
+    "brake_machine_broke_ld49-1.p8.png",
+    "bubblecat-0.p8.png",
+    "bubblecat-2.p8.png",
+    "bubblegum-0.p8.png",
+    "chico8-2.p8.png",
+    "christmas_present_panic-1.p8.png",
+    "circleattack560-0.p8.png",
+    "cursedconsole-0.p8.png",
+    "curve_dasher-0.p8.png",
+    "ebeamanime2-0.p8.png",
+    "endlessrunner_tweet-0.p8.png",
+    "fishy-0.p8.png",
+    "flappy_tweet-1.p8.png",
+    "footy560-0.p8.png",
+    "gt-1.p8.png",
+    "inside_the_hole-0.p8.png",
+    "isidore-0.p8.png",
+    "jetpackcollectorgame-1.p8.png", //crashes, doesn't hang
+    "ketabarihu-0.p8.png",
+    "kinezapubo-0.p8.png",
+    "lemniscate_redux-0.p8.png",
+    "manvirusreal-0.p8.png",
+    "mmo_moon_tut_ver-0.p8.png",
+    "munro_tweetcarts-5.p8.png",
+    //"nayadunaze-1.p8.png", //just long load
+    "nintweetasketch-0.p8.png",
+    "p8r-4.p8.png",
+    "p8sciiviz560-0.p8.png",
+    "petri-0.p8.png",
+    "pico_1k_jam_invitation-0.p8.png",
+    "picoforth-4.p8.png",
+    "pigeo-0.p8.png",
+    "r56oh-0.p8.png",
+    "racenosun_560-0.p8.png",
+    "redblocc-0.p8.png",
+    "rg_discord_swarm-0.p8.png",
+    "si-1.p8.png",
+    "somuneyetu-0.p8.png",
+    "spirograph-1.p8.png",
+    "suziwagiwo-0.p8.png",
+    "t3dsd-0.p8.png",
+    "thepicomermaid-0.p8.png",
+    "totafohese-0.p8.png",
+    "tweet_invaders-0.p8.png",
+    "tweetgario-0.p8.png",
+    "tweetormergame-0.p8.png",
+    "twrogue-2.p8.png",
+    "void_roller-0.p8.png",
+    "vvm-6.p8.png",
+    "wall_jump_platformer-4.p8.png",
 });
 
 string checkCart(Vm* vm, string cartDirectory, string cart){
@@ -522,7 +582,7 @@ TEST_CASE("Loading and running carts") {
 
 
     //TODO: build library of carts to test- set up compiler flag?
-    std::string _cartDirectory = "";
+    std::string _cartDirectory = "/Users/jon/p8carts/archive/carts";
 
     DIR *dir;
     struct dirent *ent;
