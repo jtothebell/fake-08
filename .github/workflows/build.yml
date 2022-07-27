@@ -23,7 +23,7 @@ jobs:
           ndk-version: r21e
 
       - name: Build
-      - runs: ndk-build NDK_PROJECT_PATH=platform/libretro/jni APP_BUILD_SCRIPT=platform/libretro/jni/Android.mk NDK_APPLICATION_MK=platform/libretro/jni/Application.mk
+        runs: ndk-build NDK_PROJECT_PATH=platform/libretro/jni APP_BUILD_SCRIPT=platform/libretro/jni/Android.mk NDK_APPLICATION_MK=platform/libretro/jni/Application.mk
 
       - uses: actions/upload-artifact@v2
         with:
