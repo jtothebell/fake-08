@@ -27,7 +27,14 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: Android
+          name: Android-arm64
           path: |
-            platform/libretro/arm64-v8a/*.so
-            platform/libretro/armeabi-v7a/*.so
+            arm64-v8a/*.so
+            libs/arm64-v8a/*.so
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Android-arm
+          path: |
+            armeabi-v7a/*.so
+            libs/armeabi-v7a/*.so
