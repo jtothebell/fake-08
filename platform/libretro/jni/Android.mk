@@ -3,7 +3,7 @@ LOCAL_PATH := $(call my-dir)
 
 $(info LOCAL_PATH: $(LOCAL_PATH))
 
-CORE_DIR := $(LOCAL_PATH)/../../..
+CORE_DIR := $(LOCAL_PATH)/../..
 
 $(info CORE_DIR: $(CORE_DIR))
 
