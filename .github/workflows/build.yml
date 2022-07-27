@@ -23,7 +23,7 @@ jobs:
           ndk-version: r21e
 
       - name: Build
-        run: ndk-build NDK_PROJECT_PATH=platform/libretro
+        run: cd platform/libretro && ndk-build
 
       - uses: actions/upload-artifact@v2
         with:
