@@ -1,0 +1,163 @@
+name: fake-08
+
+on:
+  push:
+    branches: '**'
+  pull_request:
+    branches: [ $default-branch ]
+
+jobs:
+  first:
+    name: 3DS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir devkitpro/devkitarm /bin/bash -ex /build_dir/.github/workflows/build3ds.sh
+      
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Nintendo 3DS
+          path: |
+            platform/3ds/*.3dsx
+            platform/3ds/*.cia
+
+  second:
+    name: Switch
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir devkitpro/devkita64 /bin/bash -ex /build_dir/.github/workflows/buildSwitch.sh
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Nintendo Switch
+          path: |
+            platform/switch/*.nro
+
+  third:
+    name: WiiU
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir jondbell/devkitppc-wiiu-sdl2 /bin/bash -ex /build_dir/.github/workflows/buildWiiU.sh
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Nintendo Wii U
+          path: |
+            platform/wiiu/*.rpx
+
+  fourth:
+    name: Vita
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir gnuton/vitasdk-docker:20220413 /bin/sh -ex /build_dir/.github/workflows/buildVita.sh
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: PS Vita
+          path: |
+            platform/vita/*.vpk
+
+  fifth:
+    name: Bittboy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir mcejp/arm-miyoo-linux-musleabi-gcc /bin/sh -ex /build_dir/.github/workflows/buildBittboy.sh
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Bittboy
+          path: |
+            platform/bittboy/FAKE08
+            platform/bittboy/pico8.elf
+
+  sixth:
+    name: MiyooMini
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir jondbell/union-miyoomini-toolchain /bin/sh -ex /build_dir/.github/workflows/buildMiyooMini.sh
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: MiyooMini
+          path: |
+            platform/miyoomini/FAKE08
+
+  seventh:
+    name: Opendingux
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir jondbell/gcw0 /bin/sh -ex /build_dir/.github/workflows/buildGcw0.sh
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Gcw0
+          path: |
+            platform/gcw0/fake08_gcw0.opk
+            
+  eighth:
+    name: Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: make tests
