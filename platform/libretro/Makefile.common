@@ -7,11 +7,12 @@ MY_INCLUDES := $(CORE_DIR)/source \
                 $(CORE_DIR)/libs/z8lua \
 				$(CORE_DIR)/libs/lodepng \
 				$(CORE_DIR)/libs/miniz \
-				$(CORE_DIR)/libs/simpleini 
+				$(CORE_DIR)/libs/simpleini \
+                $(CORE_DIR)/platform/libretro/
 
 
-SOURCES_CXX := $(CORE_DIR)/libretro.cpp \
-                $(CORE_DIR)/libretrohost.cpp \
+SOURCES_CXX := $(CORE_DIR)/platform/libretro/libretro.cpp \
+                $(CORE_DIR)/platform/libretro/libretrohost.cpp \
                 \
                 $(CORE_DIR)/libs/z8lua/eris.c \
                 $(CORE_DIR)/libs/z8lua/lapi.c \
