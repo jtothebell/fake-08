@@ -22,7 +22,7 @@ CFLAGS	:=	-fPIC -g -O2 -Wall -Wno-deprecated -ffunction-sections -std=c++17 \
 
 CFLAGS	+=	$(INCLUDE) -DVER_STR=\"$(APP_VERSION)\"
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions 
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions 
 #-std=gnu++11 was used before... not sure of difference
 
 
@@ -77,7 +77,7 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
 
-.PHONY: $(BUILD) clean all
+.PHONY: $(BUILD) clean all #echo
 
 #---------------------------------------------------------------------------------
 
@@ -90,6 +90,12 @@ $(BUILD):
 clean:
 	@echo clean ...
 	@rm -fr $(BUILD) $(TARGET)
+
+
+#echo:
+#	@echo echo ...
+#	@echo $(CFILES) 
+#	@echo $(CPPFILES)
 
 
 #---------------------------------------------------------------------------------

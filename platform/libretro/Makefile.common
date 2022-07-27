@@ -1,14 +1,17 @@
+#only actually used by android.mk for android builds
+
+
 LUALIB_DIR := $(CORE_DIR)/../../libs/z8lua
 
-INCFLAGS := -I$(CORE_DIR)/../../source \
-                -I$(CORE_DIR)/../../libs/z8lua \
-				-I$(CORE_DIR)/../../libs/lodepng \
-				-I$(CORE_DIR)/../../libs/miniz \
-				-I$(CORE_DIR)/../../libs/simpleini 
+MY_INCLUDES := $(CORE_DIR)/../../source \
+                $(CORE_DIR)/../../libs/z8lua \
+				$(CORE_DIR)/../../libs/lodepng \
+				$(CORE_DIR)/../../libs/miniz \
+				$(CORE_DIR)/../../libs/simpleini 
 
-SOURCES_C   := 
 
 SOURCES_CXX := $(CORE_DIR)/libretro.cpp \
+                $(CORE_DIR)/libretrohost.cpp \
                 \
                 $(CORE_DIR)/../../libs/z8lua/eris.c \
                 $(CORE_DIR)/../../libs/z8lua/lapi.c \
@@ -58,7 +61,7 @@ SOURCES_CXX := $(CORE_DIR)/libretro.cpp \
                 $(CORE_DIR)/../../source/filehelpers.cpp \
                 $(CORE_DIR)/../../source/fontdata.cpp \
                 $(CORE_DIR)/../../source/graphics.cpp \
-                #$(CORE_DIR)/../../source/hostCommonFunctions.cpp \
+                $(CORE_DIR)/../../source/hostCommonFunctions.cpp \
                 $(CORE_DIR)/../../source/logger.cpp \
                 $(CORE_DIR)/../../source/mathhelpers.cpp \
                 $(CORE_DIR)/../../source/nibblehelpers.cpp \
