@@ -17,6 +17,7 @@ COREFLAGS := -DANDROID -D__LIBRETRO__ -Wall -Wno-deprecated -ffunction-sections 
 include $(CLEAR_VARS)
 
 LOCAL_MODULE        := retro
+LOCAL_CPP_EXTENSION := .cpp .c
 LOCAL_SRC_FILES     := $(SOURCES_CXX)
 LOCAL_C_INCLUDES    := $(MY_INCLUDES)
 LOCAL_CXXFLAGS      := $(COREFLAGS)
