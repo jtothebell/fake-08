@@ -25,14 +25,14 @@ jobs:
       - name: Build
         run: cd platform/libretro/jni && ndk-build
 
-      - uses: actions/upload-artifact@v2
-        with:
-          name: Android-arm64
-          path: |
-            platform/libretro/libs/arm64-v8a/*.so
+      - name: Rename Artifacts
+        run: | 
+          cp platform/libretro/libs/arm64-v8a/libfake08.so platform/libretro/libs/libfake08-arm64.so && 
+          cp platform/libretro/libs/armeabi-v7a/libfake08.so platform/libretro/libs/libfake08-arm32.so
 
       - uses: actions/upload-artifact@v2
         with:
-          name: Android-arm
+          name: Android-Libretro
           path: |
-            platform/libretro/libs/armeabi-v7a/*.so
+            platform/libretro/libs/libfake08-arm64.so
+            platform/libretro/libs/libfake08-arm32.so
