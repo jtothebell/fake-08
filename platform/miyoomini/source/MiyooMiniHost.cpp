@@ -244,7 +244,7 @@ void Host::oneTimeSetup(Audio* audio){
     SDL_WM_SetCaption("FAKE-08", NULL);
     SDL_ShowCursor(SDL_DISABLE);
 
-    int flags = SDL_SWSURFACE;
+    int flags = SDL_SWSURFACE | SDL_DOUBLEBUF;
 
     window = SDL_SetVideoMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, SCREEN_BPP, flags);
 
