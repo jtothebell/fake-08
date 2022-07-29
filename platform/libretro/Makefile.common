@@ -3,6 +3,13 @@
 
 LUALIB_DIR := $(CORE_DIR)/libs/z8lua
 
+INCFLAGS := -I$(CORE_DIR)/source \
+                -I$(CORE_DIR)/libs/z8lua \
+				-I$(CORE_DIR)/libs/lodepng \
+				-I$(CORE_DIR)/libs/miniz \
+				-I$(CORE_DIR)/libs/simpleini \
+                -I$(CORE_DIR)/platform/libretro/
+
 MY_INCLUDES := $(CORE_DIR)/source \
                 $(CORE_DIR)/libs/z8lua \
 				$(CORE_DIR)/libs/lodepng \
@@ -10,11 +17,7 @@ MY_INCLUDES := $(CORE_DIR)/source \
 				$(CORE_DIR)/libs/simpleini \
                 $(CORE_DIR)/platform/libretro/
 
-
-SOURCES_CXX := $(CORE_DIR)/platform/libretro/libretro.cpp \
-                $(CORE_DIR)/platform/libretro/libretrohost.cpp \
-                \
-                $(CORE_DIR)/libs/z8lua/eris.c \
+SOURCES_C := $(CORE_DIR)/libs/z8lua/eris.c \
                 $(CORE_DIR)/libs/z8lua/lapi.c \
                 $(CORE_DIR)/libs/z8lua/lauxlib.c \
                 $(CORE_DIR)/libs/z8lua/lbaselib.c \
@@ -51,7 +54,10 @@ SOURCES_CXX := $(CORE_DIR)/platform/libretro/libretro.cpp \
                 \
                 $(CORE_DIR)/libs/simpleini/ConvertUTF.c \
                 \
-                $(CORE_DIR)/libs/miniz/miniz.c \
+                $(CORE_DIR)/libs/miniz/miniz.c
+
+SOURCES_CXX := $(CORE_DIR)/platform/libretro/libretro.cpp \
+                $(CORE_DIR)/platform/libretro/libretrohost.cpp \
                 \
                 $(CORE_DIR)/libs/lodepng/lodepng.cpp \
                 \

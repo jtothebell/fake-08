@@ -1,130 +1,168 @@
+STATIC_LINKING := 0
+AR             := ar
 
-#---------------------------------------------------------------------------------
-# TARGET is the name of the output
-# BUILD is the directory where object files & intermediate files will be placed
-# SOURCES is a list of directories containing source code
-# INCLUDES is a list of directories containing header files
-#
-#---------------------------------------------------------------------------------
-#todo: multi platform with extension
-TARGET		:=	fake08_libretro.dylib
-BUILD		:=	build
-SOURCES   	:= ../../source ../../libs/z8lua ../../libs/utf8-util ../../libs/lodepng ../../libs/simpleini ../../libs/miniz ./
-INCLUDES  	:= ../../source ../../include ../../libs/z8lua ../../libs/utf8-util ../../libs/lodepng ../../libs/simpleini ../../libs/miniz ./
+ifneq ($(V),1)
+   Q := @
+endif
 
-#---------------------------------------------------------------------------------
-# options for code generation
-#---------------------------------------------------------------------------------
+ifneq ($(SANITIZER),)
+   CFLAGS   := -fsanitize=$(SANITIZER) $(CFLAGS)
+   CXXFLAGS := -fsanitize=$(SANITIZER) $(CXXFLAGS)
+   LDFLAGS  := -fsanitize=$(SANITIZER) $(LDFLAGS)
+endif
+
+ifeq ($(platform),)
+platform = unix
+ifeq ($(shell uname -a),)
+   platform = win
+else ifneq ($(findstring MINGW,$(shell uname -a)),)
+   platform = win
+else ifneq ($(findstring Darwin,$(shell uname -a)),)
+   platform = osx
+else ifneq ($(findstring win,$(shell uname -a)),)
+   platform = win
+endif
+endif
+
+# system platform
+system_platform = unix
+ifeq ($(shell uname -a),)
+	EXE_EXT = .exe
+	system_platform = win
+else ifneq ($(findstring Darwin,$(shell uname -a)),)
+	system_platform = osx
+	arch = intel
+ifeq ($(shell uname -p),powerpc)
+	arch = ppc
+endif
+ifeq ($(shell uname -p),arm)
+	arch = arm
+endif
+else ifneq ($(findstring MINGW,$(shell uname -a)),)
+	system_platform = win
+endif
+
+CORE_DIR    := ../..
+TARGET_NAME := fake08
+LIBM		    = -lm
+
+ifeq ($(ARCHFLAGS),)
+ifeq ($(arch),ppc)
+   ARCHFLAGS = -arch ppc -arch ppc64
+else ifeq ($(arch),arm)
+   ARCHFLAGS = -arch arm64
+else
+   ARCHFLAGS = -arch i386 -arch x86_64
+endif
+endif
+
+ifeq ($(platform), osx)
+ifndef ($(NOUNIVERSAL))
+   CFLAGS += $(ARCHFLAGS)
+   CXXFLAGS += $(ARCHFLAGS)
+   LFLAGS += $(ARCHFLAGS)
+endif
+endif
+
+ifeq ($(STATIC_LINKING), 1)
+EXT := a
+endif
+
+ifeq ($(platform), unix)
+	EXT ?= so
+   TARGET := $(TARGET_NAME)_libretro.$(EXT)
+   fpic := -fPIC
+   SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
+else ifeq ($(platform), linux-portable)
+   TARGET := $(TARGET_NAME)_libretro.$(EXT)
+   fpic := -fPIC -nostdlib
+   SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T
+	LIBM :=
+else ifneq (,$(findstring osx,$(platform)))
+   TARGET := $(TARGET_NAME)_libretro.dylib
+   fpic := -fPIC
+   SHARED := -dynamiclib
+else ifneq (,$(findstring ios,$(platform)))
+   TARGET := $(TARGET_NAME)_libretro_ios.dylib
+	fpic := -fPIC
+	SHARED := -dynamiclib
+
+ifeq ($(IOSSDK),)
+   IOSSDK := $(shell xcodebuild -version -sdk iphoneos Path)
+endif
+
+	DEFINES := -DIOS
+	CC = cc -arch armv7 -isysroot $(IOSSDK)
+ifeq ($(platform),ios9)
+CC     += -miphoneos-version-min=8.0
+CXXFLAGS += -miphoneos-version-min=8.0
+else
+CC     += -miphoneos-version-min=5.0
+CXXFLAGS += -miphoneos-version-min=5.0
+endif
+else ifneq (,$(findstring qnx,$(platform)))
+	TARGET := $(TARGET_NAME)_libretro_qnx.so
+   fpic := -fPIC
+   SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
+else ifeq ($(platform), emscripten)
+   TARGET := $(TARGET_NAME)_libretro_emscripten.bc
+   fpic := -fPIC
+   SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
+else ifeq ($(platform), vita)
+   TARGET := $(TARGET_NAME)_vita.a
+   CC = arm-vita-eabi-gcc
+   AR = arm-vita-eabi-ar
+   CXXFLAGS += -Wl,-q -Wall -O3
+	STATIC_LINKING = 1
+else
+   CC = gcc
+   TARGET := $(TARGET_NAME)_libretro.dll
+   SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
+endif
+
+LDFLAGS += $(LIBM)
+
+ifeq ($(DEBUG), 1)
+   CFLAGS += -O0 -g -DDEBUG
+   CXXFLAGS += -O0 -g -DDEBUG
+else
+   CFLAGS += -O2
+   CXXFLAGS += -O2
+endif
+
+include Makefile.common
+
 CC = $(CXX)
 
-CFLAGS	:=	-fPIC -g -O2 -Wall -Wno-deprecated -ffunction-sections -std=c++17 \
-			$(DEFINES)
+OBJECTS := $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
 
-CFLAGS	+=	$(INCLUDE) -DVER_STR=\"$(APP_VERSION)\"
+CFLAGS   += $(fpic) -Wall -D__LIBRETRO__ -Wno-deprecated -ffunction-sections -std=c++17 -fno-rtti $(INCFLAGS)
+CXXFLAGS += $(fpic) -Wall -D__LIBRETRO__ -Wno-deprecated -ffunction-sections -std=c++17 -fno-rtti -fno-exceptions $(INCFLAGS)
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions 
-#-std=gnu++11 was used before... not sure of difference
+all: $(TARGET)
 
-
-LDFLAGS	:= -dynamiclib $(LIBS)
-
-
-#---------------------------------------------------------------------------------
-# no real need to edit anything past this point unless you need to add additional
-# rules for different file extensions
-#---------------------------------------------------------------------------------
-ifneq ($(BUILD),$(notdir $(CURDIR)))
-#---------------------------------------------------------------------------------
-
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
-export TOPDIR	:=	$(CURDIR)
-
-export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
-			$(foreach dir,$(DATA),$(CURDIR)/$(dir))
-
-export DEPSDIR	:=	$(CURDIR)/$(BUILD)
-
-CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
-CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
-
-
-CPPFILES := $(filter-out main.cpp,$(CPPFILES))
-#CPPFILES := $(filter-out hostCommonFunctions.cpp,$(CPPFILES))
-
-#---------------------------------------------------------------------------------
-# use CXX for linking C++ projects, CC for standard C
-#---------------------------------------------------------------------------------
-ifeq ($(strip $(CPPFILES)),)
-#---------------------------------------------------------------------------------
-	export LD	:=	$(CC)
-#---------------------------------------------------------------------------------
+$(TARGET): $(OBJECTS)
+ifeq ($(STATIC_LINKING), 1)
+	$(AR) rcs $@ $(OBJECTS)
 else
-#---------------------------------------------------------------------------------
-	export LD	:=	$(CXX)
-#---------------------------------------------------------------------------------
+	@$(if $(Q), $(shell echo echo LD $@),)
+	$(Q)$(CXX) $(fpic) $(SHARED) $(INCLUDES) -o $@ $(OBJECTS) $(LDFLAGS)
 endif
-#---------------------------------------------------------------------------------
 
-export OFILES_BIN	:=	$(addsuffix .o,$(BINFILES))
-export OFILES_SRC	:=	$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
-export OFILES 		:=	$(OFILES_BIN) $(OFILES_SRC)
-export HFILES_BIN	:=	$(addsuffix .h,$(subst .,_,$(BINFILES)))
+%.o: %.c
+	@$(if $(Q), $(shell echo echo CC $<),)
+	$(Q)$(CXX) $(CFLAGS) $(fpic) -c -o $@ $<
 
-export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
-			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-			-I$(CURDIR)/$(BUILD)
-
-export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
-
-
-.PHONY: $(BUILD) clean all #echo
-
-#---------------------------------------------------------------------------------
-
-
-$(BUILD):
-	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
-
-#---------------------------------------------------------------------------------
 clean:
-	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET)
+	rm -f $(OBJECTS) $(TARGET)
 
+echo:
+	@echo echo ...
+#	@echo $(SOURCES_C) 
+#	@echo $(SOURCES_CXX)
+	@echo $(OBJECTS) 
 
-#echo:
-#	@echo echo ...
-#	@echo $(CFILES) 
-#	@echo $(CPPFILES)
+.PHONY: clean echo
 
-
-#---------------------------------------------------------------------------------
-else
-.PHONY:	all
-
-DEPENDS	:=	$(OFILES:.o=.d)
-
-#---------------------------------------------------------------------------------
-# main targets
-#---------------------------------------------------------------------------------
-all	:	$(OUTPUT)
-
-
-$(OUTPUT)		:	$(OFILES)
-	$(CC) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
-
-$(OFILES_SRC)	: $(HFILES_BIN)
-
-#---------------------------------------------------------------------------------
-# you need a rule like this for each extension you use as binary data
-#---------------------------------------------------------------------------------
-%.bin.o	%_bin.h :	%.bin
-#---------------------------------------------------------------------------------
-	@echo $(notdir $<)
-	@$(bin2o)
-
--include $(DEPENDS)
-
-#---------------------------------------------------------------------------------------
-endif
-#---------------------------------------------------------------------------------------
+print-%:
+	@echo '$*=$($*)'
