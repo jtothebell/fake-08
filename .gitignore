@@ -44,3 +44,4 @@ platform/gcw0/FAKE08
 platform/gcw0/fake08_gcw0.opk
 source/carts.zip
 /platform/windows/*.stackdump
+.DS_Store
