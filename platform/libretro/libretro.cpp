@@ -166,6 +166,12 @@ uint8_t kDown = 0;
 
 size_t frame = 0;
 
+uint8_t drawMode = 0;
+int drawModeScaleX = 1;
+int drawModeScaleY = 1;
+int textureAngle = 0;
+int flip = 0;
+
 EXPORT void retro_run()
 {
     //TODO: improve this so slower hardware can play 30fps games at full speed
@@ -204,8 +210,66 @@ EXPORT void retro_run()
     uint8_t* picoFb = _vm->GetPicoInteralFb();
     uint8_t* screenPaletteMap = _vm->GetScreenPaletteMap();
 
-    for (size_t pixIdx = 0; pixIdx < screenBufferSize; pixIdx++){
-        screenBuffer[pixIdx] = _rgb565Colors[screenPaletteMap[getPixelNibble(pixIdx % 128, pixIdx / 128, picoFb)]];
+    drawMode = _memory->drawState.drawMode;
+
+    drawModeScaleX = 1;
+    drawModeScaleY = 1;
+    switch(drawMode){
+        case 1:
+            drawModeScaleX = 2;
+            textureAngle = 0;
+            flip = 0;
+            break;
+        case 2:
+            drawModeScaleY = 2;
+            textureAngle = 0;
+            flip = 0;
+            break;
+        case 3:
+            drawModeScaleX = 2;
+            drawModeScaleY = 2;
+            textureAngle = 0;
+            flip = 0;
+            break;
+        //todo: mirroring
+        //case 4,6,7
+        case 129:
+            textureAngle = 0;
+            flip = 1;
+            break;
+        case 130:
+            textureAngle = 0;
+            flip = 2;
+            break;
+        case 131:
+            textureAngle = 0;
+            flip = 3;
+            break;
+        case 133:
+            textureAngle = 90;
+            flip = 0;
+            break;
+        case 134:
+            textureAngle = 180;
+            flip = 0;
+            break;
+        case 135:
+            textureAngle = 270;
+            flip = 0;
+            break;
+        default:
+            textureAngle = 0;
+            flip = 0;
+            break;
+    }
+
+    //TODO: handle rotation/flip/mirroring
+    for(int scry = 0; scry < PicoScreenHeight; scry++) {
+        for (int scrx = 0; scrx < PicoScreenWidth; scrx++) {
+            int picox = scrx / drawModeScaleX;
+            int picoy = scry / drawModeScaleY;
+            screenBuffer[scry*128+scrx] = _rgb565Colors[screenPaletteMap[getPixelNibble(picox, picoy, picoFb)]];
+        }
     }
 
     video_cb(&screenBuffer, PicoScreenWidth, PicoScreenHeight, PicoScreenWidth * BytesPerPixel);
