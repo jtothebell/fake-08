@@ -123,7 +123,7 @@ EXPORT void retro_get_system_info(struct retro_system_info *info)
     memset(info, 0, sizeof(*info));
     info->library_name = "fake-08";
     info->library_version = "0.0.2.18"; //todo: get from build flags
-    info->valid_extensions = "p8|p8.png";
+    info->valid_extensions = "p8|png";
     info->need_fullpath = true; // we load our own carts for now
 }
 
