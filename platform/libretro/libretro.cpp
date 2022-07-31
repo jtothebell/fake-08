@@ -10,6 +10,7 @@
 #include "../../source/host.h"
 #include "../../source/hostVmShared.h"
 #include "../../source/nibblehelpers.h"
+#include "../../source/filehelpers.h"
 #include "setInput.h"
 
 
@@ -85,6 +86,16 @@ EXPORT void retro_init()
 {
     //called once. do setup (create host and vm?)
     _host = new Host();
+
+    char const *save_dir;
+    if (enviro_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &save_dir) && save_dir) {
+        string saveDirStr = save_dir;
+        if (! hasEnding(saveDirStr, "/")) {
+            saveDirStr = saveDirStr + "/";
+        }
+        _host->overrideLogFilePrefix(saveDirStr.c_str());
+    }
+
 	_memory = new PicoRam();
 	_audio = new Audio(_memory);
 

@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include <fstream>
 #include <iostream>
@@ -102,11 +104,17 @@ std::string Host::customBiosLua() {
     return "";
 }
 
-
-
-
-
-
 std::string Host::getCartDirectory() {
     return "carts";
+}
+
+void Host::overrideLogFilePrefix(const char* newPrefix) {
+    _logFilePrefix = newPrefix;
+    
+    struct stat st = {0};
+
+    string cartdatadir = _logFilePrefix + "cdata";
+    if (stat(cartdatadir.c_str(), &st) == -1) {
+        mkdir(cartdatadir.c_str(), 0777);
+    }
 }

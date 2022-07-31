@@ -118,10 +118,6 @@ bool abortLua;
 bool Vm::loadCart(Cart* cart) {
     _picoFrameCount = 0;
 
-    if (_cartdataKey.length() > 0) {
-        _host->saveCartData(_cartdataKey, getSerializedCartData());
-    }
-
     _cartdataKey = "";
 
     //reset memory (may have to be more selective about zeroing out to be accurate?)
@@ -597,6 +593,11 @@ void Vm::CloseCart() {
         Logger_Write("closing lua state\n");
         lua_close(_luaState);
         _luaState = nullptr;
+    }
+
+    Logger_Write("writing cart data\n");
+    if (_cartdataKey.length() > 0) {
+        _host->saveCartData(_cartdataKey, getSerializedCartData());
     }
 
     Logger_Write("resetting state\n");

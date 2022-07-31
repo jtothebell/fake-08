@@ -124,6 +124,7 @@ class Host {
 
     std::vector<std::string> listcarts();
 
+    void overrideLogFilePrefix(const char* newPrefix);
     const char* logFilePrefix();
 
     std::string customBiosLua();
