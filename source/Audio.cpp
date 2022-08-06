@@ -40,7 +40,7 @@ void Audio::resetAudioState() {
     _audioState._musicChannel.offset = 0.f;
 }
 
-audioState* Audio::getAudioState() {
+audioState_t* Audio::getAudioState() {
     return &_audioState;
 }
 

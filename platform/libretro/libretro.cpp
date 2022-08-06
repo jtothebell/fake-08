@@ -84,6 +84,7 @@ EXPORT void retro_set_input_state(retro_input_state_t cb) { input_state_cb = cb;
 
 EXPORT void retro_init()
 {
+    printf("********** retro init\n");
     //called once. do setup (create host and vm?)
     _host = new Host();
 
@@ -117,6 +118,7 @@ EXPORT void retro_init()
 
 EXPORT void retro_deinit()
 {
+    printf("**********r retro deinit\n");
     //delete things created in init
     _vm->CloseCart();
     _host->oneTimeCleanup();
@@ -288,19 +290,54 @@ EXPORT void retro_run()
     frame++;
 }
 
+
 EXPORT size_t retro_serialize_size()
 {
-    return 0;
+    //lua memory is 2 MB in size
+    //https://www.lexaloffle.com/dl/docs/pico-8_manual.html
+    //section 6.7: Memory
+    printf("********** getting serialize size\n");
+    return sizeof(PicoRam) + sizeof(audioState_t) + 1024*1024*2;
 }
 
 EXPORT bool retro_serialize(void *data, size_t size)
 {
-    return false;
+    printf("********** retro_serialize\n");
+    const int expectedSize = retro_serialize_size();
+    if (size > expectedSize) {
+        printf("********** size > expected size\n");
+        size = expectedSize;
+    }
+    else if (size < expectedSize) {
+        printf("********** size < expected size\n");
+        return false;
+    }
+
+
+    saveState_t* saveState = (saveState_t*)data;
+
+    memcpy(&saveState->memory, _memory->data, sizeof(PicoRam));
+    memcpy(&saveState->audioState, _audio->getAudioState(), sizeof(audioState_t));
+    std::string luaState = _vm->serializeLuaState();
+    printf("serialized luaState: %s\n", luaState.c_str());
+    memcpy(&saveState->luaStateStr, luaState.c_str(), luaState.length());
+
+
+    return true;
 }
 
 EXPORT bool retro_unserialize(const void *data, size_t size)
 {
-    return false;
+    printf("********** retro_unserialize\n");
+    saveState_t* saveState = (saveState_t*)data;
+
+    memcpy(_memory->data, &saveState->memory, sizeof(PicoRam));
+    memcpy(_audio->getAudioState(), &saveState->audioState, sizeof(audioState_t));
+    printf("serialized luaState: %s\n",  saveState->luaStateStr);
+    std::string luaStateStr = saveState->luaStateStr;
+    _vm->deserializeLuaState(luaStateStr);
+
+    return true;
 }
 
 EXPORT void retro_cheat_reset()
@@ -335,6 +372,7 @@ EXPORT unsigned retro_get_region()
 
 EXPORT void *retro_get_memory_data(unsigned id)
 {
+    //move cart data saving to here?
     return nullptr;
 }
 

@@ -133,6 +133,9 @@ class Host {
 
     void saveCartData(std::string cartDataKey, std::string contents);
 
+    size_t getFileContents(std::string fileName, char* buffer);
+    void writeBufferToFile(std::string cartDataKey, char* buffer, size_t length);
+
     std::string getCartDirectory();
 	
     //settings

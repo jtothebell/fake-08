@@ -333,6 +333,23 @@ bool Vm::loadCart(Cart* cart) {
     //pop the _init fuction off the stack now that we're done with it
     lua_pop(_luaState, 0);
 
+    // Push the eris.init_persist_all function on the top of the lua stack (or nil if it doesn't exist)
+    printf("********trying to call eris.init_persist_all\n");
+    lua_getglobal(_luaState, "eris");
+	lua_getfield(_luaState, -1, "init_persist_all");
+
+    if (lua_pcall(_luaState, 0, 0, 0)){
+        printf("********error trying to call eris.init_persist_all\n");
+        printf("Error setting up lua persistence: %s\n", lua_tostring(_luaState, -1));
+        Logger_Write("Error setting up lua persistence: %s\n", lua_tostring(_luaState, -1));
+        lua_pop(_luaState, 1);
+        return false;
+    }
+
+    //pop the eris.init_persist_all fuction off the stack now that we're done with it
+    lua_pop(_luaState, 1);
+    printf("********succeeded calling eris.init_persist_all\n");
+
     //check for update, mark correct target fps
     lua_getglobal(_luaState, "_update60");
     if (lua_isfunction(_luaState, -1)) {
@@ -502,11 +519,22 @@ void Vm::deserializeCartDataToMemory(std::string cartDataStr) {
             _memory->data[0x5e00 + idxStart + 3] = bytesVector[idxEnd - 3];
         }
     }
-
 }
+
+#define SAVESTATEBUFFSIZE 1024*1024*2
+static char saveStateBuffer[SAVESTATEBUFFSIZE];
 
 void Vm::UpdateAndDraw() {
     update_buttons();
+
+    if (_input->btnp(7) && _input->btn(3)) {
+        size_t length = _host->getFileContents("testsavestate.state", saveStateBuffer);
+        deserializeLuaState(saveStateBuffer, length);
+    }
+    else if (_input->btnp(7)) {
+        size_t length = serializeLuaState(saveStateBuffer);
+        _host->writeBufferToFile("testsavestate.state", saveStateBuffer, length);
+    }
 
     _picoFrameCount++;
 
@@ -1140,3 +1168,36 @@ std::string Vm::getLuaLine(string filename, int linenumber) {
     return line;
     
 }
+
+
+size_t Vm::serializeLuaState(char* dest) {
+    lua_getglobal(_luaState, "eris");
+	lua_getfield(_luaState, -1, "persist_all");
+
+	if (lua_pcall(_luaState, 0, 1, 0) != 0) {
+		std::string e = lua_tostring(_luaState, -1);
+		lua_pop(_luaState, 1);
+		return 0;
+	}
+
+	size_t len;
+	const char* result = lua_tolstring(_luaState, -1, &len);
+    memcpy(dest, result, len);
+	lua_pop(_luaState, 2);
+
+    return len;
+}
+
+void Vm::deserializeLuaState(const char* src, size_t len) {
+    lua_getglobal(_luaState, "eris");
+	lua_getfield(_luaState, -1, "restore_all");
+	lua_pushlstring(_luaState, src, len);
+
+	if (lua_pcall(_luaState, 1, 0, 0) != 0) {
+		std::string e = lua_tostring(_luaState, -1);
+		lua_pop(_luaState, 1);
+		return;
+	}
+	lua_pop(_luaState, 1);
+}
+

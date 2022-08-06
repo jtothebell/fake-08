@@ -217,6 +217,36 @@ void Host::saveCartData(std::string cartDataKey, std::string contents) {
 	}
 }
 
+size_t Host::getFileContents(std::string fileName, char* buffer) {
+	std::string absPath = _logFilePrefix + "cdata/" + fileName;
+    //get_file_bin_contents(absPath, buffer, length);
+	FILE * file = freopen(absPath.c_str(), "rb", stderr);
+    if( file != NULL ) {
+		//Initialize data
+		size_t len;
+		fread(&len, sizeof(len), 1, file);
+		fread(buffer, sizeof(char), len, file);
+        
+        fclose(file);
+
+		return len;
+	}
+
+	return 0;
+}
+
+void Host::writeBufferToFile(std::string fileName, char* buffer, size_t length) {
+	std::string absPath = _logFilePrefix + "cdata/" + fileName;
+    FILE * file = freopen(absPath.c_str(), "w", stderr);
+    if( file != NULL ) {
+		//Initialize data
+		fwrite(&length, sizeof(length), 1, file);
+		fwrite(buffer, sizeof(char), length, file);
+        
+        fclose(file);
+	}
+}
+
 //settings
 
 int Host::getSetting(std::string sname) {
