@@ -274,6 +274,20 @@ bool Vm::loadCart(Cart* cart) {
         return false;
     }
 
+    // Push the eris.init_persist_all function on the top of the lua stack (or nil if it doesn't exist)
+    // we call this function to establish the default global state of things not to save in the save state
+    // needs to be called after globals are loaded but before the cart is run, or _init is called
+    lua_getglobal(_luaState, "eris");
+	lua_getfield(_luaState, -1, "init_persist_all");
+
+    if (lua_pcall(_luaState, 0, 0, 0)){
+        Logger_Write("Error setting up lua persistence: %s\n", lua_tostring(_luaState, -1));
+        lua_pop(_luaState, 1);
+        return false;
+    }
+
+    //pop the eris.init_persist_all fuction off the stack now that we're done with it
+    lua_pop(_luaState, 1);
 
     int loadedCart = luaL_loadstring(_luaState, cart->LuaString.c_str());
     if (loadedCart != LUA_OK) {
@@ -333,22 +347,7 @@ bool Vm::loadCart(Cart* cart) {
     //pop the _init fuction off the stack now that we're done with it
     lua_pop(_luaState, 0);
 
-    // Push the eris.init_persist_all function on the top of the lua stack (or nil if it doesn't exist)
-    printf("********trying to call eris.init_persist_all\n");
-    lua_getglobal(_luaState, "eris");
-	lua_getfield(_luaState, -1, "init_persist_all");
 
-    if (lua_pcall(_luaState, 0, 0, 0)){
-        printf("********error trying to call eris.init_persist_all\n");
-        printf("Error setting up lua persistence: %s\n", lua_tostring(_luaState, -1));
-        Logger_Write("Error setting up lua persistence: %s\n", lua_tostring(_luaState, -1));
-        lua_pop(_luaState, 1);
-        return false;
-    }
-
-    //pop the eris.init_persist_all fuction off the stack now that we're done with it
-    lua_pop(_luaState, 1);
-    printf("********succeeded calling eris.init_persist_all\n");
 
     //check for update, mark correct target fps
     lua_getglobal(_luaState, "_update60");

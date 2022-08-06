@@ -84,7 +84,6 @@ EXPORT void retro_set_input_state(retro_input_state_t cb) { input_state_cb = cb;
 
 EXPORT void retro_init()
 {
-    printf("********** retro init\n");
     //called once. do setup (create host and vm?)
     _host = new Host();
 
@@ -118,7 +117,6 @@ EXPORT void retro_init()
 
 EXPORT void retro_deinit()
 {
-    printf("**********r retro deinit\n");
     //delete things created in init
     _vm->CloseCart();
     _host->oneTimeCleanup();
@@ -290,52 +288,70 @@ EXPORT void retro_run()
     frame++;
 }
 
+//lua memory is 2 MB in size
+//https://www.lexaloffle.com/dl/docs/pico-8_manual.html
+//section 6.7: Memory
+//we can probably make this smaller since we ignore unmodified globals...
+#define LUASTATEBUFFSIZE 1024*1024*2
 
 EXPORT size_t retro_serialize_size()
 {
-    //lua memory is 2 MB in size
-    //https://www.lexaloffle.com/dl/docs/pico-8_manual.html
-    //section 6.7: Memory
-    printf("********** getting serialize size\n");
-    return sizeof(PicoRam) + sizeof(audioState_t) + 1024*1024*2;
+    return sizeof(PicoRam) + sizeof(audioState_t) + LUASTATEBUFFSIZE;
 }
 
 EXPORT bool retro_serialize(void *data, size_t size)
 {
-    printf("********** retro_serialize\n");
     const int expectedSize = retro_serialize_size();
     if (size > expectedSize) {
-        printf("********** size > expected size\n");
         size = expectedSize;
     }
     else if (size < expectedSize) {
-        printf("********** size < expected size\n");
         return false;
     }
 
+    char luaStateBuffer[LUASTATEBUFFSIZE];
+    memset(luaStateBuffer, 0, LUASTATEBUFFSIZE);
 
-    saveState_t* saveState = (saveState_t*)data;
+    size_t offset = 0;
+    size_t luaStateSize = _vm->serializeLuaState(luaStateBuffer);
 
-    memcpy(&saveState->memory, _memory->data, sizeof(PicoRam));
-    memcpy(&saveState->audioState, _audio->getAudioState(), sizeof(audioState_t));
-    std::string luaState = _vm->serializeLuaState();
-    printf("serialized luaState: %s\n", luaState.c_str());
-    memcpy(&saveState->luaStateStr, luaState.c_str(), luaState.length());
+    memcpy(((char*)data + offset), &luaStateSize, sizeof(size_t));
+    offset += sizeof(size_t);
 
+    memcpy(((char*)data + offset), luaStateBuffer, luaStateSize);
+    offset += luaStateSize;
+
+    memcpy(((char*)data + offset), _memory->data, sizeof(PicoRam));
+    offset += sizeof(PicoRam);
+
+    memcpy(((char*)data + offset), _audio->getAudioState(), sizeof(audioState_t));
+    offset += sizeof(audioState_t);
 
     return true;
 }
 
 EXPORT bool retro_unserialize(const void *data, size_t size)
 {
-    printf("********** retro_unserialize\n");
-    saveState_t* saveState = (saveState_t*)data;
+    char luaStateBuffer[LUASTATEBUFFSIZE];
+    memset(luaStateBuffer, 0, LUASTATEBUFFSIZE);
 
-    memcpy(_memory->data, &saveState->memory, sizeof(PicoRam));
-    memcpy(_audio->getAudioState(), &saveState->audioState, sizeof(audioState_t));
-    printf("serialized luaState: %s\n",  saveState->luaStateStr);
-    std::string luaStateStr = saveState->luaStateStr;
-    _vm->deserializeLuaState(luaStateStr);
+    size_t offset = 0;
+    size_t luaStateSize;
+    memcpy(&luaStateSize, ((char*)data + offset),  sizeof(size_t));
+    offset += sizeof(size_t);
+
+    memcpy(luaStateBuffer, ((char*)data + offset), luaStateSize);
+    offset += luaStateSize;
+    _vm->deserializeLuaState(luaStateBuffer, luaStateSize);
+
+    memcpy(_memory->data, ((char*)data + offset), sizeof(PicoRam));
+    offset += sizeof(PicoRam);
+
+    memcpy(_audio->getAudioState(), ((char*)data + offset), sizeof(audioState_t));
+    offset += sizeof(audioState_t);
+    
+
+    
 
     return true;
 }

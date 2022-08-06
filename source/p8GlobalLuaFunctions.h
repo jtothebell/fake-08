@@ -305,35 +305,17 @@ end
 
 eris.persist_all = function()
   local new_symbols = {}
-  printh("persist_all")
   for k,v in pairs(_G) do
     if eris.original_G[k] != v then
-       printh("adding key: " .. k .. ": " .. tostr(v))
        new_symbols[k] = v
     end
   end
 
-  local result = eris.persist(eris.perm, new_symbols)
-  printh("result: ")
-  for i=1, #result do
-    printh(tostr(i).."  "..tostr(ord(result, i)))
-  end
-  printh("end of result")
-  
-  return result;
+  return eris.persist(eris.perm, new_symbols)
 end
 
 eris.restore_all = function(persisted)
-  printh("persisted: ")
-  for i=1, #persisted do
-    printh(tostr(i).."  "..tostr(ord(persisted, i)))
-  end
-  printh("end of persisted")
-  printh("restore_all- iterating symbols first")
   local new_symbols = eris.unpersist(eris.unperm, persisted)
-  for k,v in pairs(new_symbols) do
-    printh("restoring key: " .. k .. ": " .. tostr(v))
-  end
   for k,v in pairs(new_symbols) do
     _G[k] = v
   end
