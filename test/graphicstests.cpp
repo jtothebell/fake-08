@@ -769,6 +769,28 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("spr(...) draws doesn't repeat sprites if spritesheet width is exceeded") {
+        graphics->cls();
+        for(int y = 0; y < 128; y++) {
+            for(int x = 0; x < 128; x++) {
+                graphics->sset(x, y, (x+y)%15+1);
+            }
+        }
+
+        //sprite 6, but a width and height of 16 pixels goes off the edge.
+        //it should end instead of wrapping
+        graphics->spr(6, 0, 40, 16, 16, false, false);
+        
+        std::vector<coloredPoint> expectedPoints = {
+            {81, 40, 0},
+            {81, 41, 0},
+            {81, 42, 0},
+            {81, 43, 0},
+            {81, 44, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
     SUBCASE("sspr(...) draws to screen at odd numbered location") {
         graphics->cls();
         
@@ -920,6 +942,29 @@ TEST_CASE("graphics class behaves as expected") {
             {102, 47, 5},
             {102, 48, 5},
             {102, 49, 5},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("sspr(...) draws doesn't repeat sprites if spritesheet width is exceeded") {
+        graphics->cls();
+        for(int y = 0; y < 128; y++) {
+            for(int x = 0; x < 128; x++) {
+                graphics->sset(x, y, (x+y)%15+1);
+            }
+        }
+
+        //sprite 6, but a width and height of 16 pixels goes off the edge.
+        //it should end instead of wrapping
+        graphics->sspr(48, 0, 128, 32, 100, 50, 3, -4, false, false);
+        graphics->spr(6, 0, 40, 16, 16, false, false);
+        
+        std::vector<coloredPoint> expectedPoints = {
+            {81, 40, 0},
+            {81, 41, 0},
+            {81, 42, 0},
+            {81, 43, 0},
+            {81, 44, 0},
         };
 
         checkPoints(graphics, expectedPoints);
