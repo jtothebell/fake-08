@@ -24,15 +24,15 @@ TEST_CASE("Get Combined pixel index") {
         CHECK(isValidSprIdx(1, 0));
     }
     SUBCASE("isValidSprIdx 127, 127 true") {
-        CHECK(isValidSprIdx(127, 63));
+        CHECK(isValidSprIdx(127, 127));
     }
     SUBCASE("isValidSprIdx -1,0 false") {
         CHECK_FALSE(isValidSprIdx(-1, 0));
     }
     SUBCASE("isValidSprIdx 128, 127 false") {
-        CHECK_FALSE(isValidSprIdx(128, 63));
+        CHECK_FALSE(isValidSprIdx(128, 127));
     }
-    SUBCASE("isValidSprIdx 127, 64 false") {
-        CHECK_FALSE(isValidSprIdx(127, 64));
+    SUBCASE("isValidSprIdx 127, 128 false") {
+        CHECK_FALSE(isValidSprIdx(127, 128));
     }
 }

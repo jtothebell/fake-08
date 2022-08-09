@@ -791,6 +791,26 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("spr(...) draws last sprite (sprite 255)") {
+        graphics->cls();
+        for(int y = 0; y < 128; y++) {
+            for(int x = 0; x < 128; x++) {
+                graphics->sset(x, y, (x+y)%15+1);
+            }
+        }
+
+        graphics->spr(255, 0, 120, 1, 1, false, false);
+        
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 120, 1}, 
+            {0, 121, 2},
+            {0, 122, 3},
+            {0, 123, 4},
+            {0, 124, 5},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
     SUBCASE("sspr(...) draws to screen at odd numbered location") {
         graphics->cls();
         
@@ -1073,6 +1093,18 @@ TEST_CASE("graphics class behaves as expected") {
 
        CHECK_EQ(result, 12);
    }
+   SUBCASE("sget returns 0 when out of bounds") {
+        graphics->cls();
+        for(int y = 0; y < 128; y++) {
+            for(int x = 0; x < 128; x++) {
+                graphics->sset(x, y, (x+y)%15+1);
+            }
+        }
+
+        auto result = graphics->sget(128, 128);
+
+       CHECK_EQ(result, 0);
+    }
    SUBCASE("sset sets value in ram for even x pixel")
    {
        uint8_t x = 60;
@@ -1094,6 +1126,17 @@ TEST_CASE("graphics class behaves as expected") {
        auto result = picoRam.spriteSheetData[combinedIdx];
 
        CHECK_EQ(result, 192);
+   }
+   SUBCASE("sset does nothing for out of bounds pixel")
+   {
+       uint8_t x = 128;
+       uint8_t y = 0;
+       graphics->sset(x, y, 14); //14 = 1110
+
+       int combinedIdx = y * 64 + (x / 2);
+       auto result = picoRam.spriteSheetData[combinedIdx];
+
+       CHECK_EQ(result, 0);
    }
    SUBCASE("camera({x}, {y}) sets values in memory")
    {

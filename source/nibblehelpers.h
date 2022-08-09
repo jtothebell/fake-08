@@ -5,7 +5,7 @@
 //for 1 byte (8 bit) indexes, 128x64
 //should be the equivalent of return y * 64 + (x / 2);
 #define COMBINED_IDX(x, y) ((y) << 6) | ((x) >> 1)
-#define IS_VALID_SPR_IDX(x, y) (y >= 0 && y < 64 && x >= 0 && x < 128)
+#define IS_VALID_SPR_IDX(x, y) (y >= 0 && y < 128 && x >= 0 && x < 128)
 //I think this should work if you cast the buffer to a uint32_t* pointer, but not tested
 //for 4 byte (32 bit) inexes, 16x8
 //should be the equivalent of return y * 16 + (x / 8);

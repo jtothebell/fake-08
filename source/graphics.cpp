@@ -1457,11 +1457,17 @@ void Graphics::fset(uint8_t n, uint8_t v){
 }
 
 uint8_t Graphics::sget(uint8_t x, uint8_t y){
-	return getPixelNibble(x, y, GetP8SpriteSheetBuffer());
+	if (IS_VALID_SPR_IDX(x, y)) {
+		return getPixelNibble(x, y, GetP8SpriteSheetBuffer());
+	}
+	return 0;
 }
 
 void Graphics::sset(uint8_t x, uint8_t y, uint8_t c){
-	setPixelNibble(x, y, c, GetP8SpriteSheetBuffer());
+	if (IS_VALID_SPR_IDX(x, y)) {
+		setPixelNibble(x, y, c, GetP8SpriteSheetBuffer());
+	}
+	return;
 }
 
 std::tuple<int16_t, int16_t> Graphics::camera() {
