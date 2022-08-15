@@ -1574,9 +1574,9 @@ TEST_CASE("graphics class behaves as expected") {
             }
         }
         auto result1 = graphics->mget(-1, 16);
-        auto result2 = graphics->mget(129, 16);
+        auto result2 = graphics->mget(128, 16);
         auto result3 = graphics->mget(10, -1);
-        auto result4 = graphics->mget(10, 67);
+        auto result4 = graphics->mget(10, 64);
 
         CHECK_EQ(0, result1);
         CHECK_EQ(0, result2);

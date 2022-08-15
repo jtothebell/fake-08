@@ -1515,10 +1515,12 @@ uint8_t Graphics::mget(int celx, int cely){
 
 	const int mapW = _memory->hwState.widthOfTheMap == 0 ? 256 : _memory->hwState.widthOfTheMap;
 	const int mapH = mapSize / mapW;
+	const int maxXIdx = mapW - 1;
+	const int maxYIdx = mapH - 1;
 
 	const int idx = cely * mapW + celx;
 
-	if (celx < 0 || celx > mapW || cely < 0 || cely > mapH) {
+	if (celx < 0 || celx > maxXIdx || cely < 0 || cely > maxYIdx) {
         return 0;
 	}
 	
