@@ -302,7 +302,7 @@ void Graphics::copyStretchSpriteToScreen(
 	if (hwState.colorBitmask == 0xff){
 		for (int y = 0; y < scr_h; y++) {
 			int sprY = ((spr_y + y * dy) >> 16);
-			if (sprY > 63) {
+			if (sprY > 127) {
 				continue;
 			}
 			uint8_t* spr = spritebuffer + (sprY * 64);
@@ -362,7 +362,7 @@ void Graphics::copyStretchSpriteToScreen(
 	else {
 		for (int y = 0; y < scr_h; y++) {
 			int sprY = ((spr_y + y * dy) >> 16);
-			if (sprY > 63) {
+			if (sprY > 127) {
 				continue;
 			}
 			uint8_t* spr = spritebuffer + (sprY) * 64;

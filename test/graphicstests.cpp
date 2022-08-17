@@ -933,7 +933,6 @@ TEST_CASE("graphics class behaves as expected") {
             {102, 51, 5},
             {102, 52, 5},
             {102, 53, 5},
-            
         };
 
         checkPoints(graphics, expectedPoints);
@@ -985,6 +984,33 @@ TEST_CASE("graphics class behaves as expected") {
             {81, 42, 0},
             {81, 43, 0},
             {81, 44, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("sspr(...) draws last sprite (sprite 255)") {
+        graphics->cls();
+        for(int y = 0; y < 128; y++) {
+            for(int x = 0; x < 128; x++) {
+                graphics->sset(x, y, (x+y)%15+1);
+            }
+        }
+
+        graphics->sspr(120, 120, 3, 4, 100, 50, 6, 8, false, false);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {100, 50, 1},
+            {100, 51, 1},
+            {100, 52, 2},
+            {100, 53, 2},
+            {101, 50, 1},
+            {101, 51, 1},
+            {101, 52, 2},
+            {101, 53, 2},
+            {102, 50, 2},
+            {102, 51, 2},
+            {102, 52, 3},
+            {102, 53, 3},
         };
 
         checkPoints(graphics, expectedPoints);
