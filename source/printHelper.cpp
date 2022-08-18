@@ -324,7 +324,8 @@ int print(std::string str, int x, int y, uint8_t c) {
 			uint8_t fgColChar = str[++n];
 			fgColor = p0CharToNum(fgColChar);
 			_ph_graphics->color(fgColor);
-			_ph_mem->drawState.drawPaletteMap[7] = _ph_graphics->getDrawPalMappedColor(fgColor);
+            //this is needed for legacy text drawing
+			_ph_mem->drawState.drawPaletteMap[7] = prevDrawPal[fgColor] & 0x0f;
 		}
 		else if (ch == '\n') {
 			x = homeX;
