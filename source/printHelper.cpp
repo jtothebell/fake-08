@@ -327,7 +327,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 			_ph_mem->drawState.drawPaletteMap[7] = _ph_graphics->getDrawPalMappedColor(fgColor);
 		}
 		else if (ch == '\n') {
-			x = _ph_mem->drawState.text_x;
+			x = homeX;
 			y += lineHeight;
 		}
 		else if (ch == '\t') {
@@ -339,7 +339,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 			x -= charWidth;
 		}
 		else if (ch == '\r') {
-			x = _ph_mem->drawState.text_x;
+			x = homeX;
 		}
 		else if (ch >= 0x10) {
             if (bgColor != 0) {
@@ -357,7 +357,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 
         //soft wrap if enabled
         if (rhsWrap > 0 && x >= rhsWrap) {
-            x = _ph_mem->drawState.text_x;
+            x = homeX;
 			y += lineHeight;
         }
 	}
@@ -367,7 +367,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 	}
 
 	//todo: auto scrolling
-	_ph_mem->drawState.text_y += lineHeight;
+	_ph_mem->drawState.text_y = y + lineHeight;
 
 	return x;
 }
