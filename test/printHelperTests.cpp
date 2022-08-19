@@ -694,6 +694,49 @@ TEST_CASE("Print helper functions") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("p8scii special control code for char width(\\^x) and char height (\\^y) limit rendering ") {
+        graphics->cls();
+
+        print("\x06""x2\x06""y3a", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 0, 6},
+            {1, 0, 6},
+            {2, 0, 0},
+            {3, 0, 0},
+
+            {0, 1, 6},
+            {1, 1, 0},
+            {2, 1, 0},
+            {3, 1, 0},
+
+            {0, 2, 6},
+            {1, 2, 6},
+            {2, 2, 0},
+            {3, 2, 0},
+
+            {0, 3, 0},
+            {1, 3, 0},
+            {2, 3, 0},
+            {3, 3, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("p8scii special control code for char height (\\^y) sets line height correctly when lower") {
+        graphics->cls();
+
+        print("\x06""y3a", 0, 0);
+
+        CHECK_EQ(memory->drawState.text_y, 3);
+    }
+    SUBCASE("p8scii special control code for char height (\\^y) sets line height correctly when higher") {
+        graphics->cls();
+
+        print("\x06""y9a", 0, 0);
+
+        CHECK_EQ(memory->drawState.text_y, 9);
+    }
 
 
     delete stubHost;

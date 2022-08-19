@@ -1975,7 +1975,7 @@ TEST_CASE("graphics class behaves as expected") {
         checkPoints(graphics, expectedPoints);
     }
     */
-    SUBCASE("Remap spritesheet to screen"){
+    SUBCASE("Remap spritesheet to screen (after drawing character to screen)"){
         graphics->cls();
 
         //emulate print("zo",8,0)
@@ -2241,11 +2241,76 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(picoRam.data[0xFFFF], 9);
         CHECK_EQ(picoRam.userData[0x7FFF], 9);
     }
-    
+    SUBCASE("drawCharacter with forced width and height for wide character"){
+        graphics->cls();
 
+        //emulate print("\^x0\^y1▤a",10,10,9)
+        picoRam.drawState.drawPaletteMap[7] = 9;
+        graphics->drawCharacter(152, 10, 10, 0, 0, 1);
+        //the a should be invisible (0 width)
+        graphics->drawCharacter(65, 10, 10, 0, 0, 1);
 
+        std::vector<coloredPoint> expectedPoints = {
+            {9,10,0},
+            {10,10,9},
+            {11,10,9},
+            {12,10,9},
+            {13,10,9},
+            {14,10,0},
+            {9,11,0},
+            {10,11,0},
+            {11,11,0},
+            {12,11,0},
+            {13,11,0},
+            {14,11,0},
+            {9,12,0},
+            {10,12,0},
+            {11,12,0},
+            {12,12,0},
+            {13,12,0},
+            {14,12,0},
 
-    
+       };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("drawCharacter with forced width and height for normal character"){
+        graphics->cls();
+
+        //emulate print("\^x3\^y3a",10,10,9)
+        picoRam.drawState.drawPaletteMap[7] = 9;
+        graphics->drawCharacter(97, 10, 10, 0, 3, 3);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {9,10,0},
+            {10,10,9},
+            {11,10,9},
+            {12,10,9},
+            {13,10,0},
+            {14,10,0},
+            {9,11,0},
+            {10,11,9},
+            {11,11,0},
+            {12,11,9},
+            {13,11,0},
+            {14,11,0},
+            {9,12,0},
+            {10,12,9},
+            {11,12,9},
+            {12,12,9},
+            {13,12,0},
+            {14,12,0},
+            {9,14,0},
+            {10,14,0},
+            {11,14,0},
+            {12,14,0},
+            {13,14,0},
+            {14,14,0},
+
+       };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
     //general teardown
     delete graphics;

@@ -86,6 +86,9 @@ int print(std::string str, int x, int y) {
 }
 
 int print(std::string str, int x, int y, uint8_t c) {
+    if (y == 83) {
+        y +=0;
+    }
 	_ph_graphics->color(c);
 
 	_ph_mem->drawState.text_x = x;
@@ -95,7 +98,9 @@ int print(std::string str, int x, int y, uint8_t c) {
     int tabStopWidth = 4;
     int charWidth = 4;
     int charHeight = 6;
-    int lineHeight = 6;
+    int lineHeight = 0;
+    int forceCharWidth = -1;
+    int forceCharHeight = -1;
     uint8_t bgColor = 0;
     uint8_t fgColor = _ph_mem->drawState.color;
     uint8_t charBytes[8];
@@ -132,7 +137,8 @@ int print(std::string str, int x, int y, uint8_t c) {
 
 			ch = str[++n];
 			for(int i = 0; i < times; i++) {
-				x += charWidth +  _ph_graphics->drawCharacter(ch, x, y, printMode);
+                //TODO: combine with other draw character call - fix missing bg? lineheight?
+				x += charWidth +  _ph_graphics->drawCharacter(ch, x, y, printMode, forceCharWidth, forceCharHeight);
 			}
 		}
 		else if (ch == 2) { // "\#{p0}" draw text on a solid background color
@@ -210,15 +216,15 @@ int print(std::string str, int x, int y, uint8_t c) {
             }
             else if (commandChar == 'x'){
                 uint8_t charWidthChar = str[++n];
-                charWidth = p0CharToNum(charWidthChar);
+                forceCharWidth = p0CharToNum(charWidthChar);
+                charWidth = forceCharWidth;
             }
             else if (commandChar == 'y'){
                 //this behaves in a way I wouldn't expect in pico 8- it seems to apply to the next print statment
                 //but not if there is a \n in the string. Not sure if this is a bug or not
                 uint8_t charHeightChar = str[++n];
-                charHeight = p0CharToNum(charHeightChar);
-                //lineHeight = charHeight > lineHeight ? charHeight : lineHeight;
-                lineHeight = charHeight;
+                forceCharHeight = p0CharToNum(charHeightChar);
+                charHeight = forceCharHeight;
             }
             else if (commandChar == 'w'){
                 printMode |= PRINT_MODE_ON;
@@ -229,7 +235,6 @@ int print(std::string str, int x, int y, uint8_t c) {
                 printMode |= PRINT_MODE_ON;
                 printMode |= PRINT_MODE_TALL;
                 charHeight = 12;
-                lineHeight = charHeight > lineHeight ? charHeight : lineHeight;
             }
             else if (commandChar == '='){
                 printMode |= PRINT_MODE_ON;
@@ -256,8 +261,7 @@ int print(std::string str, int x, int y, uint8_t c) {
                 printMode |= PRINT_MODE_SOLID_BG;
             }
             else if (commandChar == ':' || commandChar == '.'){
-                lineHeight = 8;
-                charHeight = 8;
+                charHeight = forceCharHeight > 0 ? forceCharHeight : 8;
                 if (commandChar == ':') {
                     std::string hexStr = str.substr(n+1, 16);
                     n+=16;
@@ -294,7 +298,6 @@ int print(std::string str, int x, int y, uint8_t c) {
                     else if (turnOffModeChar == 't') {
                         printMode &= ~(PRINT_MODE_TALL);
                         charHeight = 6;
-                        lineHeight = charHeight > lineHeight ? charHeight : lineHeight;
                     }
                     else if (turnOffModeChar == '=') {
                         printMode &= ~(PRINT_MODE_STRIPEY);
@@ -305,7 +308,6 @@ int print(std::string str, int x, int y, uint8_t c) {
                         printMode &= ~(PRINT_MODE_STRIPEY);
                         charWidth = 4;
                         charHeight = 6;
-                        lineHeight = charHeight > lineHeight ? charHeight : lineHeight;
                     }
                     else if (turnOffModeChar == 'i') {
                         printMode &= ~(PRINT_MODE_INVERTED);
@@ -329,7 +331,9 @@ int print(std::string str, int x, int y, uint8_t c) {
 		}
 		else if (ch == '\n') {
 			x = homeX;
+            lineHeight = lineHeight > 0 ? lineHeight : 6;
 			y += lineHeight;
+            lineHeight = 0;
 		}
 		else if (ch == '\t') {
 			while (x % (tabStopWidth*4) > 0) {
@@ -343,12 +347,13 @@ int print(std::string str, int x, int y, uint8_t c) {
 			x = homeX;
 		}
 		else if (ch >= 0x10) {
+            lineHeight = charHeight > lineHeight ? charHeight : lineHeight;
             if (bgColor != 0) {
                 uint8_t prevPenColor = _ph_mem->drawState.color;
                 _ph_graphics->rectfill(x-1, y-1, x + charWidth-1, y + lineHeight-1, bgColor);
                 _ph_mem->drawState.color = prevPenColor;
             }
-			x += charWidth + _ph_graphics->drawCharacter(ch, x, y, printMode);
+			x += charWidth + _ph_graphics->drawCharacter(ch, x, y, printMode, forceCharWidth, forceCharHeight);
             while (framesToPause > 0){
                 _ph_vm->vm_flip();
 
@@ -359,7 +364,9 @@ int print(std::string str, int x, int y, uint8_t c) {
         //soft wrap if enabled
         if (rhsWrap > 0 && x >= rhsWrap) {
             x = homeX;
+            lineHeight = lineHeight > 0 ? lineHeight : 6;
 			y += lineHeight;
+            lineHeight = 0;
         }
 	}
 
@@ -367,6 +374,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 		_ph_mem->drawState.drawPaletteMap[i] = prevDrawPal[i];
 	}
 
+    lineHeight = lineHeight > 0 ? lineHeight : 6;
 	//todo: auto scrolling
 	_ph_mem->drawState.text_y = y + lineHeight;
 
