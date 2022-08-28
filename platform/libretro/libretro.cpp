@@ -191,6 +191,10 @@ static std::array<int, 7> buttons
 uint8_t kHeld = 0;
 uint8_t kDown = 0;
 
+int16_t picoMouseX = 0;
+int16_t picoMouseY = 0;
+uint8_t mouseBtnState = 0;
+
 size_t frame = 0;
 
 uint8_t drawMode = 0;
@@ -219,22 +223,20 @@ EXPORT void retro_run()
             }
         }
 
-        int16_t picoMouseX = 0;
-        int16_t picoMouseY = 0;
-        uint8_t mouseBtnState = 0;
-        int16_t pressed = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
-        if (_memory->drawState.devkitMode && pressed) {
+        mouseBtnState = 0;
+
+        if (_memory->drawState.devkitMode) {
+            int16_t pressed = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
             int16_t pointX = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
             int16_t pointY = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
             
-            if (pointX > -32768 && pointX < 32767) {
+            if (pressed) {
+                printf("raw: %d, %d\n", pointX, pointY);
                 picoMouseX = pointX * 64 / 32768 + 64;
                 picoMouseY = pointY * 64 / 32768 + 64;
+                mouseBtnState = 1;
                 //printf("adjusted: %d, %d : %d\n", picoMouseX, picoMouseY, pressed);
-
-                if (pressed) {
-                    mouseBtnState = 1;
-                }
+                //
             }
         }
         
