@@ -219,7 +219,26 @@ EXPORT void retro_run()
             }
         }
 
-        setInputState(currKDown, currKHeld);
+        int16_t picoMouseX = 0;
+        int16_t picoMouseY = 0;
+        uint8_t mouseBtnState = 0;
+        int16_t pressed = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
+        if (_memory->drawState.devkitMode && pressed) {
+            int16_t pointX = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
+            int16_t pointY = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
+            
+            if (pointX > -32768 && pointX < 32767) {
+                picoMouseX = pointX * 64 / 32768 + 64;
+                picoMouseY = pointY * 64 / 32768 + 64;
+                //printf("adjusted: %d, %d : %d\n", picoMouseX, picoMouseY, pressed);
+
+                if (pressed) {
+                    mouseBtnState = 1;
+                }
+            }
+        }
+        
+        setInputState(currKDown, currKHeld, picoMouseX, picoMouseY, mouseBtnState);
 
         _vm->UpdateAndDraw();
         kHeld = currKHeld;

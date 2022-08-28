@@ -20,10 +20,16 @@ static uint8_t stubCurrKDown;
 static uint8_t stubCurrKHeld;
 static bool stubCurrKBdown = false;
 static std::string stubCurrKBkey = "";
+static int16_t stubMouseX;
+static int16_t stubMouseY;
+static uint8_t stubMouseBtns;
 
-void setInputState(uint8_t kDown, uint8_t kHeld) {
+void setInputState(uint8_t kDown, uint8_t kHeld, int16_t mouseX, int16_t mouseY, uint8_t mouseBtns) {
     stubCurrKDown = kDown;
     stubCurrKHeld = kHeld;
+    stubMouseX = mouseX;
+    stubMouseY = mouseY;
+    stubMouseBtns = mouseBtns;
 }
 
 
@@ -54,7 +60,7 @@ void Host::forceStretch(StretchOption newStretch) {
 
 
 InputState_t Host::scanInput(){
-    return InputState_t {stubCurrKDown, stubCurrKHeld, 0, 0, 0, stubCurrKBdown, stubCurrKBkey};
+    return InputState_t {stubCurrKDown, stubCurrKHeld, stubMouseX, stubMouseY, stubMouseBtns, stubCurrKBdown, stubCurrKBkey};
 }
 
 bool Host::shouldQuit() {
