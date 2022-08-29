@@ -11,7 +11,7 @@
 #include "../../source/hostVmShared.h"
 #include "../../source/nibblehelpers.h"
 #include "../../source/filehelpers.h"
-#include "setInput.h"
+#include "libretrohosthelpers.h"
 
 
 //since this is a C api, we need to mark all these as extern
@@ -231,12 +231,9 @@ EXPORT void retro_run()
             int16_t pointY = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
             
             if (pressed) {
-                printf("raw: %d, %d\n", pointX, pointY);
                 picoMouseX = pointX * 64 / 32768 + 64;
                 picoMouseY = pointY * 64 / 32768 + 64;
                 mouseBtnState = 1;
-                //printf("adjusted: %d, %d : %d\n", picoMouseX, picoMouseY, pressed);
-                //
             }
         }
         
@@ -461,6 +458,12 @@ EXPORT void retro_cheat_set(unsigned index, bool enabled, const char *code)
 
 EXPORT bool retro_load_game(struct retro_game_info const *info)
 {
+    auto containingDir = getDirectory(info->path);
+
+    if (containingDir.length() > 0) {
+        setCartDirectory(containingDir);
+    }
+
     _vm->QueueCartChange(info->path);
     return true;
 }

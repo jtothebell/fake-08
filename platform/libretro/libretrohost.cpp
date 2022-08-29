@@ -9,7 +9,7 @@
 #include <iostream>
 using namespace std;
 
-#include "setInput.h"
+#include "libretrohosthelpers.h"
 #include "../../source/host.h"
 #include "../../source/hostVmShared.h"
 #include "../../source/nibblehelpers.h"
@@ -24,12 +24,18 @@ static int16_t stubMouseX;
 static int16_t stubMouseY;
 static uint8_t stubMouseBtns;
 
+std::string _currentCartDirectory;
+
 void setInputState(uint8_t kDown, uint8_t kHeld, int16_t mouseX, int16_t mouseY, uint8_t mouseBtns) {
     stubCurrKDown = kDown;
     stubCurrKHeld = kHeld;
     stubMouseX = mouseX;
     stubMouseY = mouseY;
     stubMouseBtns = mouseBtns;
+}
+
+void setCartDirectory(std::string dir) {
+    _currentCartDirectory = dir;
 }
 
 
@@ -111,7 +117,7 @@ std::string Host::customBiosLua() {
 }
 
 std::string Host::getCartDirectory() {
-    return "carts";
+    return _currentCartDirectory;
 }
 
 void Host::overrideLogFilePrefix(const char* newPrefix) {
