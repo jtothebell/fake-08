@@ -126,6 +126,10 @@ void Graphics::copySpriteToScreen(
 		while (x < scr_w) {
 			int abs_spr_x = spr_x + (flip_x ? spr_w - (x + 1) : x);
 			int abs_spr_y = spr_y + (flip_y ? spr_h - (y + 1) : y);
+			if (!IS_VALID_SPR_IDX(abs_spr_x, abs_spr_y)){
+				++x;
+				continue;
+			}
 			uint8_t bothPix = spritebuffer[COMBINED_IDX(abs_spr_x, abs_spr_y)];
 
 			//uint8_t c = (BITMASK(0) & abs_spr_x)== 0 
@@ -298,21 +302,28 @@ void Graphics::copyStretchSpriteToScreen(
 	if (hwState.colorBitmask == 0xff){
 		for (int y = 0; y < scr_h; y++) {
 			int sprY = ((spr_y + y * dy) >> 16);
-			uint8_t* spr = spritebuffer + (sprY & 0x7f) * 64;
+			if (sprY > 127) {
+				continue;
+			}
+			uint8_t* spr = spritebuffer + (sprY * 64);
 
 			if (skipStretchPx && prevSprY == sprY){
 				continue;
 			}
+			
 			prevSprY = sprY;
 
 			if (!flip_x) {
 				for (int x = 0; x < scr_w; x++) {
 					int shiftedPixIndex = (spr_x + x * dx) >> 16;
+					if (shiftedPixIndex > 127) {
+						continue;
+					}
 					if (skipStretchPx && prevSprX == shiftedPixIndex){
 						continue;
 					}
 					prevSprX = shiftedPixIndex;
-					int preShiftedCombinedPixIndex = (shiftedPixIndex / 2) & 0x7f;
+					int preShiftedCombinedPixIndex = (shiftedPixIndex / 2);
 					uint8_t bothPix = spr[preShiftedCombinedPixIndex];
 
 					uint8_t c = shiftedPixIndex % 2 == 0 
@@ -328,7 +339,11 @@ void Graphics::copyStretchSpriteToScreen(
 			} else {
 				for (int x = 0; x < scr_w; x++) {
 					int pixIndex = (spr_x + spr_w - (x + 1) * dx);
-					int combinedPixIdx = ((pixIndex / 2) >> 16) & 0x7f;
+					int shiftedPixIndex = pixIndex >> 16;
+					if (shiftedPixIndex > 127) {
+						continue;
+					}
+					int combinedPixIdx = shiftedPixIndex / 2;
 					uint8_t bothPix = spr[combinedPixIdx];
 
 					uint8_t c = (pixIndex >> 16) % 2 == 0 
@@ -346,15 +361,22 @@ void Graphics::copyStretchSpriteToScreen(
 	}
 	else {
 		for (int y = 0; y < scr_h; y++) {
-			uint8_t* spr = spritebuffer + (((spr_y + y * dy) >> 16) & 0x7f) * 64;
+			int sprY = ((spr_y + y * dy) >> 16);
+			if (sprY > 127) {
+				continue;
+			}
+			uint8_t* spr = spritebuffer + (sprY) * 64;
 
 			if (!flip_x) {
 				for (int x = 0; x < scr_w; x++) {
-					int pixIndex = (spr_x + x * dx);
-					int combinedPixIdx = ((pixIndex / 2) >> 16) & 0x7f;
+					int shiftedPixIndex = (spr_x + x * dx) >> 16;
+					if (shiftedPixIndex > 127) {
+						continue;
+					}
+					int combinedPixIdx = (shiftedPixIndex / 2);
 					uint8_t bothPix = spr[combinedPixIdx];
 
-					uint8_t c = (pixIndex >> 16) % 2 == 0 
+					uint8_t c = shiftedPixIndex % 2 == 0 
 						? bothPix & 0x0f //just first 4 bits
 						: bothPix >> 4;  //just last 4 bits
 
@@ -377,7 +399,11 @@ void Graphics::copyStretchSpriteToScreen(
 			} else {
 				for (int x = 0; x < scr_w; x++) {
 					int pixIndex = (spr_x + spr_w - (x + 1) * dx);
-					int combinedPixIdx = ((pixIndex / 2) >> 16) & 0x7f;
+					int shiftedPixIndex = pixIndex >> 16;
+					if (shiftedPixIndex > 127) {
+						continue;
+					}
+					int combinedPixIdx = (shiftedPixIndex / 2);
 					uint8_t bothPix = spr[combinedPixIdx];
 
 					uint8_t c = (pixIndex >> 16) % 2 == 0 
@@ -1442,11 +1468,17 @@ void Graphics::fset(uint8_t n, uint8_t v){
 }
 
 uint8_t Graphics::sget(uint8_t x, uint8_t y){
-	return getPixelNibble(x, y, GetP8SpriteSheetBuffer());
+	if (IS_VALID_SPR_IDX(x, y)) {
+		return getPixelNibble(x, y, GetP8SpriteSheetBuffer());
+	}
+	return 0;
 }
 
 void Graphics::sset(uint8_t x, uint8_t y, uint8_t c){
-	setPixelNibble(x, y, c, GetP8SpriteSheetBuffer());
+	if (IS_VALID_SPR_IDX(x, y)) {
+		setPixelNibble(x, y, c, GetP8SpriteSheetBuffer());
+	}
+	return;
 }
 
 std::tuple<int16_t, int16_t> Graphics::camera() {
@@ -1494,10 +1526,12 @@ uint8_t Graphics::mget(int celx, int cely){
 
 	const int mapW = _memory->hwState.widthOfTheMap == 0 ? 256 : _memory->hwState.widthOfTheMap;
 	const int mapH = mapSize / mapW;
+	const int maxXIdx = mapW - 1;
+	const int maxYIdx = mapH - 1;
 
 	const int idx = cely * mapW + celx;
 
-	if (celx < 0 || celx > mapW || cely < 0 || cely > mapH) {
+	if (celx < 0 || celx > maxXIdx || cely < 0 || cely > maxYIdx) {
         return 0;
 	}
 	

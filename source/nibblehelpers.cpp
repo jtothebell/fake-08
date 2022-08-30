@@ -12,6 +12,11 @@ int getCombinedIdx(const int x, const int y){
 	//return (y << 6) | (x >> 1);
 	return COMBINED_IDX(x, y);
 }
+
+int isValidSprIdx(int x, int y){
+	return IS_VALID_SPR_IDX(x, y);
+}
+
 //try look up table to optimize?
 
 void setPixelNibble(const int x, const int y, uint8_t value, uint8_t* targetBuffer) {
