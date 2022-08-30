@@ -582,7 +582,6 @@ TEST_CASE("Loading and running carts") {
 
 
     //TODO: build library of carts to test- set up compiler flag?
-    //std::string _cartDirectory = "/Users/jon/p8carts/archive/carts";
     std::string _cartDirectory = "";
 
     DIR *dir;

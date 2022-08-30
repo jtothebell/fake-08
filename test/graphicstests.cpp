@@ -769,6 +769,48 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("spr(...) draws doesn't repeat sprites if spritesheet width is exceeded") {
+        graphics->cls();
+        for(int y = 0; y < 128; y++) {
+            for(int x = 0; x < 128; x++) {
+                graphics->sset(x, y, (x+y)%15+1);
+            }
+        }
+
+        //sprite 6, but a width and height of 16 pixels goes off the edge.
+        //it should end instead of wrapping
+        graphics->spr(6, 0, 40, 16, 16, false, false);
+        
+        std::vector<coloredPoint> expectedPoints = {
+            {81, 40, 0},
+            {81, 41, 0},
+            {81, 42, 0},
+            {81, 43, 0},
+            {81, 44, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("spr(...) draws last sprite (sprite 255)") {
+        graphics->cls();
+        for(int y = 0; y < 128; y++) {
+            for(int x = 0; x < 128; x++) {
+                graphics->sset(x, y, (x+y)%15+1);
+            }
+        }
+
+        graphics->spr(255, 0, 120, 1, 1, false, false);
+        
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 120, 1}, 
+            {0, 121, 2},
+            {0, 122, 3},
+            {0, 123, 4},
+            {0, 124, 5},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
     SUBCASE("sspr(...) draws to screen at odd numbered location") {
         graphics->cls();
         
@@ -891,7 +933,6 @@ TEST_CASE("graphics class behaves as expected") {
             {102, 51, 5},
             {102, 52, 5},
             {102, 53, 5},
-            
         };
 
         checkPoints(graphics, expectedPoints);
@@ -920,6 +961,56 @@ TEST_CASE("graphics class behaves as expected") {
             {102, 47, 5},
             {102, 48, 5},
             {102, 49, 5},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("sspr(...) draws doesn't repeat sprites if spritesheet width is exceeded") {
+        graphics->cls();
+        for(int y = 0; y < 128; y++) {
+            for(int x = 0; x < 128; x++) {
+                graphics->sset(x, y, (x+y)%15+1);
+            }
+        }
+
+        //sprite 6, but a width and height of 16 pixels goes off the edge.
+        //it should end instead of wrapping
+        graphics->sspr(48, 0, 128, 32, 100, 50, 3, -4, false, false);
+        graphics->spr(6, 0, 40, 16, 16, false, false);
+        
+        std::vector<coloredPoint> expectedPoints = {
+            {81, 40, 0},
+            {81, 41, 0},
+            {81, 42, 0},
+            {81, 43, 0},
+            {81, 44, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("sspr(...) draws last sprite (sprite 255)") {
+        graphics->cls();
+        for(int y = 0; y < 128; y++) {
+            for(int x = 0; x < 128; x++) {
+                graphics->sset(x, y, (x+y)%15+1);
+            }
+        }
+
+        graphics->sspr(120, 120, 3, 4, 100, 50, 6, 8, false, false);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {100, 50, 1},
+            {100, 51, 1},
+            {100, 52, 2},
+            {100, 53, 2},
+            {101, 50, 1},
+            {101, 51, 1},
+            {101, 52, 2},
+            {101, 53, 2},
+            {102, 50, 2},
+            {102, 51, 2},
+            {102, 52, 3},
+            {102, 53, 3},
         };
 
         checkPoints(graphics, expectedPoints);
@@ -1028,6 +1119,18 @@ TEST_CASE("graphics class behaves as expected") {
 
        CHECK_EQ(result, 12);
    }
+   SUBCASE("sget returns 0 when out of bounds") {
+        graphics->cls();
+        for(int y = 0; y < 128; y++) {
+            for(int x = 0; x < 128; x++) {
+                graphics->sset(x, y, (x+y)%15+1);
+            }
+        }
+
+        auto result = graphics->sget(128, 128);
+
+       CHECK_EQ(result, 0);
+    }
    SUBCASE("sset sets value in ram for even x pixel")
    {
        uint8_t x = 60;
@@ -1049,6 +1152,17 @@ TEST_CASE("graphics class behaves as expected") {
        auto result = picoRam.spriteSheetData[combinedIdx];
 
        CHECK_EQ(result, 192);
+   }
+   SUBCASE("sset does nothing for out of bounds pixel")
+   {
+       uint8_t x = 128;
+       uint8_t y = 0;
+       graphics->sset(x, y, 14); //14 = 1110
+
+       int combinedIdx = y * 64 + (x / 2);
+       auto result = picoRam.spriteSheetData[combinedIdx];
+
+       CHECK_EQ(result, 0);
    }
    SUBCASE("camera({x}, {y}) sets values in memory")
    {
@@ -1486,9 +1600,9 @@ TEST_CASE("graphics class behaves as expected") {
             }
         }
         auto result1 = graphics->mget(-1, 16);
-        auto result2 = graphics->mget(129, 16);
+        auto result2 = graphics->mget(128, 16);
         auto result3 = graphics->mget(10, -1);
-        auto result4 = graphics->mget(10, 67);
+        auto result4 = graphics->mget(10, 64);
 
         CHECK_EQ(0, result1);
         CHECK_EQ(0, result2);
@@ -1975,7 +2089,7 @@ TEST_CASE("graphics class behaves as expected") {
         checkPoints(graphics, expectedPoints);
     }
     */
-    SUBCASE("Remap spritesheet to screen"){
+    SUBCASE("Remap spritesheet to screen (after drawing character to screen)"){
         graphics->cls();
 
         //emulate print("zo",8,0)
@@ -2241,11 +2355,76 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(picoRam.data[0xFFFF], 9);
         CHECK_EQ(picoRam.userData[0x7FFF], 9);
     }
-    
+    SUBCASE("drawCharacter with forced width and height for wide character"){
+        graphics->cls();
 
+        //emulate print("\^x0\^y1▤a",10,10,9)
+        picoRam.drawState.drawPaletteMap[7] = 9;
+        graphics->drawCharacter(152, 10, 10, 0, 0, 1);
+        //the a should be invisible (0 width)
+        graphics->drawCharacter(65, 10, 10, 0, 0, 1);
 
+        std::vector<coloredPoint> expectedPoints = {
+            {9,10,0},
+            {10,10,9},
+            {11,10,9},
+            {12,10,9},
+            {13,10,9},
+            {14,10,0},
+            {9,11,0},
+            {10,11,0},
+            {11,11,0},
+            {12,11,0},
+            {13,11,0},
+            {14,11,0},
+            {9,12,0},
+            {10,12,0},
+            {11,12,0},
+            {12,12,0},
+            {13,12,0},
+            {14,12,0},
 
-    
+       };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("drawCharacter with forced width and height for normal character"){
+        graphics->cls();
+
+        //emulate print("\^x3\^y3a",10,10,9)
+        picoRam.drawState.drawPaletteMap[7] = 9;
+        graphics->drawCharacter(97, 10, 10, 0, 3, 3);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {9,10,0},
+            {10,10,9},
+            {11,10,9},
+            {12,10,9},
+            {13,10,0},
+            {14,10,0},
+            {9,11,0},
+            {10,11,9},
+            {11,11,0},
+            {12,11,9},
+            {13,11,0},
+            {14,11,0},
+            {9,12,0},
+            {10,12,9},
+            {11,12,9},
+            {12,12,9},
+            {13,12,0},
+            {14,12,0},
+            {9,14,0},
+            {10,14,0},
+            {11,14,0},
+            {12,14,0},
+            {13,14,0},
+            {14,14,0},
+
+       };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
     //general teardown
     delete graphics;

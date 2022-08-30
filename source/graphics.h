@@ -109,7 +109,14 @@ class Graphics {
 
 	fix32 fillp(fix32 pat);
 
-	int drawCharacter(uint8_t ch, int x, int y, uint8_t printMode = 0);
+	int drawCharacter(
+		uint8_t ch,
+		int x,
+		int y,
+		uint8_t printMode = 0,
+		int forceCharWidth = -1,
+		int forceCharHeight = -1);
+		
 	std::tuple<int, int> drawCharacterFromBytes(
 		uint8_t chBytes[],
 		int x,
