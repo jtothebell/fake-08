@@ -769,6 +769,48 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("spr(...) draws doesn't repeat sprites if spritesheet width is exceeded") {
+        graphics->cls();
+        for(int y = 0; y < 128; y++) {
+            for(int x = 0; x < 128; x++) {
+                graphics->sset(x, y, (x+y)%15+1);
+            }
+        }
+
+        //sprite 6, but a width and height of 16 pixels goes off the edge.
+        //it should end instead of wrapping
+        graphics->spr(6, 0, 40, 16, 16, false, false);
+        
+        std::vector<coloredPoint> expectedPoints = {
+            {81, 40, 0},
+            {81, 41, 0},
+            {81, 42, 0},
+            {81, 43, 0},
+            {81, 44, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("spr(...) draws last sprite (sprite 255)") {
+        graphics->cls();
+        for(int y = 0; y < 128; y++) {
+            for(int x = 0; x < 128; x++) {
+                graphics->sset(x, y, (x+y)%15+1);
+            }
+        }
+
+        graphics->spr(255, 0, 120, 1, 1, false, false);
+        
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 120, 1}, 
+            {0, 121, 2},
+            {0, 122, 3},
+            {0, 123, 4},
+            {0, 124, 5},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
     SUBCASE("sspr(...) draws to screen at odd numbered location") {
         graphics->cls();
         
@@ -891,7 +933,6 @@ TEST_CASE("graphics class behaves as expected") {
             {102, 51, 5},
             {102, 52, 5},
             {102, 53, 5},
-            
         };
 
         checkPoints(graphics, expectedPoints);
@@ -920,6 +961,56 @@ TEST_CASE("graphics class behaves as expected") {
             {102, 47, 5},
             {102, 48, 5},
             {102, 49, 5},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("sspr(...) draws doesn't repeat sprites if spritesheet width is exceeded") {
+        graphics->cls();
+        for(int y = 0; y < 128; y++) {
+            for(int x = 0; x < 128; x++) {
+                graphics->sset(x, y, (x+y)%15+1);
+            }
+        }
+
+        //sprite 6, but a width and height of 16 pixels goes off the edge.
+        //it should end instead of wrapping
+        graphics->sspr(48, 0, 128, 32, 100, 50, 3, -4, false, false);
+        graphics->spr(6, 0, 40, 16, 16, false, false);
+        
+        std::vector<coloredPoint> expectedPoints = {
+            {81, 40, 0},
+            {81, 41, 0},
+            {81, 42, 0},
+            {81, 43, 0},
+            {81, 44, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("sspr(...) draws last sprite (sprite 255)") {
+        graphics->cls();
+        for(int y = 0; y < 128; y++) {
+            for(int x = 0; x < 128; x++) {
+                graphics->sset(x, y, (x+y)%15+1);
+            }
+        }
+
+        graphics->sspr(120, 120, 3, 4, 100, 50, 6, 8, false, false);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {100, 50, 1},
+            {100, 51, 1},
+            {100, 52, 2},
+            {100, 53, 2},
+            {101, 50, 1},
+            {101, 51, 1},
+            {101, 52, 2},
+            {101, 53, 2},
+            {102, 50, 2},
+            {102, 51, 2},
+            {102, 52, 3},
+            {102, 53, 3},
         };
 
         checkPoints(graphics, expectedPoints);
@@ -1028,6 +1119,18 @@ TEST_CASE("graphics class behaves as expected") {
 
        CHECK_EQ(result, 12);
    }
+   SUBCASE("sget returns 0 when out of bounds") {
+        graphics->cls();
+        for(int y = 0; y < 128; y++) {
+            for(int x = 0; x < 128; x++) {
+                graphics->sset(x, y, (x+y)%15+1);
+            }
+        }
+
+        auto result = graphics->sget(128, 128);
+
+       CHECK_EQ(result, 0);
+    }
    SUBCASE("sset sets value in ram for even x pixel")
    {
        uint8_t x = 60;
@@ -1049,6 +1152,17 @@ TEST_CASE("graphics class behaves as expected") {
        auto result = picoRam.spriteSheetData[combinedIdx];
 
        CHECK_EQ(result, 192);
+   }
+   SUBCASE("sset does nothing for out of bounds pixel")
+   {
+       uint8_t x = 128;
+       uint8_t y = 0;
+       graphics->sset(x, y, 14); //14 = 1110
+
+       int combinedIdx = y * 64 + (x / 2);
+       auto result = picoRam.spriteSheetData[combinedIdx];
+
+       CHECK_EQ(result, 0);
    }
    SUBCASE("camera({x}, {y}) sets values in memory")
    {
@@ -1486,9 +1600,9 @@ TEST_CASE("graphics class behaves as expected") {
             }
         }
         auto result1 = graphics->mget(-1, 16);
-        auto result2 = graphics->mget(129, 16);
+        auto result2 = graphics->mget(128, 16);
         auto result3 = graphics->mget(10, -1);
-        auto result4 = graphics->mget(10, 67);
+        auto result4 = graphics->mget(10, 64);
 
         CHECK_EQ(0, result1);
         CHECK_EQ(0, result2);
