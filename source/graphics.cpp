@@ -1299,8 +1299,15 @@ fix32 Graphics::fillp(fix32 pat) {
 }
 
 
-int Graphics::drawCharacter(uint8_t ch, int x, int y, uint8_t printMode) {
+int Graphics::drawCharacter(
+	uint8_t ch,
+	int x,
+	int y,
+	uint8_t printMode,
+	int forceCharWidth,
+	int forceCharHeight) {
 	int extraCharWidth = 0;
+
 	if ((printMode & PRINT_MODE_ON) == PRINT_MODE_ON){
 		int scrW = 4;
 		int scrH = 5;
@@ -1332,10 +1339,14 @@ int Graphics::drawCharacter(uint8_t ch, int x, int y, uint8_t printMode) {
 	else{
 		if (ch >= 0x10 && ch < 0x80) {
 			int index = ch - 0x10;
-			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8, 4, 5, false, false);
+			int width = forceCharWidth > -1 && forceCharWidth < 4 ? forceCharWidth : 4;
+			int height = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : 5;
+			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8, width, height, false, false);
 		} else if (ch >= 0x80) {
 			int index = ch - 0x80;
-			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5, false, false);
+			int width = forceCharWidth > -1 && forceCharWidth < 4 ? (forceCharWidth + 4) : 8;
+			int height = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : 5;
+			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8 + 56, width, height, false, false);
 			extraCharWidth = 4;
 		}
 	}
