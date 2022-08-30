@@ -99,6 +99,17 @@ TEST_CASE("Print helper functions") {
         CHECK(memory->drawState.text_y == 24);
         CHECK(memory->drawState.color == 14);
     }
+    SUBCASE("print({str}, {x}, {y}, {c}) updates text location correct in multiline situation") {
+        graphics->cls();
+        memory->drawState.text_x = 3;
+        memory->drawState.text_y = 4;
+        memory->drawState.color = 10;
+
+        print("doesnt\nmatter\nwell\nkinda\ndoes", 19, 18, 14);
+        
+        CHECK(memory->drawState.text_x == 19);
+        CHECK(memory->drawState.text_y == 48);
+    }
     SUBCASE("print({str}) uses pal mapped color") {
         graphics->cls();
         graphics->color(2);
@@ -350,6 +361,40 @@ TEST_CASE("Print helper functions") {
             {41, 50, 0},
             {41, 51, 6},
             {41, 52, 0}
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+
+       SUBCASE("p8scii special control code move cursor(\\^j) and update home and color test") {
+        graphics->cls();
+    //"\^j87\-f\|a\^h\f7:\^je8other\n:"
+    /*
+--\^j87- move cursor to 32,28
+ --\-f- move cursor horizontally -1 (31,28)
+ --\|a- move cursor vertically -6 (31,22)
+ --\^h --set cursor home to be current location (31,22)
+ --\f7 change color to 7 (white)
+ --: print the ":" character
+ --\^je8- move cursor to 56,32
+ --print "other\n" followed by a new line
+ --print one more ":"
+    */
+        // coordinates x=40 ("a" = 10, 10 * 4 = 40), y=48 ("c" = 12, 12 * 4 = 48)
+        print("\x06""j87\x03""f\x04""a\x06""h\x0c""7:\x06""je8:\n:", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {32, 22, 0},
+            {32, 23, 7},
+            {32, 24, 0},
+            {32, 25, 7},
+            {32, 26, 0},
+
+            {32, 38, 0},
+            {32, 39, 7},
+            {32, 40, 0},
+            {32, 41, 7},
+            {32, 42, 0},
         };
 
         checkPoints(graphics, expectedPoints);
@@ -648,6 +693,49 @@ TEST_CASE("Print helper functions") {
         };
 
         checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("p8scii special control code for char width(\\^x) and char height (\\^y) limit rendering ") {
+        graphics->cls();
+
+        print("\x06""x2\x06""y3a", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 0, 6},
+            {1, 0, 6},
+            {2, 0, 0},
+            {3, 0, 0},
+
+            {0, 1, 6},
+            {1, 1, 0},
+            {2, 1, 0},
+            {3, 1, 0},
+
+            {0, 2, 6},
+            {1, 2, 6},
+            {2, 2, 0},
+            {3, 2, 0},
+
+            {0, 3, 0},
+            {1, 3, 0},
+            {2, 3, 0},
+            {3, 3, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("p8scii special control code for char height (\\^y) sets line height correctly when lower") {
+        graphics->cls();
+
+        print("\x06""y3a", 0, 0);
+
+        CHECK_EQ(memory->drawState.text_y, 3);
+    }
+    SUBCASE("p8scii special control code for char height (\\^y) sets line height correctly when higher") {
+        graphics->cls();
+
+        print("\x06""y9a", 0, 0);
+
+        CHECK_EQ(memory->drawState.text_y, 9);
     }
 
 
