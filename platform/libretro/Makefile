@@ -118,6 +118,7 @@ else ifeq ($(platform), miyoomini)
    TARGET := $(TARGET_NAME)_libretro_miyoomini.so
    CC = arm-linux-gnueabihf-gcc
    CXX = arm-linux-gnueabihf-g++
+   AR = arm-linux-gnueabihf-ar
    STRIP = arm-linux-gnueabihf-strip
    CXXFLAGS += -marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7ve
 	STATIC_LINKING = 1

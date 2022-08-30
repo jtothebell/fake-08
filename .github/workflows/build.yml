@@ -55,4 +55,4 @@ jobs:
         with:
           name: MiyooMini-libretro
           path: |
-            platform/libretro/fake08_libretro.so
+            platform/libretro/fake08_libretro_miyoomini.so
