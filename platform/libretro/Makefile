@@ -114,6 +114,13 @@ else ifeq ($(platform), vita)
    AR = arm-vita-eabi-ar
    CXXFLAGS += -Wl,-q -Wall -O3
 	STATIC_LINKING = 1
+else ifeq ($(platform), miyoomini)
+   TARGET := $(TARGET_NAME)_libretro_miyoomini.so
+   CC = arm-linux-gnueabihf-gcc
+   CXX = arm-linux-gnueabihf-g++
+   STRIP = arm-linux-gnueabihf-strip
+   CXXFLAGS += -marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7ve
+	STATIC_LINKING = 1
 else
    CC = gcc
    TARGET := $(TARGET_NAME)_libretro.dll
@@ -160,6 +167,7 @@ echo:
 	@echo echo ...
 #	@echo $(SOURCES_C) 
 #	@echo $(SOURCES_CXX)
+	@echo $(platform)
 	@echo $(OBJECTS) 
 
 .PHONY: clean echo

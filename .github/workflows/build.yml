@@ -36,3 +36,23 @@ jobs:
           path: |
             platform/libretro/libs/libfake08-arm64.so
             platform/libretro/libs/libfake08-arm32.so
+  
+  second:
+    name: MiyooMini-libretro
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir jondbell/union-miyoomini-toolchain /bin/sh -ex /build_dir/.github/workflows/buildMiyooMini-libretro.sh
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: MiyooMini-libretro
+          path: |
+            platform/libretro/fake08_libretro.so
