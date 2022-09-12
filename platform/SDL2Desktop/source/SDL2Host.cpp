@@ -22,8 +22,8 @@ using namespace std;
 // sdl
 #include <SDL2/SDL.h>
 
-#define WINDOW_SIZE_X 1280
-#define WINDOW_SIZE_Y 720
+/*#define WINDOW_SIZE_X 1280
+#define WINDOW_SIZE_Y 720*/
 
 #define WINDOW_FLAGS 0
 
@@ -45,6 +45,24 @@ string _desktopSdl2customBiosLua = "cartpath = \"~/p8carts/\"\n"
 
 Host::Host() 
 {
+
+    SDL_DisplayMode current;
+
+    SDL_Init(SDL_INIT_VIDEO);
+
+    int should_be_zero = SDL_GetCurrentDisplayMode(0, &current);
+
+    if(should_be_zero != 0)
+      // In case of error...
+      SDL_Log("Could not get display mode for video display #%d: %s", 0, SDL_GetError());
+
+    else
+      // On success, print the current display mode.
+      SDL_Log("Display #%d: current display mode is %dx%dpx @ %dhz.", 0, current.w, current.h, current.refresh_rate);
+
+    int WINDOW_SIZE_X=current.w;
+    int WINDOW_SIZE_Y=current.h;
+
     struct stat st = {0};
 
     int res = chdir(getenv("HOME"));
