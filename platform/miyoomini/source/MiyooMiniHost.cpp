@@ -87,6 +87,9 @@ uint32_t _mapped32BitColors[144];
 void postFlipFunction(){
     // We're done rendering, so we end the frame here.
 
+    //Fill whole window with black. Avoid double buffering flicker
+    SDL_FillRect(window, 0, 0);
+
     SDL_SoftStretch(texture, &SrcR, window, &DestR);
 
     SDL_Flip(window);
