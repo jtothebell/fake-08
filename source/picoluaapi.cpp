@@ -958,6 +958,8 @@ int stat(lua_State *L) {
 
 //Audio
 int music(lua_State *L) {
+    return 0;
+    /*
     int n = lua_tonumber(L,1);
     int fadems = 0;
     if (lua_gettop(L) > 1) {
@@ -969,11 +971,13 @@ int music(lua_State *L) {
     }
 
     _audioForLuaApi->api_music(n, fadems, channelmask);
-
+*/
     return 0;
 }
 
 int sfx(lua_State *L) {
+    return 0;
+    /*
     fix32 n = lua_tonumber(L,1);
     int channel = -1;
     if (lua_gettop(L) > 1) {
@@ -985,7 +989,7 @@ int sfx(lua_State *L) {
     }
 
     _audioForLuaApi->api_sfx((int)n, channel, offset);
-    
+    */
     return 0;
 }
 
