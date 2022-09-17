@@ -121,7 +121,7 @@ else ifeq ($(platform), miyoomini)
    AR = arm-linux-gnueabihf-ar
    STRIP = arm-linux-gnueabihf-strip
    CXXFLAGS += -marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7ve
-#   fpic := -fPIC
+   fpic := -fPIC
    SHARED := -shared -Wl,--version-script=link.T
 else
    CC = gcc
