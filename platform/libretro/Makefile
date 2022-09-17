@@ -121,7 +121,7 @@ else ifeq ($(platform), miyoomini)
    AR = arm-linux-gnueabihf-ar
    STRIP = arm-linux-gnueabihf-strip
    CXXFLAGS += -marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7ve
-   fpic := -fPIC
+#   fpic := -fPIC
    SHARED := -shared -Wl,--version-script=link.T
 else
    CC = gcc
@@ -145,8 +145,8 @@ CC = $(CXX)
 
 OBJECTS := $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
 
-CFLAGS   += $(fpic) -Wall -D__LIBRETRO__ -Wno-deprecated -ffunction-sections -std=c++17 -fno-rtti $(INCFLAGS)
-CXXFLAGS += $(fpic) -Wall -D__LIBRETRO__ -Wno-deprecated -ffunction-sections -std=c++17 -fno-rtti -fno-exceptions $(INCFLAGS)
+CFLAGS   += $(fpic) -Wall -D__LIBRETRO__ -ffunction-sections -std=gnu++17 -fno-rtti $(INCFLAGS)
+CXXFLAGS += $(fpic) -Wall -D__LIBRETRO__ -ffunction-sections -std=gnu++17 -fno-rtti $(INCFLAGS)
 
 all: $(TARGET)
 
