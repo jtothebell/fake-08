@@ -29,12 +29,13 @@ static retro_log_printf_t log_cb;
 
 
 #define SAMPLERATE 22050
-#define SAMPLESPERBUF (SAMPLERATE / 60)
+#define SAMPLESPERBUF (SAMPLERATE / 30)
 //#define SAMPLESPERBUF 1024
 #define NUM_BUFFERS 2
-const size_t audioBufferSize = SAMPLESPERBUF * NUM_BUFFERS;
+const size_t audioBufferSize = SAMPLESPERBUF;
+//const size_t audioBufferSize = 512;
 
-int16_t audioBuffer[audioBufferSize];
+int16_t audioBuffer[audioBufferSize*NUM_BUFFERS];
 
 const int PicoScreenWidth = 128;
 const int PicoScreenHeight = 128;
@@ -205,9 +206,11 @@ int flip = 0;
 
 EXPORT void retro_run()
 {
+    //log_cb(RETRO_LOG_INFO, "retro_tun start\n");
     //TODO: improve this so slower hardware can play 30fps games at full speed
     if (_vm->getTargetFps() == 60 || frame % 2 == 0)
     {
+        //log_cb(RETRO_LOG_INFO, "retro_tun polling input\n");
         input_poll_cb();
 
         uint8_t currKDown = 0;
@@ -237,19 +240,35 @@ EXPORT void retro_run()
             }
         }
         
+        //log_cb(RETRO_LOG_INFO, "retro_tun setting input state\n");
         setInputState(currKDown, currKHeld, picoMouseX, picoMouseY, mouseBtnState);
 
+        //log_cb(RETRO_LOG_INFO, "retro_tun update and draw\n");
         _vm->UpdateAndDraw();
         kHeld = currKHeld;
         kDown = currKDown;
 
         if (frame % 2 == 0) {
-            _audio->FillAudioBuffer(&audioBuffer, 0, audioBufferSize);
-            audio_batch_cb(audioBuffer, SAMPLESPERBUF * NUM_BUFFERS);
+            //735 mono audio buffer size- does not crash, high pitched audio, with gaps
+            //_audio->FillMonoAudioBuffer(&audioBuffer, 0, 735);
+            //audio_batch_cb(audioBuffer, 735);
+
+            //increased actual buffer to included 735*2 int16_ts, then use stero buffer
+            //still use 735 for size and number of audio frames in cb
+            _audio->FillAudioBuffer(&audioBuffer, 0, 735);
+            audio_batch_cb(audioBuffer, 735);
+
+            //log_cb(RETRO_LOG_INFO, "retro_tun fill audio buffer\n");
+            //_audio->FillMonoAudioBuffer(&audioBuffer, 0, audioBufferSize);
+            //_audio->FillAudioBuffer(&audioBuffer, 0, audioBufferSize * 2);
+            //memset(&audioBuffer, 0, audioBufferSize);
+            //log_cb(RETRO_LOG_INFO, "retro_tun audio batch callback\n");
+            //audio_batch_cb(audioBuffer, SAMPLESPERBUF);
         }
 
     }
 
+    //log_cb(RETRO_LOG_INFO, "retro_tun setting pixels from internal fb \n");
     
 
     uint8_t* picoFb = _vm->GetPicoInteralFb();
@@ -317,9 +336,11 @@ EXPORT void retro_run()
         }
     }
 
+    //log_cb(RETRO_LOG_INFO, "retro_tun calling video_cb\n");
     video_cb(&screenBuffer, PicoScreenWidth, PicoScreenHeight, PicoScreenWidth * BytesPerPixel);
 
     frame++;
+    //log_cb(RETRO_LOG_INFO, "retro_tun end\n");
 }
 
 //lua memory is 2 MB in size. 1 MB enough for non-globals?
@@ -338,7 +359,7 @@ EXPORT bool retro_serialize(void *data, size_t size)
     if (log_cb) {
         log_cb(RETRO_LOG_INFO, "retro_serialize. Checking size\n");
     }
-    const int expectedSize = retro_serialize_size();
+    const size_t expectedSize = retro_serialize_size();
     if (size > expectedSize) {
         size = expectedSize;
     }
