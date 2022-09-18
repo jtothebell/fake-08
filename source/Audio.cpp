@@ -200,7 +200,7 @@ void Audio::set_music_pattern(int pattern) {
         _audioState._sfxChannels[i].prev_vol = 0.f;
     }
 }
-/*
+
 void Audio::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
     if (audioBuffer == nullptr) {
         return;
@@ -221,28 +221,7 @@ void Audio::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
         buffer[i] = (sample<<16) | (sample & 0xffff);
     }
 }
-*/
-void Audio::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
-    if (audioBuffer == nullptr) {
-        return;
-    }
 
-    int16_t *buffer = (int16_t *)audioBuffer;
-
-    for (size_t i = 0; i < size; ++i){
-        int32_t sample = 0;
-
-        for (int c = 0; c < 4; ++c) {
-            sample += this->getSampleForChannel(c);
-        }
-
-	    if (sample > 0x7fff) sample = 0x7fff; else if (sample < -0x8000) sample = -0x8000;
-
-        //buffer is stereo, so just send the mono sample to both channels
-        buffer[i*2] = sample;
-        buffer[i*2+1] = sample;
-    }
-}
 
 void Audio::FillMonoAudioBuffer(void *audioBuffer, size_t offset, size_t size){
     if (audioBuffer == nullptr) {
