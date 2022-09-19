@@ -174,6 +174,7 @@ EXPORT void retro_set_controller_port_device(unsigned port, unsigned device)
 
 EXPORT void retro_reset()
 {
+    _vm->QueueCartChange(_vm->CurrentCartFilename());
 }
 
 static std::array<int, 7> buttons
