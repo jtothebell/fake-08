@@ -123,6 +123,16 @@ else ifeq ($(platform), miyoomini)
    CXXFLAGS += -marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7ve
    fpic := -fPIC
    SHARED := -shared -Wl,--version-script=link.T
+
+else ifeq ($(platform), gcw0)
+   TARGET := $(TARGET_NAME)_libretro_gcw0.so
+   CC = /opt/gcw0-toolchain/usr/bin/mipsel-linux-gcc
+   CXX = /opt/gcw0-toolchain/usr/bin/mipsel-linux-g++
+   AR = /opt/gcw0-toolchain/usr/bin/mipsel-linux-ar
+   CXXFLAGS += -fomit-frame-pointer -ffast-math -march=mips32 -mtune=mips32r2 -mhard-float
+   CXXFLAGS += -fno-common -ftree-vectorize -funswitch-loops
+   fpic := -fPIC
+   SHARED := -shared -Wl,-version-script=link.T
 else
    CC = gcc
    TARGET := $(TARGET_NAME)_libretro.dll

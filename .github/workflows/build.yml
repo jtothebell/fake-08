@@ -56,3 +56,23 @@ jobs:
           name: MiyooMini-libretro
           path: |
             platform/libretro/fake08_libretro_miyoomini.so
+
+  third:
+    name: GCW0-libretro
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir jondbell/gcw0 /bin/sh -ex /build_dir/.github/workflows/buildGcw0-libretro.sh
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: GCW0-libretro
+          path: |
+            platform/libretro/fake08_libretro_gcw0.so
