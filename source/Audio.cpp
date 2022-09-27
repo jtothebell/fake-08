@@ -153,6 +153,7 @@ void Audio::set_music_pattern(int pattern) {
         _memory->songs[pattern].getSfx3(),
     };
 
+    bool foundNonLooping = false;
     // Find music speed; it’s the speed of the fastest sfx
 	// While we are looping through this, find the lowest *valid* sfx length
     _audioState._musicChannel.master = _audioState._musicChannel.speed = -1;
@@ -163,17 +164,22 @@ void Audio::set_music_pattern(int pattern) {
 
         if (n & 0x40)
             continue;
-
+	// we ignore loooping length if we have non-looping channel
+        bool looping = sfx.loopRangeStart < sfx.loopRangeEnd;
+	bool firstNonLooping = !looping && !foundNonLooping;
+	if (!looping) {
+		foundNonLooping=true;
+	}
         auto &sfx = _memory->sfx[n & 0x3f];
-        if (_audioState._musicChannel.master == -1 || _audioState._musicChannel.speed > sfx.speed)
+        if ((!looping || !foundNonLooping) && firstNonLooping || (_audioState._musicChannel.master == -1 || _audioState._musicChannel.speed > sfx.speed))
         {
             _audioState._musicChannel.master = i;
             _audioState._musicChannel.speed = std::max(1, (int)sfx.speed);
         }
 		
-		if(sfx.loopRangeStart != 0 && sfx.loopRangeEnd == 0){
-			_audioState._musicChannel.length = std::min(_audioState._musicChannel.length, sfx.loopRangeStart);			
-		}
+	if(sfx.loopRangeStart != 0 && sfx.loopRangeEnd == 0){
+		_audioState._musicChannel.length = std::min(_audioState._musicChannel.length, sfx.loopRangeStart);			
+	}
 		
 		
 		
