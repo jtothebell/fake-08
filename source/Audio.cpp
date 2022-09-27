@@ -153,6 +153,8 @@ void Audio::set_music_pattern(int pattern) {
         _memory->songs[pattern].getSfx3(),
     };
 
+    uint16_t shortest = 32 * 255; // longest sfx possible
+    bool foundNonLooping = false;
     // Find music speed; it’s the speed of the fastest sfx
 	// While we are looping through this, find the lowest *valid* sfx length
     _audioState._musicChannel.master = _audioState._musicChannel.speed = -1;
@@ -163,20 +165,32 @@ void Audio::set_music_pattern(int pattern) {
 
         if (n & 0x40)
             continue;
-
+	// we ignore loooping length if we have non-looping channel
         auto &sfx = _memory->sfx[n & 0x3f];
-        if (_audioState._musicChannel.master == -1 || _audioState._musicChannel.speed > sfx.speed)
+        bool looping = sfx.loopRangeStart < sfx.loopRangeEnd;
+	bool firstNonLooping = !looping && !foundNonLooping;
+	if (!looping) {
+		foundNonLooping=true;
+	}
+
+	uint8_t length = 32;
+	if(sfx.loopRangeStart != 0 && sfx.loopRangeEnd == 0)
+	{
+		length= sfx.loopRangeStart;			
+	}
+	else if (sfx.loopRangeEnd > sfx.loopRangeStart) {
+		length = sfx.loopRangeEnd;
+	}
+
+	uint16_t timeLength = length * std::max(1, (int)sfx.speed);;
+
+        if ((!looping || !foundNonLooping) && (firstNonLooping || _audioState._musicChannel.master == -1 || shortest > timeLength))
         {
+	    shortest = timeLength;
             _audioState._musicChannel.master = i;
             _audioState._musicChannel.speed = std::max(1, (int)sfx.speed);
+	    _audioState._musicChannel.length = length;
         }
-		
-		if(sfx.loopRangeStart != 0 && sfx.loopRangeEnd == 0){
-			_audioState._musicChannel.length = std::min(_audioState._musicChannel.length, sfx.loopRangeStart);			
-		}
-		
-		
-		
     }
 	
 	
@@ -194,7 +208,8 @@ void Audio::set_music_pattern(int pattern) {
         _audioState._sfxChannels[i].sfxId = n;
         _audioState._sfxChannels[i].offset = 0.f;
         _audioState._sfxChannels[i].phi = 0.f;
-        _audioState._sfxChannels[i].can_loop = false;
+	// if the master channel loops we'll never finish
+        _audioState._sfxChannels[i].can_loop = i != _audioState._musicChannel.master;
         _audioState._sfxChannels[i].is_music = true;
         _audioState._sfxChannels[i].prev_key = 24;
         _audioState._sfxChannels[i].prev_vol = 0.f;

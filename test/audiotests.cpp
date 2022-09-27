@@ -52,5 +52,90 @@ TEST_CASE("audio class behaves as expected") {
 
         CHECK_EQ(audioState->_musicChannel.pattern, 14);
     }
+    SUBCASE("api_music sets sfx channels"){
+        picoRam.songs[3].data[0]=9;
+        picoRam.songs[3].data[1]=10;
+        picoRam.songs[3].data[2]=11;
+        picoRam.songs[3].data[3]=12;
+        audio->api_music(3, 0, 0);
+        CHECK_EQ(audioState->_sfxChannels[0].sfxId, 9);
+        CHECK_EQ(audioState->_sfxChannels[1].sfxId, 10);
+        CHECK_EQ(audioState->_sfxChannels[2].sfxId, 11);
+        CHECK_EQ(audioState->_sfxChannels[3].sfxId, 12);
+    }
+
+    SUBCASE("api_music makes master fastest sfx channels"){
+        picoRam.songs[3].data[0]=0;
+        picoRam.songs[3].data[1]=1;
+        picoRam.songs[3].data[2]=2;
+        picoRam.songs[3].data[3]=3;
+        picoRam.sfx[0].speed = 4;
+        picoRam.sfx[1].speed = 6;
+        picoRam.sfx[2].speed = 3;
+        picoRam.sfx[3].speed = 5;
+        audio->api_music(3, 0, 0);
+        CHECK_EQ(audioState->_sfxChannels[audioState->_musicChannel.master].sfxId, 2);
+    }
+
+    SUBCASE("api_music makes master shortest sfx channels"){
+        picoRam.songs[3].data[0]=0;
+        picoRam.songs[3].data[1]=1;
+        picoRam.songs[3].data[2]=2;
+        picoRam.songs[3].data[3]=3;
+        picoRam.sfx[0].loopRangeStart = 9;
+        picoRam.sfx[1].loopRangeStart = 6;
+        picoRam.sfx[2].loopRangeStart = 30;
+        picoRam.sfx[3].loopRangeStart = 7;
+        audio->api_music(3, 0, 0);
+        CHECK_EQ(audioState->_sfxChannels[audioState->_musicChannel.master].sfxId, 1);
+    }
+
+    SUBCASE("api_music makes master shortest/fastest sfx channels"){
+        picoRam.songs[3].data[0]=0;
+        picoRam.songs[3].data[1]=1;
+        picoRam.songs[3].data[2]=2;
+        picoRam.songs[3].data[3]=3;
+        picoRam.sfx[0].loopRangeStart = 9;
+        picoRam.sfx[1].loopRangeStart = 6;
+        picoRam.sfx[2].loopRangeStart = 30;
+        picoRam.sfx[3].loopRangeStart = 7;
+        picoRam.sfx[0].speed = 4;
+        picoRam.sfx[1].speed = 6;
+        picoRam.sfx[2].speed = 3;
+        picoRam.sfx[3].speed = 5;
+        audio->api_music(3, 0, 0);
+        CHECK_EQ(audioState->_sfxChannels[audioState->_musicChannel.master].sfxId, 3);
+    }
+
+    SUBCASE("api_music prefers non-looping"){
+        picoRam.songs[3].data[0]=0;
+        picoRam.songs[3].data[1]=1;
+        picoRam.songs[3].data[2]=2;
+        picoRam.songs[3].data[3]=3;
+        picoRam.sfx[0].loopRangeEnd = 9;
+        picoRam.sfx[0].speed = 4;
+        picoRam.sfx[1].speed = 6;
+        picoRam.sfx[2].speed = 9;
+        picoRam.sfx[3].speed = 99;
+        audio->api_music(3, 0, 0);
+        CHECK_EQ(audioState->_sfxChannels[audioState->_musicChannel.master].sfxId, 1);
+    }
+
+    SUBCASE("api_music picks shortest/fastest looping if all looping"){
+        picoRam.songs[3].data[0]=0;
+        picoRam.songs[3].data[1]=1;
+        picoRam.songs[3].data[2]=2;
+        picoRam.songs[3].data[3]=3;
+        picoRam.sfx[0].loopRangeEnd = 9;
+        picoRam.sfx[1].loopRangeEnd = 6;
+        picoRam.sfx[2].loopRangeEnd = 30;
+        picoRam.sfx[3].loopRangeEnd = 7;
+        picoRam.sfx[0].speed = 4;
+        picoRam.sfx[1].speed = 6;
+        picoRam.sfx[2].speed = 3;
+        picoRam.sfx[3].speed = 5;
+        audio->api_music(3, 0, 0);
+        CHECK_EQ(audioState->_sfxChannels[audioState->_musicChannel.master].sfxId, 3);
+    }
 
 }
