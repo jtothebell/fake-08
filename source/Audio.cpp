@@ -154,7 +154,6 @@ void Audio::set_music_pattern(int pattern) {
     };
 
     bool foundNonLooping = false;
-    bool foundLooping = false;
     // Find music speed; it’s the speed of the fastest sfx
 	// While we are looping through this, find the lowest *valid* sfx length
     _audioState._musicChannel.master = _audioState._musicChannel.speed = -1;
@@ -169,9 +168,6 @@ void Audio::set_music_pattern(int pattern) {
         auto &sfx = _memory->sfx[n & 0x3f];
         bool looping = sfx.loopRangeStart < sfx.loopRangeEnd;
 	bool firstNonLooping = !looping && !foundNonLooping;
-	if (looping) {
-		foundLooping=true;
-	}
 	if (!looping) {
 		foundNonLooping=true;
 	}
@@ -204,7 +200,8 @@ void Audio::set_music_pattern(int pattern) {
         _audioState._sfxChannels[i].sfxId = n;
         _audioState._sfxChannels[i].offset = 0.f;
         _audioState._sfxChannels[i].phi = 0.f;
-        _audioState._sfxChannels[i].can_loop = foundLooping && foundNonLooping;
+	// if the master channel loops we'll never finish
+        _audioState._sfxChannels[i].can_loop = i != _audioState._musicChannel.master;
         _audioState._sfxChannels[i].is_music = true;
         _audioState._sfxChannels[i].prev_key = 24;
         _audioState._sfxChannels[i].prev_vol = 0.f;
