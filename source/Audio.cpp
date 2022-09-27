@@ -165,12 +165,12 @@ void Audio::set_music_pattern(int pattern) {
         if (n & 0x40)
             continue;
 	// we ignore loooping length if we have non-looping channel
+        auto &sfx = _memory->sfx[n & 0x3f];
         bool looping = sfx.loopRangeStart < sfx.loopRangeEnd;
 	bool firstNonLooping = !looping && !foundNonLooping;
 	if (!looping) {
 		foundNonLooping=true;
 	}
-        auto &sfx = _memory->sfx[n & 0x3f];
         if ((!looping || !foundNonLooping) && firstNonLooping || (_audioState._musicChannel.master == -1 || _audioState._musicChannel.speed > sfx.speed))
         {
             _audioState._musicChannel.master = i;
