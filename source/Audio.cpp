@@ -171,7 +171,7 @@ void Audio::set_music_pattern(int pattern) {
 	if (!looping) {
 		foundNonLooping=true;
 	}
-        if ((!looping || !foundNonLooping) && firstNonLooping || (_audioState._musicChannel.master == -1 || _audioState._musicChannel.speed > sfx.speed))
+        if ((!looping || !foundNonLooping) && (firstNonLooping || _audioState._musicChannel.master == -1 || _audioState._musicChannel.speed > sfx.speed))
         {
             _audioState._musicChannel.master = i;
             _audioState._musicChannel.speed = std::max(1, (int)sfx.speed);
