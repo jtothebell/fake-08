@@ -171,7 +171,7 @@ void Audio::set_music_pattern(int pattern) {
             _audioState._musicChannel.speed = std::max(1, (int)sfx.speed);
         }
 		
-		if(sfx.loopRangeStart != 0 && sfx.loopRangeEnd == 0){
+		if(sfx.loopRangeStart >= sfx.loopRangeEnd){
 			_audioState._musicChannel.length = std::min(_audioState._musicChannel.length, sfx.loopRangeStart);			
 		}
 		
