@@ -179,7 +179,8 @@ void Audio::set_music_pattern(int pattern) {
 		length= sfx.loopRangeStart;			
 	}
 	else if (sfx.loopRangeEnd > sfx.loopRangeStart) {
-		length = sfx.loopRangeEnd;
+		// length = sfx.loopRangeEnd;
+    // pico 8 pretends like it's length 32!
 	}
 
 	uint16_t timeLength = length * std::max(1, (int)sfx.speed);;

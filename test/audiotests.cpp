@@ -121,7 +121,7 @@ TEST_CASE("audio class behaves as expected") {
         CHECK_EQ(audioState->_sfxChannels[audioState->_musicChannel.master].sfxId, 1);
     }
 
-    SUBCASE("api_music picks shortest/fastest looping if all looping"){
+    SUBCASE("api_music picks fastest looping if all looping ignoring loop length"){
         picoRam.songs[3].data[0]=0;
         picoRam.songs[3].data[1]=1;
         picoRam.songs[3].data[2]=2;
@@ -135,7 +135,6 @@ TEST_CASE("audio class behaves as expected") {
         picoRam.sfx[2].speed = 3;
         picoRam.sfx[3].speed = 5;
         audio->api_music(3, 0, 0);
-        CHECK_EQ(audioState->_sfxChannels[audioState->_musicChannel.master].sfxId, 3);
+        CHECK_EQ(audioState->_sfxChannels[audioState->_musicChannel.master].sfxId, 2);
     }
-
 }
