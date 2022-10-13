@@ -5,7 +5,7 @@ corename = "FAKE-08"
 categories = "Emulator"
 license = "MIT"
 permissions = ""
-display_version = "v0.0.2.18"
+display_version = "v0.0.2.19"
 
 # Hardware Information
 manufacturer = "Lexaloffle"
