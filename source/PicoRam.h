@@ -292,20 +292,3 @@ struct PicoRam
     };
 };
 
-/*
-struct saveState_t
-{
-    union
-    {
-        struct 
-        {
-            PicoRam memory;
-            audioState_t audioState;
-            char luaStateStr[1024*1024*2];
-
-        };
-
-        uint8_t data[sizeof(PicoRam) + sizeof(audioState_t) + 1024*1024*2];
-    };
-};
-*/

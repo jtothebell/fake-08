@@ -520,20 +520,8 @@ void Vm::deserializeCartDataToMemory(std::string cartDataStr) {
     }
 }
 
-#define SAVESTATEBUFFSIZE 1024*1024*2
-static char saveStateBuffer[SAVESTATEBUFFSIZE];
-
 void Vm::UpdateAndDraw() {
     update_buttons();
-
-    if (_input->btnp(7) && _input->btn(3)) {
-        size_t length = _host->getFileContents("testsavestate.state", saveStateBuffer);
-        deserializeLuaState(saveStateBuffer, length);
-    }
-    else if (_input->btnp(7)) {
-        size_t length = serializeLuaState(saveStateBuffer);
-        _host->writeBufferToFile("testsavestate.state", saveStateBuffer, length);
-    }
 
     _picoFrameCount++;
 
