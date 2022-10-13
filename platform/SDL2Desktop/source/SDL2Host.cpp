@@ -143,6 +143,10 @@ InputState_t Host::scanInput(){
                     case SDLK_x:     currKDown |= P8_KEY_O; break;
                     case SDLK_c:     currKDown |= P8_KEY_X; break;
                     case SDLK_r:     stretchKeyPressed = true; break;
+                    case SDLK_F2:    currKDown |= P8_KEY_7; break;
+
+                    //case SDLK_F2:    currKBKey = "F2"; currKBDown = true; break;
+                    //case SDLK_F4:    currKBKey = "F4"; currKBDown = true; break;
                 }
                 break;
             

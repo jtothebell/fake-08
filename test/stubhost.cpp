@@ -112,6 +112,13 @@ std::string Host::getCartDataFileContents(std::string cartDataKey) {
 void Host::saveCartData(std::string cartDataKey, std::string contents) {
 }
 
+void Host::writeBufferToFile(std::string fileName, char* buffer, size_t length) {
+}
+
+size_t Host::getFileContents(std::string fileName, char* buffer) {
+    return 0;
+}
+
 int Host::getSetting(std::string sname) {
     return 0;
 }

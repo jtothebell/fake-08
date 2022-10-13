@@ -160,5 +160,8 @@ class Vm {
     
     string getCartBreadcrumb();
     string getCartParam();
+
+    size_t serializeLuaState(char* dest);
+    void deserializeLuaState(const char* src, size_t len);
 };
 

@@ -969,7 +969,6 @@ int music(lua_State *L) {
     }
 
     _audioForLuaApi->api_music(n, fadems, channelmask);
-
     return 0;
 }
 
@@ -985,7 +984,6 @@ int sfx(lua_State *L) {
     }
 
     _audioForLuaApi->api_sfx((int)n, channel, offset);
-    
     return 0;
 }
 

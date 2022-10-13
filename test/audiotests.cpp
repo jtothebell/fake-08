@@ -7,7 +7,7 @@ TEST_CASE("audio class behaves as expected") {
     PicoRam picoRam;
     picoRam.Reset();
     Audio* audio = new Audio(&picoRam);
-    audioState* audioState = audio->getAudioState();
+    audioState_t* audioState = audio->getAudioState();
 
     SUBCASE("Audio constructor sets sfx channels to -1") {
         bool allChannelsOff = true;

@@ -140,7 +140,7 @@ struct sfxChannel {
     float prev_vol = 0;
 };
 
-struct audioState {
+struct audioState_t {
     musicChannel _musicChannel;
     sfxChannel _sfxChannels[4];
 };
@@ -291,3 +291,4 @@ struct PicoRam
         uint8_t data[0x10000];
     };
 };
+

@@ -44,4 +44,7 @@ platform/gcw0/FAKE08
 platform/gcw0/fake08_gcw0.opk
 source/carts.zip
 /platform/windows/*.stackdump
+platform/libretro/fake08_libretro.dylib
+platform/libretro/libs/
+platform/libretro/obj/
 .DS_Store

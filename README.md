@@ -48,6 +48,7 @@ Building for Miyoo mini uses shauninman's Union Miyoo Mini toolchain: https://gi
  * PicoLove (https://github.com/gamax92/picolove) - Noise synthesis ported from this Pico Love, and it was also the basis for my previous project - PicoLovePotion - and where I first learned the basics of Pico 8's API
  * tac08 (https://github.com/0xcafed00d/tac08) - a Pico 8 emulator that I leared a lot from. FAKE-08's sprite rendering and cart parsing were originally based on tac08's implementations
  * LovePotion (https://github.com/TurtleP/LovePotion) - an implementation of Love2d for 3DS and switch that served as the runtime for PicoLovePotion, and a great way to make homebrew games for the 3DS and switch. I also use a modified version of their static Logger implementation
+ * ps4-p8 for a working save state implementation to reference. Savestates currently only available in libretro cores
 
 See LICENSE.MD for FAKE-08 license (MIT) as well as licenses of all other software used
 

@@ -40,7 +40,7 @@ void Audio::resetAudioState() {
     _audioState._musicChannel.offset = 0.f;
 }
 
-audioState* Audio::getAudioState() {
+audioState_t* Audio::getAudioState() {
     return &_audioState;
 }
 
@@ -237,6 +237,7 @@ void Audio::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
         buffer[i] = (sample<<16) | (sample & 0xffff);
     }
 }
+
 
 void Audio::FillMonoAudioBuffer(void *audioBuffer, size_t offset, size_t size){
     if (audioBuffer == nullptr) {

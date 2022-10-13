@@ -273,6 +273,53 @@ poke4, memcpy, memset, max, min, mid, flr,
 ceil, cos, sin, atan2, rnd, srand, band,
 bor, bxor, bnot, shl, shr, lshr, rotl, rotr
 
+--save state code modified from ps4-p8
+//https://github.com/voliva/ps4-p8/blob/ecba7f93ef9ba73ccb121b45ede6f46e651cef65/pico8_ps4/lua_lang_fns.cpp
+//MIT license
+
+eris.perm = {}
+eris.unperm = {}
+eris.original_G = {}
+
+eris.init_persist_all = function()
+  -- lua pairs is not sorted. The order is actually random, changes on every execution (wtf?)
+  
+  eris.settings("path", true)
+  
+  local keyset={}
+  local n=0
+  for k,v in pairs(_G) do
+    n=n+1
+    keyset[n]=k
+  end
+  table.sort(keyset)
+  local i=0
+  for i=1,n do
+    local k=keyset[i]
+    local v=_G[k]
+    eris.perm[v] = i
+    eris.unperm[i] = v
+    eris.original_G[k] = v
+  end
+end
+
+eris.persist_all = function()
+  local new_symbols = {}
+  for k,v in pairs(_G) do
+    if eris.original_G[k] != v then
+       new_symbols[k] = v
+    end
+  end
+
+  return eris.persist(eris.perm, new_symbols)
+end
+
+eris.restore_all = function(persisted)
+  local new_symbols = eris.unpersist(eris.unperm, persisted)
+  for k,v in pairs(new_symbols) do
+    _G[k] = v
+  end
+end
 )#";
 
 

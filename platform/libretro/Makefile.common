@@ -1,0 +1,79 @@
+#only actually used by android.mk for android builds
+
+
+LUALIB_DIR := $(CORE_DIR)/libs/z8lua
+
+INCFLAGS := -I$(CORE_DIR)/source \
+                -I$(CORE_DIR)/libs/z8lua \
+				-I$(CORE_DIR)/libs/lodepng \
+				-I$(CORE_DIR)/libs/miniz \
+				-I$(CORE_DIR)/libs/simpleini \
+                -I$(CORE_DIR)/platform/libretro/
+
+MY_INCLUDES := $(CORE_DIR)/source \
+                $(CORE_DIR)/libs/z8lua \
+				$(CORE_DIR)/libs/lodepng \
+				$(CORE_DIR)/libs/miniz \
+				$(CORE_DIR)/libs/simpleini \
+                $(CORE_DIR)/platform/libretro/
+
+SOURCES_C := $(CORE_DIR)/libs/z8lua/eris.c \
+                $(CORE_DIR)/libs/z8lua/lapi.c \
+                $(CORE_DIR)/libs/z8lua/lauxlib.c \
+                $(CORE_DIR)/libs/z8lua/lbaselib.c \
+                $(CORE_DIR)/libs/z8lua/lbitlib.c \
+                $(CORE_DIR)/libs/z8lua/lcode.c \
+                $(CORE_DIR)/libs/z8lua/lcorolib.c \
+                $(CORE_DIR)/libs/z8lua/lctype.c \
+                $(CORE_DIR)/libs/z8lua/ldblib.c \
+                $(CORE_DIR)/libs/z8lua/ldebug.c \
+                $(CORE_DIR)/libs/z8lua/ldo.c \
+                $(CORE_DIR)/libs/z8lua/ldump.c \
+                $(CORE_DIR)/libs/z8lua/lfunc.c \
+                $(CORE_DIR)/libs/z8lua/lgc.c \
+                $(CORE_DIR)/libs/z8lua/linit.c \
+                $(CORE_DIR)/libs/z8lua/liolib.c \
+                $(CORE_DIR)/libs/z8lua/llex.c \
+                $(CORE_DIR)/libs/z8lua/lmem.c \
+                $(CORE_DIR)/libs/z8lua/loadlib.c \
+                $(CORE_DIR)/libs/z8lua/lobject.c \
+                $(CORE_DIR)/libs/z8lua/lopcodes.c \
+                $(CORE_DIR)/libs/z8lua/loslib.c \
+                $(CORE_DIR)/libs/z8lua/lparser.c \
+                $(CORE_DIR)/libs/z8lua/lpico8lib.c \
+                $(CORE_DIR)/libs/z8lua/lstate.c \
+                $(CORE_DIR)/libs/z8lua/lstring.c \
+                $(CORE_DIR)/libs/z8lua/lstrlib.c \
+                $(CORE_DIR)/libs/z8lua/ltable.c \
+                $(CORE_DIR)/libs/z8lua/ltablib.c \
+                $(CORE_DIR)/libs/z8lua/ltests.c \
+                $(CORE_DIR)/libs/z8lua/ltm.c \
+                $(CORE_DIR)/libs/z8lua/lundump.c \
+                $(CORE_DIR)/libs/z8lua/lvm.c \
+                $(CORE_DIR)/libs/z8lua/lzio.c \
+                \
+                $(CORE_DIR)/libs/simpleini/ConvertUTF.c \
+                \
+                $(CORE_DIR)/libs/miniz/miniz.c
+
+SOURCES_CXX := $(CORE_DIR)/platform/libretro/libretro.cpp \
+                $(CORE_DIR)/platform/libretro/libretrohost.cpp \
+                \
+                $(CORE_DIR)/libs/lodepng/lodepng.cpp \
+                \
+                $(CORE_DIR)/source/Audio.cpp \
+                $(CORE_DIR)/source/Input.cpp \
+                $(CORE_DIR)/source/cart.cpp \
+                $(CORE_DIR)/source/emojiconversion.cpp \
+                $(CORE_DIR)/source/filehelpers.cpp \
+                $(CORE_DIR)/source/fontdata.cpp \
+                $(CORE_DIR)/source/graphics.cpp \
+                $(CORE_DIR)/source/hostCommonFunctions.cpp \
+                $(CORE_DIR)/source/logger.cpp \
+                $(CORE_DIR)/source/mathhelpers.cpp \
+                $(CORE_DIR)/source/nibblehelpers.cpp \
+                $(CORE_DIR)/source/picoluaapi.cpp \
+                $(CORE_DIR)/source/printHelper.cpp \
+                $(CORE_DIR)/source/stringToDataHelpers.cpp \
+                $(CORE_DIR)/source/synth.cpp \
+                $(CORE_DIR)/source/vm.cpp

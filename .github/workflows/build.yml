@@ -7,7 +7,20 @@ on:
     branches: [ $default-branch ]
 
 jobs:
-  first:
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: make tests
+
+  threeDS:
     name: 3DS
     runs-on: ubuntu-latest
 
@@ -28,7 +41,7 @@ jobs:
             platform/3ds/*.3dsx
             platform/3ds/*.cia
 
-  second:
+  switch-standalone:
     name: Switch
     runs-on: ubuntu-latest
 
@@ -41,14 +54,13 @@ jobs:
       - name: Build
         run: |
           docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir devkitpro/devkita64 /bin/bash -ex /build_dir/.github/workflows/buildSwitch.sh
-
       - uses: actions/upload-artifact@v2
         with:
           name: Nintendo Switch
           path: |
             platform/switch/*.nro
 
-  third:
+  wiiu-standalone:
     name: WiiU
     runs-on: ubuntu-latest
 
@@ -61,14 +73,13 @@ jobs:
       - name: Build
         run: |
           docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir jondbell/devkitppc-wiiu-sdl2 /bin/bash -ex /build_dir/.github/workflows/buildWiiU.sh
-
       - uses: actions/upload-artifact@v2
         with:
           name: Nintendo Wii U
           path: |
             platform/wiiu/*.rpx
 
-  fourth:
+  vita-standalone:
     name: Vita
     runs-on: ubuntu-latest
 
@@ -81,14 +92,13 @@ jobs:
       - name: Build
         run: |
           docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir gnuton/vitasdk-docker:20220413 /bin/sh -ex /build_dir/.github/workflows/buildVita.sh
-
       - uses: actions/upload-artifact@v2
         with:
           name: PS Vita
           path: |
             platform/vita/*.vpk
 
-  fifth:
+  bittboy-standalone:
     name: Bittboy
     runs-on: ubuntu-latest
 
@@ -101,7 +111,6 @@ jobs:
       - name: Build
         run: |
           docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir mcejp/arm-miyoo-linux-musleabi-gcc /bin/sh -ex /build_dir/.github/workflows/buildBittboy.sh
-
       - uses: actions/upload-artifact@v2
         with:
           name: Bittboy
@@ -109,7 +118,7 @@ jobs:
             platform/bittboy/FAKE08
             platform/bittboy/pico8.elf
 
-  sixth:
+  miyoomini-standalone:
     name: MiyooMini
     runs-on: ubuntu-latest
 
@@ -122,14 +131,13 @@ jobs:
       - name: Build
         run: |
           docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir jondbell/union-miyoomini-toolchain /bin/sh -ex /build_dir/.github/workflows/buildMiyooMini.sh
-
       - uses: actions/upload-artifact@v2
         with:
           name: MiyooMini
           path: |
             platform/miyoomini/FAKE08
 
-  seventh:
+  opendingux-standalone:
     name: Opendingux
     runs-on: ubuntu-latest
 
@@ -142,15 +150,44 @@ jobs:
       - name: Build
         run: |
           docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir jondbell/gcw0 /bin/sh -ex /build_dir/.github/workflows/buildGcw0.sh
-
       - uses: actions/upload-artifact@v2
         with:
           name: Gcw0
           path: |
             platform/gcw0/fake08_gcw0.opk
-            
-  eighth:
-    name: Tests
+
+  android-libretro:
+    name: android-libretro
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules : recursive
+
+      - name: Setup NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r21e
+
+      - name: Build
+        run: cd platform/libretro/jni && ndk-build
+
+      - name: Rename Artifacts
+        run: | 
+          cp platform/libretro/libs/arm64-v8a/libfake08.so platform/libretro/libs/libfake08-arm64.so && 
+          cp platform/libretro/libs/armeabi-v7a/libfake08.so platform/libretro/libs/libfake08-arm32.so
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Android-Libretro
+          path: |
+            platform/libretro/libs/libfake08-arm64.so
+            platform/libretro/libs/libfake08-arm32.so
+  
+  miyoomini-libretro:
+    name: MiyooMini-libretro
     runs-on: ubuntu-latest
 
     steps:
@@ -160,4 +197,31 @@ jobs:
           submodules : recursive
 
       - name: Build
-        run: make tests
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir jondbell/union-miyoomini-toolchain /bin/sh -ex /build_dir/.github/workflows/buildMiyooMini-libretro.sh
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: MiyooMini-libretro
+          path: |
+            platform/libretro/fake08_libretro_miyoomini.so
+
+  opendingux-libretro:
+    name: GCW0-libretro
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir jondbell/gcw0 /bin/sh -ex /build_dir/.github/workflows/buildGcw0-libretro.sh
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: GCW0-libretro
+          path: |
+            platform/libretro/fake08_libretro_gcw0.so

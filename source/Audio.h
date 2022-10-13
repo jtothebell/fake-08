@@ -88,7 +88,7 @@ enum
 
 class Audio {
     PicoRam* _memory;
-    audioState _audioState;
+    audioState_t _audioState;
 
     int16_t getSampleForChannel(int channel);
 
@@ -98,7 +98,7 @@ class Audio {
     Audio(PicoRam* memory);
 
     void resetAudioState();
-    audioState* getAudioState();
+    audioState_t* getAudioState();
 
     void api_sfx(int sfx, int channel, int offset);
     void api_music(int pattern, int16_t fade_len, int16_t mask);
