@@ -185,6 +185,7 @@ jobs:
           path: |
             platform/libretro/libs/libfake08-arm64.so
             platform/libretro/libs/libfake08-arm32.so
+            platform/libretro/fake08_libretro.info
   
   miyoomini-libretro:
     name: MiyooMini-libretro
@@ -205,6 +206,8 @@ jobs:
           name: MiyooMini-libretro
           path: |
             platform/libretro/fake08_libretro_miyoomini.so
+            platform/libretro/fake08_libretro.info
+            platform/libretro/miyoomini/launch.sh
 
   opendingux-libretro:
     name: GCW0-libretro
@@ -225,3 +228,4 @@ jobs:
           name: GCW0-libretro
           path: |
             platform/libretro/fake08_libretro_gcw0.so
+            platform/libretro/fake08_libretro.info
