@@ -17,6 +17,8 @@ For bittboy and similar consoles, back up `emus/pico8/pico8.elf`  and replace it
 
 To launch on a Miyoo Mini you need to call the executable directly from the terminal emulator, or create a shortcut. I'm not sure exactly how that works and don't have a device to figure it out, so help is welcome if anyone would like to provide guidance there.
 
+Libretro cores are still in early development but should be working. Installation can be tricky however. In general you'll need to install the core (Load Core -> Install or Restore a Core -> {Navigate to core file location}) and also drop the fake08_libretro.info into the retroarch cores directory. This directory may be hidden and its location varies from platform to platform. Once that file is in place, you should be able to scan for Pico-8 carts using "Scan Directory." If that doesn't work for some reason, you can do a "Manual Scan." If doing a manual scan, choose the directory, set the custom system name to "Pico-8", set the default core to the one you just installed, and file extensions to "p8 png" and it should add a playlist of your Pico-8 carts associated with the newly installed core.
+
 ## Building:
 All platforms have automated builds set up via GitHub actions using docker images. You can see how those are set up in the `.github/workflows` directory of the repo. To run them locally using docker run the following command from the root directory of this repo (replace `{docker-image}` and `{platform}` with the values from your platform of choice in `.github/workflows/build.yml`):
 
