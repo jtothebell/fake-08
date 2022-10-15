@@ -113,7 +113,7 @@ else ifeq ($(platform), vita)
    CC = arm-vita-eabi-gcc
    CXX = arm-vita-eabi-g++
    AR = arm-vita-eabi-ar
-   CXXFLAGS += -Wl,-q -Wall -O3 -DMINIZ_NO_TIME
+   CXXFLAGS += -Wl,-q -Wall -O3
 	STATIC_LINKING = 1
 else ifeq ($(platform), miyoomini)
    TARGET := $(TARGET_NAME)_libretro_miyoomini.so
@@ -168,8 +168,8 @@ CC = $(CXX)
 
 OBJECTS := $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
 
-CFLAGS   += $(fpic) -Wall -D__LIBRETRO__ -ffunction-sections -std=gnu++17 -fno-rtti $(INCFLAGS)
-CXXFLAGS += $(fpic) -Wall -D__LIBRETRO__ -ffunction-sections -std=gnu++17 -fno-rtti $(INCFLAGS)
+CFLAGS   += $(fpic) -Wall -D__LIBRETRO__ -DMINIZ_NO_TIME -ffunction-sections -std=gnu++17 -fno-rtti $(INCFLAGS)
+CXXFLAGS += $(fpic) -Wall -D__LIBRETRO__ -DMINIZ_NO_TIME -ffunction-sections -std=gnu++17 -fno-rtti $(INCFLAGS)
 
 all: $(TARGET)
 
