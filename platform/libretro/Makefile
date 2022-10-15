@@ -123,7 +123,6 @@ else ifeq ($(platform), miyoomini)
    CXXFLAGS += -marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7ve -D_NEED_FULL_PATH_
    fpic := -fPIC
    SHARED := -shared -Wl,--version-script=link.T
-
 else ifeq ($(platform), gcw0)
    TARGET := $(TARGET_NAME)_libretro_gcw0.so
    CC = /opt/gcw0-toolchain/usr/bin/mipsel-linux-gcc
@@ -133,6 +132,16 @@ else ifeq ($(platform), gcw0)
    CXXFLAGS += -fno-common -ftree-vectorize -funswitch-loops
    fpic := -fPIC
    SHARED := -shared -Wl,-version-script=link.T
+else ifeq ($(platform), libnx)
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
+   include $(DEVKITPRO)/libnx/switch_rules
+   STATIC_LINKING = 1
+   DEFINES := -D__SWITCH__
+   CFLAGS += $(DEFINES) -O3 -fomit-frame-pointer -ffast-math -I$(LIBNX)/include/ -fPIE -Wl,--allow-multiple-definition -specs=$(LIBNX)/switch.specs
+   CFLAGS += $(INCDIRS)
+   CFLAGS	+= -march=armv8-a -mtune=cortex-a57 -mtp=soft
+   CXXFLAGS := $(ASFLAGS) $(CFLAGS)
+   
 else
    CC = gcc
    TARGET := $(TARGET_NAME)_libretro.dll

@@ -4,5 +4,3 @@ cd /build_dir
 
 #Build nro
 make switch
-
-#todo: copy artifacts for uploading

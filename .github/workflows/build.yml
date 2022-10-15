@@ -257,3 +257,24 @@ jobs:
           path: |
             platform/libretro/fake08_libretro_gcw0.so
             platform/libretro/fake08_libretro.info
+
+  switch-libretro:
+    name: switch-libretro
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir devkitpro/devkita64 /bin/bash -ex /build_dir/.github/workflows/buildSwitch-libretro.sh
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: switch-libretro
+          path: |
+            platform/libretro/fake08_libretro_libnx.a
+            platform/libretro/fake08_libretro.info
