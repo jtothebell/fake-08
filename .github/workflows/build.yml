@@ -251,7 +251,7 @@ jobs:
             platform/libretro/fake08_libretro_libnx.a
             platform/libretro/fake08_libretro.info
 
-  switch-libretro:
+  vita-libretro:
     name: vita-libretro
     runs-on: ubuntu-latest
 
@@ -267,7 +267,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: switch-libretro
+          name: vita-libretro
           path: |
             platform/libretro/fake08_libretro_vita.a
             platform/libretro/fake08_libretro.info
