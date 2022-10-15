@@ -109,7 +109,7 @@ else ifeq ($(platform), emscripten)
    fpic := -fPIC
    SHARED := -shared -Wl,--version-script=link.T -Wl,--no-undefined
 else ifeq ($(platform), vita)
-   TARGET := $(TARGET_NAME)_vita.a
+   TARGET := $(TARGET_NAME)_libretro_vita.a
    CC = arm-vita-eabi-gcc
    AR = arm-vita-eabi-ar
    CXXFLAGS += -Wl,-q -Wall -O3
