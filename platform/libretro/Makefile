@@ -193,6 +193,8 @@ echo:
 #	@echo $(SOURCES_C) 
 #	@echo $(SOURCES_CXX)
 	@echo $(platform)
+	@echo $(CC)
+	@echo $(CXX)
 	@echo $(OBJECTS) 
 
 .PHONY: clean echo
