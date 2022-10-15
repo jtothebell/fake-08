@@ -113,7 +113,7 @@ else ifeq ($(platform), vita)
    CC = arm-vita-eabi-gcc
    CXX = arm-vita-eabi-g++
    AR = arm-vita-eabi-ar
-   CXXFLAGS += -Wl,-q -Wall -O3
+   CXXFLAGS += -Wl,-q -Wall -O3 -DMINIZ_NO_TIME
 	STATIC_LINKING = 1
 else ifeq ($(platform), miyoomini)
    TARGET := $(TARGET_NAME)_libretro_miyoomini.so
