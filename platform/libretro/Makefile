@@ -137,12 +137,13 @@ else ifeq ($(platform), libnx)
    TARGET := $(TARGET_NAME)_libretro_$(platform).a
    include $(DEVKITPRO)/libnx/switch_rules
    STATIC_LINKING = 1
-   DEFINES := -D__SWITCH__
-   CFLAGS += $(DEFINES) -O3 -fomit-frame-pointer -ffast-math -I$(LIBNX)/include/ -fPIE -Wl,--allow-multiple-definition -specs=$(LIBNX)/switch.specs
-   CFLAGS += $(INCDIRS)
-   CFLAGS	+= -march=armv8-a -mtune=cortex-a57 -mtp=soft
-   CXXFLAGS := $(ASFLAGS) $(CFLAGS)
-   
+   DEFINES := -D__SWITCH__ -DSWITCH=1
+   CFLAGS	:=	 $(DEFINES) -g -O3 \
+                 -fPIE -I$(LIBNX)/include/ -ffunction-sections -fdata-sections -ftls-model=local-exec -Wl,--allow-multiple-definition -specs=$(LIBNX)/switch.specs
+    CFLAGS += $(INCDIRS)
+    CFLAGS	+=	-DHAVE_LIBNX -march=armv8-a -mtune=cortex-a57 -mtp=soft
+    CXXFLAGS := $(ASFLAGS) $(CFLAGS)
+
 else
    CC = gcc
    TARGET := $(TARGET_NAME)_libretro.dll
