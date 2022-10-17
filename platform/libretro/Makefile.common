@@ -54,7 +54,12 @@ SOURCES_C := $(CORE_DIR)/libs/z8lua/eris.c \
                 \
                 $(CORE_DIR)/libs/miniz/miniz.c
 
-SOURCES_CXX := $(CORE_DIR)/source/Audio.cpp \
+SOURCES_CXX := $(CORE_DIR)/platform/libretro/libretro.cpp \
+                $(CORE_DIR)/platform/libretro/libretrohost.cpp \
+                \
+                $(CORE_DIR)/libs/lodepng/lodepng.cpp \
+                \
+                $(CORE_DIR)/source/Audio.cpp \
                 $(CORE_DIR)/source/Input.cpp \
                 $(CORE_DIR)/source/cart.cpp \
                 $(CORE_DIR)/source/emojiconversion.cpp \
@@ -69,8 +74,4 @@ SOURCES_CXX := $(CORE_DIR)/source/Audio.cpp \
                 $(CORE_DIR)/source/printHelper.cpp \
                 $(CORE_DIR)/source/stringToDataHelpers.cpp \
                 $(CORE_DIR)/source/synth.cpp \
-                $(CORE_DIR)/source/vm.cpp \
-                $(CORE_DIR)/platform/libretro/libretro.cpp \
-                $(CORE_DIR)/platform/libretro/libretrohost.cpp \
-                \
-                $(CORE_DIR)/libs/lodepng/lodepng.cpp
+                $(CORE_DIR)/source/vm.cpp
