@@ -140,9 +140,9 @@ else ifeq ($(platform), libnx)
    DEFINES := -D__SWITCH__ -DSWITCH=1
    CFLAGS	:=	 $(DEFINES) -g -O3 \
                  -fPIE -I$(LIBNX)/include/ -ffunction-sections -fdata-sections -ftls-model=local-exec -Wl,--allow-multiple-definition -specs=$(LIBNX)/switch.specs
-    CFLAGS += $(INCDIRS)
-    CFLAGS	+=	-DHAVE_LIBNX -march=armv8-a -mtune=cortex-a57 -mtp=soft
-    CXXFLAGS := $(ASFLAGS) $(CFLAGS)
+   CFLAGS += $(INCDIRS)
+   CFLAGS	+=	-DHAVE_LIBNX -march=armv8-a -mtune=cortex-a57 -mtp=soft
+   CXXFLAGS := $(ASFLAGS) $(CFLAGS)
 
 else
    CC = gcc
@@ -181,6 +181,10 @@ endif
 
 %.o: %.c
 	@$(if $(Q), $(shell echo echo CC $<),)
+	$(Q)$(CXX) $(CFLAGS) $(fpic) -c -o $@ $<
+
+%.o: %.cpp
+	@$(if $(Q), $(shell echo echo CXX $<),)
 	$(Q)$(CXX) $(CFLAGS) $(fpic) -c -o $@ $<
 
 clean:
