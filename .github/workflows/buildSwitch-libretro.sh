@@ -6,3 +6,11 @@ cd /build_dir
 cd platform/libretro
 make echo platform=libnx
 make platform=libnx
+
+cp fake08_libretro_libnx.a ../../retroarch/libretro_libnx.a
+
+cd ../../retroarch
+
+make -f Makefile.libnx
+
+cp retroarch_switch.nro retroarch_fake08_switch.nro

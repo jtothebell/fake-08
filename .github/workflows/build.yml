@@ -268,6 +268,12 @@ jobs:
         with:
           submodules : recursive
 
+      - name: CheckoutLibretro
+        uses: actions/checkout@v3
+        with:
+          repository: libretro/RetroArch
+          path: retroarch
+
       - name: Build
         run: |
           docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir devkitpro/devkita64 /bin/bash -ex /build_dir/.github/workflows/buildSwitch-libretro.sh
@@ -278,6 +284,7 @@ jobs:
           path: |
             platform/libretro/fake08_libretro_libnx.a
             platform/libretro/fake08_libretro.info
+            retroarch/libretro/retroarch_fake08_switch.nro
 
   vita-libretro:
     name: vita-libretro
