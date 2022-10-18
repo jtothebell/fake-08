@@ -284,7 +284,7 @@ jobs:
           path: |
             platform/libretro/fake08_libretro_libnx.a
             platform/libretro/fake08_libretro.info
-            retroarch/libretro/retroarch_fake08_switch.nro
+            retroarch/retroarch_fake08_switch.nro
 
   vita-libretro:
     name: vita-libretro
