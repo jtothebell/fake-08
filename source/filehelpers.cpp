@@ -66,10 +66,10 @@ std::vector<unsigned char> get_file_buffer(std::string filename){
 
 //https://stackoverflow.com/a/8518855
 std::string getDirectory(const std::string& fname){
-     size_t pos = fname.find_last_of("\\/");
-     return (std::string::npos == pos)
-         ? ""
-         : fname.substr(0, pos);
+    size_t pos = fname.find_last_of("\\/");
+    return (std::string::npos == pos)
+        ? ""
+        : fname.substr(0, pos);
 }
 
 bool isAbsolutePath (std::string const &path) {
@@ -79,12 +79,14 @@ bool isAbsolutePath (std::string const &path) {
 
     if (path[0] == '/') {
         return true;
-    } 
+    }
     
     size_t colonPos = path.find_first_of(":");
     size_t slashPos = path.find_first_of("/");
+    size_t backSlashPos = path.find_first_of("\\");
 
-    if (colonPos != std::string::npos && slashPos == (colonPos + 1)){
+    if (colonPos != std::string::npos && 
+        (slashPos == (colonPos + 1) || backSlashPos == (colonPos + 1))){
         return true;
     }
     
