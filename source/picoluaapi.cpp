@@ -817,49 +817,60 @@ int stat(lua_State *L) {
         break;
         //16-19 audio sfx currently playing
         case 16:
+        case 46:
             lua_pushnumber(L, _audioForLuaApi->getCurrentSfxId(0));
             return 1;
         break;
         case 17:
+        case 47:
             lua_pushnumber(L, _audioForLuaApi->getCurrentSfxId(1));
             return 1;
         break;
         case 18:
+        case 48:
             lua_pushnumber(L, _audioForLuaApi->getCurrentSfxId(2));
             return 1;
         break;
         case 19:
+        case 49:
             lua_pushnumber(L, _audioForLuaApi->getCurrentSfxId(3));
             return 1;
         break;
         //20-23 note idx of sfx currently playing
         case 20:
+        case 50:
             lua_pushnumber(L, _audioForLuaApi->getCurrentNoteNumber(0));
             return 1;
         break;
         case 21:
+        case 51:
             lua_pushnumber(L, _audioForLuaApi->getCurrentNoteNumber(1));
             return 1;
         break;
         case 22:
+        case 52:
             lua_pushnumber(L, _audioForLuaApi->getCurrentNoteNumber(2));
             return 1;
         break;
         case 23:
+        case 53:
             lua_pushnumber(L, _audioForLuaApi->getCurrentNoteNumber(3));
             return 1;
         break;
         //current music pattern
         case 24:
+        case 54:
             lua_pushnumber(L, _audioForLuaApi->getCurrentMusic());
             return 1;
         break;
         //current music count
         case 25:
+        case 55:
             lua_pushnumber(L, _audioForLuaApi->getMusicPatternCount());
             return 1;
         break;
         //current music tick count
+        case 56:
         case 26:
             lua_pushnumber(L, _audioForLuaApi->getMusicTickCount());
             return 1;
