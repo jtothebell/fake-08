@@ -156,6 +156,25 @@ jobs:
           path: |
             platform/gcw0/fake08_gcw0.opk
 
+  funkey-standalone:
+    name: Funkey-S
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir funkeyproject/funkey-os /bin/sh -ex /build_dir/.github/workflows/buildFunkey-S.sh
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Funkey
+          path: |
+            platform/funkey/fake08
+
   android-libretro:
     name: android-libretro
     runs-on: ubuntu-latest
