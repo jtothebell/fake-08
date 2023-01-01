@@ -14,8 +14,8 @@ INCLUDES	:=	${INCLUDES}
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-CC = /opt/funkey-toolchain-shared/bin/arm-linux-g++
-CXX = /opt/funkey-toolchain-shared/bin/arm-linux-g++
+CC = /opt/FunKey-sdk-2/bin/arm-linux-g++
+CXX = /opt/FunKey-sdk-2/bin/arm-linux-g++
 
 CFLAGS	:= -Wall -Ofast -fno-PIC -ffunction-sections -flto -DVER_STR=\"$(APP_VERSION)\" \
 			$(DEFINES)
