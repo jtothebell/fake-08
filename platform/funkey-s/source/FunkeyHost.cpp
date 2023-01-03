@@ -103,7 +103,7 @@ Host::Host() {
     #endif
  }
 
-void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
+void Host::oneTimeSetup(Audio* audio){
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {
         fprintf(stderr, "SDL could not initialize\n");
@@ -126,8 +126,6 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
     now_time = 0;
     frame_time = 0;
     targetFrameTimeMs = 0;
-
-    _paletteColors = paletteColors;
 
     SDL_PixelFormat *f = window->format;
 
@@ -154,6 +152,10 @@ void Host::setTargetFps(int targetFps){
 
 void Host::changeStretch(){
 }
+
+void Host::forceStretch(StretchOption newStretch) {
+}
+
 
 InputState_t Host::scanInput(){
     currKDown = 0;
