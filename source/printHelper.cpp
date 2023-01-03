@@ -93,6 +93,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 
 	_ph_mem->drawState.text_x = x;
 	_ph_mem->drawState.text_y = y;
+    int length = str.length();
     int homeX = x;
     int homeY = y;
     int tabStopWidth = 4;
@@ -104,6 +105,7 @@ int print(std::string str, int x, int y, uint8_t c) {
     uint8_t bgColor = 0;
     uint8_t fgColor = _ph_mem->drawState.color;
     uint8_t charBytes[8];
+    uint8_t audioStrBytes[32];
 
     uint8_t printMode = _ph_mem->hwState.printAttributes;
 
@@ -128,7 +130,7 @@ int print(std::string str, int x, int y, uint8_t c) {
     int rhsWrap = -1;
 
 
-	for (size_t n = 0; n < str.length(); n++) {
+	for (size_t n = 0; n < length; n++) {
 		uint8_t ch = str[n];
         framesToPause = framesBetweenChars;
 		if (ch == 1) { // "\*{p0}" repeat the next character p0 times
@@ -322,7 +324,16 @@ int print(std::string str, int x, int y, uint8_t c) {
             }
 
 		}
-		else if (ch == 12) { //"\f{p0}" draw text with this foreground color
+		else if (ch == 7) { // "\a" audio command
+            uint8_t nextChar = str[++n];
+            int audioStrIdx = 0;
+            while (nextChar != 32 && n < length) {
+                audioStrBytes[audioStrIdx++] = nextChar;
+                nextChar = str[++n];
+            }
+            //todo: generate audio stuff and play
+        }
+        else if (ch == 12) { //"\f{p0}" draw text with this foreground color
 			uint8_t fgColChar = str[++n];
 			fgColor = p0CharToNum(fgColChar);
 			_ph_graphics->color(fgColor);

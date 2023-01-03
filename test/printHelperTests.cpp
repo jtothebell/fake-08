@@ -737,6 +737,21 @@ TEST_CASE("Print helper functions") {
 
         CHECK_EQ(memory->drawState.text_y, 9);
     }
+    SUBCASE("p8scii audio control codes not printed(\\a)") {
+        graphics->cls();
+
+        print("\x07""aceg :", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {1, 0, 0},
+            {1, 1, 6},
+            {1, 2, 0},
+            {1, 3, 6},
+            {1, 4, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
 
     delete stubHost;
