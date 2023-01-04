@@ -752,6 +752,21 @@ TEST_CASE("Print helper functions") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("p8scii audio control code for decorating prev char (\\v)") {
+        graphics->cls();
+
+        print("\n:\x0b""b:", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {2, 0, 0},
+            {2, 1, 6},
+            {2, 2, 0},
+            {2, 3, 6},
+            {2, 4, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
 
     delete stubHost;

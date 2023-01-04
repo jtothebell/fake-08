@@ -96,6 +96,8 @@ int print(std::string str, int x, int y, uint8_t c) {
     int length = str.length();
     int homeX = x;
     int homeY = y;
+    int prevX = x;
+    int prevY = y;
     int tabStopWidth = 4;
     int charWidth = 4;
     int charHeight = 6;
@@ -333,6 +335,16 @@ int print(std::string str, int x, int y, uint8_t c) {
             }
             //todo: generate audio stuff and play
         }
+        else if (ch == 11) { // "\v" decorate previous character
+            uint8_t offsetChar = str[++n];
+			uint8_t toPrint = str[++n];
+            int offset = p0CharToNum(offsetChar);
+
+            int xOffset = (offset%4)-2;
+            int yOffset = (offset/4)-8;
+
+            _ph_graphics->drawCharacter(toPrint, prevX + xOffset, prevY + yOffset, printMode, forceCharWidth, forceCharHeight);
+        }
         else if (ch == 12) { //"\f{p0}" draw text with this foreground color
 			uint8_t fgColChar = str[++n];
 			fgColor = p0CharToNum(fgColChar);
@@ -364,6 +376,8 @@ int print(std::string str, int x, int y, uint8_t c) {
                 _ph_graphics->rectfill(x-1, y-1, x + charWidth-1, y + lineHeight-1, bgColor);
                 _ph_mem->drawState.color = prevPenColor;
             }
+            prevX = x;
+            prevY = y;
 			x += charWidth + _ph_graphics->drawCharacter(ch, x, y, printMode, forceCharWidth, forceCharHeight);
             while (framesToPause > 0){
                 _ph_vm->vm_flip();
