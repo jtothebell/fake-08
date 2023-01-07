@@ -752,7 +752,7 @@ TEST_CASE("Print helper functions") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("p8scii audio control code for decorating prev char (\\v)") {
+    SUBCASE("p8scii control code for decorating prev char (\\v)") {
         graphics->cls();
 
         print("\n:\x0b""b:", 0, 0);
@@ -763,6 +763,42 @@ TEST_CASE("Print helper functions") {
             {2, 2, 0},
             {2, 3, 6},
             {2, 4, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("p8scii custom font control code (\\014 on and \\015 off)") {
+        graphics->cls();
+        memory->data[0x5600]= 8; //width
+        memory->data[0x5601]= 8; //width for chars > 127
+        memory->data[0x5602]= 8; //height
+        memory->data[0x5603]= 0;
+        memory->data[0x5604]= 0;
+
+        //char 16
+        memory->data[0x5680]= 1;    //#_______
+        memory->data[0x5681] = 3;   //##______
+        memory->data[0x5682] = 7;   //###_____
+        memory->data[0x5683] = 15;  //####____
+        memory->data[0x5684] = 31;  //#####___
+        memory->data[0x5685] = 63;  //######__
+        memory->data[0x5686] = 127; //#######_
+        memory->data[0x5687] = 255; //########
+
+        //print char 16 with custom font
+        print("\x0e""\x10""\x0f""", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 0, 6}, {1, 0, 0},
+            {0, 1, 6}, {1, 1, 6}, {2, 1, 0},
+            {0, 2, 6}, {1, 2, 6}, {2, 2, 6}, {3, 2, 0},
+            {0, 3, 6}, {1, 3, 6}, {2, 3, 6}, {3, 3, 6}, {4, 3, 0},
+            {0, 4, 6}, {1, 4, 6}, {2, 4, 6}, {3, 4, 6}, {4, 4, 6}, {5, 4, 0},
+            {0, 5, 6}, {1, 5, 6}, {2, 5, 6}, {3, 5, 6}, {4, 5, 6}, {5, 5, 6}, {6, 5, 0},
+            {0, 6, 6}, {1, 6, 6}, {2, 6, 6}, {3, 6, 6}, {4, 6, 6}, {5, 6, 6}, {6, 6, 6}, {7, 6, 0},
+            {0, 7, 6}, {1, 7, 6}, {2, 7, 6}, {3, 7, 6}, {4, 7, 6}, {5, 7, 6}, {6, 7, 6}, {7, 7, 6}, {7, 8, 0},
+            {0, 8, 0}
+
         };
 
         checkPoints(graphics, expectedPoints);

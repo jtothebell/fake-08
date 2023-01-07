@@ -142,7 +142,15 @@ int print(std::string str, int x, int y, uint8_t c) {
 			ch = str[++n];
 			for(int i = 0; i < times; i++) {
                 //TODO: combine with other draw character call - fix missing bg? lineheight?
-				x += charWidth +  _ph_graphics->drawCharacter(ch, x, y, printMode, forceCharWidth, forceCharHeight);
+				x += charWidth +  _ph_graphics->drawCharacter(
+                    ch,
+                    x,
+                    y,
+                    prevDrawPal[fgColor & 0x0f],
+                    bgColor,
+                    printMode,
+                    forceCharWidth,
+                    forceCharHeight);
 			}
 		}
 		else if (ch == 2) { // "\#{p0}" draw text on a solid background color
@@ -343,7 +351,15 @@ int print(std::string str, int x, int y, uint8_t c) {
             int xOffset = (offset%4)-2;
             int yOffset = (offset/4)-8;
 
-            _ph_graphics->drawCharacter(toPrint, prevX + xOffset, prevY + yOffset, printMode, forceCharWidth, forceCharHeight);
+            _ph_graphics->drawCharacter(
+                toPrint,
+                prevX + xOffset,
+                prevY + yOffset,
+                prevDrawPal[fgColor & 0x0f],
+                bgColor,
+                printMode,
+                forceCharWidth,
+                forceCharHeight);
         }
         else if (ch == 12) { //"\f{p0}" draw text with this foreground color
 			uint8_t fgColChar = str[++n];
@@ -351,6 +367,12 @@ int print(std::string str, int x, int y, uint8_t c) {
 			_ph_graphics->color(fgColor);
             //this is needed for legacy text drawing
 			_ph_mem->drawState.drawPaletteMap[7] = prevDrawPal[fgColor] & 0x0f;
+		}
+        else if (ch == 14) { //"\014" Turn on custom font stored at 0x5600
+            printMode |= PRINT_MODE_CUSTOM_FONT;
+		}
+        else if (ch == 15) { //"\015" Turn off custom font stored at 0x5600
+            printMode &= ~(PRINT_MODE_CUSTOM_FONT);
 		}
 		else if (ch == '\n') {
 			x = homeX;
@@ -378,7 +400,16 @@ int print(std::string str, int x, int y, uint8_t c) {
             }
             prevX = x;
             prevY = y;
-			x += charWidth + _ph_graphics->drawCharacter(ch, x, y, printMode, forceCharWidth, forceCharHeight);
+			x += charWidth + _ph_graphics->drawCharacter(
+                ch,
+                x,
+                y,
+                prevDrawPal[fgColor & 0x0f],
+                bgColor,
+                printMode,
+                forceCharWidth,
+                forceCharHeight);
+                
             while (framesToPause > 0){
                 _ph_vm->vm_flip();
 

@@ -2094,8 +2094,8 @@ TEST_CASE("graphics class behaves as expected") {
 
         //emulate print("zo",8,0)
         picoRam.drawState.drawPaletteMap[7] = 6;
-        graphics->drawCharacter(122, 8, 0);
-        graphics->drawCharacter(111, 12, 0);
+        graphics->drawCharacter(122, 8, 0, 6, 0);
+        graphics->drawCharacter(111, 12, 0, 6, 0);
 
         picoRam.hwState.spriteSheetMemMapping = 0x60;
 
@@ -2360,9 +2360,9 @@ TEST_CASE("graphics class behaves as expected") {
 
         //emulate print("\^x0\^y1▤a",10,10,9)
         picoRam.drawState.drawPaletteMap[7] = 9;
-        graphics->drawCharacter(152, 10, 10, 0, 0, 1);
+        graphics->drawCharacter(152, 10, 10, 9, 0, 0, 0, 1);
         //the a should be invisible (0 width)
-        graphics->drawCharacter(65, 10, 10, 0, 0, 1);
+        graphics->drawCharacter(65, 10, 10, 9, 0, 0, 0, 1);
 
         std::vector<coloredPoint> expectedPoints = {
             {9,10,0},
@@ -2393,7 +2393,7 @@ TEST_CASE("graphics class behaves as expected") {
 
         //emulate print("\^x3\^y3a",10,10,9)
         picoRam.drawState.drawPaletteMap[7] = 9;
-        graphics->drawCharacter(97, 10, 10, 0, 3, 3);
+        graphics->drawCharacter(97, 10, 10, 9, 0, 0, 3, 3);
 
         std::vector<coloredPoint> expectedPoints = {
             {9,10,0},

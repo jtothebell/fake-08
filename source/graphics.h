@@ -113,6 +113,8 @@ class Graphics {
 		uint8_t ch,
 		int x,
 		int y,
+		uint8_t fgColor,
+		uint8_t bgColor,
 		uint8_t printMode = 0,
 		int forceCharWidth = -1,
 		int forceCharHeight = -1);

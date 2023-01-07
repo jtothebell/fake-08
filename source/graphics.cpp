@@ -1303,6 +1303,8 @@ int Graphics::drawCharacter(
 	uint8_t ch,
 	int x,
 	int y,
+	uint8_t fgColor,
+	uint8_t bgColor,
 	uint8_t printMode,
 	int forceCharWidth,
 	int forceCharHeight) {
@@ -1332,9 +1334,21 @@ int Graphics::drawCharacter(
 			int index = ch - 0x80;
 			extraCharWidth = 4;
 			copyStretchSpriteToScreen(fontSpriteData, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5, x, y, (scrW + extraCharWidth), scrH, false, false, evenPxOnly);
-			
+		}
+	}
+	else if ((printMode & PRINT_MODE_CUSTOM_FONT) == PRINT_MODE_CUSTOM_FONT) {
+		if (ch > 0x0f) {
+			drawCharacterFromBytes(
+				&(_memory->data[0x5600 + ch*8]),//get bytes from memory (0x5600)
+				x,
+				y,
+				fgColor,
+				bgColor,
+				printMode
+			);
 		}
 
+		return (ch < 0x80 ? _memory->data[0x5600] : _memory->data[0x5601]) - 4;
 	}
 	else{
 		if (ch >= 0x10 && ch < 0x80) {
