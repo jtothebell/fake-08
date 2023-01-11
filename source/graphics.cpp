@@ -10,6 +10,7 @@
 #include "hostVmShared.h"
 #include "nibblehelpers.h"
 #include "mathhelpers.h"
+#include "fontdata.h"
 
 #include "stringToDataHelpers.h"
 
@@ -1337,6 +1338,20 @@ int Graphics::drawCharacter(
 		}
 	}
 	else if ((printMode & PRINT_MODE_CUSTOM_FONT) == PRINT_MODE_CUSTOM_FONT) {
+		uint8_t charWidth = 
+			ch < 0x80
+			? forceCharWidth > -1 && forceCharWidth < 4 ? forceCharWidth : _memory->data[0x5600]
+			: forceCharWidth > -1 && forceCharWidth < 4 ? forceCharWidth : _memory->data[0x5601];
+
+		uint8_t charHeight = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : _memory->data[0x5602];
+
+		if (charWidth > 8) {
+			charWidth = 8;
+		}
+		if (charHeight > 8) {
+			charHeight = 8;
+		}
+
 		if (ch > 0x0f) {
 			drawCharacterFromBytes(
 				&(_memory->data[0x5600 + ch*8]),//get bytes from memory (0x5600)
@@ -1344,7 +1359,9 @@ int Graphics::drawCharacter(
 				y,
 				fgColor,
 				bgColor,
-				printMode
+				printMode,
+				charWidth,
+				charHeight
 			);
 		}
 
@@ -1352,15 +1369,38 @@ int Graphics::drawCharacter(
 	}
 	else{
 		if (ch >= 0x10 && ch < 0x80) {
-			int index = ch - 0x10;
-			int width = forceCharWidth > -1 && forceCharWidth < 4 ? forceCharWidth : 4;
-			int height = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : 5;
-			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8, width, height, false, false);
+			uint8_t charWidth = forceCharWidth > -1 && forceCharWidth < 4 ? forceCharWidth : 4;
+			uint8_t charHeight = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : 5;
+			
+			//need to pass in w/h to crop
+			drawCharacterFromBytes(
+				&(defaultFontBinaryData[ch*8]),//get bytes from memory (0x5600)
+				x,
+				y,
+				fgColor,
+				bgColor,
+				printMode,
+				charWidth,
+				charHeight
+			);
+
+			//copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8, width, height, false, false);
 		} else if (ch >= 0x80) {
-			int index = ch - 0x80;
-			int width = forceCharWidth > -1 && forceCharWidth < 4 ? (forceCharWidth + 4) : 8;
-			int height = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : 5;
-			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8 + 56, width, height, false, false);
+			uint8_t charWidth = forceCharWidth > -1 && forceCharWidth < 4 ? (forceCharWidth + 4) : 8;
+			uint8_t charHeight = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : 5;
+
+			drawCharacterFromBytes(
+				&(defaultFontBinaryData[ch*8]),//get bytes from memory (0x5600)
+				x,
+				y,
+				fgColor,
+				bgColor,
+				printMode,
+				charWidth,
+				charHeight
+			);
+			
+			//copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8 + 56, width, height, false, false);
 			extraCharWidth = 4;
 		}
 	}
@@ -1374,16 +1414,15 @@ std::tuple<int, int> Graphics::drawCharacterFromBytes(
 	int y,
 	uint8_t fgColor,
 	uint8_t bgColor,
-	uint8_t printMode) {
+	uint8_t printMode,
+	uint8_t charWidth,
+	uint8_t charHeight) {
 	
 	applyCameraToPoint(&x, &y);
 	uint8_t *screenBuffer = GetP8FrameBuffer();
 	
 	int extraCharWidth = 0;
 	int extraCharHeight = 0;
-	//these may need to get passed in later when drawing normal chars
-	int charWidth = 8;
-	int charHeight = 8;
 	int wFactor = 1;
 	int hFactor = 1;
 	//TODO: character modes

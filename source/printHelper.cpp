@@ -294,7 +294,9 @@ int print(std::string str, int x, int y, uint8_t c) {
                     y,
                     prevDrawPal[fgColor & 0x0f],
                     bgColor,
-                    printMode);
+                    printMode,
+                    8,
+                    charHeight);
 
                 x += 8 + get<0>(values);
                 charHeight = charHeight + get<1>(values);
@@ -409,7 +411,7 @@ int print(std::string str, int x, int y, uint8_t c) {
                 printMode,
                 forceCharWidth,
                 forceCharHeight);
-                
+
             while (framesToPause > 0){
                 _ph_vm->vm_flip();
 

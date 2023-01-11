@@ -9,6 +9,7 @@ using namespace z8;
 
 
 class Graphics {
+	//deprecated
 	uint8_t fontSpriteData[128 * 64];
 
 	PicoRam* _memory;
@@ -125,7 +126,9 @@ class Graphics {
 		int y,
 		uint8_t fgColor,
 		uint8_t bgColor,
-		uint8_t printMode);
+		uint8_t printMode,
+		uint8_t charWidth,
+		uint8_t charHeight);
 
 	void spr(
 		int n,
