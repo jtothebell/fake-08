@@ -132,7 +132,7 @@ std::string get_font_data() {
 }
 
 
-const uint8_t defaultFontBinaryData[2048] = {
+uint8_t defaultFontBinaryData[2048] = {
 // char 0 -- info about how to render font
 4, //0x5600 character width in pixels (can be more than 8, but only 8 pixels are drawn)
 8, //0x5601 character width for character 128 and above
