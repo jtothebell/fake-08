@@ -273,7 +273,6 @@ int print(std::string str, int x, int y, uint8_t c) {
                 printMode |= PRINT_MODE_SOLID_BG;
             }
             else if (commandChar == ':' || commandChar == '.'){
-                charWidth = forceCharWidth > 0 ? forceCharWidth : 8;
                 charHeight = forceCharHeight > 0 ? forceCharHeight : 8;
                 if (commandChar == ':') {
                     std::string hexStr = str.substr(n+1, 16);
@@ -296,10 +295,10 @@ int print(std::string str, int x, int y, uint8_t c) {
                     prevDrawPal[fgColor & 0x0f],
                     bgColor,
                     printMode,
-                    charWidth,
+                    8,
                     charHeight);
 
-                x += charWidth + get<0>(values);
+                x += 8 + get<0>(values);
                 charHeight = charHeight + get<1>(values);
                 lineHeight = charHeight > lineHeight ? charHeight : lineHeight;
             }
