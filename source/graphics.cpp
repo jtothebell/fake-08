@@ -1312,36 +1312,33 @@ int Graphics::drawCharacter(
 	int extraCharWidth = 0;
 
 	if ((printMode & PRINT_MODE_ON) == PRINT_MODE_ON){
-		int scrW = 4;
-		int scrH = 5;
-		bool evenPxOnly = false;
 
-		if ((printMode & PRINT_MODE_WIDE) == PRINT_MODE_WIDE) {
-			scrW *= 2;
-		}
-		if((printMode & PRINT_MODE_TALL) == PRINT_MODE_TALL) {
-			scrH *= 2;
-		}
-		if((printMode & PRINT_MODE_STRIPEY) == PRINT_MODE_STRIPEY) {
-			//draw every other pixel-- also kinda broken on pico 8 0.2.4 
-			evenPxOnly = true;
-		}
-		//TODO: other print modes
+		if (ch > 0x0f) {
+			uint8_t charWidth = 
+				ch < 0x80
+				? forceCharWidth > -1 && forceCharWidth < 4 ? forceCharWidth : 4
+				: forceCharWidth > -1 && forceCharWidth < 4 ? (forceCharWidth + 4) : 8;
 
-		if (ch >= 0x10 && ch < 0x80) {
-			int index = ch - 0x10;
-			copyStretchSpriteToScreen(fontSpriteData, (index % 16) * 8, (index / 16) * 8, 4, 5, x, y, scrW, scrH, false, false, evenPxOnly);
-		} else if (ch >= 0x80) {
-			int index = ch - 0x80;
-			extraCharWidth = 4;
-			copyStretchSpriteToScreen(fontSpriteData, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5, x, y, (scrW + extraCharWidth), scrH, false, false, evenPxOnly);
+			uint8_t charHeight = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : 5;
+			
+			drawCharacterFromBytes(
+				&(defaultFontBinaryData[ch*8]),
+				x,
+				y,
+				fgColor,
+				bgColor,
+				printMode,
+				charWidth,
+				charHeight
+			);
 		}
+
 	}
 	else if ((printMode & PRINT_MODE_CUSTOM_FONT) == PRINT_MODE_CUSTOM_FONT) {
 		uint8_t charWidth = 
 			ch < 0x80
 			? forceCharWidth > -1 && forceCharWidth < 4 ? forceCharWidth : _memory->data[0x5600]
-			: forceCharWidth > -1 && forceCharWidth < 4 ? forceCharWidth : _memory->data[0x5601];
+			: forceCharWidth > -1 && forceCharWidth < 4 ? (forceCharWidth + 4) : _memory->data[0x5601];
 
 		uint8_t charHeight = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : _memory->data[0x5602];
 
@@ -1374,7 +1371,7 @@ int Graphics::drawCharacter(
 			
 			//need to pass in w/h to crop
 			drawCharacterFromBytes(
-				&(defaultFontBinaryData[ch*8]),//get bytes from memory (0x5600)
+				&(defaultFontBinaryData[ch*8]),
 				x,
 				y,
 				fgColor,
@@ -1390,7 +1387,7 @@ int Graphics::drawCharacter(
 			uint8_t charHeight = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : 5;
 
 			drawCharacterFromBytes(
-				&(defaultFontBinaryData[ch*8]),//get bytes from memory (0x5600)
+				&(defaultFontBinaryData[ch*8]),
 				x,
 				y,
 				fgColor,
@@ -1431,11 +1428,11 @@ std::tuple<int, int> Graphics::drawCharacterFromBytes(
 	if ((printMode & PRINT_MODE_ON) == PRINT_MODE_ON){
 		if ((printMode & PRINT_MODE_WIDE) == PRINT_MODE_WIDE) {
 			wFactor = 2;
-			extraCharWidth = 8;
+			extraCharWidth = charWidth;
 		}
 		if((printMode & PRINT_MODE_TALL) == PRINT_MODE_TALL) {
 			hFactor = 2;
-			extraCharHeight = 8;
+			extraCharHeight = charHeight;
 		}
 		if((printMode & PRINT_MODE_STRIPEY) == PRINT_MODE_STRIPEY) {
 			//draw every other pixel-- also kinda broken on pico 8 0.2.4 
@@ -1445,20 +1442,24 @@ std::tuple<int, int> Graphics::drawCharacterFromBytes(
 	}
 
 	if (bgColor != 0) {
+		//possible todo: check perf if this is better than doing it in the other loop (m)
 		uint8_t prevPenColor = _memory->drawState.color;
 		rectfill(x-1, y-1, x + charWidth*wFactor - 1, y + charHeight*hFactor - 1, bgColor);
 		_memory->drawState.color = prevPenColor;
 	}
 
-	for (size_t i = 0; i < charHeight * hFactor; i++) {
-		for(uint8_t bitn = 0; bitn < charWidth * wFactor; bitn++) {
-			bool on = BITMASK(bitn / wFactor) & chBytes[i / hFactor];
-			on &= wFactor == 1 || !evenPxOnly || (i % 2 == 0);
-			on &= wFactor == 1 || !evenPxOnly || (bitn % 2 == 0);
-			const int pixX = x + bitn;
-			const int pixY = y + i;
-			if (on && isWithinClip(pixX, pixY)) {
-				setPixelNibble(pixX, pixY, fgColor, screenBuffer);				
+	for (int relDestY = 0; relDestY < charHeight * hFactor; relDestY++) {
+		for(int relDestX = 0; relDestX < charWidth * wFactor; relDestX++) {
+
+			bool on = BITMASK(relDestX / wFactor) & chBytes[relDestY / hFactor];
+			on &= hFactor == 1 || !evenPxOnly || (relDestY % 2 == 0);
+			on &= wFactor == 1 || !evenPxOnly || (relDestX % 2 == 0);
+
+			int absDestX = x + relDestX;
+			int absDestY = y + relDestY;
+			
+			if (on && isWithinClip(absDestX, absDestY)) {
+				setPixelNibble(absDestX, absDestY, fgColor, screenBuffer);			
 			}
 		}
 	}
