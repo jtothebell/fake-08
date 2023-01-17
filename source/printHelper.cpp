@@ -86,9 +86,6 @@ int print(std::string str, int x, int y) {
 }
 
 int print(std::string str, int x, int y, uint8_t c) {
-    if (y == 83) { //wat?
-        y +=0;
-    }
 	_ph_graphics->color(c);
 
 	_ph_mem->drawState.text_x = x;

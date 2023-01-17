@@ -803,6 +803,21 @@ TEST_CASE("Print helper functions") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("p8scii special control code for inverting colors(\\^i) ") {
+        graphics->cls(2);
+
+        print("\x06""i:", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 0, 6}, {1, 0, 6}, {2, 0, 6},
+            {0, 1, 6}, {1, 1, 2}, {2, 1, 6},
+            {0, 2, 6}, {1, 2, 6}, {2, 2, 6},
+            {0, 3, 6}, {1, 3, 2}, {2, 3, 6},
+            {0, 4, 6}, {1, 4, 6}, {2, 4, 6},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
 
     delete stubHost;

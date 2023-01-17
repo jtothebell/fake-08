@@ -1424,6 +1424,8 @@ std::tuple<int, int> Graphics::drawCharacterFromBytes(
 	int hFactor = 1;
 	//TODO: character modes
 	bool evenPxOnly = false;
+	bool invertColors = false;
+	//bool solidBg = false;
 
 	if ((printMode & PRINT_MODE_ON) == PRINT_MODE_ON){
 		if ((printMode & PRINT_MODE_WIDE) == PRINT_MODE_WIDE) {
@@ -1438,6 +1440,12 @@ std::tuple<int, int> Graphics::drawCharacterFromBytes(
 			//draw every other pixel-- also kinda broken on pico 8 0.2.4 
 			evenPxOnly = true;
 		}
+		if((printMode & PRINT_MODE_INVERTED) == PRINT_MODE_INVERTED) {
+			invertColors = true;
+		}
+		//if((printMode & PRINT_MODE_SOLID_BG) == PRINT_MODE_SOLID_BG) {
+		//	solidBg = true;
+		//}
 		//TODO: other print modes
 	}
 
@@ -1457,6 +1465,10 @@ std::tuple<int, int> Graphics::drawCharacterFromBytes(
 
 			int absDestX = x + relDestX;
 			int absDestY = y + relDestY;
+
+			if (invertColors) {
+				on = !on;
+			}
 			
 			if (on && isWithinClip(absDestX, absDestY)) {
 				setPixelNibble(absDestX, absDestY, fgColor, screenBuffer);			
