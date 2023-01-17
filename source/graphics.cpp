@@ -1425,7 +1425,7 @@ std::tuple<int, int> Graphics::drawCharacterFromBytes(
 	//TODO: character modes
 	bool evenPxOnly = false;
 	bool invertColors = false;
-	//bool solidBg = false;
+	bool solidBg = false;
 
 	if ((printMode & PRINT_MODE_ON) == PRINT_MODE_ON){
 		if ((printMode & PRINT_MODE_WIDE) == PRINT_MODE_WIDE) {
@@ -1443,9 +1443,9 @@ std::tuple<int, int> Graphics::drawCharacterFromBytes(
 		if((printMode & PRINT_MODE_INVERTED) == PRINT_MODE_INVERTED) {
 			invertColors = true;
 		}
-		//if((printMode & PRINT_MODE_SOLID_BG) == PRINT_MODE_SOLID_BG) {
-		//	solidBg = true;
-		//}
+		if((printMode & PRINT_MODE_SOLID_BG) == PRINT_MODE_SOLID_BG) {
+			solidBg = true;
+		}
 		//TODO: other print modes
 	}
 
@@ -1472,6 +1472,9 @@ std::tuple<int, int> Graphics::drawCharacterFromBytes(
 			
 			if (on && isWithinClip(absDestX, absDestY)) {
 				setPixelNibble(absDestX, absDestY, fgColor, screenBuffer);			
+			}
+			if(!on && solidBg && isWithinClip(absDestX, absDestY)) {
+				setPixelNibble(absDestX, absDestY, bgColor, screenBuffer);
 			}
 		}
 	}

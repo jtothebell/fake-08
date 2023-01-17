@@ -818,6 +818,21 @@ TEST_CASE("Print helper functions") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("p8scii special control code for solid background(\\^#) ") {
+        graphics->cls(2);
+
+        print("\x06""#:", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 0, 0}, {1, 0, 0}, {2, 0, 0},
+            {0, 1, 0}, {1, 1, 6}, {2, 1, 0},
+            {0, 2, 0}, {1, 2, 0}, {2, 2, 0},
+            {0, 3, 0}, {1, 3, 6}, {2, 3, 0},
+            {0, 4, 0}, {1, 4, 0}, {2, 4, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
 
     delete stubHost;
