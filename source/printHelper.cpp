@@ -144,7 +144,7 @@ int print(std::string str, int x, int y, uint8_t c) {
                     x,
                     y,
                     prevDrawPal[fgColor & 0x0f],
-                    bgColor,
+                    prevDrawPal[bgColor & 0x0f],
                     printMode,
                     forceCharWidth,
                     forceCharHeight);
@@ -290,7 +290,7 @@ int print(std::string str, int x, int y, uint8_t c) {
                     x,
                     y,
                     prevDrawPal[fgColor & 0x0f],
-                    bgColor,
+                    prevDrawPal[bgColor & 0x0f],
                     printMode,
                     8,
                     charHeight);
@@ -355,7 +355,7 @@ int print(std::string str, int x, int y, uint8_t c) {
                 prevX + xOffset,
                 prevY + yOffset,
                 prevDrawPal[fgColor & 0x0f],
-                bgColor,
+                prevDrawPal[bgColor & 0x0f],
                 printMode,
                 forceCharWidth,
                 forceCharHeight);
@@ -404,7 +404,7 @@ int print(std::string str, int x, int y, uint8_t c) {
                 x,
                 y,
                 prevDrawPal[fgColor & 0x0f],
-                bgColor,
+                prevDrawPal[bgColor & 0x0f],
                 printMode,
                 forceCharWidth,
                 forceCharHeight);

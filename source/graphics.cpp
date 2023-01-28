@@ -1449,12 +1449,21 @@ std::tuple<int, int> Graphics::drawCharacterFromBytes(
 		//TODO: other print modes
 	}
 
-	if (bgColor != 0) {
-		//possible todo: check perf if this is better than doing it in the other loop (m)
-		uint8_t prevPenColor = _memory->drawState.color;
-		rectfill(x-1, y-1, x + charWidth*wFactor - 1, y + charHeight*hFactor - 1, bgColor);
-		_memory->drawState.color = prevPenColor;
+	//possible todo: check perf if this is better than doing it in the other loop (m)
+	// if (bgColor != 0) {
+	// 	uint8_t prevPenColor = _memory->drawState.color;
+	// 	rectfill(x-1, y-1, x + charWidth*wFactor - 1, y + charHeight*hFactor - 1, bgColor);
+	// 	_memory->drawState.color = prevPenColor;
+	// }
+	fgColor &= 0x0f;
+	bgColor &= 0x0f;
+	/*
+	if (invertColors) {
+		uint8_t temp = fgColor;
+		fgColor = bgColor;
+		bgColor = temp;
 	}
+	*/
 
 	for (int relDestY = 0; relDestY < charHeight * hFactor; relDestY++) {
 		for(int relDestX = 0; relDestX < charWidth * wFactor; relDestX++) {
@@ -1466,15 +1475,17 @@ std::tuple<int, int> Graphics::drawCharacterFromBytes(
 			int absDestX = x + relDestX;
 			int absDestY = y + relDestY;
 
-			if (invertColors) {
-				on = !on;
-			}
-			
-			if (on && isWithinClip(absDestX, absDestY)) {
-				setPixelNibble(absDestX, absDestY, fgColor, screenBuffer);			
-			}
-			if(!on && solidBg && isWithinClip(absDestX, absDestY)) {
-				setPixelNibble(absDestX, absDestY, bgColor, screenBuffer);
+			if (isWithinClip(absDestX, absDestY)) {
+				if (invertColors) {
+					on = !on;
+				}
+				
+				if (on) {
+					setPixelNibble(absDestX, absDestY, fgColor, screenBuffer);			
+				}
+				if(!on && (solidBg || bgColor > 0)) {
+					setPixelNibble(absDestX, absDestY, bgColor, screenBuffer);
+				}
 			}
 		}
 	}
