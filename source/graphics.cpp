@@ -1422,7 +1422,6 @@ std::tuple<int, int> Graphics::drawCharacterFromBytes(
 	int extraCharHeight = 0;
 	int wFactor = 1;
 	int hFactor = 1;
-	//TODO: character modes
 	bool evenPxOnly = false;
 	bool invertColors = false;
 	bool solidBg = false;
@@ -1446,7 +1445,6 @@ std::tuple<int, int> Graphics::drawCharacterFromBytes(
 		if((printMode & PRINT_MODE_SOLID_BG) == PRINT_MODE_SOLID_BG) {
 			solidBg = true;
 		}
-		//TODO: other print modes
 	}
 
 	//possible todo: check perf if this is better than doing it in the other loop (m)
@@ -1457,13 +1455,6 @@ std::tuple<int, int> Graphics::drawCharacterFromBytes(
 	// }
 	fgColor &= 0x0f;
 	bgColor &= 0x0f;
-	/*
-	if (invertColors) {
-		uint8_t temp = fgColor;
-		fgColor = bgColor;
-		bgColor = temp;
-	}
-	*/
 
 	for (int relDestY = 0; relDestY < charHeight * hFactor; relDestY++) {
 		for(int relDestX = 0; relDestX < charWidth * wFactor; relDestX++) {

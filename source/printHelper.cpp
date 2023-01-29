@@ -112,18 +112,8 @@ int print(std::string str, int x, int y, uint8_t c) {
         printMode = 0;
     }
 
-	uint8_t effectiveC = _ph_graphics->getDrawPalMappedColor(c);
+    uint8_t* drawPal = _ph_mem->drawState.drawPaletteMap;
 
-	//font sprite sheet has text as color 7, with 0 as transparent. We need to override
-	//these values and restore them after
-	uint8_t prevDrawPal[16];
-	for(uint8_t i = 0; i < 16; i++) {
-		prevDrawPal[i] = _ph_mem->drawState.drawPaletteMap[i];
-		_ph_mem->drawState.drawPaletteMap[i] = i;
-	}
-
-	_ph_mem->drawState.drawPaletteMap[7] = effectiveC;
-    _ph_mem->drawState.drawPaletteMap[0] = 16;
     int framesBetweenChars = 0;
     int framesToPause = 0;
     int rhsWrap = -1;
@@ -143,8 +133,8 @@ int print(std::string str, int x, int y, uint8_t c) {
                     ch,
                     x,
                     y,
-                    prevDrawPal[fgColor & 0x0f],
-                    prevDrawPal[bgColor & 0x0f],
+                    drawPal[fgColor & 0x0f],
+                    drawPal[bgColor & 0x0f],
                     printMode,
                     forceCharWidth,
                     forceCharHeight);
@@ -284,13 +274,12 @@ int print(std::string str, int x, int y, uint8_t c) {
                     }
                 }
 
-                //TODO: combine with other text rendering
                 auto values = _ph_graphics->drawCharacterFromBytes(
                     charBytes,
                     x,
                     y,
-                    prevDrawPal[fgColor & 0x0f],
-                    prevDrawPal[bgColor & 0x0f],
+                    drawPal[fgColor & 0x0f],
+                    drawPal[bgColor & 0x0f],
                     printMode,
                     8,
                     charHeight);
@@ -354,8 +343,8 @@ int print(std::string str, int x, int y, uint8_t c) {
                 toPrint,
                 prevX + xOffset,
                 prevY + yOffset,
-                prevDrawPal[fgColor & 0x0f],
-                prevDrawPal[bgColor & 0x0f],
+                drawPal[fgColor & 0x0f],
+                drawPal[bgColor & 0x0f],
                 printMode,
                 forceCharWidth,
                 forceCharHeight);
@@ -364,8 +353,6 @@ int print(std::string str, int x, int y, uint8_t c) {
 			uint8_t fgColChar = str[++n];
 			fgColor = p0CharToNum(fgColChar);
 			_ph_graphics->color(fgColor);
-            //this is needed for legacy text drawing
-			_ph_mem->drawState.drawPaletteMap[7] = prevDrawPal[fgColor] & 0x0f;
 		}
         else if (ch == 14) { //"\014" Turn on custom font stored at 0x5600
             printMode |= PRINT_MODE_CUSTOM_FONT;
@@ -403,8 +390,8 @@ int print(std::string str, int x, int y, uint8_t c) {
                 ch,
                 x,
                 y,
-                prevDrawPal[fgColor & 0x0f],
-                prevDrawPal[bgColor & 0x0f],
+                drawPal[fgColor & 0x0f],
+                drawPal[bgColor & 0x0f],
                 printMode,
                 forceCharWidth,
                 forceCharHeight);
@@ -423,10 +410,6 @@ int print(std::string str, int x, int y, uint8_t c) {
 			y += lineHeight;
             lineHeight = 0;
         }
-	}
-
-	for(int i = 0; i < 16; i++) {
-		_ph_mem->drawState.drawPaletteMap[i] = prevDrawPal[i];
 	}
 
     lineHeight = lineHeight > 0 ? lineHeight : 6;
