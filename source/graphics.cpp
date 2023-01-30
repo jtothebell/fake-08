@@ -5,6 +5,8 @@
 #include <string>
 #include <algorithm>
 #include <vector>
+#include <tuple>
+using namespace std;
 
 #include "graphics.h"
 #include "hostVmShared.h"
@@ -1311,95 +1313,34 @@ int Graphics::drawCharacter(
 	int forceCharHeight) {
 	int extraCharWidth = 0;
 
-	if ((printMode & PRINT_MODE_ON) == PRINT_MODE_ON){
+	bool useCustomFont = (printMode & PRINT_MODE_CUSTOM_FONT) == PRINT_MODE_CUSTOM_FONT;
+	int defaultCharWidth = useCustomFont ? _memory->data[0x5600] : 4;
+	int defaultWideCharWidth = useCustomFont ? _memory->data[0x5601] : 8;
+	int defaultCharHeight = useCustomFont ? _memory->data[0x5602] : 5;
 
-		if (ch > 0x0f) {
-			uint8_t charWidth = 
-				ch < 0x80
-				? forceCharWidth > -1 && forceCharWidth < 4 ? forceCharWidth : 4
-				: forceCharWidth > -1 && forceCharWidth < 4 ? (forceCharWidth + 4) : 8;
-
-			uint8_t charHeight = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : 5;
-			
-			drawCharacterFromBytes(
-				&(defaultFontBinaryData[ch*8]),
-				x,
-				y,
-				fgColor,
-				bgColor,
-				printMode,
-				charWidth,
-				charHeight
-			);
-		}
-
-	}
-	else if ((printMode & PRINT_MODE_CUSTOM_FONT) == PRINT_MODE_CUSTOM_FONT) {
+	if (ch > 0x0f) {
 		uint8_t charWidth = 
 			ch < 0x80
-			? forceCharWidth > -1 && forceCharWidth < 4 ? forceCharWidth : _memory->data[0x5600]
-			: forceCharWidth > -1 && forceCharWidth < 4 ? (forceCharWidth + 4) : _memory->data[0x5601];
+			? forceCharWidth > -1 && forceCharWidth < 4 ? forceCharWidth : defaultCharWidth
+			: forceCharWidth > -1 && forceCharWidth < 4 ? (forceCharWidth + 4) : defaultWideCharWidth;
 
-		uint8_t charHeight = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : _memory->data[0x5602];
-
-		if (charWidth > 8) {
-			charWidth = 8;
-		}
-		if (charHeight > 8) {
-			charHeight = 8;
-		}
-
-		if (ch > 0x0f) {
-			drawCharacterFromBytes(
-				&(_memory->data[0x5600 + ch*8]),//get bytes from memory (0x5600)
-				x,
-				y,
-				fgColor,
-				bgColor,
-				printMode,
-				charWidth,
-				charHeight
-			);
-		}
-
-		return (ch < 0x80 ? _memory->data[0x5600] : _memory->data[0x5601]) - 4;
+		uint8_t charHeight = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : defaultCharHeight;
+		
+		auto result = drawCharacterFromBytes(
+			useCustomFont ? &(_memory->data[0x5600 + ch*8]) : &(defaultFontBinaryData[ch*8]),
+			x,
+			y,
+			fgColor,
+			bgColor,
+			printMode,
+			charWidth,
+			charHeight
+		);
+		extraCharWidth = get<0>(result);
 	}
-	else{
-		if (ch >= 0x10 && ch < 0x80) {
-			uint8_t charWidth = forceCharWidth > -1 && forceCharWidth < 4 ? forceCharWidth : 4;
-			uint8_t charHeight = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : 5;
-			
-			//need to pass in w/h to crop
-			drawCharacterFromBytes(
-				&(defaultFontBinaryData[ch*8]),
-				x,
-				y,
-				fgColor,
-				bgColor,
-				printMode,
-				charWidth,
-				charHeight
-			);
 
-			//copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8, width, height, false, false);
-		} else if (ch >= 0x80) {
-			uint8_t charWidth = forceCharWidth > -1 && forceCharWidth < 4 ? (forceCharWidth + 4) : 8;
-			uint8_t charHeight = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : 5;
-
-			drawCharacterFromBytes(
-				&(defaultFontBinaryData[ch*8]),
-				x,
-				y,
-				fgColor,
-				bgColor,
-				printMode,
-				charWidth,
-				charHeight
-			);
-			
-			//copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8 + 56, width, height, false, false);
-			extraCharWidth = 4;
-		}
+	if ((printMode & PRINT_MODE_ON) == PRINT_MODE_ON){
+		return 0;
 	}
 
 	return extraCharWidth;
