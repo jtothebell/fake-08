@@ -12,7 +12,7 @@ Graphics* _ph_graphics;
 Vm* _ph_vm;
 Audio* _ph_audio;
 
-void oneOffCharToBytes(std::string hex, uint8_t byteBuff[]) {
+void hexStrToBytes(std::string hex, uint8_t byteBuff[]) {
   char buff[3];
   buff[2] = 0;
   for (unsigned int i = 0; i < hex.length(); i += 2) {
@@ -105,6 +105,7 @@ int print(std::string str, int x, int y, uint8_t c) {
     uint8_t fgColor = _ph_mem->drawState.color;
     uint8_t charBytes[8];
     uint8_t audioStrBytes[32];
+    bool cancelWrap = false;
 
     uint8_t printMode = _ph_mem->hwState.printAttributes;
 
@@ -264,7 +265,7 @@ int print(std::string str, int x, int y, uint8_t c) {
                 if (commandChar == ':') {
                     std::string hexStr = str.substr(n+1, 16);
                     n+=16;
-                    oneOffCharToBytes(hexStr, charBytes);
+                    hexStrToBytes(hexStr, charBytes);
                 }
                 else {
                     std::string binStr = str.substr(n+1, 8);
@@ -320,7 +321,39 @@ int print(std::string str, int x, int y, uint8_t c) {
                     }
                 }
             }
+            else if (commandChar == '!'){
+                //no wraping after this print call (may be pico 8 bug?)
+                cancelWrap = true;
 
+                std::string addrHexStr = str.substr(n+1, 4);
+                n+=4;
+                int addr = (int)strtol(addrHexStr.c_str(), NULL, 16);
+
+                int size = length - n;
+                std::string binStr = str.substr(n + 1, size);
+                n+=size;
+
+                for(size_t i = 0; i < size; i++) {
+                    _ph_mem->data[addr + i] = binStr[i];
+                }
+            }
+            else if (commandChar == '@'){
+                std::string addrHexStr = str.substr(n+1, 4);
+                n+=4;
+                int addr = (int)strtol(addrHexStr.c_str(), NULL, 16);
+
+                std::string sizeHexStr = str.substr(n+1, 4);
+                n+=4;
+
+                int size = (int)strtol(sizeHexStr.c_str(), NULL, 16);
+
+                std::string binStr = str.substr(n + 1, size);
+                n+= size;
+
+                for(size_t i = 0; i < size; i++) {
+                    _ph_mem->data[addr + i] = binStr[i];
+                }
+            }
 		}
 		else if (ch == 7) { // "\a" audio command
             uint8_t nextChar = str[++n];
@@ -412,7 +445,7 @@ int print(std::string str, int x, int y, uint8_t c) {
         }
 	}
 
-    lineHeight = lineHeight > 0 ? lineHeight : 6;
+    lineHeight = lineHeight > 0 ? lineHeight : cancelWrap ? 0 : 6;
 	//todo: auto scrolling
 	_ph_mem->drawState.text_y = y + lineHeight;
 
