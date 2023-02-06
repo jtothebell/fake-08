@@ -416,8 +416,10 @@ float Audio::getSampleForNote(noteChannel &channel, rawSfxChannel &parentChannel
     float const offset_per_second = 22050.f / (183.f * speed);
     int const note_idx = (int)floor(offset);
 
+    // previous note effectively goes beyond offset fmod 1 when in crossfade
     float tmod= 0;
     if (forceRemainder) tmod = 1.0f;
+    tmod += fmod(offset, 1.f);
     // Apply effect, if any
     switch (fx)
     {
@@ -425,19 +427,18 @@ float Audio::getSampleForNote(noteChannel &channel, rawSfxChannel &parentChannel
             break;
         case FX_SLIDE:
         {
-            float t = fmod(offset, 1.f) + tmod;
             // From the documentation: “Slide to the next note and volume”,
             // but it’s actually _from_ the _prev_ note and volume.
-            freq = lerp(key_to_freq(prev_note.getKey()), freq, t);
+            freq = lerp(key_to_freq(prev_note.getKey()), freq, tmod);
             if (prev_note.getVolume() > 0)
-                volume = lerp(prev_note.getVolume() / 7.0f, volume, t);
+                volume = lerp(prev_note.getVolume() / 7.0f, volume, tmod);
             break;
         }
         case FX_VIBRATO:
         {
             // 7.5f and 0.25f were found empirically by matching
             // frequency graphs of PICO-8 instruments.
-            float t = fabs(fmod(7.5f * (tmod + offset) / offset_per_second, 1.0f) - 0.5f) - 0.25f;
+            float t = fabs(fmod(7.5f * tmod / offset_per_second, 1.0f) - 0.5f) - 0.25f;
             // Vibrato half a semi-tone, so multiply by pow(2,1/12)
             freq = lerp(freq, freq * 1.059463094359f, t);
             break;
@@ -447,10 +448,10 @@ float Audio::getSampleForNote(noteChannel &channel, rawSfxChannel &parentChannel
             break;
         case FX_FADE_IN:
             
-            volume *= std::min(1.f, (float) tmod+ (float) fmod(offset, 1.f));
+            volume *= std::min(1.f, tmod);
             break;
         case FX_FADE_OUT:
-            volume *= max(0.0f, 1.f - (float) (fmod(offset, 1.f)+tmod));
+            volume *= max(0.0f, 1.f - tmod);
             break;
         case FX_ARP_FAST:
         case FX_ARP_SLOW:
@@ -460,7 +461,7 @@ float Audio::getSampleForNote(noteChannel &channel, rawSfxChannel &parentChannel
             //  7 arpeggio slow  //  Iterate over groups of 4 notes at speed of 8”
             // “If the SFX speed is <= 8, arpeggio speeds are halved to 2, 4”
             int const m = (speed <= 8 ? 32 : 16) / (fx == FX_ARP_FAST ? 4 : 8);
-            int const n = (int)(m * 7.5f * (tmod+ offset) / offset_per_second);
+            int const n = (int)(m * 7.5f * offset / offset_per_second);
             int const arp_note = (note_idx & ~3) | (n & 3);
             freq = key_to_freq(sfx.notes[arp_note].getKey());
             break;
