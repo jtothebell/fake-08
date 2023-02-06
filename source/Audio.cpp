@@ -447,7 +447,6 @@ float Audio::getSampleForNote(noteChannel &channel, rawSfxChannel &parentChannel
             freq *= 1.f - fmod(offset, 1.f);
             break;
         case FX_FADE_IN:
-            
             volume *= std::min(1.f, tmod);
             break;
         case FX_FADE_OUT:
