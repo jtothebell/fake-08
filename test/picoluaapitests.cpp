@@ -165,3 +165,35 @@ TEST_CASE("audio stats") {
   }
 
 }
+
+
+TEST_CASE("print") {
+  // setup
+  PicoRam picoRam;
+  picoRam.Reset();
+  Audio* audio = new Audio(&picoRam);
+  std::string fontdata = get_font_data();
+  Graphics* graphics = new Graphics(fontdata, &picoRam);
+  //audioState_t* audioState = audio->getAudioState();
+  Input * input = new Input(&picoRam);
+  StubHost* stubHost = new StubHost();
+  Vm* vm = new Vm(stubHost, &picoRam, graphics, input, audio);
+  initPicoApi(&picoRam, graphics,  input, vm, audio);
+  lua_State *L = luaL_newstate();
+
+  SUBCASE("print puts a newline at the end implicitly") {
+    lua_pushstring(L, "hello world");
+    print(L);
+    
+    CHECK_EQ(picoRam.drawState.text_x, 0);
+    CHECK_EQ(picoRam.drawState.text_y, 6);
+  }
+  
+  SUBCASE("print gets the whole string including nulls") {
+    lua_pushlstring(L, "hello world\0", 12);
+    print(L);
+    
+    CHECK_EQ(picoRam.drawState.text_x, 11*4);
+    CHECK_EQ(picoRam.drawState.text_y, 0);
+  }
+}
