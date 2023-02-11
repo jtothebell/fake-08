@@ -123,7 +123,17 @@ int print(std::string str, int x, int y, uint8_t c) {
 	for (size_t n = 0; n < length; n++) {
 		uint8_t ch = str[n];
         framesToPause = framesBetweenChars;
-		if (ch == 1) { // "\*{p0}" repeat the next character p0 times
+        if (ch == 0) { // null stop printing
+            _ph_mem->drawState.text_x=x;
+            _ph_mem->drawState.text_y=y;
+
+            //restore palette
+            for(int i = 0; i < 16; i++) {
+                _ph_mem->drawState.drawPaletteMap[i] = prevDrawPal[i];
+            }
+            return x;
+        }
+        else if (ch == 1) { // "\*{p0}" repeat the next character p0 times
 			uint8_t timesChr = str[++n];
 			int times = p0CharToNum(timesChr);
 

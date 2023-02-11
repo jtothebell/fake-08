@@ -301,7 +301,7 @@ int print(lua_State *L){
         return 0;
     }
 
-    const char * str = "";
+    std::string str = "";
     int newx = 0;
 
     //todo: handle other cases, maybe move this somewhere else
@@ -310,7 +310,9 @@ int print(lua_State *L){
         str = "[nil]";
     }
     else if (lua_isstring(L, 1)){
-        str = lua_tolstring(L, 1, nullptr);
+        size_t len;
+        const char *raw_string = lua_tolstring(L, 1, &len);
+        str = std::string(raw_string, len);
     }
     else if (lua_isnumber(L, 1)){
         str = lua_tolstring(L, 1, nullptr);
