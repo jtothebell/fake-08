@@ -127,10 +127,6 @@ int print(std::string str, int x, int y, uint8_t c) {
             _ph_mem->drawState.text_x=x;
             _ph_mem->drawState.text_y=y;
 
-            //restore palette
-            for(int i = 0; i < 16; i++) {
-                _ph_mem->drawState.drawPaletteMap[i] = prevDrawPal[i];
-            }
             return x;
         }
         else if (ch == 1) { // "\*{p0}" repeat the next character p0 times

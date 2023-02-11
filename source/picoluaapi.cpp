@@ -301,28 +301,33 @@ int print(lua_State *L){
         return 0;
     }
 
-    std::string str = "";
+    const char * charArray = "";
+    size_t len = 0;
     int newx = 0;
 
     //todo: handle other cases, maybe move this somewhere else
     //learned this from zepto8 https://github.com/samhocevar/zepto8/blob/27f83fe0626d4823fe2a33568d8310d8def84ae9/src/pico8/vm.cpp
     if (lua_isnil(L, 1)){
-        str = "[nil]";
+        charArray = "[nil]";
+        len = 5;
     }
     else if (lua_isstring(L, 1)){
-        size_t len;
-        const char *raw_string = lua_tolstring(L, 1, &len);
-        str = std::string(raw_string, len);
+        charArray = lua_tolstring(L, 1, &len);
     }
     else if (lua_isnumber(L, 1)){
-        str = lua_tolstring(L, 1, nullptr);
+        charArray = lua_tolstring(L, 1, &len);
     }
     else if (lua_isboolean(L, 1)){
-        str = lua_toboolean(L, 1) ? "true" : "false";
+        int boolVal = lua_toboolean(L, 1);
+        charArray = boolVal ? "true" : "false";
+        len = boolVal ? 4 : 5;
     }
     else if (lua_isfunction(L, 1)){
-        str = "[function]";
+        charArray = "[function]";
+        len = 10;
     }
+
+    std::string str = std::string(charArray, len);
 
     if (numArgs < 2) {
         newx = print(str);
