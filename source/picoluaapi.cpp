@@ -310,12 +310,12 @@ int print(lua_State *L){
         str = "[nil]";
     }
     else if (lua_isstring(L, 1)){
-      size_t len;
-      const char *raw_string = lua_tolstring(L, 1, &len);
-      str = std::string(raw_string, len);
+        size_t len;
+        const char *raw_string = lua_tolstring(L, 1, &len);
+        str = std::string(raw_string, len);
     }
     else if (lua_isnumber(L, 1)){
-        str = lua_tolstring(L, 1, nullptr) ;
+        str = lua_tolstring(L, 1, nullptr);
     }
     else if (lua_isboolean(L, 1)){
         str = lua_toboolean(L, 1) ? "true" : "false";
