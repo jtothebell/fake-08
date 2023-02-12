@@ -52,13 +52,15 @@ Host::Host()
 
     int should_be_zero = SDL_GetCurrentDisplayMode(0, &current);
 
-    if(should_be_zero != 0)
+    if(should_be_zero != 0) {
       // In case of error...
       SDL_Log("Could not get display mode for video display #%d: %s", 0, SDL_GetError());
+    }
 
-    else
+    else {
       // On success, print the current display mode.
       SDL_Log("Display #%d: current display mode is %dx%dpx @ %dhz.", 0, current.w, current.h, current.refresh_rate);
+    }
 
     int WINDOW_SIZE_X=current.w;
     int WINDOW_SIZE_Y=current.h;
