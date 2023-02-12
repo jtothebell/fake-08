@@ -1,6 +1,7 @@
 #include <string>
 
 #include "printHelper.h"
+#include "nibblehelpers.h"
 
 #include <string>
 #include "graphics.h"
@@ -76,7 +77,49 @@ int pow2(int power){
 }
 
 int print(std::string str) {
-	int result = print(str, _ph_mem->drawState.text_x, _ph_mem->drawState.text_y);
+    //todo: default is not 0,0?
+    int x = _ph_mem->drawState.text_x;
+    int y = _ph_mem->drawState.text_y;
+    if (y >= 127) {
+        //Memcy screen to itself offset by how many lines needed (y + line height)
+        int lineHeight = 6; // possibly need to check if bigger font?
+        int linesToCopy = 127 - lineHeight; 
+        int startY = y - linesToCopy; 
+
+        memmove(
+            &_ph_mem->screenBuffer, 
+            &_ph_mem->screenBuffer[COMBINED_IDX(0, startY)],
+            linesToCopy * 64);
+        
+        //set the rest of the screen buffer to 0 (black)
+        memset(
+            &_ph_mem->screenBuffer[COMBINED_IDX(0, linesToCopy)],
+            0,
+            startY * 64);
+
+        y = _ph_mem->drawState.text_y = 127 - lineHeight;
+        //Memcpy buffy back to screen
+
+    }
+	int result = print(str, x, y);
+
+    if (_ph_mem->drawState.text_y >= 127) {
+        int lineHeight = 5; // possibly need to check if bigger font?
+        int linesToCopy = 127 - lineHeight; 
+        int startY = _ph_mem->drawState.text_y - linesToCopy; 
+        memmove(
+            &_ph_mem->screenBuffer, 
+            &_ph_mem->screenBuffer[COMBINED_IDX(0, startY)],
+            linesToCopy * 64);
+        
+        //set the rest of the screen buffer to 0 (black)
+        memset(
+            &_ph_mem->screenBuffer[COMBINED_IDX(0, linesToCopy)],
+            0,
+            startY * 64);
+
+        y = _ph_mem->drawState.text_y = 127 - lineHeight;
+    }
 
 	return result;
 }
