@@ -42,6 +42,7 @@ platform/bittboy/FAKE08
 platform/miyoomini/FAKE08
 platform/gcw0/FAKE08
 platform/gcw0/fake08_gcw0.opk
+platform/unix/fake-08
 source/carts.zip
 /platform/windows/*.stackdump
 platform/libretro/fake08_libretro.dylib
