@@ -24,11 +24,11 @@ void Audio::resetAudioState() {
     for(int i = 0; i < 4; i++) {
         _audioState._sfxChannels[i].sfxId = -1;
         _audioState._sfxChannels[i].offset = 0;
-        _audioState._sfxChannels[i].phi = 0;
+        _audioState._sfxChannels[i].current_note.phi = 0;
         _audioState._sfxChannels[i].can_loop = true;
         _audioState._sfxChannels[i].is_music = false;
-        _audioState._sfxChannels[i].prev_key = 0;
-        _audioState._sfxChannels[i].prev_vol = 0;
+        _audioState._sfxChannels[i].prev_note.n.setKey(0);
+        _audioState._sfxChannels[i].prev_note.n.setVolume(0);
     }
     _audioState._musicChannel.count = 0;
     _audioState._musicChannel.pattern = -1;
@@ -102,15 +102,15 @@ void Audio::api_sfx(int sfx, int channel, int offset){
         // Play this sound!
         _audioState._sfxChannels[channel].sfxId = sfx;
         _audioState._sfxChannels[channel].offset = std::max(0.f, (float)offset);
-        _audioState._sfxChannels[channel].phi = 0.f;
+        _audioState._sfxChannels[channel].current_note.phi = 0.f;
         _audioState._sfxChannels[channel].can_loop = true;
         _audioState._sfxChannels[channel].is_music = false;
         // Playing an instrument starting with the note C-2 and the
         // slide effect causes no noticeable pitch variation in PICO-8,
         // so I assume this is the default value for “previous key”.
-        _audioState._sfxChannels[channel].prev_key = 24;
+        _audioState._sfxChannels[channel].prev_note.n.setKey(24);
         // There is no default value for “previous volume”.
-        _audioState._sfxChannels[channel].prev_vol = 0.f;
+        _audioState._sfxChannels[channel].prev_note.n.setVolume(0);
     }      
 }
 
@@ -208,12 +208,12 @@ void Audio::set_music_pattern(int pattern) {
 
         _audioState._sfxChannels[i].sfxId = n;
         _audioState._sfxChannels[i].offset = 0.f;
-        _audioState._sfxChannels[i].phi = 0.f;
+        _audioState._sfxChannels[i].current_note.phi = 0.f;
 	// if the master channel loops we'll never finish
         _audioState._sfxChannels[i].can_loop = i != _audioState._musicChannel.master;
         _audioState._sfxChannels[i].is_music = true;
-        _audioState._sfxChannels[i].prev_key = 24;
-        _audioState._sfxChannels[i].prev_vol = 0.f;
+        _audioState._sfxChannels[i].prev_note.n.setKey(24);
+        _audioState._sfxChannels[i].prev_note.n.setVolume(0);
     }
 }
 
@@ -288,7 +288,7 @@ int16_t Audio::getMusicTickCount(){
 }
 
 //adapted from zepto8 sfx.cpp (wtfpl license)
-int16_t Audio::getSampleForChannel(int channel){
+int16_t Audio::getSampleForChannel(int channelId){
     using std::fabs;
     using std::fmod;
     using std::floor;
@@ -298,10 +298,12 @@ int16_t Audio::getSampleForChannel(int channel){
 
     int16_t sample = 0;
 
-    const int index = _audioState._sfxChannels[channel].sfxId;
+    const int index = _audioState._sfxChannels[channelId].sfxId;
+
+    sfxChannel *channel = &_audioState._sfxChannels[channelId];
  
     // Advance music using the master channel
-    if (channel == _audioState._musicChannel.master && _audioState._musicChannel.pattern != -1)
+    if (channelId == _audioState._musicChannel.master && _audioState._musicChannel.pattern != -1)
     {
         float const offset_per_second = 22050.f / (183.f * _audioState._musicChannel.speed);
         float const offset_per_sample = offset_per_second / samples_per_second;
@@ -349,8 +351,7 @@ int16_t Audio::getSampleForChannel(int channel){
     // Speed must be 1—255 otherwise the SFX is invalid
     int const speed = max(1, (int)sfx.speed);
 
-    float const offset = _audioState._sfxChannels[channel].offset;
-    float const phi = _audioState._sfxChannels[channel].phi;
+    float const offset = channel->offset;
 
     // PICO-8 exports instruments as 22050 Hz WAV files with 183 samples
     // per speed unit per note, so this is how much we should advance
@@ -361,36 +362,88 @@ int16_t Audio::getSampleForChannel(int channel){
     // Handle SFX loops. From the documentation: “Looping is turned
     // off when the start index >= end index”.
     float const loop_range = float(sfx.loopRangeEnd - sfx.loopRangeStart);
-    if (loop_range > 0.f && next_offset >= sfx.loopRangeStart && _audioState._sfxChannels[channel].can_loop) {
+    if (loop_range > 0.f && next_offset >= sfx.loopRangeStart && channel->can_loop) {
         next_offset = fmod(next_offset - sfx.loopRangeStart, loop_range)
                     + sfx.loopRangeStart;
     }
 
     int const note_idx = (int)floor(offset);
+    channel->current_note.n=sfx.notes[note_idx];
     int const next_note_idx = (int)floor(next_offset);
 
     uint8_t key = sfx.notes[note_idx].getKey();
     float volume = sfx.notes[note_idx].getVolume() / 7.f;
-    float freq = key_to_freq(key);
 
-    if (volume == 0.f){
-        //volume all the way off. return silence, but make sure to set stuff
-        _audioState._sfxChannels[channel].offset = next_offset;
 
-        if (next_offset >= 32.f){
-            _audioState._sfxChannels[channel].sfxId = -1;
-        }
-        else if (next_note_idx != note_idx){
-            _audioState._sfxChannels[channel].prev_key = sfx.notes[note_idx].getKey();
-            _audioState._sfxChannels[channel].prev_vol = sfx.notes[note_idx].getVolume() / 7.f;
-        }
-
-        return 0;
+    // tiniest fade in/out to fix popping
+    // the real version uses a crossfade it looks like
+    // 25 samples was estimated from looking at pcm out from pico-8
+    float const fade_duration = offset_per_sample * 25;
+    float offset_part = fmod(channel->offset, 1.f);
+    float crossfade = 0;
+    if (offset_part < fade_duration) {
+      crossfade = (fade_duration-offset_part)/fade_duration;
     }
     
-    //TODO: apply effects
-    int const fx = sfx.notes[note_idx].getEffect();
+    float waveform = this->getSampleForNote(channel->current_note, *channel, channel->prev_note.n, false);
+    if (crossfade > 0) {
+      waveform *= (1.0f-crossfade);
+      note dummyNote;
+      waveform+= crossfade * this->getSampleForNote(channel->prev_note, *channel, dummyNote, true);
+    }
+    uint8_t len = sfx.loopRangeEnd == 0 ? 32 : sfx.loopRangeEnd;
+    bool lastNote = note_idx == len - 1;
+    if (lastNote && 1.0f - offset_part < fade_duration) {
+      waveform *= (fade_duration - 1.0f + offset_part)/fade_duration;
+    }
 
+    // Apply master music volume from fade in/out
+    // FIXME: check whether this should be done after distortion
+    if (channel->is_music) {
+        waveform *= _audioState._musicChannel.volume;
+    }
+
+    channel->offset = next_offset;
+
+    if (next_offset >= 32.f){
+        channel->sfxId = -1;
+    }
+    else if (next_note_idx != note_idx){
+        channel->prev_note = channel->current_note; //sfx.notes[note_idx].getKey();
+        channel->current_note.n = sfx.notes[next_note_idx];
+        channel->current_note.phi = channel->prev_note.phi;
+    }
+
+    sample = (int16_t)(32767.99f * waveform);
+
+    // TODO: Apply hardware effects
+    if (_memory->hwState.distort & (1 << channelId)) {
+        sample = sample / 0x1000 * 0x1249;
+    }
+    return sample;
+}
+
+float Audio::getSampleForNote(noteChannel &channel, sfxChannel &parentChannel,  note prev_note, bool forceRemainder) {
+    using std::max;
+    float offset = parentChannel.offset;
+    int const samples_per_second = 22050;
+    //TODO: apply effects
+    int const fx = channel.n.getEffect();
+    uint8_t key = channel.n.getKey();
+    float volume = channel.n.getVolume() / 7.f;
+    float freq = key_to_freq(key);
+
+    struct sfx const &sfx = _memory->sfx[parentChannel.sfxId];
+
+    // Speed must be 1—255 otherwise the SFX is invalid
+    int const speed = max(1, (int)sfx.speed);
+    float const offset_per_second = 22050.f / (183.f * speed);
+    int const note_idx = (int)floor(offset);
+
+    // previous note effectively goes beyond offset fmod 1 when in crossfade
+    float tmod= 0;
+    if (forceRemainder) tmod = 1.0f;
+    tmod += fmod(offset, 1.f);
     // Apply effect, if any
     switch (fx)
     {
@@ -398,19 +451,18 @@ int16_t Audio::getSampleForChannel(int channel){
             break;
         case FX_SLIDE:
         {
-            float t = fmod(offset, 1.f);
             // From the documentation: “Slide to the next note and volume”,
             // but it’s actually _from_ the _prev_ note and volume.
-            freq = lerp(key_to_freq(_audioState._sfxChannels[channel].prev_key), freq, t);
-            if (_audioState._sfxChannels[channel].prev_vol > 0.f)
-                volume = lerp(_audioState._sfxChannels[channel].prev_vol, volume, t);
+            freq = lerp(key_to_freq(prev_note.getKey()), freq, tmod);
+            if (prev_note.getVolume() > 0)
+                volume = lerp(prev_note.getVolume() / 7.0f, volume, tmod);
             break;
         }
         case FX_VIBRATO:
         {
             // 7.5f and 0.25f were found empirically by matching
             // frequency graphs of PICO-8 instruments.
-            float t = fabs(fmod(7.5f * offset / offset_per_second, 1.0f) - 0.5f) - 0.25f;
+            float t = fabs(fmod(7.5f * tmod / offset_per_second, 1.0f) - 0.5f) - 0.25f;
             // Vibrato half a semi-tone, so multiply by pow(2,1/12)
             freq = lerp(freq, freq * 1.059463094359f, t);
             break;
@@ -419,10 +471,10 @@ int16_t Audio::getSampleForChannel(int channel){
             freq *= 1.f - fmod(offset, 1.f);
             break;
         case FX_FADE_IN:
-            volume *= fmod(offset, 1.f);
+            volume *= std::min(1.f, tmod);
             break;
         case FX_FADE_OUT:
-            volume *= 1.f - fmod(offset, 1.f);
+            volume *= max(0.0f, 1.f - tmod);
             break;
         case FX_ARP_FAST:
         case FX_ARP_SLOW:
@@ -438,35 +490,9 @@ int16_t Audio::getSampleForChannel(int channel){
             break;
         }
     }
-
-
-    // Play note
-    float waveform = z8::synth::waveform(sfx.notes[note_idx].getWaveform(), phi);
-
-    // Apply master music volume from fade in/out
-    // FIXME: check whether this should be done after distortion
-    if (_audioState._sfxChannels[channel].is_music) {
-        volume *= _audioState._musicChannel.volume;
-    }
-
-    sample = (int16_t)(32767.99f * volume * waveform);
-
-    // TODO: Apply hardware effects
-    if (_memory->hwState.distort & (1 << channel)) {
-        sample = sample / 0x1000 * 0x1249;
-    }
-
-    _audioState._sfxChannels[channel].phi = phi + freq / samples_per_second;
-
-    _audioState._sfxChannels[channel].offset = next_offset;
-
-    if (next_offset >= 32.f){
-        _audioState._sfxChannels[channel].sfxId = -1;
-    }
-    else if (next_note_idx != note_idx){
-        _audioState._sfxChannels[channel].prev_key = sfx.notes[note_idx].getKey();
-        _audioState._sfxChannels[channel].prev_vol = sfx.notes[note_idx].getVolume() / 7.f;
-    }
-
-    return sample;
+    
+    float waveform;
+    waveform = volume * z8::synth::waveform(channel.n.getWaveform(), channel.phi);
+    channel.phi = channel.phi + freq / samples_per_second;
+    return waveform;
 }

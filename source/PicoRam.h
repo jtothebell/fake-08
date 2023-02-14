@@ -130,14 +130,18 @@ struct musicChannel {
 	uint8_t length = 0;
 };
 
+struct noteChannel {
+    float phi = 0;
+    note n;
+};
+
 struct sfxChannel {
     int16_t sfxId = -1;
     float offset = 0;
-    float phi = 0;
     bool can_loop = true;
     bool is_music = false;
-    int8_t prev_key = 0;
-    float prev_vol = 0;
+    noteChannel current_note;
+    noteChannel prev_note;
 };
 
 struct audioState_t {
