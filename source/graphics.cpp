@@ -5,11 +5,14 @@
 #include <string>
 #include <algorithm>
 #include <vector>
+#include <tuple>
+using namespace std;
 
 #include "graphics.h"
 #include "hostVmShared.h"
 #include "nibblehelpers.h"
 #include "mathhelpers.h"
+#include "fontdata.h"
 
 #include "stringToDataHelpers.h"
 
@@ -1303,52 +1306,41 @@ int Graphics::drawCharacter(
 	uint8_t ch,
 	int x,
 	int y,
+	uint8_t fgColor,
+	uint8_t bgColor,
 	uint8_t printMode,
 	int forceCharWidth,
 	int forceCharHeight) {
 	int extraCharWidth = 0;
 
-	if ((printMode & PRINT_MODE_ON) == PRINT_MODE_ON){
-		int scrW = 4;
-		int scrH = 5;
-		bool evenPxOnly = false;
+	bool useCustomFont = (printMode & PRINT_MODE_CUSTOM_FONT) == PRINT_MODE_CUSTOM_FONT;
+	int defaultCharWidth = useCustomFont ? _memory->data[0x5600] : 4;
+	int defaultWideCharWidth = useCustomFont ? _memory->data[0x5601] : 8;
+	int defaultCharHeight = useCustomFont ? _memory->data[0x5602] : 5;
 
-		if ((printMode & PRINT_MODE_WIDE) == PRINT_MODE_WIDE) {
-			scrW *= 2;
-		}
-		if((printMode & PRINT_MODE_TALL) == PRINT_MODE_TALL) {
-			scrH *= 2;
-		}
-		if((printMode & PRINT_MODE_STRIPEY) == PRINT_MODE_STRIPEY) {
-			//draw every other pixel-- also kinda broken on pico 8 0.2.4 
-			evenPxOnly = true;
-		}
-		//TODO: other print modes
+	if (ch > 0x0f) {
+		uint8_t charWidth = 
+			ch < 0x80
+			? forceCharWidth > -1 && forceCharWidth < 4 ? forceCharWidth : defaultCharWidth
+			: forceCharWidth > -1 && forceCharWidth < 4 ? (forceCharWidth + 4) : defaultWideCharWidth;
 
-		if (ch >= 0x10 && ch < 0x80) {
-			int index = ch - 0x10;
-			copyStretchSpriteToScreen(fontSpriteData, (index % 16) * 8, (index / 16) * 8, 4, 5, x, y, scrW, scrH, false, false, evenPxOnly);
-		} else if (ch >= 0x80) {
-			int index = ch - 0x80;
-			extraCharWidth = 4;
-			copyStretchSpriteToScreen(fontSpriteData, (index % 16) * 8, (index / 16) * 8 + 56, 8, 5, x, y, (scrW + extraCharWidth), scrH, false, false, evenPxOnly);
-			
-		}
-
+		uint8_t charHeight = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : defaultCharHeight;
+		
+		auto result = drawCharacterFromBytes(
+			useCustomFont ? &(_memory->data[0x5600 + ch*8]) : &(defaultFontBinaryData[ch*8]),
+			x,
+			y,
+			fgColor,
+			bgColor,
+			printMode,
+			charWidth,
+			charHeight
+		);
+		extraCharWidth = get<0>(result);
 	}
-	else{
-		if (ch >= 0x10 && ch < 0x80) {
-			int index = ch - 0x10;
-			int width = forceCharWidth > -1 && forceCharWidth < 4 ? forceCharWidth : 4;
-			int height = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : 5;
-			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8, width, height, false, false);
-		} else if (ch >= 0x80) {
-			int index = ch - 0x80;
-			int width = forceCharWidth > -1 && forceCharWidth < 4 ? (forceCharWidth + 4) : 8;
-			int height = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : 5;
-			copySpriteToScreen(fontSpriteData, x, y, (index % 16) * 8, (index / 16) * 8 + 56, width, height, false, false);
-			extraCharWidth = 4;
-		}
+
+	if ((printMode & PRINT_MODE_ON) == PRINT_MODE_ON){
+		return 0;
 	}
 
 	return extraCharWidth;
@@ -1360,52 +1352,72 @@ std::tuple<int, int> Graphics::drawCharacterFromBytes(
 	int y,
 	uint8_t fgColor,
 	uint8_t bgColor,
-	uint8_t printMode) {
+	uint8_t printMode,
+	uint8_t charWidth,
+	uint8_t charHeight) {
 	
 	applyCameraToPoint(&x, &y);
 	uint8_t *screenBuffer = GetP8FrameBuffer();
 	
 	int extraCharWidth = 0;
 	int extraCharHeight = 0;
-	//these may need to get passed in later when drawing normal chars
-	int charWidth = 8;
-	int charHeight = 8;
 	int wFactor = 1;
 	int hFactor = 1;
-	//TODO: character modes
 	bool evenPxOnly = false;
+	bool invertColors = false;
+	bool solidBg = false;
 
 	if ((printMode & PRINT_MODE_ON) == PRINT_MODE_ON){
 		if ((printMode & PRINT_MODE_WIDE) == PRINT_MODE_WIDE) {
 			wFactor = 2;
-			extraCharWidth = 8;
+			extraCharWidth = charWidth;
 		}
 		if((printMode & PRINT_MODE_TALL) == PRINT_MODE_TALL) {
 			hFactor = 2;
-			extraCharHeight = 8;
+			extraCharHeight = charHeight;
 		}
 		if((printMode & PRINT_MODE_STRIPEY) == PRINT_MODE_STRIPEY) {
 			//draw every other pixel-- also kinda broken on pico 8 0.2.4 
 			evenPxOnly = true;
 		}
-		//TODO: other print modes
+		if((printMode & PRINT_MODE_INVERTED) == PRINT_MODE_INVERTED) {
+			invertColors = true;
+		}
+		if((printMode & PRINT_MODE_SOLID_BG) == PRINT_MODE_SOLID_BG) {
+			solidBg = true;
+		}
 	}
 
-	if (bgColor != 0) {
-		uint8_t prevPenColor = _memory->drawState.color;
-		rectfill(x-1, y-1, x + charWidth*wFactor - 1, y + charHeight*hFactor - 1, bgColor);
-		_memory->drawState.color = prevPenColor;
-	}
+	//possible todo: check perf if this is better than doing it in the other loop (m)
+	// if (bgColor != 0) {
+	// 	uint8_t prevPenColor = _memory->drawState.color;
+	// 	rectfill(x-1, y-1, x + charWidth*wFactor - 1, y + charHeight*hFactor - 1, bgColor);
+	// 	_memory->drawState.color = prevPenColor;
+	// }
+	fgColor &= 0x0f;
+	bgColor &= 0x0f;
 
-	for (size_t i = 0; i < charHeight * hFactor; i++) {
-		for(uint8_t bitn = 0; bitn < charWidth * wFactor; bitn++) {
-			bool on = BITMASK(bitn / wFactor) & chBytes[i / hFactor];
-			on &= wFactor == 1 || !evenPxOnly || (i % 2 == 0);
-			on &= wFactor == 1 || !evenPxOnly || (bitn % 2 == 0);
-			const int pixX = x + bitn;
-			const int pixY = y + i;
-			if (on && isWithinClip(pixX, pixY)) {
-				setPixelNibble(pixX, pixY, fgColor, screenBuffer);				
+	for (int relDestY = 0; relDestY < charHeight * hFactor; relDestY++) {
+		for(int relDestX = 0; relDestX < charWidth * wFactor; relDestX++) {
+
+			bool on = BITMASK(relDestX / wFactor) & chBytes[relDestY / hFactor];
+			on &= hFactor == 1 || !evenPxOnly || (relDestY % 2 == 0);
+			on &= wFactor == 1 || !evenPxOnly || (relDestX % 2 == 0);
+
+			int absDestX = x + relDestX;
+			int absDestY = y + relDestY;
+
+			if (isWithinClip(absDestX, absDestY)) {
+				if (invertColors) {
+					on = !on;
+				}
+				
+				if (on) {
+					setPixelNibble(absDestX, absDestY, fgColor, screenBuffer);			
+				}
+				if(!on && (solidBg || bgColor > 0)) {
+					setPixelNibble(absDestX, absDestY, bgColor, screenBuffer);
+				}
 			}
 		}
 	}
