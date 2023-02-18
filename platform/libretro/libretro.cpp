@@ -226,14 +226,57 @@ EXPORT void retro_run()
         mouseBtnState = 0;
 
         if (_memory->drawState.devkitMode) {
-            int16_t pressed = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
-            int16_t pointX = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
-            int16_t pointY = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
+            bool havePointer = false;
+            bool haveAnalog = false;
+            bool haveMouse = false;
+            bool gotTouch = false;
             
-            if (pressed) {
-                picoMouseX = pointX * 64 / 32768 + 64;
-                picoMouseY = pointY * 64 / 32768 + 64;
-                mouseBtnState = 1;
+            uint64_t flags = 0;
+            enviro_cb(RETRO_ENVIRONMENT_GET_INPUT_DEVICE_CAPABILITIES, &flags);
+
+
+            haveMouse = flags & (1 << RETRO_DEVICE_MOUSE);
+            havePointer = flags & (1 << RETRO_DEVICE_POINTER);
+            haveAnalog = flags & (1 << RETRO_DEVICE_ANALOG);
+
+            if (haveMouse) {
+                int16_t pointX = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
+                int16_t pointY = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
+                mouseBtnState = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
+
+                //this needs to be adjusted to screen scale I think?
+                picoMouseX += pointX;
+                picoMouseY += pointY;
+            }
+            else if (havePointer) {
+                int16_t pointX = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
+                int16_t pointY = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
+                int16_t pressed = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
+                
+                if (pressed) {
+                    picoMouseX = pointX * 64 / 32768 + 64;
+                    picoMouseY = pointY * 64 / 32768 + 64;
+                    mouseBtnState = 1;
+                    gotTouch = true;
+                }
+            }
+
+            if (haveAnalog && !gotTouch) {
+                // Read the analog X/Y
+                int16_t analogX = input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X);
+                int16_t analogY = input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y);
+                // Pre-calculate where the cursor will be
+                int16_t tempX = picoMouseX + (((PicoScreenWidth / 32767.0f ) * analogX)/32);
+                int16_t tempY = picoMouseY + (((PicoScreenHeight / 32767.0f ) * analogY)/32);
+                // Make sure the cursor stays within the screen
+                if ( ((tempX - 0) | (PicoScreenWidth - tempX)) >= 0) {
+                    picoMouseX = tempX;
+                }
+                if ( ((tempY - 0) | (PicoScreenHeight - tempY)) >= 0) {
+                    picoMouseY = tempY;
+                }
+                // Grab the state of the X button
+                mouseBtnState = input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X);
             }
         }
         
