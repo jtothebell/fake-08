@@ -150,29 +150,8 @@ static std::string pxa_decompress(uint8_t const *input)
 
 #define HEADERLEN 8
 
-
-bool Cart::loadCartFromPng(std::string filename){
-    std::vector<unsigned char> image; //the raw pixels
-    unsigned width, height;
-
-    //decode
-    unsigned error = lodepng::decode(image, width, height, filename);
-    //the pixels are now in the vector "image", 4 bytes per pixel, ordered RGBARGBA..., use it as texture, draw it,
-
-    //if there's an error, display it
-    if(error) {
-        LoadError = "png decoder error " + std::string(lodepng_error_text(error));
-        Logger_Write("%s%s", LoadError.c_str(), "\n");
-        return false;
-    }
-
-    if (width != 160 || height != 205) {
-        LoadError = "Invalid png dimensions";
-        Logger_Write("invalid dimensions\n");
-        return false;
-    }
-
-    //160x205 == 32800 == 0x8020
+bool Cart::loadCartFromPng(std::vector<unsigned char> image) {
+        //160x205 == 32800 == 0x8020
     //0x8000 is actual used data size
     size_t imageBytes = image.size();
 
@@ -294,10 +273,70 @@ bool Cart::loadCartFromPng(std::string filename){
     }    
 
     return true;
+}
 
+bool Cart::loadCartFromPng(const unsigned char* cartData, size_t size){
+    std::vector<unsigned char> image; //the raw pixels
+    unsigned width, height;
+
+    //decode
+    unsigned error = lodepng::decode(image, width, height, cartData, size);
+
+    //if there's an error, display it
+    if(error) {
+        LoadError = "png decoder error " + std::string(lodepng_error_text(error));
+        Logger_Write("%s%s", LoadError.c_str(), "\n");
+        return false;
+    }
+
+    if (width != 160 || height != 205) {
+        LoadError = "Invalid png dimensions";
+        Logger_Write("invalid dimensions\n");
+        return false;
+    }
+
+    return loadCartFromPng(image);
+}
+
+
+bool Cart::loadCartFromPng(std::string filename){
+    std::vector<unsigned char> image; //the raw pixels
+    unsigned width, height;
+
+    //decode
+    unsigned error = lodepng::decode(image, width, height, filename);
+    //the pixels are now in the vector "image", 4 bytes per pixel, ordered RGBARGBA..., use it as texture, draw it,
+
+    //if there's an error, display it
+    if(error) {
+        LoadError = "png decoder error " + std::string(lodepng_error_text(error));
+        Logger_Write("%s%s", LoadError.c_str(), "\n");
+        return false;
+    }
+
+    if (width != 160 || height != 205) {
+        LoadError = "Invalid png dimensions";
+        Logger_Write("invalid dimensions\n");
+        return false;
+    }
+
+    return loadCartFromPng(image);
 }
 
 static std::regex _includeRegex = std::regex("\\s*#include\\s+([\\\\/A-Za-z0-9_\\-\\.]+)");
+
+Cart::Cart (const unsigned char* cartData, size_t size){
+    //TODO: check if it is a text cart, decode string, then parse
+    bool success = loadCartFromPng(cartData, size);
+
+    if (!success){
+        return;
+    }
+
+    LoadError = "";
+    Logger_Write("got valid png cart\n");
+
+}
 
 //tac08 based cart parsing and stripping of emoji
 Cart::Cart(std::string filename, std::string cartDirectory){

@@ -35,9 +35,12 @@ class Cart {
     void setMusic(std::string musicString);
 
     bool loadCartFromPng(std::string filename);
+    bool loadCartFromPng(const unsigned char* cartData, size_t size);
+    bool loadCartFromPng(std::vector<unsigned char> image);
 	
     public:
     Cart (std::string filename, std::string cartDirectory);
+    Cart (const unsigned char* cartData, size_t size);
     ~Cart();
 
     std::string FullCartPath;

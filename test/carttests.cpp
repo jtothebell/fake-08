@@ -1,5 +1,6 @@
 #include "doctest.h"
 #include "../source/cart.h"
+#include "../source/filehelpers.h"
 
 TEST_CASE("Loads bios cart") {
     Cart* cart = new Cart("__FAKE08-BIOS.p8", "");
@@ -222,6 +223,27 @@ TEST_CASE("cart loading options") {
 
     SUBCASE("FullCartPath is correct") {
         CHECK(cart->FullCartPath == "carts/cartparsetest.p8");
+    }
+
+    delete cart;
+}
+
+TEST_CASE("Load legacy png cart from memory") {
+    auto buffer = get_file_as_buffer("carts/test_legacypng_cart.p8.png");
+    const unsigned char* char_array = reinterpret_cast<const unsigned char*>(buffer.data());
+    Cart* cart = new Cart(char_array, buffer.size());
+
+    SUBCASE("error is empty") {
+        CHECK(cart->LoadError == "");
+    }
+    SUBCASE("Lua section is populated") {
+        CHECK(cart->LuaString == "print(\"0.1.10c\")\n");
+    }
+    SUBCASE("Gfx data is populated") {
+        CHECK(cart->CartRom.SpriteSheetData[0] == 0);
+        CHECK(cart->CartRom.SpriteSheetData[1] == 0);
+        CHECK(cart->CartRom.SpriteSheetData[2] == 0);
+        CHECK(cart->CartRom.SpriteSheetData[3] == 0);
     }
 
     delete cart;
