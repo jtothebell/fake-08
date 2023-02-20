@@ -150,7 +150,7 @@ EXPORT void retro_get_system_info(struct retro_system_info *info)
     info->library_name = "fake-08";
     info->library_version = "0.0.2.19"; //todo: get from build flags
     info->valid_extensions = "p8|png";
-    info->need_fullpath = true; // we load our own carts for now
+    info->need_fullpath = false;
 }
 
 EXPORT void retro_get_system_av_info(struct retro_system_av_info *info)
@@ -456,13 +456,26 @@ EXPORT void retro_cheat_set(unsigned index, bool enabled, const char *code)
 
 EXPORT bool retro_load_game(struct retro_game_info const *info)
 {
+    printf("loading game\n");
     auto containingDir = getDirectory(info->path);
+
+    printf("containing dir: %s\n", containingDir.c_str());
 
     if (containingDir.length() > 0) {
         setCartDirectory(containingDir);
     }
 
-    _vm->QueueCartChange(info->path);
+    if (info->size > 0) {
+        printf("using memory for rom. size: %zu\n", info->size);
+        const unsigned char* data = reinterpret_cast<const unsigned char*>(info->data);
+        _vm->QueueCartChange(data, info->size);
+        
+    }
+    else {
+        printf("using file path for rom %s\n", info->path);
+        _vm->QueueCartChange(info->path);
+    }
+
     return true;
 }
 
