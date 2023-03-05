@@ -156,6 +156,11 @@ int print(std::string str, int x, int y, uint8_t c) {
         printMode = 0;
     }
 
+    if ((printMode & PRINT_MODE_CUSTOM_FONT)) {
+        charWidth = _ph_mem->data[0x5600];
+        charHeight = _ph_mem->data[0x5602];
+    }
+
     uint8_t* drawPal = _ph_mem->drawState.drawPaletteMap;
 
     int framesBetweenChars = 0;

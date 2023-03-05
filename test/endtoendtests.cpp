@@ -707,6 +707,20 @@ TEST_CASE("Loading and running carts") {
 
         vm->CloseCart();
     }
+    SUBCASE("custom font test"){
+        //font used from Pico World Race https://www.lexaloffle.com/bbs/?pid=106518
+        //https://creativecommons.org/licenses/by-nc-sa/4.0/
+        vm->LoadCart("ppwr-big-digit-test.p8");
+        
+        SUBCASE("sceen matches screenshot"){
+            vm->UpdateAndDraw();
+
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/ppwr-big-digit-test_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
+
     
     delete vm;
     delete host;
