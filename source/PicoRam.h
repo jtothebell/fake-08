@@ -135,13 +135,35 @@ struct noteChannel {
     note n;
 };
 
-struct sfxChannel {
+struct rawSfxChannel {
     int16_t sfxId = -1;
     float offset = 0;
     bool can_loop = true;
     bool is_music = false;
     noteChannel current_note;
     noteChannel prev_note;
+    virtual rawSfxChannel *getChildChannel() {
+      return NULL;
+    }
+    virtual rawSfxChannel *getPrevChildChannel() {
+      return NULL;
+    }
+    virtual void rotateChannels() {
+    }
+};
+
+struct sfxChannel : rawSfxChannel {
+    rawSfxChannel customInstrumentChannel;
+    rawSfxChannel prevInstrumentChannel;
+    virtual rawSfxChannel *getChildChannel() {
+      return &(this->customInstrumentChannel);
+    }
+    virtual rawSfxChannel *getPrevChildChannel() {
+      return &(this->prevInstrumentChannel);
+    }
+    virtual void rotateChannels() {
+      prevInstrumentChannel = customInstrumentChannel;
+    }
 };
 
 struct audioState_t {
@@ -295,4 +317,3 @@ struct PicoRam
         uint8_t data[0x10000];
     };
 };
-
