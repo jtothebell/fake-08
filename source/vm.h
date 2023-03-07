@@ -42,6 +42,8 @@ class Vm {
     bool _pauseMenu;
     string _prevCartKey;
     string _nextCartKey;
+    const unsigned char* _nextCartData;
+    size_t _nextCartSize;
 
     string _cartLoadError;
 
@@ -70,6 +72,7 @@ class Vm {
     void LoadSettingsCart();
 
     void LoadCart(string filename, bool loadBiosOnFail = true);
+    void LoadCart(const unsigned char* cartData, size_t size, bool loadBiosOnFail = true);
 
     void UpdateAndDraw();
 
@@ -81,6 +84,7 @@ class Vm {
     void CloseCart();
 
     void QueueCartChange(string newcart);
+    void QueueCartChange(const unsigned char* cartData, size_t size);
 
     int GetTargetFps();
 

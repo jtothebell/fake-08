@@ -19,6 +19,24 @@ std::string get_file_contents(std::string filename){
   return "";
 }
 
+std::vector<char> get_file_as_buffer(std::string filename){
+    std::ifstream in(filename, std::ios::in | std::ios::binary);
+    if (in)
+    {
+        in.seekg(0, std::ios::end);
+        std::streamsize size = in.tellg();
+        in.seekg(0, std::ios::beg);
+
+        std::vector<char> buffer(size);
+        if (in.read(buffer.data(), size)) {
+            return buffer;
+        }
+    }
+
+    std::vector<char> buffer(0);
+    return buffer;
+}
+
 std::string get_first_four_chars(std::string filename){
     std::ifstream in(filename, std::ios::in | std::ios::binary);
     if (in)

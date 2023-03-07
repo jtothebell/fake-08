@@ -148,9 +148,9 @@ EXPORT void retro_get_system_info(struct retro_system_info *info)
 {
     memset(info, 0, sizeof(*info));
     info->library_name = "fake-08";
-    info->library_version = "0.0.2.19"; //todo: get from build flags
+    info->library_version = "0.0.2.20"; //todo: get from build flags
     info->valid_extensions = "p8|png";
-    info->need_fullpath = true; // we load our own carts for now
+    info->need_fullpath = false;
 }
 
 EXPORT void retro_get_system_av_info(struct retro_system_av_info *info)
@@ -161,7 +161,7 @@ EXPORT void retro_get_system_av_info(struct retro_system_av_info *info)
     info->geometry.max_width = PicoScreenWidth;
     info->geometry.max_height = PicoScreenHeight;
     info->geometry.aspect_ratio = 1.f;
-    info->timing.fps = 60.f; //todo: update this to 60, then handle 30 at callback level?
+    info->timing.fps = 60.f;
     info->timing.sample_rate = 22050.f;
 
     retro_pixel_format pf = RETRO_PIXEL_FORMAT_RGB565;
@@ -505,7 +505,15 @@ EXPORT bool retro_load_game(struct retro_game_info const *info)
         setCartDirectory(containingDir);
     }
 
-    _vm->QueueCartChange(info->path);
+    if (info->size > 0) {
+        const unsigned char* data = reinterpret_cast<const unsigned char*>(info->data);
+        _vm->QueueCartChange(data, info->size);
+        
+    }
+    else {
+        _vm->QueueCartChange(info->path);
+    }
+
     return true;
 }
 
