@@ -26,7 +26,7 @@
 
 
 static char const *legacyCompressionLut = "\n 0123456789abcdefghijklmnopqrstuvwxyz!#%(){}[]<>+=/*:;.,~_";
-
+static std::regex _includeRegex = std::regex("\\s*#include\\s+([\\\\/A-Za-z0-9_\\-\\.]+)");
 
 //https://github.com/samhocevar/zepto8/blob/b1a13516945c49e47495c739e6a43a241ad99291/src/pico8/code.cpp
 // Move to front structure
@@ -150,29 +150,8 @@ static std::string pxa_decompress(uint8_t const *input)
 
 #define HEADERLEN 8
 
-
-bool Cart::loadCartFromPng(std::string filename){
-    std::vector<unsigned char> image; //the raw pixels
-    unsigned width, height;
-
-    //decode
-    unsigned error = lodepng::decode(image, width, height, filename);
-    //the pixels are now in the vector "image", 4 bytes per pixel, ordered RGBARGBA..., use it as texture, draw it,
-
-    //if there's an error, display it
-    if(error) {
-        LoadError = "png decoder error " + std::string(lodepng_error_text(error));
-        Logger_Write("%s%s", LoadError.c_str(), "\n");
-        return false;
-    }
-
-    if (width != 160 || height != 205) {
-        LoadError = "Invalid png dimensions";
-        Logger_Write("invalid dimensions\n");
-        return false;
-    }
-
-    //160x205 == 32800 == 0x8020
+bool Cart::loadCartFromPng(std::vector<unsigned char> image) {
+        //160x205 == 32800 == 0x8020
     //0x8000 is actual used data size
     size_t imageBytes = image.size();
 
@@ -294,10 +273,163 @@ bool Cart::loadCartFromPng(std::string filename){
     }    
 
     return true;
-
 }
 
-static std::regex _includeRegex = std::regex("\\s*#include\\s+([\\\\/A-Za-z0-9_\\-\\.]+)");
+bool Cart::loadCartFromPng(const unsigned char* cartData, size_t size){
+    std::vector<unsigned char> image; //the raw pixels
+    unsigned width, height;
+
+    //decode
+    unsigned error = lodepng::decode(image, width, height, cartData, size);
+
+    //if there's an error, display it
+    if(error) {
+        LoadError = "png decoder error " + std::string(lodepng_error_text(error));
+        Logger_Write("%s%s", LoadError.c_str(), "\n");
+        return false;
+    }
+
+    if (width != 160 || height != 205) {
+        LoadError = "Invalid png dimensions";
+        Logger_Write("invalid dimensions\n");
+        return false;
+    }
+
+    return loadCartFromPng(image);
+}
+
+
+bool Cart::loadCartFromPng(std::string filename){
+    std::vector<unsigned char> image; //the raw pixels
+    unsigned width, height;
+
+    //decode
+    unsigned error = lodepng::decode(image, width, height, filename);
+    //the pixels are now in the vector "image", 4 bytes per pixel, ordered RGBARGBA..., use it as texture, draw it,
+
+    //if there's an error, display it
+    if(error) {
+        LoadError = "png decoder error " + std::string(lodepng_error_text(error));
+        Logger_Write("%s%s", LoadError.c_str(), "\n");
+        return false;
+    }
+
+    if (width != 160 || height != 205) {
+        LoadError = "Invalid png dimensions";
+        Logger_Write("invalid dimensions\n");
+        return false;
+    }
+
+    return loadCartFromPng(image);
+}
+
+bool Cart::loadCartFromString(std::string cartStr) {
+    fullCartText = cartStr;
+
+    std::istringstream s(cartStr);
+    std::string line;
+    std::string currSec = "";
+    std::smatch sm;
+    
+    while (std::getline(s, line)) {
+        line = utils::trimright(line, " \n\r");
+        line = charset::utf8_to_pico8(line);
+        //line = convert_emojis(line);
+
+        if (line.length() > 2 && line[0] == '_' && line[1] == '_') {
+            currSec = line;
+        }
+        else if (currSec == "__lua__"){
+            if (std::regex_match(line, sm, _includeRegex)) {
+                auto dir = getDirectory(FullCartPath);
+                auto fullPath = dir + "/" + sm[1].str();
+
+                auto includeContents = get_file_contents(fullPath);
+                if (includeContents.length() > 0){
+                    includeContents = charset::utf8_to_pico8(includeContents);
+                    LuaString += includeContents + "\n";
+                }
+                else{
+                    //todo: report error
+                    //error: can't find included file
+                    LoadError = "Can't find included file";
+                    return false;
+                }
+            }
+            else {
+                LuaString += line + "\n";
+            }
+        }
+        else if (currSec == "__gfx__"){
+            SpriteSheetString += line + "\n";
+        }
+        else if (currSec == "__gff__"){
+            SpriteFlagsString += line + "\n";
+        }
+        else if (currSec == "__map__"){
+            MapString += line + "\n";
+        }
+        else if (currSec == "__sfx__"){
+            SfxString += line + "\n";
+        }
+        else if (currSec == "__music__"){
+            MusicString += line + "\n";
+        }
+        else if (currSec == "__label__"){
+            LabelString += line + "\n";
+        }
+    }
+
+    Logger_Write("Setting cart graphics rom data from strings\n");
+    setSpriteSheet(SpriteSheetString);
+    setSpriteFlags(SpriteFlagsString);
+    setMapData(MapString);
+
+    Logger_Write("Setting cart audio rom data from strings\n");
+    setSfx(SfxString);
+    setMusic(MusicString);
+
+    return true;
+}
+
+Cart::Cart (const unsigned char* cartData, size_t size){
+    if (size < 5) {
+        LoadError = "Invalid cart. Less than 5 bytes";
+        return;
+    }
+
+    //TODO: check if it is a text cart, decode string, then parse
+    if ((char)cartData[0] == '\x89' && 
+        (char)cartData[1] == 'P' && 
+        (char)cartData[2] == 'N' && 
+        (char)cartData[3] == 'G') {
+        bool success = loadCartFromPng(cartData, size);
+
+        if (!success){
+            return;
+        }
+        LoadError = "";
+        Logger_Write("got valid png cart\n");
+    }
+    else if((char)cartData[0] == 'p' &&
+         (char)cartData[1] == 'i' && 
+         (char)cartData[2] == 'c' && 
+         (char)cartData[3] == 'o') {
+        std::string strContents(reinterpret_cast<const char*>(cartData), size);
+
+        bool success = loadCartFromString(strContents);
+
+        if (!success){
+            return;
+        }
+        LoadError = "";
+        Logger_Write("got valid p8 cart\n");
+    }
+    else {
+        LoadError = "unknown cart file format";
+    }
+
+}
 
 //tac08 based cart parsing and stripping of emoji
 Cart::Cart(std::string filename, std::string cartDirectory){
@@ -338,69 +470,11 @@ Cart::Cart(std::string filename, std::string cartDirectory){
         }
         Logger_Write("Got file contents... parsing cart\n");
 
-        fullCartText = cartStr;
+        bool success = loadCartFromString(cartStr);
 
-        std::istringstream s(cartStr);
-        std::string line;
-        std::string currSec = "";
-        std::smatch sm;
-        
-        while (std::getline(s, line)) {
-            line = utils::trimright(line, " \n\r");
-            line = charset::utf8_to_pico8(line);
-            //line = convert_emojis(line);
-
-            if (line.length() > 2 && line[0] == '_' && line[1] == '_') {
-                currSec = line;
-            }
-            else if (currSec == "__lua__"){
-                if (std::regex_match(line, sm, _includeRegex)) {
-                    auto dir = getDirectory(FullCartPath);
-                    auto fullPath = dir + "/" + sm[1].str();
-
-                    auto includeContents = get_file_contents(fullPath);
-                    if (includeContents.length() > 0){
-                        includeContents = charset::utf8_to_pico8(includeContents);
-                        LuaString += includeContents + "\n";
-                    }
-                    else{
-                        //todo: report error
-                        //error: can't find included file
-                        return;
-                    }
-                }
-                else {
-                    LuaString += line + "\n";
-                }
-            }
-            else if (currSec == "__gfx__"){
-                SpriteSheetString += line + "\n";
-            }
-            else if (currSec == "__gff__"){
-                SpriteFlagsString += line + "\n";
-            }
-            else if (currSec == "__map__"){
-                MapString += line + "\n";
-            }
-            else if (currSec == "__sfx__"){
-                SfxString += line + "\n";
-            }
-            else if (currSec == "__music__"){
-                MusicString += line + "\n";
-            }
-            else if (currSec == "__label__"){
-                LabelString += line + "\n";
-            }
+        if (!success){
+            return;
         }
-
-        Logger_Write("Setting cart graphics rom data from strings\n");
-        setSpriteSheet(SpriteSheetString);
-        setSpriteFlags(SpriteFlagsString);
-        setMapData(MapString);
-
-        Logger_Write("Setting cart audio rom data from strings\n");
-        setSfx(SfxString);
-        setMusic(MusicString);
     }
     else if (firstFourChars == "\x89PNG") {
         bool success = loadCartFromPng(FullCartPath);

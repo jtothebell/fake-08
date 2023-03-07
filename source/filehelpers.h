@@ -1,6 +1,9 @@
 #include <string>
+#include <vector>
 
 std::string get_file_contents(std::string filename);
+
+std::vector<char> get_file_as_buffer(std::string filename);
 
 std::string get_first_four_chars(std::string filename);
 

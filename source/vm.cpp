@@ -434,6 +434,24 @@ void Vm::LoadCart(std::string filename, bool loadBiosOnFail){
     }
 }
 
+void Vm::LoadCart(const unsigned char* cartData, size_t size, bool loadBiosOnFail){
+    Logger_Write("Loading cart from memory\n");
+    CloseCart();
+
+    Logger_Write("Calling Cart Constructor\n");
+    Cart *cart = new Cart(cartData, size);
+
+    _cartLoadError = cart->LoadError;
+
+    bool success = loadCart(cart);
+
+    if (loadBiosOnFail && !success) {
+        CloseCart();
+        //todo: show an error message on the bios?
+        LoadBiosCart();
+    }
+}
+
 void Vm::togglePauseMenu(){
     _input->SetState(0, 0);
     if (_memory->drawState.suppressPause) {    
@@ -527,7 +545,12 @@ void Vm::UpdateAndDraw() {
 
     if (_cartChangeQueued) {
         _prevCartKey = CurrentCartFilename();
-        LoadCart(_nextCartKey);
+        if (_nextCartSize > 0){
+            LoadCart(_nextCartData, _nextCartSize);
+        }
+        else {
+            LoadCart(_nextCartKey);
+        }
     }
 
     if (_pauseMenu){
@@ -622,6 +645,16 @@ void Vm::CloseCart() {
 
 void Vm::QueueCartChange(std::string filename){
     _nextCartKey = filename;
+    _nextCartData = nullptr;
+    _nextCartSize = 0;
+    _cartChangeQueued = true;
+    _pauseMenu = false;
+}
+
+void Vm::QueueCartChange(const unsigned char* cartData, size_t size){
+    _nextCartKey = "";
+    _nextCartData = cartData;
+    _nextCartSize = size;
     _cartChangeQueued = true;
     _pauseMenu = false;
 }
