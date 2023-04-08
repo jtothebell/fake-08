@@ -720,6 +720,20 @@ TEST_CASE("Loading and running carts") {
 
         vm->CloseCart();
     }
+    SUBCASE("split with no args test"){
+        vm->LoadCart("split_noargs_test.p8", false);
+
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("sceen matches screenshot"){
+            vm->UpdateAndDraw();
+
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/split_noargs_test_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
 
     
     delete vm;
