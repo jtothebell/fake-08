@@ -120,7 +120,7 @@ else ifeq ($(platform), miyoomini)
    CXX = arm-linux-gnueabihf-g++
    AR = arm-linux-gnueabihf-ar
    STRIP = arm-linux-gnueabihf-strip
-   CXXFLAGS += -marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7ve
+   CXXFLAGS += -marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7ve -D_NEED_FULL_PATH_
    fpic := -fPIC
    SHARED := -shared -Wl,--version-script=link.T
 

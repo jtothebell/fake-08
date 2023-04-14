@@ -150,7 +150,11 @@ EXPORT void retro_get_system_info(struct retro_system_info *info)
     info->library_name = "fake-08";
     info->library_version = "0.0.2.20"; //todo: get from build flags
     info->valid_extensions = "p8|png";
+    #ifdef _NEED_FULL_PATH_
+    info->need_fullpath = true;
+    #else
     info->need_fullpath = false;
+    #endif
 }
 
 EXPORT void retro_get_system_av_info(struct retro_system_av_info *info)
