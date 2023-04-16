@@ -734,6 +734,20 @@ TEST_CASE("Loading and running carts") {
 
         vm->CloseCart();
     }
+    SUBCASE("string bracket indexing and sub test"){
+        vm->LoadCart("str_index_sub_test.p8", false);
+
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("sceen matches screenshot"){
+            vm->UpdateAndDraw();
+
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/str_index_sub_test_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
 
     
     delete vm;
