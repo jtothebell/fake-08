@@ -11,6 +11,9 @@ const char * p8GlobalLuaFunctions = R"#(
 --Table Helpers
 ---------------------------------
 
+--string indexing: https://lua-users.org/wiki/StringIndexing
+getmetatable('').__index = function(str,i) return string.sub(str,i,i) end
+
 --from zepto 8 bios.p8
 -- PicoLove functions did not return values added/deleted
 
