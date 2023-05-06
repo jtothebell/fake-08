@@ -375,8 +375,18 @@ char luaStateBuffer[LUASTATEBUFFSIZE];
 
 EXPORT size_t retro_serialize_size()
 {
-    return sizeof(PicoRam) + sizeof(audioState_t) + LUASTATEBUFFSIZE;
+    return 
+    //header
+    4 + 
+    //size plus ram state
+    sizeof(size_t) + sizeof(PicoRam) + 
+    //size plus audio state
+    sizeof(size_t) + sizeof(audioState_t) + 
+    //size plus lua state
+    sizeof(size_t) + LUASTATEBUFFSIZE;
 }
+
+#define SAVE_STATE_HEADER_SIZE 4
 
 EXPORT bool retro_serialize(void *data, size_t size)
 {
@@ -398,13 +408,15 @@ EXPORT bool retro_serialize(void *data, size_t size)
     if (log_cb) {
         log_cb(RETRO_LOG_INFO, "setting up lua state buffer\n");
     }
+    char headerBuffer[SAVE_STATE_HEADER_SIZE] = {'f', '8', 0, 1};
+    memcpy((char*)data, &headerBuffer, SAVE_STATE_HEADER_SIZE);
     
     memset(luaStateBuffer, 0, LUASTATEBUFFSIZE);
 
     if (log_cb) {
         log_cb(RETRO_LOG_INFO, "serializing lua state\n");
     }
-    size_t offset = 0;
+    size_t offset = SAVE_STATE_HEADER_SIZE;
     size_t luaStateSize = _vm->serializeLuaState(luaStateBuffer);
 
     if (log_cb) {
@@ -424,12 +436,20 @@ EXPORT bool retro_serialize(void *data, size_t size)
         log_cb(RETRO_LOG_INFO, "copying pico 8 memory to buffer\n");
     }
 
+    size_t picoRamSize = sizeof(PicoRam);
+    memcpy(((char*)data + offset), &picoRamSize, sizeof(size_t));
+    offset += sizeof(size_t);
+
     memcpy(((char*)data + offset), _memory->data, sizeof(PicoRam));
     offset += sizeof(PicoRam);
 
     if (log_cb) {
         log_cb(RETRO_LOG_INFO, "copying audio state size to buffer\n");
     }
+
+    size_t audioStateSize = sizeof(audioState_t);
+    memcpy(((char*)data + offset), &audioStateSize, sizeof(size_t));
+    offset += sizeof(size_t);
 
     memcpy(((char*)data + offset), _audio->getAudioState(), sizeof(audioState_t));
     offset += sizeof(audioState_t);
@@ -441,8 +461,8 @@ EXPORT bool retro_serialize(void *data, size_t size)
     return true;
 }
 
-EXPORT bool retro_unserialize(const void *data, size_t size)
-{
+
+bool deserialize_legacy(const void *data, size_t size) {
     if (log_cb) {
         log_cb(RETRO_LOG_INFO, "lua deserialize\n");
     }
@@ -487,8 +507,94 @@ EXPORT bool retro_unserialize(const void *data, size_t size)
         log_cb(RETRO_LOG_INFO, "copying audio state\n");
     }
 
+    if (offset + sizeof(audioState_t) > size) {
+        log_cb(RETRO_LOG_INFO, "unable to deserialize audio state. skipping\n");
+        return true;
+    }
+
     memcpy(_audio->getAudioState(), ((char*)data + offset), sizeof(audioState_t));
     offset += sizeof(audioState_t);
+    
+    return true;
+}
+
+
+EXPORT bool retro_unserialize(const void *data, size_t size)
+{
+    if (log_cb) {
+        log_cb(RETRO_LOG_INFO, "lua deserialize\n");
+    }
+
+    if (log_cb) {
+        log_cb(RETRO_LOG_INFO, "setting up lua state buffer\n");
+    }
+    memset(luaStateBuffer, 0, LUASTATEBUFFSIZE);
+
+    if (log_cb) {
+        log_cb(RETRO_LOG_INFO, "copying lua state from buffer to var\n");
+    }
+    //read header
+    char headerBuffer[SAVE_STATE_HEADER_SIZE];
+    memcpy(&headerBuffer, data, SAVE_STATE_HEADER_SIZE);
+    bool legacy = true;
+    if (headerBuffer[0] == 'f' && headerBuffer[1] == '8') {
+        legacy = false;
+    }
+
+    if (legacy) {
+        return deserialize_legacy(data, size);
+    }
+
+    size_t offset = SAVE_STATE_HEADER_SIZE;
+    size_t luaStateSize;
+    memcpy(&luaStateSize, ((char*)data + offset),  sizeof(size_t));
+    offset += sizeof(size_t);
+
+    if (log_cb) {
+        log_cb(RETRO_LOG_INFO, "got lua state size %d\n", luaStateSize);
+    }
+
+    if (log_cb) {
+        log_cb(RETRO_LOG_INFO, "copying lua state\n");
+    }
+
+    memcpy(luaStateBuffer, ((char*)data + offset), luaStateSize);
+    offset += luaStateSize;
+
+    if (log_cb) {
+        log_cb(RETRO_LOG_INFO, "deserializing lua state\n");
+    }
+    _vm->deserializeLuaState(luaStateBuffer, luaStateSize);
+
+    if (log_cb) {
+        log_cb(RETRO_LOG_INFO, "copying pico 8 memory\n");
+    }
+
+    size_t picoRamSize;
+    memcpy(&picoRamSize, ((char*)data + offset),  sizeof(size_t));
+    offset += sizeof(size_t);
+
+    if (picoRamSize != sizeof(PicoRam)) {
+        log_cb(RETRO_LOG_WARN, "mismatch in expected PicoRam size\n");
+    }
+
+    memcpy(_memory->data, ((char*)data + offset), picoRamSize);
+    offset += picoRamSize;
+
+    if (log_cb) {
+        log_cb(RETRO_LOG_INFO, "copying audio state\n");
+    }
+
+    size_t audioStateSize;
+    memcpy(&audioStateSize, ((char*)data + offset),  sizeof(size_t));
+    offset += sizeof(size_t);
+
+    if (audioStateSize != sizeof(audioState_t)) {
+        log_cb(RETRO_LOG_WARN, "mismatch in expected audio state size\n");
+    }
+
+    memcpy(_audio->getAudioState(), ((char*)data + offset), audioStateSize);
+    offset += audioStateSize;
     
     return true;
 }
