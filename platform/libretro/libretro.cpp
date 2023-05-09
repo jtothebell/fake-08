@@ -447,12 +447,12 @@ EXPORT bool retro_serialize(void *data, size_t size)
         log_cb(RETRO_LOG_INFO, "copying audio state size to buffer\n");
     }
 
-    size_t audioStateSize = sizeof(audioState_t);
-    memcpy(((char*)data + offset), &audioStateSize, sizeof(size_t));
+    size_t musicChannelSize = sizeof(musicChannel);
+    memcpy(((char*)data + offset), &musicChannelSize, sizeof(size_t));
     offset += sizeof(size_t);
 
-    memcpy(((char*)data + offset), _audio->getAudioState(), sizeof(audioState_t));
-    offset += sizeof(audioState_t);
+    memcpy(((char*)data + offset), &_audio->getAudioState()->_musicChannel, sizeof(musicChannel));
+    offset += sizeof(musicChannel);
 
     if (log_cb) {
         log_cb(RETRO_LOG_INFO, "returning true\n");
@@ -464,16 +464,16 @@ EXPORT bool retro_serialize(void *data, size_t size)
 
 bool deserialize_legacy(const void *data, size_t size) {
     if (log_cb) {
-        log_cb(RETRO_LOG_INFO, "lua deserialize\n");
+        log_cb(RETRO_LOG_INFO, "LEGACY lua deserialize LEGACY\n");
     }
 
     if (log_cb) {
-        log_cb(RETRO_LOG_INFO, "setting up lua state buffer\n");
+        log_cb(RETRO_LOG_INFO, "LEGACY setting up lua state buffer\n");
     }
     memset(luaStateBuffer, 0, LUASTATEBUFFSIZE);
 
     if (log_cb) {
-        log_cb(RETRO_LOG_INFO, "copying lua state from buffer to var\n");
+        log_cb(RETRO_LOG_INFO, "LEGACY copying lua state from buffer to var\n");
     }
     size_t offset = 0;
     size_t luaStateSize;
@@ -481,38 +481,33 @@ bool deserialize_legacy(const void *data, size_t size) {
     offset += sizeof(size_t);
 
     if (log_cb) {
-        log_cb(RETRO_LOG_INFO, "got lua state size %d\n", luaStateSize);
+        log_cb(RETRO_LOG_INFO, "LEGACY got lua state size %d\n", luaStateSize);
     }
 
     if (log_cb) {
-        log_cb(RETRO_LOG_INFO, "copying lua state\n");
+        log_cb(RETRO_LOG_INFO, "LEGACY copying lua state\n");
     }
 
     memcpy(luaStateBuffer, ((char*)data + offset), luaStateSize);
     offset += luaStateSize;
 
     if (log_cb) {
-        log_cb(RETRO_LOG_INFO, "deserializing lua state\n");
+        log_cb(RETRO_LOG_INFO, "LEGACY deserializing lua state\n");
     }
     _vm->deserializeLuaState(luaStateBuffer, luaStateSize);
 
     if (log_cb) {
-        log_cb(RETRO_LOG_INFO, "copying pico 8 memory\n");
+        log_cb(RETRO_LOG_INFO, "LEGACY copying pico 8 memory\n");
     }
 
     memcpy(_memory->data, ((char*)data + offset), sizeof(PicoRam));
     offset += sizeof(PicoRam);
 
     if (log_cb) {
-        log_cb(RETRO_LOG_INFO, "copying audio state\n");
+        log_cb(RETRO_LOG_INFO, "LEGACY copying audio state\n");
     }
 
-    if (offset + sizeof(audioState_t) > size) {
-        log_cb(RETRO_LOG_INFO, "unable to deserialize audio state. skipping\n");
-        return true;
-    }
-
-    memcpy(_audio->getAudioState(), ((char*)data + offset), sizeof(audioState_t));
+    memcpy(&_audio->getAudioState()->_musicChannel, ((char*)data + offset), sizeof(musicChannel));
     offset += sizeof(audioState_t);
     
     return true;
@@ -585,16 +580,16 @@ EXPORT bool retro_unserialize(const void *data, size_t size)
         log_cb(RETRO_LOG_INFO, "copying audio state\n");
     }
 
-    size_t audioStateSize;
-    memcpy(&audioStateSize, ((char*)data + offset),  sizeof(size_t));
+    size_t musicChannelSize;
+    memcpy(&musicChannelSize, ((char*)data + offset),  sizeof(size_t));
     offset += sizeof(size_t);
 
-    if (audioStateSize != sizeof(audioState_t)) {
-        log_cb(RETRO_LOG_WARN, "mismatch in expected audio state size\n");
+    if (musicChannelSize != sizeof(musicChannel)) {
+        log_cb(RETRO_LOG_WARN, "mismatch in expected music channel size\n");
     }
 
-    memcpy(_audio->getAudioState(), ((char*)data + offset), audioStateSize);
-    offset += audioStateSize;
+    memcpy(&_audio->getAudioState()->_musicChannel, ((char*)data + offset), musicChannelSize);
+    offset += musicChannelSize;
     
     return true;
 }
