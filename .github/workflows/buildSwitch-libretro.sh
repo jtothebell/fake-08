@@ -13,4 +13,4 @@ cd ../../retroarch
 
 make -f Makefile.libnx
 
-cp retroarch_switch.nro retroarch_fake08_switch.nro
+cp retroarch_switch.nro fake08_libretro_libnx.nro
