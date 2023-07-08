@@ -39,12 +39,19 @@ end
 -- from returning #c in cases where the table is no longer an array. See
 -- the tables.p8 unit test cart for more details.
 --
+-- count() takes an optional value as its second argument, if this is present
+-- then count() will return the number of times the value is found in the table.
+--
 -- We also try to mimic the PICO-8 error messages:
 --  count(nil) → attempt to get length of local 'c' (a nil value)
 --  count("x") → attempt to index local 'c' (a string value)
-function count(c)
+function count(c,v)
     local cnt,max = 0,#c
-    for i=1,max do if (c[i] != nil) cnt+=1 end
+    if v == nil then
+        for i=1,max do if (c[i] != nil) cnt+=1 end
+    else
+        for i=1,max do if (c[i] == v) cnt+=1 end
+    end
     return cnt
 end
 
