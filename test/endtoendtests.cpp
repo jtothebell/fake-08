@@ -748,6 +748,20 @@ TEST_CASE("Loading and running carts") {
 
         vm->CloseCart();
     }
+    SUBCASE("count with val arg test"){
+        vm->LoadCart("count_val_test.p8", false);
+
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("sceen matches screenshot"){
+            vm->UpdateAndDraw();
+
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/count_val_test_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
 
     
     delete vm;
