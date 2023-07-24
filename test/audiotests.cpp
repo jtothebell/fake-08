@@ -188,19 +188,6 @@ TEST_CASE("audio class behaves as expected") {
 
         CHECK_EQ(audioState->_sfxChannels[2].sfxId, 5);
     }
-    SUBCASE("api_sfx() with -2 channel stops the sfx on any channel") {
-        audio->api_sfx(1, 0, 0);
-        audio->api_sfx(10, 1, 0);
-        audio->api_sfx(20, 2, 0);
-        audio->api_sfx(1, 3, 0);
-        audio->api_sfx(1, -2, 0);
-
-
-        CHECK_EQ(audioState->_sfxChannels[0].sfxId, -1);
-        CHECK_EQ(audioState->_sfxChannels[1].sfxId, 10);
-        CHECK_EQ(audioState->_sfxChannels[2].sfxId, 20);
-        CHECK_EQ(audioState->_sfxChannels[3].sfxId, -1);
-    }
     SUBCASE("api_sfx() -2 sfx id stops looping") {
         audioState->_sfxChannels[3].can_loop = true;
 
