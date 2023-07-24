@@ -46,7 +46,17 @@ audioState_t* Audio::getAudioState() {
 
 void Audio::api_sfx(int sfx, int channel, int offset){
 
-    if (sfx < -2 || sfx > 63 || channel < -1 || channel > 3 || offset > 31) {
+    if (sfx < -2 || sfx > 63 || channel < -2 || channel > 3 || offset > 31) {
+        return;
+    }
+
+    //CHANNEL -2: to stop the given sound from playing on any channel
+    if (channel == -2) {
+        for(int i = 0; i < 4; i++) {
+            if (_audioState._sfxChannels[i].sfxId == sfx) {
+                _audioState._sfxChannels[i].sfxId = -1;
+            }
+        }
         return;
     }
 
