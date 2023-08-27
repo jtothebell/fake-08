@@ -6,6 +6,11 @@
 #include "hostVmShared.h"
 #include "Audio.h"
 
+#if (defined(_WIN32) || defined(__WIN32__))
+#include <direct.h> /* _mkdir */
+#define mkdir(A, B) _mkdir(A)
+#endif
+
 
 enum StretchOption {
   PixelPerfect,
