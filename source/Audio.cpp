@@ -3,6 +3,7 @@
 #include "hostVmShared.h"
 #include "mathhelpers.h"
 
+#include <cstdint>
 #include <string>
 #include <sstream>
 #include <algorithm> // std::max

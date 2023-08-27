@@ -1,4 +1,6 @@
 #include <string.h>
+#include <cstdint>
+
 
 void setInputState(
     uint8_t kDown,
