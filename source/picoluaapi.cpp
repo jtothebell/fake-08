@@ -708,11 +708,11 @@ int fillp(lua_State *L) {
     return 1;
 }
 
-int flip(lua_State *L) {
-    _vmForLuaApi->vm_flip();
+// int flip(lua_State *L) {
+//     _vmForLuaApi->vm_flip();
 
-    return 0;
-}
+//     return 0;
+// }
 
 //Input
 

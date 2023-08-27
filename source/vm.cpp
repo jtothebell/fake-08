@@ -46,7 +46,7 @@ Vm::Vm(
         _loadedCart(nullptr),
         _luaState(nullptr),
         _cleanupDeps(false),
-        _targetFps(30),
+        //_targetFps(30),
         _picoFrameCount(0),
         _cartChangeQueued(false),
         _nextCartKey(""),
@@ -167,7 +167,7 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "__loadsettingscart", loadsettingscart);
     lua_register(_luaState, "__togglepausemenu", togglepausemenu);
     lua_register(_luaState, "__resetcart", resetcart);
-    lua_register(_luaState, "load", load);
+    //lua_register(_luaState, "load", load);
 	
     //settings
     lua_register(_luaState, "__getsetting", getsetting);
@@ -216,7 +216,7 @@ bool Vm::loadCart(Cart* cart) {
 
     //stubbed in graphics:
     lua_register(_luaState, "fillp", fillp);
-    lua_register(_luaState, "flip", flip);
+    //lua_register(_luaState, "flip", flip);
 
     //input
     lua_register(_luaState, "btn", btn);
@@ -277,6 +277,7 @@ bool Vm::loadCart(Cart* cart) {
     // Push the eris.init_persist_all function on the top of the lua stack (or nil if it doesn't exist)
     // we call this function to establish the default global state of things not to save in the save state
     // needs to be called after globals are loaded but before the cart is run, or _init is called
+    //TODO: move these calls to the glue code?
     lua_getglobal(_luaState, "eris");
 	lua_getfield(_luaState, -1, "init_persist_all");
 
@@ -289,7 +290,31 @@ bool Vm::loadCart(Cart* cart) {
     //pop the eris.init_persist_all fuction off the stack now that we're done with it
     lua_pop(_luaState, 1);
 
-    int loadedCart = luaL_loadstring(_luaState, cart->LuaString.c_str());
+    //need to add game loop to the bottom of the cart code
+    const char* gameLoop = R"#(
+--game loop 
+if (_init) _init()
+if _update or _update60 or _draw then
+    local do_frame = true
+    while true do
+        if _update60 then
+            _update_buttons()
+            _update60()
+        elseif _update then
+            if (do_frame) _update_buttons() _update()
+            do_frame = not do_frame
+        else
+            _update_buttons()
+        end
+        if (_draw and do_frame) _draw()
+        yield()
+    end
+end
+    )#";
+
+    auto cartLua = cart->LuaString + gameLoop;
+
+    int loadedCart = luaL_loadstring(_luaState, cartLua.c_str());
     if (loadedCart != LUA_OK) {
         _cartLoadError = "Error loading cart lua:\n";
         _cartLoadError.append(lua_tostring(_luaState, -1));
@@ -332,32 +357,32 @@ bool Vm::loadCart(Cart* cart) {
     #endif
 
     // Push the _init function on the top of the lua stack (or nil if it doesn't exist)
-    lua_getglobal(_luaState, "_init");
+    // lua_getglobal(_luaState, "_init");
 
-    if (lua_isfunction(_luaState, -1)) {
-        if (lua_pcall(_luaState, 0, 0, 0)){
-            _cartLoadError = lua_tostring(_luaState, -1);
-            Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
-            lua_pop(_luaState, 1);
-            QueueCartChange(BiosCartName);
-            return false;
-        }
-    }
+    // if (lua_isfunction(_luaState, -1)) {
+    //     if (lua_pcall(_luaState, 0, 0, 0)){
+    //         _cartLoadError = lua_tostring(_luaState, -1);
+    //         Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
+    //         lua_pop(_luaState, 1);
+    //         QueueCartChange(BiosCartName);
+    //         return false;
+    //     }
+    // }
 
-    //pop the _init fuction off the stack now that we're done with it
-    lua_pop(_luaState, 0);
+    // //pop the _init fuction off the stack now that we're done with it
+    // lua_pop(_luaState, 0);
 
 
 
     //check for update, mark correct target fps
-    lua_getglobal(_luaState, "_update60");
-    if (lua_isfunction(_luaState, -1)) {
-        _targetFps = 60;
-    }
-    else {
-        _targetFps = 30;
-    }
-    lua_pop(_luaState, 0);
+    // lua_getglobal(_luaState, "_update60");
+    // if (lua_isfunction(_luaState, -1)) {
+    //     _targetFps = 60;
+    // }
+    // else {
+    //     _targetFps = 30;
+    // }
+    // lua_pop(_luaState, 0);
 
 
     //customize bios per host's requirements
@@ -375,6 +400,7 @@ bool Vm::loadCart(Cart* cart) {
         }
     }
 
+    //move this to cart glue code?
     if (_cartBreadcrumb.length() > 0) {
         ExecuteLua("__addbreadcrumb(\"" + _cartBreadcrumb +"\", \"" + _prevCartKey +"\")", "");
     }
@@ -538,75 +564,75 @@ void Vm::deserializeCartDataToMemory(std::string cartDataStr) {
     }
 }
 
-void Vm::UpdateAndDraw() {
-    update_buttons();
+// void Vm::UpdateAndDraw() {
+//     update_buttons();
 
-    _picoFrameCount++;
+//     _picoFrameCount++;
 
-    if (_cartChangeQueued) {
-        _prevCartKey = CurrentCartFilename();
-        if (_nextCartSize > 0){
-            LoadCart(_nextCartData, _nextCartSize);
-        }
-        else {
-            LoadCart(_nextCartKey);
-        }
-    }
+//     if (_cartChangeQueued) {
+//         _prevCartKey = CurrentCartFilename();
+//         if (_nextCartSize > 0){
+//             LoadCart(_nextCartData, _nextCartSize);
+//         }
+//         else {
+//             LoadCart(_nextCartKey);
+//         }
+//     }
 
-    if (_pauseMenu){
+//     if (_pauseMenu){
 
-        lua_getglobal(_luaState, "__f08_menu_update");
-        lua_call(_luaState, 0, 0);
-        lua_pop(_luaState, 0);
+//         lua_getglobal(_luaState, "__f08_menu_update");
+//         lua_call(_luaState, 0, 0);
+//         lua_pop(_luaState, 0);
 
-        lua_getglobal(_luaState, "__f08_menu_draw");
-        lua_call(_luaState, 0, 0);
-        lua_pop(_luaState, 0);
-    }
-    else{
-        // Push the _update function on the top of the lua stack
-        if (_targetFps == 60) {
-            lua_getglobal(_luaState, "_update60");
-            if (!lua_isfunction(_luaState, -1)) {
-                lua_getglobal(_luaState, "_update");
-            }
-        } else {
-            lua_getglobal(_luaState, "_update");
-            if (!lua_isfunction(_luaState, -1)) {
-                lua_getglobal(_luaState, "_update60");
-            }
-        }
+//         lua_getglobal(_luaState, "__f08_menu_draw");
+//         lua_call(_luaState, 0, 0);
+//         lua_pop(_luaState, 0);
+//     }
+//     else{
+//         // Push the _update function on the top of the lua stack
+//         if (_targetFps == 60) {
+//             lua_getglobal(_luaState, "_update60");
+//             if (!lua_isfunction(_luaState, -1)) {
+//                 lua_getglobal(_luaState, "_update");
+//             }
+//         } else {
+//             lua_getglobal(_luaState, "_update");
+//             if (!lua_isfunction(_luaState, -1)) {
+//                 lua_getglobal(_luaState, "_update60");
+//             }
+//         }
 
-        if (lua_isfunction(_luaState, -1)) {
-            if (lua_pcall(_luaState, 0, 0, 0)){
-                _cartLoadError = lua_tostring(_luaState, -1);
-                Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
-                lua_pop(_luaState, 1);
-                QueueCartChange(BiosCartName);
-                return;
-            }
-        }
-        //pop the update fuction off the stack now that we're done with it
-        lua_pop(_luaState, 0);
+//         if (lua_isfunction(_luaState, -1)) {
+//             if (lua_pcall(_luaState, 0, 0, 0)){
+//                 _cartLoadError = lua_tostring(_luaState, -1);
+//                 Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
+//                 lua_pop(_luaState, 1);
+//                 QueueCartChange(BiosCartName);
+//                 return;
+//             }
+//         }
+//         //pop the update fuction off the stack now that we're done with it
+//         lua_pop(_luaState, 0);
 
-        lua_getglobal(_luaState, "_draw");
-        if (lua_isfunction(_luaState, -1)) {
-            if (lua_pcall(_luaState, 0, 0, 0)){
-                _cartLoadError = lua_tostring(_luaState, -1);
-                Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
-                lua_pop(_luaState, 1);
-                QueueCartChange(BiosCartName);
-                return;
-            }
-        }
-        lua_pop(_luaState, 0);
+//         lua_getglobal(_luaState, "_draw");
+//         if (lua_isfunction(_luaState, -1)) {
+//             if (lua_pcall(_luaState, 0, 0, 0)){
+//                 _cartLoadError = lua_tostring(_luaState, -1);
+//                 Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
+//                 lua_pop(_luaState, 1);
+//                 QueueCartChange(BiosCartName);
+//                 return;
+//             }
+//         }
+//         lua_pop(_luaState, 0);
 
-        if (_input->btnp(6)) {
-            togglePauseMenu();
-        }
-    }
+//         if (_input->btnp(6)) {
+//             togglePauseMenu();
+//         }
+//     }
 
-}
+// }
 
 uint8_t* Vm::GetPicoInteralFb(){
     return _graphics->GetP8FrameBuffer();
@@ -976,52 +1002,52 @@ void Vm::update_buttons() {
     }
 }
 
-void Vm::vm_flip() {
-    if (!_host->shouldRunMainLoop()){
-        abortLua = true;
-        if (abortLua){
-            longjmp(place, 1);
-        }
-    }
+// void Vm::vm_flip() {
+//     if (!_host->shouldRunMainLoop()){
+//         abortLua = true;
+//         if (abortLua){
+//             longjmp(place, 1);
+//         }
+//     }
 
-    if (!_host->shouldQuit() && !_cartChangeQueued) {
-        update_buttons();
+//     if (!_host->shouldQuit() && !_cartChangeQueued) {
+//         update_buttons();
 
-        _picoFrameCount++;
+//         _picoFrameCount++;
 
-        //todo: pause menu here, but for now just load bios
-        if (_input->btnp(6)) {
-            //QueueCartChange(BiosCartName);
-            togglePauseMenu();
+//         //todo: pause menu here, but for now just load bios
+//         if (_input->btnp(6)) {
+//             //QueueCartChange(BiosCartName);
+//             togglePauseMenu();
 
-            //shouldn't get here
-            return;
-        }
+//             //shouldn't get here
+//             return;
+//         }
 
-        _host->changeStretch();
+//         _host->changeStretch();
 
-        _host->setTargetFps(_targetFps);
+//         _host->setTargetFps(_targetFps);
 
-        uint8_t* picoFb = GetPicoInteralFb();
-        uint8_t* screenPaletteMap = GetScreenPaletteMap();
+//         uint8_t* picoFb = GetPicoInteralFb();
+//         uint8_t* screenPaletteMap = GetScreenPaletteMap();
 
-        if (_pauseMenu){
-            //pause menu probably needs refactor out of lua. For now this is better than just quitting
-            lua_getglobal(_luaState, "__f08_menu_update");
-            lua_call(_luaState, 0, 0);
-            lua_pop(_luaState, 0);
+//         if (_pauseMenu){
+//             //pause menu probably needs refactor out of lua. For now this is better than just quitting
+//             lua_getglobal(_luaState, "__f08_menu_update");
+//             lua_call(_luaState, 0, 0);
+//             lua_pop(_luaState, 0);
 
-            lua_getglobal(_luaState, "__f08_menu_draw");
-            lua_call(_luaState, 0, 0);
-            lua_pop(_luaState, 0);
-        }
+//             lua_getglobal(_luaState, "__f08_menu_draw");
+//             lua_call(_luaState, 0, 0);
+//             lua_pop(_luaState, 0);
+//         }
 
-        _host->drawFrame(picoFb, screenPaletteMap, _memory->drawState.drawMode);
+//         _host->drawFrame(picoFb, screenPaletteMap, _memory->drawState.drawMode);
 
-        //is this better at the end of the loop?
-        _host->waitForTargetFps();
-    }
-}
+//         //is this better at the end of the loop?
+//         _host->waitForTargetFps();
+//     }
+// }
 
 void Vm::vm_run() {
     if (_loadedCart) {

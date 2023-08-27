@@ -7,6 +7,8 @@
 #endif
 
 //from PicoLove api.lua
+//this shouldn't really count as the bios
+//this is the cart loader cart
 
 const char * fake08BiosP8 = R"#(
 pico-8 cartridge // http://www.pico-8.com
