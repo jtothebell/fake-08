@@ -136,7 +136,10 @@ else ifeq ($(platform), gcw0)
 else
    CC = gcc
    TARGET := $(TARGET_NAME)_libretro.dll
-   SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=link.T -Wl,--no-undefined
+   SHARED := -shared -static-libgcc -static-libstdc++ -Wl,--version-script=link.T -Wl,--no-undefined
+ifneq ($(DEBUG), 1)
+   SHARED += -s
+endif
 endif
 
 LDFLAGS += $(LIBM)
