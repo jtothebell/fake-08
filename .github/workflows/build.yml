@@ -32,12 +32,12 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules : recursive
-          
+
       - uses: msys2/setup-msys2@v2
         with:
           msystem: UCRT64
           update: true
-          install: git mingw-w64-ucrt-x86_64-gcc
+          install: git make mingw-w64-ucrt-x86_64-gcc
 
       - name: Build
         run: cd platform/libretro && make
