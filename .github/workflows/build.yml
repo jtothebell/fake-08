@@ -23,12 +23,21 @@ jobs:
   windows-libretro:
     name: Xbox (Windows) Libretro
     runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           submodules : recursive
+          
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: git mingw-w64-ucrt-x86_64-gcc
 
       - name: Build
         run: cd platform/libretro && make
