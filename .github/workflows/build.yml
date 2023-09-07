@@ -20,8 +20,8 @@ jobs:
       - name: Build
         run: make tests
   
-  windows-libretro:
-    name: Xbox (Windows) Libretro
+  xbox-series-libretro:
+    name: Xbox Series Libretro
     runs-on: windows-latest
     defaults:
       run:
