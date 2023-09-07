@@ -19,6 +19,25 @@ jobs:
 
       - name: Build
         run: make tests
+  
+  windows-libretro:
+    name: Xbox (Windows) Libretro
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: cd platform/libretro && make
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Xbox-Series-libretro
+          path: |
+            platform/libretro/fake08_libretro.dll
 
   threeDS:
     name: 3DS
