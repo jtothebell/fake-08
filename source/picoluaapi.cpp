@@ -819,7 +819,8 @@ int stat(lua_State *L) {
         break;
         //target framerate
         case 8:
-            lua_pushnumber(L, _vmForLuaApi->getTargetFps());
+            //lua_pushnumber(L, _vmForLuaApi->getTargetFps());
+            lua_pushnumber(L, _vmForLuaApi->getFps());
             return 1;
         break;
         //16-19 audio sfx currently playing
@@ -1287,7 +1288,7 @@ int reset(lua_State *L) {
 }
 
 int setFps(lua_State *L){
-    _vmForLuaApi->setTargetFps(lua_tointeger(L, 1));
+    //_vmForLuaApi->setTargetFps(lua_tointeger(L, 1));
 
     return 0;
 }

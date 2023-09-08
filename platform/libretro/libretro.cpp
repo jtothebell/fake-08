@@ -223,93 +223,90 @@ int flip = 0;
 
 EXPORT void retro_run()
 {
-    //TODO: improve this so slower hardware can play 30fps games at full speed
-    if (_vm->getTargetFps() == 60 || frame % 2 == 0)
-    {
-        input_poll_cb();
+    input_poll_cb();
 
-        uint8_t currKDown = 0;
-        uint8_t currKHeld = 0;
-        for (int i = 0; i < 7; i++) {
-            bool down = input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, buttons[i]);
-            if (down) {
-                currKHeld |= BITMASK(i);
-                //if the key is a new push this frame, mark it as down as well
-                if (!(kHeld & BITMASK(i))) {
-                    currKDown |= BITMASK(i);
-                }
+    uint8_t currKDown = 0;
+    uint8_t currKHeld = 0;
+    for (int i = 0; i < 7; i++) {
+        bool down = input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, buttons[i]);
+        if (down) {
+            currKHeld |= BITMASK(i);
+            //if the key is a new push this frame, mark it as down as well
+            if (!(kHeld & BITMASK(i))) {
+                currKDown |= BITMASK(i);
             }
         }
-
-        mouseBtnState = 0;
-
-        if (_memory->drawState.devkitMode) {
-            bool havePointer = false;
-            bool haveAnalog = false;
-            bool haveMouse = false;
-            bool gotTouch = false;
-            
-            uint64_t flags = 0;
-            enviro_cb(RETRO_ENVIRONMENT_GET_INPUT_DEVICE_CAPABILITIES, &flags);
-
-
-            haveMouse = flags & (1 << RETRO_DEVICE_MOUSE);
-            havePointer = flags & (1 << RETRO_DEVICE_POINTER);
-            haveAnalog = flags & (1 << RETRO_DEVICE_ANALOG);
-
-            if (haveMouse) {
-                int16_t pointX = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
-                int16_t pointY = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
-                mouseBtnState = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
-
-                //this needs to be adjusted to screen scale I think?
-                picoMouseX += pointX;
-                picoMouseY += pointY;
-            }
-            else if (havePointer) {
-                int16_t pointX = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
-                int16_t pointY = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
-                int16_t pressed = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
-                
-                if (pressed) {
-                    picoMouseX = pointX * 64 / 32768 + 64;
-                    picoMouseY = pointY * 64 / 32768 + 64;
-                    mouseBtnState = 1;
-                    gotTouch = true;
-                }
-            }
-
-            if (haveAnalog && !gotTouch) {
-                // Read the analog X/Y
-                int16_t analogX = input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X);
-                int16_t analogY = input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y);
-                // Pre-calculate where the cursor will be
-                int16_t tempX = picoMouseX + (((PicoScreenWidth / 32767.0f ) * analogX)/32);
-                int16_t tempY = picoMouseY + (((PicoScreenHeight / 32767.0f ) * analogY)/32);
-                // Make sure the cursor stays within the screen
-                if ( ((tempX - 0) | (PicoScreenWidth - tempX)) >= 0) {
-                    picoMouseX = tempX;
-                }
-                if ( ((tempY - 0) | (PicoScreenHeight - tempY)) >= 0) {
-                    picoMouseY = tempY;
-                }
-                // Grab the state of the X button
-                mouseBtnState = input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X);
-            }
-        }
-        
-        setInputState(currKDown, currKHeld, picoMouseX, picoMouseY, mouseBtnState);
-
-        _vm->UpdateAndDraw();
-        kHeld = currKHeld;
-        kDown = currKDown;
-
-        if (frame % 2 == 0) {
-            _audio->FillAudioBuffer(&audioBuffer, 0, SAMPLESPERFRAME);
-            audio_batch_cb(audioBuffer, SAMPLESPERFRAME);
-        }
-
     }
+
+    mouseBtnState = 0;
+
+    if (_memory->drawState.devkitMode) {
+        bool havePointer = false;
+        bool haveAnalog = false;
+        bool haveMouse = false;
+        bool gotTouch = false;
+        
+        uint64_t flags = 0;
+        enviro_cb(RETRO_ENVIRONMENT_GET_INPUT_DEVICE_CAPABILITIES, &flags);
+
+
+        haveMouse = flags & (1 << RETRO_DEVICE_MOUSE);
+        havePointer = flags & (1 << RETRO_DEVICE_POINTER);
+        haveAnalog = flags & (1 << RETRO_DEVICE_ANALOG);
+
+        if (haveMouse) {
+            int16_t pointX = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
+            int16_t pointY = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
+            mouseBtnState = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
+
+            //this needs to be adjusted to screen scale I think?
+            picoMouseX += pointX;
+            picoMouseY += pointY;
+        }
+        else if (havePointer) {
+            int16_t pointX = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
+            int16_t pointY = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
+            int16_t pressed = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
+            
+            if (pressed) {
+                picoMouseX = pointX * 64 / 32768 + 64;
+                picoMouseY = pointY * 64 / 32768 + 64;
+                mouseBtnState = 1;
+                gotTouch = true;
+            }
+        }
+
+        if (haveAnalog && !gotTouch) {
+            // Read the analog X/Y
+            int16_t analogX = input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X);
+            int16_t analogY = input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y);
+            // Pre-calculate where the cursor will be
+            int16_t tempX = picoMouseX + (((PicoScreenWidth / 32767.0f ) * analogX)/32);
+            int16_t tempY = picoMouseY + (((PicoScreenHeight / 32767.0f ) * analogY)/32);
+            // Make sure the cursor stays within the screen
+            if ( ((tempX - 0) | (PicoScreenWidth - tempX)) >= 0) {
+                picoMouseX = tempX;
+            }
+            if ( ((tempY - 0) | (PicoScreenHeight - tempY)) >= 0) {
+                picoMouseY = tempY;
+            }
+            // Grab the state of the X button
+            mouseBtnState = input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X);
+        }
+    }
+    
+    setInputState(currKDown, currKHeld, picoMouseX, picoMouseY, mouseBtnState);
+
+    _vm->Step();
+    //_vm->UpdateAndDraw();
+    kHeld = currKHeld;
+    kDown = currKDown;
+
+    if (frame % 2 == 0) {
+        _audio->FillAudioBuffer(&audioBuffer, 0, SAMPLESPERFRAME);
+        audio_batch_cb(audioBuffer, SAMPLESPERFRAME);
+    }
+
 
     uint8_t* picoFb = _vm->GetPicoInteralFb();
     uint8_t* screenPaletteMap = _vm->GetScreenPaletteMap();

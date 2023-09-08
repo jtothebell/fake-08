@@ -32,7 +32,7 @@ class Vm {
 
     bool _cleanupDeps;
 
-    //int _targetFps;
+    int _targetFps;
 
     int _picoFrameCount;
     //bool _hasUpdate;
@@ -75,6 +75,7 @@ class Vm {
     void LoadCart(const unsigned char* cartData, size_t size, bool loadBiosOnFail = true);
 
     // void UpdateAndDraw();
+    bool Step();
 
     uint8_t* GetPicoInteralFb();
     uint8_t* GetScreenPaletteMap();
