@@ -100,7 +100,7 @@ jobs:
 
       - name: Build
         run: |
-          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir jondbell/devkitppc-wiiu-sdl2 /bin/bash -ex /build_dir/.github/workflows/buildWiiU.sh
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir devkitpro/devkitppc /bin/bash -ex /build_dir/.github/workflows/buildWiiU.sh
       - uses: actions/upload-artifact@v3
         with:
           name: Nintendo Wii U
