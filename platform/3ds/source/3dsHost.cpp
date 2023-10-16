@@ -321,7 +321,7 @@ void Host::oneTimeSetup(Audio* audio){
 	}
 
     gfxInitDefault();
-    gfxSetWide(consoleModel != 3);	
+    //gfxSetWide(consoleModel != 3);	
     //C3D_Init(C3D_DEFAULT_CMDBUF_SIZE); default is 0x40000
     C3D_Init(0x10000);
 	//C2D_Init(C2D_DEFAULT_MAX_OBJECTS); //4096
@@ -375,20 +375,9 @@ void Host::oneTimeSetup(Audio* audio){
 
     loadSettingsIni();
 
-    setRenderParamsFromStretch(stretch);
+    forceStretch(stretch);
 
-    if (stretch == AltScreenPixelPerfect) {
-        mouseOffsetX = (__3ds_BottomScreenWidth - PicoScreenWidth) / 2;
-        mouseOffsetY = (__3ds_BottomScreenHeight - PicoScreenHeight) / 2;
-        scaleX = 1.0;
-        scaleY = 1.0;
-    }
-    else{
-        mouseOffsetX = (__3ds_BottomScreenWidth - __3ds_BottomScreenHeight) / 2;
-        mouseOffsetY = 0;
-        scaleX = 0.53;
-        scaleY = 0.53;
-    }
+
 }
 
 void Host::oneTimeCleanup(){
@@ -415,47 +404,39 @@ void Host::changeStretch(){
     if ((currKDown32 & KEY_SELECT) && resizekey == YesResize) {
         if (stretch == PixelPerfect) {
             stretch = StretchToFit;
-            mouseOffsetX = (__3ds_BottomScreenWidth - __3ds_BottomScreenHeight) / 2;
-            mouseOffsetY = 0;
-            scaleX = 0.53;
-            scaleY = 0.53;
         }
         else if (stretch == StretchToFit) {
             stretch = StretchAndOverflow;
-            mouseOffsetX = (__3ds_BottomScreenWidth - __3ds_BottomScreenHeight) / 2;
-            mouseOffsetY = 0;
-            scaleX = 0.53;
-            scaleY = 0.53;
         }
         else if (stretch == StretchAndOverflow) {
             stretch = AltScreenPixelPerfect;
-            mouseOffsetX = (__3ds_BottomScreenWidth - PicoScreenWidth) / 2;
-            mouseOffsetY = (__3ds_BottomScreenHeight - PicoScreenHeight) / 2;
-            scaleX = 1.0;
-            scaleY = 1.0;
         }
         else if (stretch == AltScreenPixelPerfect) {
             stretch = AltScreenStretch;
-            mouseOffsetX = (__3ds_BottomScreenWidth - __3ds_BottomScreenHeight) / 2;
-            mouseOffsetY = 0;
-            scaleX = 0.53;
-            scaleY = 0.53;
         }
         else {
             stretch = PixelPerfect;
-            mouseOffsetX = (__3ds_BottomScreenWidth - __3ds_BottomScreenHeight) / 2;
-            mouseOffsetY = 0;
-            scaleX = 0.53;
-            scaleY = 0.53;
         }
 
-        setRenderParamsFromStretch(stretch);
+        forceStretch(stretch);
 
     }
 }
 
 void Host::forceStretch(StretchOption newStretch) {
 	setRenderParamsFromStretch(stretch);
+	if (stretch == AltScreenPixelPerfect) {
+        mouseOffsetX = (__3ds_BottomScreenWidth - PicoScreenWidth) / 2;
+        mouseOffsetY = (__3ds_BottomScreenHeight - PicoScreenHeight) / 2;
+        scaleX = 1.0;
+        scaleY = 1.0;
+    }
+    else{
+        mouseOffsetX = (__3ds_BottomScreenWidth - __3ds_BottomScreenHeight) / 2;
+        mouseOffsetY = 0;
+        scaleX = 0.53;
+        scaleY = 0.53;
+    }
 }
 
 InputState_t Host::scanInput(){
@@ -743,7 +724,7 @@ const char* Host::logFilePrefix() {
 }
 
 std::string Host::customBiosLua() {
-    return "";
+    return "platform = '3ds'";
 }
 
 std::string Host::getCartDirectory() {

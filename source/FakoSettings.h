@@ -45,6 +45,19 @@ function _init()
 		settings[v] = __getsetting(v) + 1
 	end
 	
+	local screenmodes = {}
+	local screenenum = {}
+	if platform == '3ds' then
+		screenmodes = {'pixel perfect','stretch to fit','overflow stretch','alt screen pixel perfect','alt screen stretch'}
+		screenenum =  {0,              2,               4,                 5,                         6}
+	elseif platform == 'wiiu' then
+		screenmodes = {'pixel perfect','pixel perfect stretch','stretch to fit','stretch to fill','overflow stretch','alt screen pixel perfect','alt screen stretch'}--dont have a wiiu to test so leaving it alone
+		screenenum =  {0,              1,                      2,               3,                4,                 5,                         6}
+	else 
+		screenmodes = {'pixel perfect','pixel perfect stretch','stretch to fit','stretch to fill'}
+		screenenum =  {0,              1,                      2,               3}
+	end
+	
 	list = {
 		{name='input',ops = {
 			{
@@ -65,7 +78,8 @@ function _init()
 			{
 				name = 'stretch mode',
 				vn = 'stretch',
-				ch ={'pixel perfect','pixel perfect stretch','stretch to fit','overflow stretch','alt screen pixel perfect','alt screen stretch'}
+				ch = screenmodes,
+				en = screenenum
 			}
 		}},
 		{name='menu',ops = {
@@ -137,6 +151,7 @@ function refreshinfo()
 		sectionname = cpath.name
 		cvariable = cpath.vn
 		cvalue = settings[cvariable]
+		cenum = cpath.en
 		if cpath.ops then
 			cpath = cpath.ops
 			inoption = false
@@ -179,7 +194,11 @@ function updatecursor()
 		else
 			if inoption then
 				settings[cvariable] = cursorpos
-				__setsetting(cvariable,cursorpos-1)
+				local finalvalue = cursorpos-1
+				if cenum then
+					finalvalue = cenum[cursorpos]
+				end
+				__setsetting(cvariable,finalvalue)
 				if cvariable == 'bgcolor' then
 					refreshcolors()
 				end

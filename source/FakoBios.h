@@ -15,12 +15,12 @@ __lua__
 --all themes
 
 --start customizable per platform
-cartpath = "sdmc:/p8carts/"
-selectbtn = "a"
-pausebtn = "start"
+cartpath = cartpath or "sdmc:/p8carts/"
+selectbtn = selectbtn or "a"
+pausebtn = pausebtn or "start"
 versionstr = ")#" VER_STR  R"#("
-exitbtn = "l + r"
-sizebtn = "select to cycle screen sizes"
+exitbtn = exitbtn or "l + r"
+sizebtn = sizebtn or "select to cycle screen sizes"
 --end customizable per platform
 
 darkenpal = {0,0,1,1,5,5,13,5,5,13,13,13,1,13,13}

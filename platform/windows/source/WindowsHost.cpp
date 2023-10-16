@@ -45,6 +45,7 @@ string _desktopSdl2customBiosLua = "cartpath = \"AppData\"\n"
         "selectbtn = \"z\"\n"
         "pausebtn = \"esc\"\n"
         "exitbtn = \"close window\"\n"
+        "platform = 'windows'\n"
         "sizebtn = \"\"";
 
 
