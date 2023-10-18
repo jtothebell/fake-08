@@ -20,6 +20,8 @@ using namespace std;
 #include "../../../source/PicoRam.h"
 #include "../../../source/filehelpers.h"
 
+#include "Keyboard.h"
+
 #define SCREEN_WIDTH 400;
 #define SCREEN_HEIGHT 240;
 
@@ -36,6 +38,7 @@ const int __3ds_TopScreenHeight = SCREEN_HEIGHT;
 const int __3ds_BottomScreenWidth = SCREEN_2_WIDTH;
 const int __3ds_BottomScreenHeight = SCREEN_2_HEIGHT;
 
+static Keyboard kb;
 
 const int PicoScreenWidth = 128;
 const int PicoScreenHeight = 128;
@@ -321,12 +324,14 @@ void Host::oneTimeSetup(Audio* audio){
 	}
 
     gfxInitDefault();
-    //gfxSetWide(consoleModel != 3);	
+    gfxSetWide(consoleModel != 3);	
     //C3D_Init(C3D_DEFAULT_CMDBUF_SIZE); default is 0x40000
     C3D_Init(0x10000);
 	//C2D_Init(C2D_DEFAULT_MAX_OBJECTS); //4096
     C2D_Init(32); //need very few objects? this probably doesn't really help perf
 	C2D_Prepare();
+	
+	kb.Init(); //the keyboard's texture needs to be loaded *before* the p8 screen is created, otherwise it gets corrupted
 
     topTarget = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
     /*
@@ -384,6 +389,8 @@ void Host::oneTimeCleanup(){
     saveSettingsIni();
 
     audioCleanup();
+	
+	kb.Cleanup();
 
     C3D_TexDelete(pico_tex);
 
@@ -424,6 +431,7 @@ void Host::changeStretch(){
 }
 
 void Host::forceStretch(StretchOption newStretch) {
+	kb.UpdateStretch(stretch);
 	setRenderParamsFromStretch(stretch);
 	if (stretch == AltScreenPixelPerfect) {
         mouseOffsetX = (__3ds_BottomScreenWidth - PicoScreenWidth) / 2;
@@ -449,6 +457,12 @@ InputState_t Host::scanInput(){
 
 	//Read the touch screen coordinates
 	hidTouchRead(&touch);
+	
+	//update keyboard
+	if(currKDown32 & KEY_X){
+		kb.Toggle();
+		forceStretch(stretch);
+	}
 
     if (touch.px > 0 && touch.py > 0) {
         touchLocationX = (touch.px - mouseOffsetX) * scaleX;
@@ -634,6 +648,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
         
         C2D_TargetClear(bottomTarget, CLEAR_COLOR);
         C2D_SceneBegin(bottomTarget);
+		
 
         if (bottomSubTexWidth > 0 && bottomSubTexHeight > 0) {
             pico_subtex->width = bottomSubTexWidth;
@@ -665,10 +680,11 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
                 flipHorizontal,
                 flipVertical);
         }
-		
-		//keyboard goes here probably
 
 		C2D_Flush();
+		
+		kb.Draw();
+		
 
 	C3D_FrameEnd(0);
 }
