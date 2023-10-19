@@ -332,6 +332,7 @@ void Host::oneTimeSetup(Audio* audio){
 			Logger_Write("Citra detected, disabling wide mode!\n");
 			consoleModel = 3;
 		}
+		frdExit();
 	}
 
     gfxInitDefault();
@@ -474,8 +475,10 @@ InputState_t Host::scanInput(){
 		kb.Toggle();
 		forceStretch(stretch);
 	}
+	
+	kb.GetKey(currKBDown, currKBKey, touch);
 
-    if (touch.px > 0 && touch.py > 0) {
+    if (touch.px > 0 && touch.py > 0 && kb.AllowMouse()) {
         touchLocationX = (touch.px - mouseOffsetX) * scaleX;
         touchLocationY = (touch.py - mouseOffsetY) * scaleY;
         mouseBtnState = 1;
@@ -489,7 +492,10 @@ InputState_t Host::scanInput(){
         ConvertInputToP8(currKHeld32),
         (int16_t)touchLocationX,
         (int16_t)touchLocationY,
-        mouseBtnState
+        mouseBtnState,
+		currKBDown,
+		currKBKey
+		
     };
 }
 

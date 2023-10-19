@@ -5,7 +5,6 @@
 #include "../../source/logger.h"
 #include "../../source/host.h"
 
-
 Keyboard::Keyboard(){
 	
 };
@@ -69,6 +68,24 @@ void Keyboard::UpdateStretch(StretchOption& stretch) {
 			}
 		}
 	}
+}
+
+bool Keyboard::AllowMouse(){
+	return !enabled;
+}
+
+void Keyboard::GetKey(bool& currKBDown, std::string& currKBKey, touchPosition& touch){
+	currKBDown = false;
+	currKBKey = "";
+	if(!enabled){
+		return;
+	}
+	if (touch.py < KEY_YOFFSET){
+		return;
+	}
+	
+	currKBDown = true;
+	currKBKey = "A";
 }
 
 
