@@ -1,8 +1,6 @@
 #include <string>
 #include <fstream>
 #include <vector>
-#include <filesystem>
-namespace fs = std::filesystem;
 
 //http://insanecoding.blogspot.com/2011/11/how-to-read-in-file-in-c.html
 std::string get_file_contents(std::string filename){
@@ -127,16 +125,3 @@ bool isCPostFile (std::string const &fullString) {
     return !isHiddenFile(fullString) && 
        fullString.rfind("cpost", 0) == 0;
 }
-
-std::vector<std::string> get_cart_files_in_dir(std::string directory){
-    std::vector<std::string> files;
-    for (const auto & entry : fs::directory_iterator(directory)) {
-        std::string path = entry.path().string();
-        if (isCartFile(path)) {
-            files.push_back(path.substr(path.find_last_of("/\\") + 1));
-        }
-    }
-
-    return files;
-}
-

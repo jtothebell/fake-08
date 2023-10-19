@@ -20,5 +20,3 @@ bool isHiddenFile (std::string const &fullString);
 bool isAbsolutePath (std::string const &path);
 
 std::string getFileExtension(std::string const &path);
-
-std::vector<std::string> get_cart_files_in_dir(std::string directory);

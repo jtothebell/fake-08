@@ -71,6 +71,23 @@ bool verifyScreenshot(Vm* vm, Host* host, std::string screenshotFilename) {
 
 }
 
+/*
+#include <filesystem>
+namespace fs = std::filesystem;
+
+std::vector<std::string> get_cart_files_in_dir(std::string directory){
+    std::vector<std::string> files;
+    for (const auto & entry : fs::directory_iterator(directory)) {
+        std::string path = entry.path().string();
+        if (isCartFile(path)) {
+            files.push_back(path.substr(path.find_last_of("/\\") + 1));
+        }
+    }
+
+    return files;
+}
+*/
+
 TEST_CASE("Loading and running carts") {
     Host* host = new Host();
     Vm* vm = new Vm(host);
