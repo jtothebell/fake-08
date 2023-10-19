@@ -22,7 +22,7 @@ bool verifyScreenshot(Vm* vm, Host* host, std::string screenshotFilename) {
         error = lodepng::decode(image, width, height, png);
     } 
     if (error) {
-        CHECK_MESSAGE(error == 0, "Unable to decode screenshot png");
+        CHECK_MESSAGE(error == 0, "Unable to decode screenshot png %s", screenshotFilename.c_str());
         return false;
     }
 
@@ -71,9 +71,65 @@ bool verifyScreenshot(Vm* vm, Host* host, std::string screenshotFilename) {
 
 }
 
+/*
+#include <filesystem>
+namespace fs = std::filesystem;
+
+std::vector<std::string> get_cart_files_in_dir(std::string directory){
+    std::vector<std::string> files;
+    for (const auto & entry : fs::directory_iterator(directory)) {
+        std::string path = entry.path().string();
+        if (isCartFile(path)) {
+            files.push_back(path.substr(path.find_last_of("/\\") + 1));
+        }
+    }
+
+    return files;
+}
+*/
+
 TEST_CASE("Loading and running carts") {
     Host* host = new Host();
     Vm* vm = new Vm(host);
+
+    /*
+    SUBCASE("test carts") {
+        // char cwd[PATH_MAX];
+        // if (getcwd(cwd, sizeof(cwd)) != NULL) {
+        //     printf("Current working dir: %s\n", cwd);
+        // }
+        auto screenshots = get_cart_files_in_dir("carts/screenshots");
+
+        for (auto screenshot : screenshots) {
+            if (screenshot.length() < 8) {
+                continue;
+            }
+            auto last8Chars = screenshot.substr(screenshot.length() - 8);
+            if (last8Chars != "_f01.png") {
+                continue;
+            }
+            auto cartfile = screenshot.substr(0, screenshot.length() - 8) + ".p8";
+            vm->LoadCart(cartfile, false);
+            vm->vm_reset();
+
+            SUBCASE("No error reported"){
+                CHECK(vm->GetBiosError() == "");
+            }
+            if (getFileExtension(cartfile) == ".p8") {
+                SUBCASE(cartfile.c_str()){
+                    vm->UpdateAndDraw();
+
+                    std::stringstream ss;
+                    ss << "carts/screenshots/" << screenshot;
+
+                    CHECK(verifyScreenshot(vm, host, ss.str()));
+                }
+            }
+
+            vm->CloseCart();
+        }
+    }
+    */
 
     SUBCASE("Load simple cart"){
         vm->LoadCart("cartparsetest.p8", false);
@@ -762,7 +818,20 @@ TEST_CASE("Loading and running carts") {
 
         vm->CloseCart();
     }
+    SUBCASE("bold text with wide char test"){
+        vm->LoadCart("boldtexttest.p8", false);
 
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("sceen matches screenshot"){
+            vm->UpdateAndDraw();
+
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/boldtexttest_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
     
     delete vm;
     delete host;
