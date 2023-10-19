@@ -162,12 +162,48 @@ void Keyboard::GetKey(bool& currKBDown, std::string& currKBKey, touchPosition& t
 }
 
 
+void Keyboard::DarkenRect(int x, int y, int w){
+	int rectx = x*KEY_WIDTH+KEY_XOFFSET;
+	int recty = y*KEY_HEIGHT+KEY_YOFFSET;
+	int rectw = w*KEY_WIDTH;
+	
+	if(x == 0){
+		rectx = 0;
+		rectw += KEY_XOFFSET;
+	}
+	
+	if(x + w == KEY_COLUMNS){
+		rectw += KEY_XOFFSET;
+	}
+	
+	C2D_DrawRectSolid(rectx, recty, 1, rectw, KEY_HEIGHT,darkenColor);
+}
+
 void Keyboard::Draw(){
 	//Logger_Write("Drawing keyboard\n");
-	if(enabled){
-		C2D_DrawSprite(&kbSprite);
+	if(!enabled){
+		return;
+		
 	}
-
+	C2D_DrawSprite(&kbSprite);
+	
+	if(touchDown){
+		DarkenRect(keyX,keyY,1);
+	}
+	
+	if(shift){
+		DarkenRect(0,4,3);
+	}
+	if(ctrl){
+		DarkenRect(8,4,2);
+	}
+	if(alt){
+		DarkenRect(10,4,2);
+	}
+	if(symbol){
+		DarkenRect(2,5,2);
+	}
+	
 }
 
 void Keyboard::Cleanup(){

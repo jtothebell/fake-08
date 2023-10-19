@@ -25,6 +25,8 @@ const std::string layout[KEY_ROWS][KEY_COLUMNS][2] = {
 {{"\t","\t"},{"\t","\t"},{"!E","!E"},{"!E","!E"},{"..",".."},{"..",".."},{"..",".."},{"..",".."},{"`" ,"~" },{"\b","\b"},{"\b","\b"},{"\b","\b"}}
 };
 
+const u32 darkenColor  = C2D_Color32(0x00, 0x00, 0x00, 0x80);
+
 class Keyboard {
 	
 	bool enabled = false;
@@ -59,6 +61,7 @@ public:
 	void UpdateTickSpeed(int fps);
 	bool AllowMouse();
 	void GetKey(bool& currKBDown, std::string& currKBKey, touchPosition& touch);
+	void DarkenRect(int x, int y, int w);
 	void Draw();
 	void Cleanup();
 };
