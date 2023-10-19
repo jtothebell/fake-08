@@ -4,6 +4,7 @@
 
 #include "../../source/logger.h"
 #include "../../source/host.h"
+#include "../../source/emojiconversion.h"
 
 Keyboard::Keyboard(){
 	
@@ -91,6 +92,10 @@ void Keyboard::GetKey(bool& currKBDown, std::string& currKBKey, touchPosition& t
 		repeatingKey = false;
 		return;
 	}
+	
+	keyX = std::min(std::max((touch.px - KEY_XOFFSET) / KEY_WIDTH,0),KEY_COLUMNS - 1);
+	keyY = std::min(std::max((touch.py - KEY_YOFFSET) / KEY_HEIGHT,0),KEY_ROWS - 1);;
+	
 	if(touchDown){
 		repeatTimer += tickSpeed;
 		if(!repeatingKey){
@@ -113,8 +118,47 @@ void Keyboard::GetKey(bool& currKBDown, std::string& currKBKey, touchPosition& t
 	}
 	touchDown = true;
 	
-	currKBDown = true;
-	currKBKey = "A";
+	
+	//Logger_Write("%d %d\n", keyX,keyY);
+	keyStr = layout[keyY][keyX][0];
+	keyStrShift = layout[keyY][keyX][1];
+	
+	if(keyStr == "!S"){ //shift key
+		shift = !shift;
+	}
+	else if(keyStr == "!C"){ //ctrl key
+		ctrl = !ctrl;
+	}
+	else if(keyStr == "!A"){ //alt key
+		alt = !alt;
+	}
+	else if(keyStr == "!E"){ //symbol key
+		symbol = !symbol;
+	}	
+	else if(keyStr == ".."){ //empty key
+		shift = false;
+		ctrl = false;
+		alt = false;
+		symbol = false;
+	}
+	else{ //other keys
+		if(symbol){
+			currKBKey = charset::upper_to_emoji(keyStrShift);
+			symbol = false;
+		}
+		else if(shift){
+			currKBKey = keyStrShift;
+			shift = false;
+		}
+		else{
+			currKBKey = keyStr;
+		}
+		ctrl = false; //pico 8 cannot actually access modifier keys, might be worth adding as an optional feature?
+		alt = false; 
+		currKBDown = true;
+	}
+		
+	
 }
 
 
