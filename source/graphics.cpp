@@ -1324,6 +1324,10 @@ int Graphics::drawCharacter(
 			? forceCharWidth > -1 && forceCharWidth < 4 ? forceCharWidth : defaultCharWidth
 			: forceCharWidth > -1 && forceCharWidth < 4 ? (forceCharWidth + 4) : defaultWideCharWidth;
 
+		if (ch >= 0x80) {
+			extraCharWidth = defaultWideCharWidth - defaultCharWidth;
+		}
+
 		uint8_t charHeight = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : defaultCharHeight;
 		
 		auto result = drawCharacterFromBytes(
@@ -1336,7 +1340,7 @@ int Graphics::drawCharacter(
 			charWidth,
 			charHeight
 		);
-		extraCharWidth = get<0>(result);
+		extraCharWidth += get<0>(result);
 	}
 
 	if ((printMode & PRINT_MODE_ON) == PRINT_MODE_ON){
