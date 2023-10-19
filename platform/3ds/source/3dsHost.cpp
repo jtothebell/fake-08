@@ -19,6 +19,7 @@ using namespace std;
 #include "../../../source/nibblehelpers.h"
 #include "../../../source/PicoRam.h"
 #include "../../../source/filehelpers.h"
+#include "../../../source/logger.h"
 
 #include "Keyboard.h"
 
@@ -321,6 +322,16 @@ void Host::oneTimeSetup(Audio* audio){
 	if (R_SUCCEEDED(res)) {
 		CFGU_GetSystemModel(&consoleModel);
 		cfguExit();
+	}
+	
+	res = frdInit();
+	if (R_SUCCEEDED(res)) {
+		char* name = new char;
+		FRD_GetMyScreenName(name, FRIEND_SCREEN_NAME_SIZE);
+		if(strcmp(name, "CITRA") == 0){
+			Logger_Write("Citra detected, disabling wide mode!\n");
+			consoleModel = 3;
+		}
 	}
 
     gfxInitDefault();
