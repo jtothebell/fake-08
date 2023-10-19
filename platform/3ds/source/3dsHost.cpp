@@ -417,6 +417,7 @@ void Host::oneTimeCleanup(){
 
 void Host::setTargetFps(int targetFps){
     targetFrameTimeMs = 1000.0 / (float)targetFps;
+	kb.UpdateTickSpeed(targetFps);
 }
 
 void Host::changeStretch(){

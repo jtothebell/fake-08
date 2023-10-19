@@ -31,6 +31,11 @@ void Keyboard::Toggle(){
 	}
 }
 
+void Keyboard::UpdateTickSpeed(int fps){
+	
+	tickSpeed = 60 / fps; //1 at 60, 2 at 30
+}
+
 void Keyboard::UpdateStretch(StretchOption& stretch) {
 	if(enabled){
 		if(!useEnableStretch){
@@ -81,8 +86,32 @@ void Keyboard::GetKey(bool& currKBDown, std::string& currKBKey, touchPosition& t
 		return;
 	}
 	if (touch.py < KEY_YOFFSET){
+		touchDown = false;
+		repeatTimer = 0;
+		repeatingKey = false;
 		return;
 	}
+	if(touchDown){
+		repeatTimer += tickSpeed;
+		if(!repeatingKey){
+			if(repeatTimer < REPEAT_WAIT1){
+				return;
+			}
+			else {
+				repeatTimer -= REPEAT_WAIT1;
+				repeatingKey = true;
+			}
+		}
+		else {
+			if(repeatTimer < REPEAT_WAIT2){
+				return;
+			}
+			else {
+				repeatTimer -= REPEAT_WAIT2;
+			}
+		}
+	}
+	touchDown = true;
 	
 	currKBDown = true;
 	currKBKey = "A";
