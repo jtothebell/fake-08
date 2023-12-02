@@ -352,17 +352,17 @@ function load(arg)
 
     success, msg = __load(arg), ""
 
-    /*
-    if success then
-        print('ok')
-    else
-        color(14)
-        print('failed')
-        local x,y = cursor()
-        cursor(0, y)
-        print(msg)
-    end
-    */
+    
+    --if success then
+    --    print('ok')
+    --else
+    --    color(14)
+    --    print('failed')
+    --    local x,y = cursor()
+    --    cursor(0, y)
+    --    print(msg)
+    --end
+    
 end
 
 --todo: make this bettter/verify the list

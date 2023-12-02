@@ -230,7 +230,8 @@ int print(std::string str, int x, int y, uint8_t c) {
 				//pause for x num frames
                 int frameCount = pow2(p0CharToNum(commandChar) - 1);
                 while (frameCount > 0){
-                    _ph_vm->vm_flip();
+                    //TODO: yield here? not sure how to handle this
+                    //_ph_vm->vm_flip();
 
                     frameCount--;
                 }
@@ -484,7 +485,8 @@ int print(std::string str, int x, int y, uint8_t c) {
                 forceCharHeight);
 
             while (framesToPause > 0){
-                _ph_vm->vm_flip();
+                //TODO: yield here? not sure how to handle this
+                //_ph_vm->vm_flip();
 
                 framesToPause--;
             }

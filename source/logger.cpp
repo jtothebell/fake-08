@@ -4,9 +4,9 @@
 
 #include "logger.h"
 
-#define LOGGER_ENABLED false
+#define LOGGER_ENABLED true
 
-#define PRINT_TO_CONSOLE false
+#define PRINT_TO_CONSOLE true
 
 FILE * m_file = nullptr;
 bool m_enabled = false;
