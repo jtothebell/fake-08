@@ -123,7 +123,16 @@ else ifeq ($(platform), miyoomini)
    CXXFLAGS += -marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7ve -D_NEED_FULL_PATH_
    fpic := -fPIC
    SHARED := -shared -Wl,--version-script=link.T
-
+else ifeq ($(platform), rg35xx)
+   TARGET := $(TARGET_NAME)_libretro_rg35xx.so
+   CC = /opt/miyoo/usr/bin/arm-miyoo-linux-uclibcgnueabi-gcc
+   CXX = /opt/miyoo/usr/bin/arm-miyoo-linux-uclibcgnueabi-g++
+   AR = /opt/miyoo/usr/bin/arm-miyoo-linux-uclibcgnueabi-ar
+   STRIP = /opt/miyoo/usr/bin/arm-miyoo-linux-uclibcgnueabi-strip
+   CXXFLAGS += -marm -mtune=cortex-a9 -mfpu=neon-vfpv3 -mfloat-abi=softfp -march=armv7-a
+   CFLAGS += -marm -mtune=cortex-a9 -mfpu=neon-vfpv3 -mfloat-abi=softfp -march=armv7-a -DLUA_USE_MKSTEMP
+   fpic := -fPIC
+   SHARED := -shared -Wl,--version-script=link.T
 else ifeq ($(platform), gcw0)
    TARGET := $(TARGET_NAME)_libretro_gcw0.so
    CC = /opt/gcw0-toolchain/usr/bin/mipsel-linux-gcc

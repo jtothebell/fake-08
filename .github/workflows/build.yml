@@ -215,6 +215,27 @@ jobs:
             platform/libretro/libs/libfake08-arm32.so
             platform/libretro/fake08_libretro.info
   
+  rg35xx-libretro:
+    name: RG35xx-libretro
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir aveferrum/rg35xx-toolchain /bin/sh -ex /build_dir/.github/workflows/buildRg35xx-libretro.sh
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: RG35xx-libretro
+          path: |
+            platform/libretro/fake08_libretro_rg35xx.so
+            platform/libretro/fake08_libretro.info
+
   miyoomini-libretro:
     name: MiyooMini-libretro
     runs-on: ubuntu-latest
