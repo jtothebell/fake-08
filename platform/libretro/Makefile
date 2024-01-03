@@ -133,10 +133,23 @@ else ifeq ($(platform), gcw0)
    CXXFLAGS += -fno-common -ftree-vectorize -funswitch-loops
    fpic := -fPIC
    SHARED := -shared -Wl,-version-script=link.T
+else ifeq ($(platform), libnx)
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
+   include $(DEVKITPRO)/libnx/switch_rules
+   STATIC_LINKING = 1
+   DEFINES := -D__SWITCH__ -DSWITCH=1
+   CFLAGS	:=	 $(DEFINES) -g -O3 \
+                 -fPIE -I$(LIBNX)/include/ -ffunction-sections -fdata-sections -ftls-model=local-exec -Wl,--allow-multiple-definition -specs=$(LIBNX)/switch.specs
+   CFLAGS += $(INCDIRS)
+   CFLAGS	+=	-DHAVE_LIBNX -march=armv8-a -mtune=cortex-a57 -mtp=soft
+   CXXFLAGS := $(ASFLAGS) $(CFLAGS)
 else
    CC = gcc
    TARGET := $(TARGET_NAME)_libretro.dll
-   SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=link.T -Wl,--no-undefined
+   SHARED := -shared -static-libgcc -static-libstdc++ -Wl,--version-script=link.T -Wl,--no-undefined
+ifneq ($(DEBUG), 1)
+   SHARED += -s
+endif
 endif
 
 LDFLAGS += $(LIBM)
@@ -155,8 +168,8 @@ CC = $(CXX)
 
 OBJECTS := $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
 
-CFLAGS   += $(fpic) -Wall -D__LIBRETRO__ -ffunction-sections -std=gnu++17 -fno-rtti $(INCFLAGS)
-CXXFLAGS += $(fpic) -Wall -D__LIBRETRO__ -ffunction-sections -std=gnu++17 -fno-rtti $(INCFLAGS)
+CFLAGS   += $(fpic) -Wall -D__LIBRETRO__ -DMINIZ_NO_TIME -ffunction-sections -std=gnu++17 -fno-rtti $(INCFLAGS)
+CXXFLAGS += $(fpic) -Wall -D__LIBRETRO__ -DMINIZ_NO_TIME -ffunction-sections -std=gnu++17 -fno-rtti $(INCFLAGS)
 
 all: $(TARGET)
 
@@ -170,6 +183,10 @@ endif
 
 %.o: %.c
 	@$(if $(Q), $(shell echo echo CC $<),)
+	$(Q)$(CXX) $(CFLAGS) $(fpic) -c -o $@ $<
+
+%.o: %.cpp
+	@$(if $(Q), $(shell echo echo CXX $<),)
 	$(Q)$(CXX) $(CFLAGS) $(fpic) -c -o $@ $<
 
 clean:

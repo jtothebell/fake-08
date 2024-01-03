@@ -201,8 +201,8 @@ static std::array<int, 7> buttons
     RETRO_DEVICE_ID_JOYPAD_RIGHT,
     RETRO_DEVICE_ID_JOYPAD_UP,
     RETRO_DEVICE_ID_JOYPAD_DOWN,
-    RETRO_DEVICE_ID_JOYPAD_A,
     RETRO_DEVICE_ID_JOYPAD_B,
+    RETRO_DEVICE_ID_JOYPAD_A,
     RETRO_DEVICE_ID_JOYPAD_START,
 };
 
@@ -615,6 +615,11 @@ EXPORT void retro_cheat_set(unsigned index, bool enabled, const char *code)
 
 EXPORT bool retro_load_game(struct retro_game_info const *info)
 {
+    if (!info) {
+        _vm->QueueCartChange("__FAKE08-BIOS.p8");
+        return true;
+    }
+
     auto containingDir = getDirectory(info->path);
 
     if (containingDir.length() > 0) {
@@ -624,7 +629,6 @@ EXPORT bool retro_load_game(struct retro_game_info const *info)
     if (info->size > 0) {
         const unsigned char* data = reinterpret_cast<const unsigned char*>(info->data);
         _vm->QueueCartChange(data, info->size);
-        
     }
     else {
         _vm->QueueCartChange(info->path);

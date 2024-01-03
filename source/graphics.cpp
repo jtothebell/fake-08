@@ -696,6 +696,7 @@ void Graphics::line (int x1, int y1, int x2, int y2){
 void Graphics::_private_h_line(int x1, int x2, int y){
 	auto &drawState = _memory->drawState;
 	auto &hwState = _memory->hwState;
+	uint8_t * screenBuffer = GetP8FrameBuffer();
 
 	if (!(y >= drawState.clip_yb && y < drawState.clip_ye)) {
 		return;
@@ -723,7 +724,7 @@ void Graphics::_private_h_line(int x1, int x2, int y){
 
 	if (canmemset) {
 		//zepto 8 adapted otimized line draw with memset
-		uint8_t *p = _memory->screenBuffer + (y*64);
+		uint8_t *p = screenBuffer + (y*64);
         uint8_t color = getDrawPalMappedColor(drawState.color);
 
         if (minx & 1)
@@ -1324,6 +1325,10 @@ int Graphics::drawCharacter(
 			? forceCharWidth > -1 && forceCharWidth < 4 ? forceCharWidth : defaultCharWidth
 			: forceCharWidth > -1 && forceCharWidth < 4 ? (forceCharWidth + 4) : defaultWideCharWidth;
 
+		if (ch >= 0x80) {
+			extraCharWidth = defaultWideCharWidth - defaultCharWidth;
+		}
+
 		uint8_t charHeight = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : defaultCharHeight;
 		
 		auto result = drawCharacterFromBytes(
@@ -1336,7 +1341,7 @@ int Graphics::drawCharacter(
 			charWidth,
 			charHeight
 		);
-		extraCharWidth = get<0>(result);
+		extraCharWidth += get<0>(result);
 	}
 
 	if ((printMode & PRINT_MODE_ON) == PRINT_MODE_ON){

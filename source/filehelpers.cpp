@@ -125,4 +125,3 @@ bool isCPostFile (std::string const &fullString) {
     return !isHiddenFile(fullString) && 
        fullString.rfind("cpost", 0) == 0;
 }
-

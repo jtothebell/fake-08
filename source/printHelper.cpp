@@ -144,7 +144,7 @@ int print(std::string str, int x, int y, uint8_t c) {
     int lineHeight = 0;
     int forceCharWidth = -1;
     int forceCharHeight = -1;
-    uint8_t bgColor = 0;
+    uint8_t bgColor = 0xff;
     uint8_t fgColor = _ph_mem->drawState.color;
     uint8_t charBytes[8];
     uint8_t audioStrBytes[32];
@@ -189,7 +189,7 @@ int print(std::string str, int x, int y, uint8_t c) {
                     x,
                     y,
                     drawPal[fgColor & 0x0f],
-                    drawPal[bgColor & 0x0f],
+                    bgColor == 0xff ? 0 : drawPal[bgColor & 0x0f],
                     printMode,
                     forceCharWidth,
                     forceCharHeight);
@@ -335,7 +335,7 @@ int print(std::string str, int x, int y, uint8_t c) {
                     x,
                     y,
                     drawPal[fgColor & 0x0f],
-                    drawPal[bgColor & 0x0f],
+                    bgColor == 0xff ? 0 : drawPal[bgColor & 0x0f],
                     printMode,
                     8,
                     charHeight);
@@ -432,7 +432,7 @@ int print(std::string str, int x, int y, uint8_t c) {
                 prevX + xOffset,
                 prevY + yOffset,
                 drawPal[fgColor & 0x0f],
-                drawPal[bgColor & 0x0f],
+                bgColor == 0xff ? 0 : drawPal[bgColor & 0x0f],
                 printMode,
                 forceCharWidth,
                 forceCharHeight);
@@ -467,7 +467,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 		}
 		else if (ch >= 0x10) {
             lineHeight = charHeight > lineHeight ? charHeight : lineHeight;
-            if (bgColor != 0) {
+            if (bgColor != 0xff) {
                 uint8_t prevPenColor = _ph_mem->drawState.color;
                 _ph_graphics->rectfill(x-1, y-1, x + charWidth-1, y + lineHeight-1, bgColor);
                 _ph_mem->drawState.color = prevPenColor;
@@ -479,7 +479,7 @@ int print(std::string str, int x, int y, uint8_t c) {
                 x,
                 y,
                 drawPal[fgColor & 0x0f],
-                drawPal[bgColor & 0x0f],
+                bgColor == 0xff ? 0 : drawPal[bgColor & 0x0f],
                 printMode,
                 forceCharWidth,
                 forceCharHeight);

@@ -833,7 +833,22 @@ TEST_CASE("Print helper functions") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("pal mapping color 0 to another color does not color background") {
+        graphics->cls();
+        graphics->pal(0, 10, 0);
 
+        print("0", 0, 0, 10);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 0, 10}, {1, 0, 10}, {2, 0, 10},
+            {0, 1, 10}, {1, 1, 0}, {2, 1, 10},
+            {0, 2, 10}, {1, 2, 0}, {2, 2, 10},
+            {0, 3, 10}, {1, 3, 0}, {2, 3, 10},
+            {0, 4, 10}, {1, 4, 10}, {2, 4, 10},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
     delete stubHost;
     delete graphics;

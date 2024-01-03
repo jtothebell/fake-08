@@ -19,6 +19,34 @@ jobs:
 
       - name: Build
         run: make tests
+  
+  xbox-series-libretro:
+    name: Xbox Series Libretro
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules : recursive
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: git make mingw-w64-ucrt-x86_64-gcc
+
+      - name: Build
+        run: cd platform/libretro && make
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Xbox-Series-libretro
+          path: |
+            platform/libretro/fake08_libretro.dll
 
   threeDS:
     name: 3DS
@@ -229,3 +257,29 @@ jobs:
           path: |
             platform/libretro/fake08_libretro_gcw0.so
             platform/libretro/fake08_libretro.info
+
+  switch-libretro:
+    name: switch-libretro
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules : recursive
+
+      - name: CheckoutLibretro
+        uses: actions/checkout@v3
+        with:
+          repository: libretro/RetroArch
+          path: retroarch
+
+      - name: Build
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir devkitpro/devkita64 /bin/bash -ex /build_dir/.github/workflows/buildSwitch-libretro.sh
+      - uses: actions/upload-artifact@v3
+        with:
+          name: switch-libretro
+          path: |
+            platform/libretro/fake08_libretro.info
+            retroarch/fake08_libretro_libnx.nro
