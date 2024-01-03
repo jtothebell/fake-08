@@ -75,8 +75,8 @@ class Host {
 	#endif
     StretchOption stretch = PixelPerfectStretch;
     KeyboardOption kbmode = Emoji;
-    ResizekeyOption resizekey = NoResize;
-    MenuStyleOption menustyle = Fancy;
+    ResizekeyOption resizekey = YesResize;
+    MenuStyleOption menustyle = Classic;
     BgColorOption bgcolor = Gray;
 	
     float scaleX = 1.0;
