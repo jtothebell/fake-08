@@ -1321,8 +1321,8 @@ int getbioserror(lua_State *L) {
     return 1;
 }
 
-int loadbioscart(lua_State *L) {
-    _vmForLuaApi->QueueCartChange("__FAKE08-BIOS.p8");
+int loaddefaultcart(lua_State *L) {
+    _vmForLuaApi->QueueCartChange("__FAKE08-DEFAULT.p8");
 
     return 0;
 }

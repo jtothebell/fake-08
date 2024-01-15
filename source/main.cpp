@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
 	Logger_Initialize(host->logFilePrefix());
 	
 	Vm *vm = new Vm(host, memory, nullptr, nullptr, audio);
-	
+
 	host->setUpPaletteColors();
 	host->oneTimeSetup(audio);
 	
@@ -35,6 +35,15 @@ int main(int argc, char* argv[])
 
 	host->unpackCarts();
 	#endif
+
+	Logger_Write("initializing Vm\n");
+
+	bool vmInitResult = vm->Initialize();
+
+	if (!vmInitResult) {
+		Logger_Write("vm init failed\n");
+		return 1;
+	}
 	
 	Logger_Write("initialized Vm and host\n");
 
@@ -59,14 +68,15 @@ int main(int argc, char* argv[])
 	}
 	#endif
 
-	Logger_Write("Loading Bios cart\n");
+	
 	if (loadCart){
+		Logger_Write("Loading arg cart \n");
 		vm->LoadCart(cart);
 	}
-	else {
-		vm->LoadBiosCart();
-	}
-	Logger_Write("Bios Cart Loaded\n");
+	// else {
+	// 	vm->LoadBiosCart();
+	// }
+	//Logger_Write("Bios Cart Loaded\n");
 
 	// Main loop
 	Logger_Write("Starting main loop\n");

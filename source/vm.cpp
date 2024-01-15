@@ -34,7 +34,7 @@
 
 using namespace z8;
 
-static const char BiosCartName[] = "__FAKE08-BIOS.p8";
+static const char DefaultCartName[] = "__FAKE08-DEFAULT.p8";
 static const char SettingsCartName[] = "__FAKE08-SETTINGS.p8";
 
 Vm::Vm(
@@ -115,7 +115,7 @@ PicoRam* Vm::getPicoRam(){
 jmp_buf place;
 bool abortLua;
 
-bool Vm::loadCart(Cart* cart) {
+bool Vm::Initialize() {
     _picoFrameCount = 0;
 
     _cartdataKey = "";
@@ -132,22 +132,9 @@ bool Vm::loadCart(Cart* cart) {
     _graphics->clip();
     _graphics->pal();
 
-    if (cart->LuaString == "") {
-        if (_cartLoadError == "") {
-            _cartLoadError = "No Lua to load. Aborting cart load";
-        }
-        Logger_Write("%s\n", _cartLoadError.c_str());
-
-        return false;
-    }
-
     //reset audio
     _audio->resetAudioState();
 
-    //copy data from cart rom to ram
-    vm_reload(0, 0, sizeof(cart->CartRom), cart);
-
-    _loadedCart = cart;
     _cartChangeQueued = false;
     abortLua = false;
 
@@ -163,7 +150,7 @@ bool Vm::loadCart(Cart* cart) {
     //must be registered before loading globals for pause menu to work
     lua_register(_luaState, "__listcarts", listcarts);
     lua_register(_luaState, "__getbioserror", getbioserror);
-    lua_register(_luaState, "__loadbioscart", loadbioscart);
+    lua_register(_luaState, "__loaddefaultcart", loaddefaultcart);
     lua_register(_luaState, "__loadsettingscart", loadsettingscart);
     lua_register(_luaState, "__togglepausemenu", togglepausemenu);
     lua_register(_luaState, "__resetcart", resetcart);
@@ -262,7 +249,195 @@ bool Vm::loadCart(Cart* cart) {
     //load in global lua fuctions for pico 8- part of this is setting a local variable
     //with the same name as all the globals we just registered
     //auto convertedGlobalLuaFunctions = convert_emojis(p8GlobalLuaFunctions);
-    auto convertedGlobalLuaFunctions = charset::utf8_to_pico8(p8GlobalLuaFunctions);
+    auto convertedP8Bios = charset::utf8_to_pico8(p8Bios);
+    int loadedBiosResult = luaL_dostring(_luaState, convertedP8Bios.c_str());
+
+    if (loadedBiosResult != LUA_OK) {
+        _cartLoadError = "ERROR loading pico 8 bios";
+        Logger_Write("ERROR loading pico 8 bios\n");
+        Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
+        lua_pop(_luaState, 1);
+
+        return false;
+    }
+
+    // Push the eris.init_persist_all function on the top of the lua stack (or nil if it doesn't exist)
+    // we call this function to establish the default global state of things not to save in the save state
+    // needs to be called after globals are loaded but before the cart is run, or _init is called
+    //TODO: move these calls to the glue code?
+    lua_getglobal(_luaState, "eris");
+	lua_getfield(_luaState, -1, "init_persist_all");
+
+    if (lua_pcall(_luaState, 0, 0, 0)){
+        Logger_Write("Error setting up lua persistence: %s\n", lua_tostring(_luaState, -1));
+        lua_pop(_luaState, 1);
+        return false;
+    }
+
+    //pop the eris.init_persist_all fuction off the stack now that we're done with it
+    lua_pop(_luaState, 1);
+
+    
+
+    if (abortLua) {
+        //trigger closing of cart and reload of bios
+        return false;
+    }
+
+    _cartLoadError = "";
+
+    return true;
+
+}
+
+bool Vm::loadCart(Cart* cart) {
+    _picoFrameCount = 0;
+
+    _cartdataKey = "";
+
+    //reset memory (may have to be more selective about zeroing out to be accurate?)
+    _memory->Reset();
+
+    //seed rng
+    auto now = std::chrono::high_resolution_clock::now();
+    api_srand(fix32::frombits((int32_t)now.time_since_epoch().count()));
+
+    //set graphics state
+    _graphics->color();
+    _graphics->clip();
+    _graphics->pal();
+
+    if (cart->LuaString == "") {
+        if (_cartLoadError == "") {
+            _cartLoadError = "No Lua to load. Aborting cart load";
+        }
+        Logger_Write("%s\n", _cartLoadError.c_str());
+
+        return false;
+    }
+
+    //reset audio
+    _audio->resetAudioState();
+
+    //copy data from cart rom to ram
+    vm_reload(0, 0, sizeof(cart->CartRom), cart);
+
+    _loadedCart = cart;
+    _cartChangeQueued = false;
+    abortLua = false;
+
+    // initialize Lua interpreter
+    _luaState = luaL_newstate();
+
+    lua_setpico8memory(_luaState, (uint8_t *)&_memory->data);
+    // load Lua base libraries (print / math / etc)
+    luaL_openlibs(_luaState);
+    lua_pushglobaltable(_luaState);
+
+    //system
+    //must be registered before loading globals for pause menu to work
+    lua_register(_luaState, "__listcarts", listcarts);
+    lua_register(_luaState, "__getbioserror", getbioserror);
+    lua_register(_luaState, "__loaddefaultcart", loaddefaultcart);
+    lua_register(_luaState, "__loadsettingscart", loadsettingscart);
+    lua_register(_luaState, "__togglepausemenu", togglepausemenu);
+    lua_register(_luaState, "__resetcart", resetcart);
+    //lua_register(_luaState, "load", load);
+	
+    //settings
+    lua_register(_luaState, "__getsetting", getsetting);
+    lua_register(_luaState, "__setsetting", setsetting);
+    
+    lua_register(_luaState, "__installpackins", installpackins);
+    
+    //label
+    lua_register(_luaState, "__loadlabel", loadlabel);
+    
+    lua_register(_luaState, "__getlualine", getlualine);
+    
+    //register global functions first, they will get local aliases when
+    //the rest of the api is registered
+    //graphics
+    lua_register(_luaState, "cls", cls);
+    lua_register(_luaState, "pset", pset);
+    lua_register(_luaState, "pget", pget);
+    lua_register(_luaState, "color", color);
+    lua_register(_luaState, "line", line);
+    lua_register(_luaState, "tline", tline);
+    lua_register(_luaState, "circ", circ);
+    lua_register(_luaState, "circfill", circfill);
+    lua_register(_luaState, "oval", oval);
+    lua_register(_luaState, "ovalfill", ovalfill);
+    lua_register(_luaState, "rect", rect);
+    lua_register(_luaState, "rectfill", rectfill);
+    lua_register(_luaState, "print", print);
+    lua_register(_luaState, "cursor", cursor);
+    lua_register(_luaState, "spr", spr);
+    lua_register(_luaState, "sspr", sspr);
+    lua_register(_luaState, "fget", fget);
+    lua_register(_luaState, "fset", fset);
+    lua_register(_luaState, "sget", sget);
+    lua_register(_luaState, "sset", sset);
+    lua_register(_luaState, "camera", camera);
+    lua_register(_luaState, "clip", clip);
+
+    lua_register(_luaState, "pal", pal);
+    lua_register(_luaState, "palt", palt);
+
+    lua_register(_luaState, "mget", mget);
+    lua_register(_luaState, "mset", mset);
+    lua_register(_luaState, "map", gfx_map);
+    lua_register(_luaState, "mapdraw", gfx_map);
+
+    //stubbed in graphics:
+    lua_register(_luaState, "fillp", fillp);
+    //lua_register(_luaState, "flip", flip);
+
+    //input
+    lua_register(_luaState, "btn", btn);
+    lua_register(_luaState, "btnp", btnp);
+
+    lua_register(_luaState, "time", time);
+    lua_register(_luaState, "t", time);
+
+    //audio:
+    lua_register(_luaState, "music", music);
+    lua_register(_luaState, "sfx", sfx);
+
+    //memory
+    lua_register(_luaState, "cstore", cstore);
+    lua_register(_luaState, "memcpy", api_memcpy);
+    lua_register(_luaState, "memset", api_memset);
+    lua_register(_luaState, "peek", peek);
+    lua_register(_luaState, "poke", poke);
+    lua_register(_luaState, "peek2", peek2);
+    lua_register(_luaState, "poke2", poke2);
+    lua_register(_luaState, "peek4", peek4);
+    lua_register(_luaState, "poke4", poke4);
+    lua_register(_luaState, "reload", reload);
+    lua_register(_luaState, "reset", reset);
+
+    //cart data
+    lua_register(_luaState, "cartdata", cartdata);
+    lua_register(_luaState, "dget", dget);
+    lua_register(_luaState, "dset", dset);
+
+    //
+    lua_register(_luaState, "printh", printh);
+    lua_register(_luaState, "stat", stat);
+    lua_register(_luaState, "_update_buttons", _update_buttons);
+    lua_register(_luaState, "run", run);
+    lua_register(_luaState, "extcmd", extcmd);
+    lua_register(_luaState, "_set_fps", setFps);
+
+    //rng
+    lua_register(_luaState, "rnd", rnd);
+    lua_register(_luaState, "srand", srand);
+
+    //load in global lua fuctions for pico 8- part of this is setting a local variable
+    //with the same name as all the globals we just registered
+    //auto convertedGlobalLuaFunctions = convert_emojis(p8GlobalLuaFunctions);
+    auto convertedGlobalLuaFunctions = charset::utf8_to_pico8(p8Bios);
     int loadedGlobals = luaL_dostring(_luaState, convertedGlobalLuaFunctions.c_str());
 
     if (loadedGlobals != LUA_OK) {
@@ -386,7 +561,7 @@ end
 
 
     //customize bios per host's requirements
-    if (cart->FullCartPath == BiosCartName || cart->FullCartPath == SettingsCartName) {
+    if (cart->FullCartPath == DefaultCartName || cart->FullCartPath == SettingsCartName) {
         std::string customBiosLua = _host->customBiosLua();
 
         if (customBiosLua.length() > 0) {
@@ -412,7 +587,7 @@ end
 
 void Vm::LoadBiosCart(){
     CloseCart();
-    Cart *cart = new Cart(BiosCartName, "");
+    Cart *cart = new Cart(DefaultCartName, "");
 
     bool success = loadCart(cart);
 
@@ -434,10 +609,10 @@ void Vm::LoadSettingsCart(){
 }
 
 void Vm::LoadCart(std::string filename, bool loadBiosOnFail){
-    if (filename == "__FAKE08-BIOS.p8") {
-        LoadBiosCart();
-        return;
-    }
+    // if (filename == "__FAKE08-DEFAULT.p8") {
+    //     LoadBiosCart();
+    //     return;
+    // }
     if (filename == "__FAKE08-SETTINGS.p8") {
         LoadSettingsCart();
         return;
@@ -456,7 +631,7 @@ void Vm::LoadCart(std::string filename, bool loadBiosOnFail){
     if (loadBiosOnFail && !success) {
         CloseCart();
         //todo: show an error message on the bios?
-        LoadBiosCart();
+        //LoadBiosCart();
     }
 }
 
@@ -474,7 +649,7 @@ void Vm::LoadCart(const unsigned char* cartData, size_t size, bool loadBiosOnFai
     if (loadBiosOnFail && !success) {
         CloseCart();
         //todo: show an error message on the bios?
-        LoadBiosCart();
+        //LoadBiosCart();
     }
 }
 
@@ -565,21 +740,24 @@ void Vm::deserializeCartDataToMemory(std::string cartDataStr) {
 }
 
 bool Vm::Step(){
+    Logger_Write("getting __z8_tick\n");
     bool ret = false;
     lua_getglobal(_luaState, "__z8_tick");
     int status = lua_pcall(_luaState, 0, 1, 0);
     if (status != LUA_OK)
     {
+        Logger_Write("error calling tick");
         char const *message = lua_tostring(_luaState, -1);
         _cartLoadError = "Error in main loop: " + std::string(message);
     }
     else
     {
+        Logger_Write("successfully called __z8_tick\n");
         ret = (int)lua_tonumber(_luaState, -1) >= 0;
     }
     lua_pop(_luaState, 1);
 
-
+    Logger_Write("end of Step()\n");
     return ret;
 }
 
@@ -734,6 +912,7 @@ string Vm::GetBiosError() {
 }
 
 void Vm::GameLoop() {
+    Logger_Write("Start of GameLoop()");
     while (_host->shouldRunMainLoop())
     {
         //shouldn't need to set this every frame
@@ -742,19 +921,21 @@ void Vm::GameLoop() {
         //is this better at the end of the loop?
         //_host->waitForTargetFps();
 
-        if (_host->shouldQuit()) break; // break in order to return to hbmenu
+        //if (_host->shouldQuit()) break; // break in order to return to hbmenu
         //this should probably be handled just in the host class
-        _host->changeStretch();
+        //_host->changeStretch();
 
         //update buttons needs to be callable from the cart, and also flip
         //it should update call the pico part of scanInput and set the values in memory
         //then we don't need to pass them in here
         //UpdateAndDraw();
+        Logger_Write("Step()");
         Step();
 
         uint8_t* picoFb = GetPicoInteralFb();
         uint8_t* screenPaletteMap = GetScreenPaletteMap();
 
+        Logger_Write("drawframe()");
         _host->drawFrame(picoFb, screenPaletteMap, _memory->drawState.drawMode);
 
         if (_host->shouldFillAudioBuff()) {
@@ -865,12 +1046,12 @@ void Vm::vm_poke4(int addr, fix32 value){
 bool Vm::vm_cartdata(string key) {
     //match pico 8 errors
     if (_cartdataKey != "") {
-        QueueCartChange(BiosCartName);
+        QueueCartChange(DefaultCartName);
         _cartLoadError = "cartdata() can only be called once";
         return false;
     }
     if (key.length() == 0 || key.length() > 64) {
-        QueueCartChange(BiosCartName);
+        QueueCartChange(DefaultCartName);
         _cartLoadError = "cart data id too long";
         return false;
     }
@@ -1084,7 +1265,7 @@ void Vm::vm_extcmd(std::string cmd){
         togglePauseMenu();
     }
     else if (cmd == "shutdown") {
-        QueueCartChange(BiosCartName);
+        QueueCartChange(DefaultCartName);
     }
 }
 

@@ -20,7 +20,7 @@
 
 #include "emojiconversion.h"
 
-#include "FakoBios.h"
+#include "DefaultCart.h"
 
 #include "FakoSettings.h"
 
@@ -456,11 +456,11 @@ Cart::Cart(std::string filename, std::string cartDirectory){
 
     std::string firstFourChars = get_first_four_chars(FullCartPath);
     
-    if (FullCartPath == "__FAKE08-BIOS.p8" || FullCartPath == "__FAKE08-SETTINGS.p8" || firstFourChars == "pico"){
+    if (FullCartPath == "__FAKE08-DEFAULT.p8" || FullCartPath == "__FAKE08-SETTINGS.p8" || firstFourChars == "pico"){
         std::string cartStr; 
 
-        if (FullCartPath == "__FAKE08-BIOS.p8") {
-            cartStr = fake08BiosP8;
+        if (FullCartPath == "__FAKE08-DEFAULT.p8") {
+            cartStr = fake08DefaultCart;
         }
 		else if (FullCartPath == "__FAKE08-SETTINGS.p8") {
             cartStr = fake08SettingsP8;

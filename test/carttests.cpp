@@ -3,10 +3,10 @@
 #include "../source/filehelpers.h"
 
 TEST_CASE("Loads bios cart") {
-    Cart* cart = new Cart("__FAKE08-BIOS.p8", "");
+    Cart* cart = new Cart("__FAKE08-DEFAULT.p8", "");
 
     SUBCASE("FullCartPath is correct") {
-        CHECK(cart->FullCartPath == "__FAKE08-BIOS.p8");
+        CHECK(cart->FullCartPath == "__FAKE08-DEFAULT.p8");
     }
     SUBCASE("error is empty") {
         CHECK(cart->LoadError == "");

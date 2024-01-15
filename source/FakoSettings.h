@@ -174,7 +174,7 @@ function updatecursor()
 			cursorpos = deli(path)
 			if not cursorpos then
 				--exit to bios
-				__loadbioscart()
+				__loaddefaultcart()
 			end
 		else
 			if inoption then

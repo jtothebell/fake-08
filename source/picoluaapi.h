@@ -95,7 +95,7 @@ int printh(lua_State *L);
 int listcarts(lua_State *L);
 
 int getbioserror(lua_State *L);
-int loadbioscart(lua_State *L);
+int loaddefaultcart(lua_State *L);
 int loadsettingscart(lua_State *L);
 int togglepausemenu(lua_State *L);
 int resetcart(lua_State *L);

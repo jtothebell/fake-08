@@ -138,7 +138,7 @@ EXPORT void retro_init()
 
     _vm->SetCartList(_host->listcarts());
 
-    _vm->LoadBiosCart();
+    //_vm->LoadBiosCart();
 }
 
 EXPORT void retro_deinit()
@@ -615,10 +615,10 @@ EXPORT void retro_cheat_set(unsigned index, bool enabled, const char *code)
 
 EXPORT bool retro_load_game(struct retro_game_info const *info)
 {
-    if (!info) {
-        _vm->QueueCartChange("__FAKE08-BIOS.p8");
-        return true;
-    }
+    // if (!info) {
+    //     _vm->QueueCartChange("__FAKE08-DEFAULT.p8");
+    //     return true;
+    // }
 
     auto containingDir = getDirectory(info->path);
 

@@ -67,6 +67,8 @@ class Vm {
        Audio* audio = nullptr);
     ~Vm();
 
+    bool Initialize();
+
     void LoadBiosCart();
     
     void LoadSettingsCart();

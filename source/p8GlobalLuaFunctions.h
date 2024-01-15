@@ -6,7 +6,7 @@
 //from zepto 8 bios.p8
 //this is the bios-- needs to get loaded first, and then will run every cart
 
-const char * p8GlobalLuaFunctions = R"#(
+const char * p8Bios = R"#(
 -- The functions below are normally attached to the program code, but are here for simplicity
 ---------------------------------
 --Table Helpers
@@ -182,7 +182,7 @@ __f08_menu_items = {
     {nil, nil},
     {nil, nil},
     {"reset cart", __resetcart},
-    {"exit to menu", __loadbioscart},
+    {"exit to menu", __loaddefaultcart},
     {"exit to settings", __loadsettingscart}
 }
 
