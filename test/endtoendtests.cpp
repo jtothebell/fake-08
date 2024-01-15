@@ -117,7 +117,7 @@ TEST_CASE("Loading and running carts") {
             }
             if (getFileExtension(cartfile) == ".p8") {
                 SUBCASE(cartfile.c_str()){
-                    vm->UpdateAndDraw();
+                    vm->Step();
 
                     std::stringstream ss;
                     ss << "carts/screenshots/" << screenshot;
@@ -137,10 +137,10 @@ TEST_CASE("Loading and running carts") {
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
         }
-        SUBCASE("Frame count updated with each UpdateAndDrawCall()"){
-            vm->UpdateAndDraw();
-            vm->UpdateAndDraw();
-            vm->UpdateAndDraw();
+        SUBCASE("Frame count updated with each Step() Call"){
+            vm->Step();
+            vm->Step();
+            vm->Step();
 
             CHECK(vm->GetFrameCount() == 3);
         }
@@ -163,7 +163,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/pset00-test_f01.png"));
         }
@@ -177,7 +177,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/pset3pix_f01.png"));
         }
@@ -191,7 +191,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/psetall_f01.png"));
         }
@@ -205,7 +205,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/cliptest_f01.png"));
         }
@@ -219,7 +219,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/memorytest_f01.png"));
         }
@@ -233,7 +233,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/cartdatatest_f01.png"));
         }
@@ -244,7 +244,7 @@ TEST_CASE("Loading and running carts") {
         vm->LoadCart("tonumtest2.p8", false);
 
         SUBCASE("can parse positive int"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             bool parsedCorrectly = vm->ExecuteLua(
                 "function r1test()\n"
@@ -255,7 +255,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(parsedCorrectly);
         }
         SUBCASE("can parse negative decimal") {
-            vm->UpdateAndDraw();
+            vm->Step();
 
             bool parsedCorrectly = vm->ExecuteLua(
                 "function r2test()\n"
@@ -266,7 +266,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(parsedCorrectly);
         }
         SUBCASE("can parse hex") {
-            vm->UpdateAndDraw();
+            vm->Step();
 
             bool parsedCorrectly = vm->ExecuteLua(
                 "function r3test()\n"
@@ -278,7 +278,7 @@ TEST_CASE("Loading and running carts") {
         }
         
        SUBCASE("can parse binary literal") {
-            vm->UpdateAndDraw();
+            vm->Step();
 
             bool parsedCorrectly = vm->ExecuteLua(
                 "function r5test()\n"
@@ -289,7 +289,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(parsedCorrectly);
         }
         SUBCASE("can parse large positive number") {
-            vm->UpdateAndDraw();
+            vm->Step();
 
             bool parsedCorrectly = vm->ExecuteLua(
                 "function r6test()\n"
@@ -300,7 +300,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(parsedCorrectly);
         }
         SUBCASE("unparseable string returns nil") {
-            vm->UpdateAndDraw();
+            vm->Step();
 
             bool parsedCorrectly = vm->ExecuteLua(
                 "function r8test()\n"
@@ -313,7 +313,7 @@ TEST_CASE("Loading and running carts") {
         
         //currently failing
         SUBCASE("can parse hex with decimal") {
-            vm->UpdateAndDraw();
+            vm->Step();
 
             bool parsedCorrectly = vm->ExecuteLua(
                 "function r4test()\n"
@@ -325,7 +325,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(parsedCorrectly);
         }
         //SUBCASE("too large int overflows") {
-        //    vm->UpdateAndDraw();
+        //    vm->Step();
 
         //    bool parsedCorrectly = vm->ExecuteLua(
         //        "function r7test()\n"
@@ -345,7 +345,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("addition works"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             bool additionWorks = vm->ExecuteLua(
                 "function additiontest()\n"
@@ -356,7 +356,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(additionWorks);
         }
         SUBCASE("multiplication works"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             bool multiplicationWorks = vm->ExecuteLua(
                 "function multiplicationtest()\n"
@@ -367,7 +367,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(multiplicationWorks);
         }
         SUBCASE("division works"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             bool divisionWorks = vm->ExecuteLua(
                 "function divisiontest()\n"
@@ -378,7 +378,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(divisionWorks);
         }
         SUBCASE("subtraction works"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             bool subtractionWorks = vm->ExecuteLua(
                 "function subtractiontest()\n"
@@ -389,7 +389,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(subtractionWorks);
         }
         SUBCASE("rnd returns between 0 and 1, and can add"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             bool rndWorks = vm->ExecuteLua(
                 "function rndtest()\n"
@@ -400,7 +400,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(rndWorks);
         }
         SUBCASE("rnd returns between 0 and 1 without calling srand first"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             bool rndWorks = vm->ExecuteLua(
                 "function firstrndtest()\n"
@@ -411,7 +411,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(rndWorks);
         }
         SUBCASE("# returns count of array"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             bool rndWorks = vm->ExecuteLua(
                 "function counttest()\n"
@@ -422,7 +422,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(rndWorks);
         }
         SUBCASE("ceil works"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             bool ceilWorks = vm->ExecuteLua(
                 "function ceiltest()\n"
@@ -491,7 +491,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/fillptest_f01.png"));
         }
@@ -506,8 +506,8 @@ TEST_CASE("Loading and running carts") {
         }
         SUBCASE("sceen matches screenshot"){
             //first frame doesn't have uniform colors
-            vm->UpdateAndDraw();
-            vm->UpdateAndDraw();
+            vm->Step();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/peek4test_f02.png"));
         }
@@ -521,7 +521,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/paltabletest_f01.png"));
         }
@@ -535,7 +535,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/nilpairstest_f01.png"));
         }
@@ -549,7 +549,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/splittest_f01.png"));
         }
@@ -591,7 +591,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/includetest_f01.png"));
         }
@@ -605,7 +605,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/subtest_f01.png"));
         }
@@ -619,7 +619,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/peek_poke_extraargs_f01.png"));
         }
@@ -633,7 +633,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/tline_test_f01.png"));
         }
@@ -647,7 +647,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/short_print_test_f01.png"));
         }
@@ -661,7 +661,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/pal_args_test_f01.png"));
         }
@@ -675,7 +675,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/loop_max_val_f01.png"));
         }
@@ -689,7 +689,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/peek_high_addr_f01.png"));
         }
@@ -703,7 +703,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/ord_multiple_f01.png"));
         }
@@ -717,7 +717,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/e_next_to_digit_f01.png"));
         }
@@ -731,7 +731,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/one_off_chars_f01.png"));
         }
@@ -745,7 +745,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/print_mem_poke_f01.png"));
         }
@@ -756,7 +756,7 @@ TEST_CASE("Loading and running carts") {
         vm->LoadCart("print_scroll_test.p8");
         
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/print_scroll_test_f01.png"));
         }
@@ -769,7 +769,7 @@ TEST_CASE("Loading and running carts") {
         vm->LoadCart("ppwr-big-digit-test.p8");
         
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/ppwr-big-digit-test_f01.png"));
         }
@@ -783,7 +783,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/split_noargs_test_f01.png"));
         }
@@ -797,7 +797,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/str_index_sub_test_f01.png"));
         }
@@ -811,7 +811,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/count_val_test_f01.png"));
         }
@@ -825,7 +825,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            vm->UpdateAndDraw();
+            vm->Step();
 
             CHECK(verifyScreenshot(vm, host, "carts/screenshots/boldtexttest_f01.png"));
         }

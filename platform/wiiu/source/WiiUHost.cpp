@@ -171,7 +171,7 @@ void _changeStretch(StretchOption newStretch){
     flip = SDL_FLIP_NONE;
 }
 
-Host::Host() {
+Host::Host(int windowWidth, int windowHeight)  {
     struct stat st = {0};
 
     int res = chdir("fs:/vol/external01");

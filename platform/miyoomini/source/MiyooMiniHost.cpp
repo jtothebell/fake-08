@@ -211,7 +211,7 @@ void _changeStretch(StretchOption newStretch){
 
 
 
-Host::Host() {
+Host::Host(int windowWidth, int windowHeight)  {
     #ifdef _DESKTOP
     std::string home = getenv("HOME");
     

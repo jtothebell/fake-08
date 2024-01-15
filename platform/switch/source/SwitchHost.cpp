@@ -79,7 +79,7 @@ uint8_t ConvertInputToP8(u64 input){
 	return result;
 }
 
-Host::Host() 
+Host::Host(int windowWidth, int windowHeight)  
 {
     struct stat st = {0};
 

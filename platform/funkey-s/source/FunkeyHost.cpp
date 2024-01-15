@@ -93,7 +93,7 @@ void audioSetup(){
 }
 
 
-Host::Host() {
+Host::Host(int windowWidth, int windowHeight)  {
     #ifdef _BITTBOY
     _cartDirectory = "/mnt/roms/PICO-8";
     #else

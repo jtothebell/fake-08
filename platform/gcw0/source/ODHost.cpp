@@ -191,7 +191,7 @@ void _changeStretch(StretchOption newStretch){
 
 
 
-Host::Host() {
+Host::Host(int windowWidth, int windowHeight)  {
     #ifdef _GCW0
     _cartDirectory = "/media/sdcard/roms/PICO8";
     _logFilePrefix = "/media/sdcard/roms/PICO8/";

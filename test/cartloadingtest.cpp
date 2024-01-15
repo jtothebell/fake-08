@@ -529,7 +529,7 @@ string checkCart(Vm* vm, string cartDirectory, string cart){
     }
     else
     {
-        vm->UpdateAndDraw();
+        vm->Step();
 
         if (vm->GetBiosError() != "") {
             vm->GetBiosError();

@@ -40,7 +40,7 @@ void setCartDirectory(std::string dir) {
 
 
 
-Host::Host() { }
+Host::Host(int windowWidth, int windowHeight)  { }
 
 
 void Host::oneTimeSetup(Audio* audio){

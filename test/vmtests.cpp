@@ -428,7 +428,7 @@ TEST_CASE("Vm memory functions") {
         vm->LoadCart("drillerinputtest.p8");
 
         SUBCASE("no buttons gives 0"){
-            vm->UpdateAndDraw();
+            vm->Step();
             bool btnbits = vm->ExecuteLua(
                 "function btnbitstest0()\n"
                 " return btnbits == 0\n"
@@ -439,7 +439,7 @@ TEST_CASE("Vm memory functions") {
         }
         SUBCASE("left pushed returns 1"){
             stubHost->stubInput(1, 1);
-            vm->UpdateAndDraw();
+            vm->Step();
             bool btnbits = vm->ExecuteLua(
                 "function btnbitstest1()\n"
                 " return btnbits == 1\n"
@@ -450,7 +450,7 @@ TEST_CASE("Vm memory functions") {
         }
         SUBCASE("right pushed returns 2"){
             stubHost->stubInput(2, 2);
-            vm->UpdateAndDraw();
+            vm->Step();
             bool btnbits = vm->ExecuteLua(
                 "function btnbitstest2()\n"
                 " return btnbits == 2\n"
@@ -461,7 +461,7 @@ TEST_CASE("Vm memory functions") {
         }
         SUBCASE("right pushed detected by band op"){
             stubHost->stubInput(2, 2);
-            vm->UpdateAndDraw();
+            vm->Step();
             bool btnbits = vm->ExecuteLua(
                 "function rightbandtest()\n"
                 " return rightband == 2\n"

@@ -51,7 +51,7 @@ string _desktopSdl2customBiosLua = "cartpath = \"AppData\"\n"
 
 
 
-Host::Host() 
+Host::Host(int windowWidth, int windowHeight)  
 {
     struct stat st = {0};
 

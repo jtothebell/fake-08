@@ -1,4 +1,5 @@
 #include "doctest.h"
+#include <cstdint>
 #include "../source/fontdata.h"
 
 #include "../source/stringToDataHelpers.h"

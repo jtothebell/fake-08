@@ -266,7 +266,7 @@ void audioSetup(){
 
 
 
-Host::Host() {
+Host::Host(int windowWidth, int windowHeight)  {
     _logFilePrefix = "sdmc:/3ds/fake08/";
 
     _cartDirectory = "/p8carts";

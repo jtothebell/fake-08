@@ -67,7 +67,7 @@ string _desktopSdl2customBiosLua = "cartpath = \"ux0:/p8carts/\"\n"
         "pausebtn = \"start\"";
 
 
-Host::Host() {
+Host::Host(int windowWidth, int windowHeight)  {
     //make sure directories exists
     sceIoMkdir("ux0:/data/", 0777);
     sceIoMkdir("ux0:/data/fake08/", 0777);

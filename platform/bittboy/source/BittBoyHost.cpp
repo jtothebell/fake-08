@@ -172,7 +172,7 @@ void _changeStretch(StretchOption newStretch){
 
 
 
-Host::Host() {
+Host::Host(int windowWidth, int windowHeight)  {
     #ifdef _BITTBOY
     _cartDirectory = "/mnt/roms/PICO-8";
     _logFilePrefix = "/mnt/emus/pico8/";

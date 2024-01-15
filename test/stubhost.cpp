@@ -21,7 +21,7 @@ static std::string stubCurrKBkey = "";
 
 
 
-Host::Host() { }
+Host::Host(int windowWidth, int windowHeight)  { }
 StubHost::StubHost() { }
 
 
