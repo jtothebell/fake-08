@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <math.h>
 
 #include <string>
@@ -20,13 +21,29 @@
 
 int main(int argc, char* argv[])
 {
-	Host *host = new Host(780, 780);
+	//default to full resolution
+	int windowWidth = 0;
+	int windowHeight = 0;
+	int opt;
+
+	while ((opt = getopt(argc, argv, "w:h:")) != -1) {
+    	switch (opt) {
+    		case 'w': windowWidth = (int)strtol(optarg, NULL, 10); break;
+    		case 'h': windowHeight = (int)strtol(optarg, NULL, 10); break;
+        }
+    }
+
+	printf("windowWidth: %d\n", windowWidth);
+	printf("windowHeight: %d\n", windowHeight);
+
+	Host *host = new Host(windowWidth, windowHeight);
 	PicoRam *memory = new PicoRam();
 	Audio *audio = new Audio(memory);
 
 	Logger_Initialize(host->logFilePrefix());
-	
+	Logger_Write("initializing Vm\n");
 	Vm *vm = new Vm(host, memory, nullptr, nullptr, audio);
+	
 
 	host->setUpPaletteColors();
 	host->oneTimeSetup(audio);
@@ -36,14 +53,7 @@ int main(int argc, char* argv[])
 	host->unpackCarts();
 	#endif
 
-	Logger_Write("initializing Vm\n");
-
-	bool vmInitResult = vm->Initialize();
-
-	if (!vmInitResult) {
-		Logger_Write("vm init failed\n");
-		return 1;
-	}
+	
 	
 	Logger_Write("initialized Vm and host\n");
 
@@ -63,8 +73,11 @@ int main(int argc, char* argv[])
 	}
 	#else
 	if (argc > 1) {
-		cart = argv[1];
-		loadCart = true;
+		//ugly hack for backward compat - single argument. w/h need to be passed after
+		if (argv[1][0] != '-') {
+			cart = argv[1];
+			loadCart = true;
+		}
 	}
 	#endif
 
