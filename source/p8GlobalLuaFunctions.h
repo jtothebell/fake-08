@@ -341,6 +341,23 @@ eris.restore_all = function(persisted)
   end
 end
 
+function __z8_strlen(s)
+    return #string.gsub(s, '[\128-\255]', 'XX')
+end
+
+-- Stubs for unimplemented functions
+local function stub(s)
+    return function(a) __stub(s.."("..(a and '"'..tostr(a)..'"' or "")..")") end
+end
+save = stub("save")
+info = stub("info")
+abort = stub("abort")
+folder = stub("folder")
+resume = stub("resume")
+reboot = stub("reboot")
+dir = stub("dir")
+ls = dir
+
 function flip()
     _update_buttons()
     yield()
@@ -478,8 +495,7 @@ function __z8_tick()
     if __z8_stopped then
         __z8_stopped = false -- FIXME: what now?
     elseif not ret then
-        -- FIXME: I use __stub because printh() prints nothing in Visual Studio
-        __stub(tostr(err))
+        printh(tostr(err))
     end
     return 0
 end

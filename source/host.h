@@ -97,7 +97,7 @@ class Host {
     Color _paletteColors[144];
 
     public:
-    Host();
+    Host(int windowWidth = 0, int windowHeight = 0);
 
     void setUpPaletteColors();
     void oneTimeSetup(Audio* audio);

@@ -20,7 +20,7 @@
 
 int main(int argc, char* argv[])
 {
-	Host *host = new Host();
+	Host *host = new Host(780, 780);
 	PicoRam *memory = new PicoRam();
 	Audio *audio = new Audio(memory);
 

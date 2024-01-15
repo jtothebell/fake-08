@@ -43,9 +43,8 @@ string _desktopSdl2customBiosLua = "cartpath = \"~/p8carts/\"\n"
         "exitbtn = \"close window\"\n"
         "sizebtn = \"\"";
 
-Host::Host() 
+Host::Host(int windowWidth, int windowHeight) 
 {
-
     SDL_DisplayMode current;
 
     SDL_Init(SDL_INIT_VIDEO);
@@ -62,8 +61,8 @@ Host::Host()
       SDL_Log("Display #%d: current display mode is %dx%dpx @ %dhz.", 0, current.w, current.h, current.refresh_rate);
     }
 
-    int WINDOW_SIZE_X=current.w;
-    int WINDOW_SIZE_Y=current.h;
+    int WINDOW_SIZE_X=windowWidth == 0 ? current.w : windowWidth;
+    int WINDOW_SIZE_Y=windowHeight == 0 ? current.h : windowHeight;
 
     struct stat st = {0};
 

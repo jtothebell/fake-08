@@ -249,7 +249,9 @@ bool Vm::Initialize() {
     //load in global lua fuctions for pico 8- part of this is setting a local variable
     //with the same name as all the globals we just registered
     //auto convertedGlobalLuaFunctions = convert_emojis(p8GlobalLuaFunctions);
+    
     auto convertedP8Bios = charset::utf8_to_pico8(p8Bios);
+    
     int loadedBiosResult = luaL_dostring(_luaState, convertedP8Bios.c_str());
 
     if (loadedBiosResult != LUA_OK) {
@@ -740,24 +742,21 @@ void Vm::deserializeCartDataToMemory(std::string cartDataStr) {
 }
 
 bool Vm::Step(){
-    Logger_Write("getting __z8_tick\n");
     bool ret = false;
     lua_getglobal(_luaState, "__z8_tick");
     int status = lua_pcall(_luaState, 0, 1, 0);
     if (status != LUA_OK)
     {
-        Logger_Write("error calling tick");
         char const *message = lua_tostring(_luaState, -1);
+        Logger_Write("error calling tick function: %s\n", message);
         _cartLoadError = "Error in main loop: " + std::string(message);
     }
     else
     {
-        Logger_Write("successfully called __z8_tick\n");
         ret = (int)lua_tonumber(_luaState, -1) >= 0;
     }
     lua_pop(_luaState, 1);
 
-    Logger_Write("end of Step()\n");
     return ret;
 }
 
@@ -929,13 +928,11 @@ void Vm::GameLoop() {
         //it should update call the pico part of scanInput and set the values in memory
         //then we don't need to pass them in here
         //UpdateAndDraw();
-        Logger_Write("Step()");
         Step();
 
         uint8_t* picoFb = GetPicoInteralFb();
         uint8_t* screenPaletteMap = GetScreenPaletteMap();
 
-        Logger_Write("drawframe()");
         _host->drawFrame(picoFb, screenPaletteMap, _memory->drawState.drawMode);
 
         if (_host->shouldFillAudioBuff()) {
