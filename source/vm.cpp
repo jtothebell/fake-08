@@ -128,6 +128,7 @@ bool _initializeLuaState(lua_State* luaState) {
 
     //cart data
     lua_register(luaState, "cartdata", cartdata);
+    lua_register(luaState, "__cartdata", cartdata);
     lua_register(luaState, "dget", dget);
     lua_register(luaState, "dset", dset);
 
@@ -163,20 +164,62 @@ bool _initializeLuaState(lua_State* luaState) {
     // we call this function to establish the default global state of things not to save in the save state
     // needs to be called after globals are loaded but before the cart is run, or _init is called
     //TODO: move these calls to the glue code?
-    lua_getglobal(luaState, "eris");
-	lua_getfield(luaState, -1, "init_persist_all");
+    // lua_getglobal(luaState, "eris");
+	// lua_getfield(luaState, -1, "init_persist_all");
 
-    if (lua_pcall(luaState, 0, 0, 0)){
-        Logger_Write("Error setting up lua persistence: %s\n", lua_tostring(luaState, -1));
-        lua_pop(luaState, 1);
-        return false;
-    }
+    // if (lua_pcall(luaState, 0, 0, 0)){
+    //     Logger_Write("Error setting up lua persistence: %s\n", lua_tostring(luaState, -1));
+    //     lua_pop(luaState, 1);
+    //     return false;
+    // }
 
-    //pop the eris.init_persist_all fuction off the stack now that we're done with it
-    lua_pop(luaState, 1);
+    // //pop the eris.init_persist_all fuction off the stack now that we're done with it
+    // lua_pop(luaState, 1);
 
 
     return true;
+}
+
+int panic_hook(lua_State* l) {
+    char const *message = lua_tostring(l, -1);
+    printf("Lua panic: %s\n", message);
+    Logger_Write("ERROR: Lua panic: %s\n", message);
+    return 0;
+}
+
+void printLuaStack(lua_State* L) {
+    int top = lua_gettop(L);
+
+    std::string str = "From top to bottom, the lua stack is \n";
+    for (unsigned index = top; index > 0; index--)
+    {
+        int type = lua_type(L, index);
+        switch (type)
+        {
+            // booleans
+            case LUA_TBOOLEAN:
+                str = str + (lua_toboolean(L, index) ? "true" : "false") + "\n";
+                break;
+
+            // numbers
+            case LUA_TNUMBER:
+                str = str + std::to_string(lua_tonumber(L, index)) + "\n";
+                break;
+
+        // strings
+            case LUA_TSTRING:
+                str = str + lua_tostring(L, index) + "\n";
+                break;
+
+            // other
+            default:
+                str = str + lua_typename(L, type) + "\n";
+                break;
+        }
+    }
+
+    str = str + "\n";
+    std::cout << str;
 }
 
 
@@ -246,15 +289,24 @@ Vm::Vm(
     _audio->resetAudioState();
 
     _luaState = luaL_newstate();
+    lua_atpanic(_luaState, panic_hook);
 
     lua_setpico8memory(_luaState, (uint8_t *)&_memory->data);
-
     _initializeLuaState(_luaState);
-
 }
 
 Vm::~Vm(){
     CloseCart();
+
+    Logger_Write("printing stack before close\n");
+
+    printLuaStack(_luaState);
+
+    Logger_Write("closing lua state\n");
+    
+    lua_close(_luaState);
+    _luaState = nullptr;
+    Logger_Write("closed lua state\n");
 
     if (_cleanupDeps){
         if (_input != nullptr) {
@@ -316,72 +368,15 @@ bool Vm::loadCart(Cart* cart) {
     _cartChangeQueued = false;
     abortLua = false;
 
+    Logger_Write("getting global z8 run cart\n");
+    // Load cartridge code and call __z8_run_cart() on it
+    lua_getglobal(_luaState, "__z8_run_cart");
+    Logger_Write("got global z8 run cart\n");
+    lua_pushstring(_luaState, cart->LuaString.c_str());
+    Logger_Write("pushed cart lua string\n");
+    lua_pcall(_luaState, 1, 0, 0);
+    Logger_Write("called z8 run cart\n");
 
-    //need to add game loop to the bottom of the cart code
-    const char* gameLoop = R"#(
---game loop 
-if (_init) _init()
-if _update or _update60 or _draw then
-    local do_frame = true
-    while true do
-        if _update60 then
-            _update_buttons()
-            _update60()
-        elseif _update then
-            if (do_frame) _update_buttons() _update()
-            do_frame = not do_frame
-        else
-            _update_buttons()
-        end
-        if (_draw and do_frame) _draw()
-        yield()
-    end
-end
-    )#";
-
-    auto cartLua = cart->LuaString + gameLoop;
-
-    int loadedCart = luaL_loadstring(_luaState, cartLua.c_str());
-    if (loadedCart != LUA_OK) {
-        _cartLoadError = "Error loading cart lua:\n";
-        _cartLoadError.append(lua_tostring(_luaState, -1));
-        Logger_Write(_cartLoadError.c_str());
-        lua_pop(_luaState, 1);
-
-        return false;
-    }
-
-    if (setjmp(place) == 0) {
-        if (lua_pcall(_luaState, 0, 0, 0)){
-            _cartLoadError = "Runtime error";
-            Logger_Write("ERROR running cart\n");
-            Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
-            lua_pop(_luaState, 1);
-            return false;
-        }
-    }
-
-    if (abortLua) {
-        //trigger closing of cart and reload of bios
-        return false;
-    }
-    
-    #if LOAD_PACK_INS
-    if(cart->FullCartPath == SettingsCartName){
-        
-        std::string enablepackins = "showpackinoptions = true";
-        int doStrRes = luaL_dostring(_luaState, enablepackins.c_str());
-
-        if (doStrRes != LUA_OK){
-            //bad lua passed
-            Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
-            lua_pop(_luaState, 1);
-        }
-        
-        
-    }
-    
-    #endif
 
 
     //customize bios per host's requirements
@@ -447,10 +442,12 @@ void Vm::LoadCart(std::string filename, bool loadBiosOnFail){
     Logger_Write("Calling Cart Constructor\n");
     auto cartDir = _host->getCartDirectory();
     Cart *cart = new Cart(filename, cartDir);
+    Logger_Write("Cart Constructor called\n");
 
     _cartLoadError = cart->LoadError;
 
     bool success = loadCart(cart);
+    Logger_Write("Loaded cart into vm\n");
 
     if (loadBiosOnFail && !success) {
         CloseCart();
