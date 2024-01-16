@@ -72,12 +72,10 @@ int main(int argc, char* argv[])
 		cart = strstr(boot_params, "&param=") + 7;
 	}
 	#else
-	if (argc > 1) {
-		//ugly hack for backward compat - single argument. w/h need to be passed after
-		if (argv[1][0] != '-') {
-			cart = argv[1];
-			loadCart = true;
-		}
+	int index;
+	for (index = optind; index < argc; index++) {
+		cart = argv[index];
+		loadCart = true;
 	}
 	#endif
 
