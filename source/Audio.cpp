@@ -215,8 +215,11 @@ void Audio::set_music_pattern(int pattern) {
             continue;
 
         uint8_t n = channels[i];
-        if (n & 0x40)
+        if (n & 0x40) {
+            // Make sure this channel will be silent
+            _audioState._sfxChannels[i].sfxId = -1;
             continue;
+        }
 
         _audioState._sfxChannels[i].sfxId = n;
         _audioState._sfxChannels[i].offset = 0.f;
