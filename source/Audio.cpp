@@ -168,7 +168,8 @@ void Audio::set_music_pattern(int pattern) {
     bool foundNonLooping = false;
     // Find music speed; it’s the speed of the fastest sfx
 	// While we are looping through this, find the lowest *valid* sfx length
-    _audioState._musicChannel.master = _audioState._musicChannel.speed = -1;
+    _audioState._musicChannel.master = -1;
+    _audioState._musicChannel.speed = 0;
 	_audioState._musicChannel.length = 32; //as far as i can tell, there is no way to make an sfx longer than 32.
     for (int i = 0; i < 4; ++i)
     {
@@ -214,8 +215,11 @@ void Audio::set_music_pattern(int pattern) {
             continue;
 
         uint8_t n = channels[i];
-        if (n & 0x40)
+        if (n & 0x40) {
+            // Make sure this channel will be silent
+            _audioState._sfxChannels[i].sfxId = -1;
             continue;
+        }
 
         _audioState._sfxChannels[i].sfxId = n;
         _audioState._sfxChannels[i].offset = 0.f;
