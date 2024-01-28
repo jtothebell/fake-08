@@ -298,15 +298,22 @@ Vm::Vm(
 Vm::~Vm(){
     CloseCart();
 
-    Logger_Write("printing stack before close\n");
+    if (_luaState != nullptr) {
+        Logger_Write("printing stack before close\n");
+        printLuaStack(_luaState);
 
-    printLuaStack(_luaState);
+        printLuaStack(_luaState);
 
-    Logger_Write("closing lua state\n");
+        Logger_Write("closing lua state\n");
     
-    lua_close(_luaState);
-    _luaState = nullptr;
-    Logger_Write("closed lua state\n");
+        lua_close(_luaState);
+        _luaState = nullptr;
+        Logger_Write("closed lua state\n");
+    }
+    else {
+        Logger_Write("lua state was null\n");
+    }
+
 
     if (_cleanupDeps){
         if (_input != nullptr) {
@@ -668,11 +675,11 @@ void Vm::CloseCart() {
         _loadedCart = nullptr;
     }
     
-    if (_luaState) {
-        Logger_Write("closing lua state\n");
-        lua_close(_luaState);
-        _luaState = nullptr;
-    }
+    // if (_luaState) {
+    //     Logger_Write("closing lua state\n");
+    //     lua_close(_luaState);
+    //     _luaState = nullptr;
+    // }
 
     Logger_Write("writing cart data\n");
     if (_cartdataKey.length() > 0) {
