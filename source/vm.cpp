@@ -52,7 +52,7 @@ bool _initializeLuaState(lua_State* luaState) {
     lua_register(luaState, "__loadsettingscart", loadsettingscart);
     lua_register(luaState, "__togglepausemenu", togglepausemenu);
     lua_register(luaState, "__resetcart", resetcart);
-    //lua_register(luaState, "load", load);
+    lua_register(luaState, "__load", load);
 	
     //settings
     lua_register(luaState, "__getsetting", getsetting);
@@ -122,12 +122,12 @@ bool _initializeLuaState(lua_State* luaState) {
     lua_register(luaState, "peek2", peek2);
     lua_register(luaState, "poke2", poke2);
     lua_register(luaState, "peek4", peek4);
-    lua_register(luaState, "poke4", poke4);
+    lua_register(luaState, "poke4", poke4); 
     lua_register(luaState, "reload", reload);
     lua_register(luaState, "reset", reset);
 
     //cart data
-    lua_register(luaState, "cartdata", cartdata);
+    // lua_register(luaState, "cartdata", cartdata);
     lua_register(luaState, "__cartdata", cartdata);
     lua_register(luaState, "dget", dget);
     lua_register(luaState, "dset", dset);
@@ -374,16 +374,6 @@ bool Vm::loadCart(Cart* cart) {
     _loadedCart = cart;
     _cartChangeQueued = false;
     abortLua = false;
-
-    Logger_Write("getting global z8 run cart\n");
-    // Load cartridge code and call __z8_run_cart() on it
-    lua_getglobal(_luaState, "__z8_run_cart");
-    Logger_Write("got global z8 run cart\n");
-    lua_pushstring(_luaState, cart->LuaString.c_str());
-    Logger_Write("pushed cart lua string\n");
-    lua_pcall(_luaState, 1, 0, 0);
-    Logger_Write("called z8 run cart\n");
-
 
 
     //customize bios per host's requirements
@@ -1074,9 +1064,13 @@ void Vm::update_buttons() {
 // }
 
 void Vm::vm_run() {
-    if (_loadedCart) {
-        loadCart(_loadedCart);
-    }
+    // if (_loadedCart) {
+    //     loadCart(_loadedCart);
+    // }
+
+    lua_getglobal(_luaState, "__z8_run_cart");
+    lua_pushstring(_luaState, _loadedCart->LuaString.c_str());
+    lua_pcall(_luaState, 1, 0, 0);
 }
 
 void Vm::vm_extcmd(std::string cmd){
@@ -1099,6 +1093,11 @@ void Vm::vm_load(std::string filename, std::string breadcrumb, std::string param
     }
 
     QueueCartChange(filename);
+    LoadCart(_nextCartKey);
+
+
+    //todo: don't call this here?  probably need to change load to not clear out some memory?
+    vm_run();
 }
 
 void Vm::vm_reset(){

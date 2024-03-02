@@ -124,6 +124,28 @@ sub = string.sub
 pack = table.pack
 unpack = table.unpack
 
+function cartdata(s)
+    if __cartdata() then
+        print('cartdata() can only be called once')
+        abort()
+        return false
+    end
+    -- PICO-8 documentation: id is a string up to 64 characters long
+    if #s == 0 or #s > 64 then
+        print('cart data id too long')
+        abort()
+        return false
+    end
+    -- PICO-8 documentation: legal characters are a..z, 0..9 and underscore (_)
+    -- PICO-8 changelog: allow '-' in cartdat() names
+    if string.match(s, '[^-abcdefghijklmnopqrstuvwxyz0123456789_]') then
+        print('cart data id: bad char')
+        abort()
+        return false
+    end
+    return __cartdata(s)
+end
+
 --Button emoji variables
 ⬅️ = 0
 ➡️ = 1
@@ -384,16 +406,24 @@ end
 
 --todo: make this bettter/verify the list
 function __is_api(funcname)
- local picofuncnames = {
-   time = 1, t = 1, sub = 1, chr = 1, ord = 1, tostr = 1, tonum = 1, 
-   add = 1, del = 1, deli = 1, clip = 1, color = 1, pal = 1, palt = 1,
-   fillp = 1, pget = 1, pset = 1, sget = 1, sset = 1, fget = 1, 
-   fset = 1, circ = 1, circfill = 1, rect = 1, rectfill = 1, oval = 1,
-   ovalfill = 1, line = 1, spr = 1, sspr = 1, mget = 1, mset = 1, 
-   tline = 1, peek = 1, poke = 1, peek2 = 1, poke2 = 1, peek4 = 1,
-   poke4 = 1, memcpy = 1, memset = 1, max = 1, min = 1, mid = 1, flr = 1, 
-   ceil = 1, cos = 1, sin = 1, atan2 = 1, rnd = 1, srand = 1, band = 1,
-   bor = 1, bxor = 1, bnot = 1, shl = 1, shr = 1, lshr = 1, rotl = 1, rotr = 1,
+local picofuncnames = {
+    assert = 1, getmetatable = 1, next = 1, ipairs = 1, pairs = 1, rawequal = 1,
+    rawlen = 1, rawget = 1, rawset = 1, setmetatable = 1, type = 1, pack = 1, unpack = 1,
+    load = 1, print = 1,
+    max = 1, min = 1, mid = 1, ceil = 1, flr = 1, cos = 1, sin = 1, atan2 = 1, sqrt = 1,
+    abs = 1, sgn = 1, band = 1, bor = 1, bxor = 1, bnot = 1, shl = 1, shr = 1, lshr = 1,
+    rotl = 1, rotr = 1, tostr = 1, tonum = 1, srand = 1, rnd = 1, ord = 1, chr = 1,
+    split = 1,
+    run = 1, reload = 1, dget = 1, dset = 1, peek = 1, peek2 = 1, peek4 = 1,
+    poke = 1, poke2 = 1, poke4 = 1, memcpy = 1, memset = 1, stat = 1, printh = 1, extcmd = 1,
+    _update_buttons = 1, btn = 1, btnp = 1, cursor = 1, camera = 1, circ = 1, circfill = 1,
+    clip = 1, cls = 1, color = 1, fillp = 1, fget = 1, fset = 1, line = 1, map = 1, mget = 1,
+    mset = 1, oval = 1, ovalfill = 1, pal = 1, palt = 1, pget = 1, pset = 1, rect = 1, rectfill = 1,
+    serial = 1, sget = 1, sset = 1, spr = 1, sspr = 1, music = 1, sfx = 1, time = 1, tline = 1,
+    cocreate = 1, coresume = 1, costatus = 1, yield = 1, trace = 1, stop = 1,
+    count = 1, add = 1, sub = 1, foreach = 1, all = 1, del = 1, deli = 1, t = 1, dget = 1,
+    dset = 1, cartdata = 1, load = 1, save = 1, info = 1, abort = 1, folder = 1,
+    resume = 1, reboot = 1, dir = 1, ls = 1, flip = 1, mapdraw = 1, menuitem = 1
  }
  return picofuncnames[funcname] == 1
 end
@@ -428,6 +458,7 @@ function __z8_reset_cartdata()
 end
 
 function __z8_run_cart(cart_code)
+    printh("run cart func")
     local glue_code = [[--
         if (_init) _init()
         if _update or _update60 or _draw then
@@ -443,6 +474,7 @@ function __z8_run_cart(cart_code)
                     _update_buttons()
                 end
                 if (_draw and do_frame) _draw()
+                printh("game loop about to yield")
                 yield()
             end
         end
@@ -518,17 +550,15 @@ function __z8_boot_sequence()
         [36] = function() local notes = { 0x.5dde, 0x5deb.5be3, 0x.5fef, 0x.57ef, 0x.53ef }
                           for j=0,#notes-1 do poke4(0x3200+j*4,notes[j+1]) end poke(0x3241, 0x0a)
                           sfx(0)
-                          local logo = "######  ####  ###  ######  ####       ### "
-                                    .. "    ## ##    ## ##   ##   ##  ##     ## ##"
-                                    .. "  ###  ##### #####   ##   ##  ## ###  ### "
-                                    .. " ###   ##    ####    ##   ### ##     ## ##"
-                                    .. "###### ##### ##      ##   ######     #####"
-                                    .. "###### ##### ##      ##    ####       ### "
+                          local logo = "######  ###  ## ##  ####      ####   ###  "
+                                    .. "##     ## ## ## ## ##        ##  ## ## ## "
+                                    .. "#####  ##### ##### ##### ### ##  ## ##### "
+                                    .. "##     ## ## ####  ##        ##  ## ## ## "
+                                    .. "##     ## ## ## ## #####      ####   ###  "
+                                    .. "                                          "
                           for j=0,#logo-1 do pset(j%42,6+j/42,sub(logo,j+1,j+1)=='#'and 7) end
-                          local a = {0,0,12,0,0,0,13,7,11,0,14,7,7,7,10,0,15,7,9,0,0,0,8,0,0}
-                          for j=0,#a-1 do pset(41+j%5,2+j/5,a[j+1]) end end,
-        [45] = function() color(6) print("\n\n\nzepto-8 0.0.0 alpha") end,
-        [50] = function() print("(c) 2016-20 sam hocevar et al.\n") end,
+                          end,
+        [45] = function() color(6) print("\n\n\nfake-08 0.0.0") end,
         [52] = function() print("type help for help\n") end,
     }
 
@@ -559,10 +589,6 @@ local function do_command(cmd)
         color(6)
         print_clear('load <filename>')
         print_clear('run')
-        print_clear('')
-        color(12)
-        print_clear('example: load #15133')
-        print_clear('         load #dancer')
         print_clear('')
     else
         color(14)

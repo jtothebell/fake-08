@@ -1167,7 +1167,7 @@ int reload(lua_State *L) {
 int cartdata(lua_State *L) {
     bool result = false;
 
-    if (lua_gettop(L) > 0) {
+    if (lua_gettop(L) > 0 && lua_isstring(L, 1)) {
         std::string key = lua_tolstring(L, 1, nullptr);
         result = _vmForLuaApi->vm_cartdata(key);
     }

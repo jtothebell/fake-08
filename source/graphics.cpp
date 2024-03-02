@@ -36,9 +36,11 @@ Graphics::Graphics(std::string fontdata, PicoRam* memory) {
 
 
 uint8_t* Graphics::GetP8FrameBuffer(){
-	return _memory->hwState.screenDataMemMapping == 0 
-		? _memory->spriteSheetData 
-		: _memory->screenBuffer;
+	// return _memory->hwState.screenDataMemMapping == 0 
+	// 	? _memory->spriteSheetData 
+	// 	: _memory->screenBuffer;
+	//not sure why this memory is wrong? maybe need to fix memory reset on cart load
+	return _memory->screenBuffer;
 }
 
 uint8_t* Graphics::GetP8SpriteSheetBuffer(){
