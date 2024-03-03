@@ -677,7 +677,7 @@ void Vm::CloseCart() {
     }
 
     Logger_Write("resetting state\n");
-    _targetFps = 30;
+    _targetFps = 60;
     _picoFrameCount = 0;
 }
 
@@ -734,7 +734,7 @@ void Vm::GameLoop() {
         //_host->setTargetFps(_targetFps);
 
         //is this better at the end of the loop?
-        //_host->waitForTargetFps();
+        _host->waitForTargetFps();
 
         if (_host->shouldQuit()) break; // break in order to return to hbmenu
         //this should probably be handled just in the host class
@@ -1118,7 +1118,8 @@ void Vm::vm_reset(){
 }
 
 void Vm::setTargetFps(int targetFps){
-    _targetFps = targetFps;
+    //currently handled by lua loop?
+    //_targetFps = targetFps;
 }
 
 int Vm::getFps(){
