@@ -131,8 +131,10 @@ TEST_CASE("Loading and running carts") {
     }
     */
 
+
     SUBCASE("Load simple cart"){
         vm->LoadCart("cartparsetest.p8", false);
+        vm->vm_run();
 
         SUBCASE("No error reported"){
             CHECK(vm->GetBiosError() == "");
@@ -145,6 +147,7 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetFrameCount() == 3);
         }
         SUBCASE("check lua state"){
+            //need to pass this func to the sandbox, not the global state
             bool globalVarLoaded = vm->ExecuteLua(
                 "function globalVarTest()\n"
                 " return a == 1\n"

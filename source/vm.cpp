@@ -299,11 +299,6 @@ Vm::~Vm(){
     CloseCart();
 
     if (_luaState != nullptr) {
-        Logger_Write("printing stack before close\n");
-        printLuaStack(_luaState);
-
-        printLuaStack(_luaState);
-
         Logger_Write("closing lua state\n");
     
         lua_close(_luaState);
@@ -558,6 +553,7 @@ void Vm::deserializeCartDataToMemory(std::string cartDataStr) {
 }
 
 bool Vm::Step(){
+    _picoFrameCount++;
     bool ret = false;
     lua_getglobal(_luaState, "__z8_tick");
     int status = lua_pcall(_luaState, 0, 1, 0);
