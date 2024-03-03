@@ -48,6 +48,7 @@ int main(int argc, char* argv[])
 
 	host->setUpPaletteColors();
 	host->oneTimeSetup(audio);
+	host->setTargetFps(60);
 	
 	#if LOAD_PACK_INS
 
