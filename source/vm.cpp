@@ -1068,6 +1068,9 @@ void Vm::vm_run() {
     //     loadCart(_loadedCart);
     // }
 
+    //this might need to move?
+    _memory->Reset();
+
     lua_getglobal(_luaState, "__z8_run_cart");
     lua_pushstring(_luaState, _loadedCart->LuaString.c_str());
     lua_pcall(_luaState, 1, 0, 0);

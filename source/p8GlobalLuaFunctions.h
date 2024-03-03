@@ -458,7 +458,6 @@ function __z8_reset_cartdata()
 end
 
 function __z8_run_cart(cart_code)
-    printh("run cart func")
     local glue_code = [[--
         if (_init) _init()
         if _update or _update60 or _draw then
@@ -474,7 +473,6 @@ function __z8_run_cart(cart_code)
                     _update_buttons()
                 end
                 if (_draw and do_frame) _draw()
-                printh("game loop about to yield")
                 yield()
             end
         end
@@ -482,8 +480,8 @@ function __z8_run_cart(cart_code)
 
     __z8_loop = cocreate(function()
 
+        -- Memory should be reset to default by the VM before this call
         -- First reload cart into memory
-        memset(0, 0, 0x8000)
         reload()
 
         __z8_reset_state()

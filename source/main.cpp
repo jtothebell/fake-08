@@ -38,6 +38,7 @@ int main(int argc, char* argv[])
 
 	Host *host = new Host(windowWidth, windowHeight);
 	PicoRam *memory = new PicoRam();
+	memory->Reset();
 	Audio *audio = new Audio(memory);
 
 	Logger_Initialize(host->logFilePrefix());
