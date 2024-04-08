@@ -153,8 +153,8 @@ function menuitem(index, label, callback)
         callback = nil
     end
 
-    __f08_menu_items[index + 1][1] = label
-    __f08_menu_items[index + 1][2] = callback
+    __f08_menu_items[index][1] = label
+    __f08_menu_items[index][2] = callback
 end
 
 function __addbreadcrumb(label, carttoload)
@@ -185,7 +185,7 @@ function __f08_menu_update()
         until __f08_menu_items[__f08_menu_selected][1] ~= nil
     end
 
-    if btnp(2) and __f08_menu_selected > 1 then
+    if btnp(2) and __f08_menu_selected > 0 then
         repeat
             __f08_menu_selected = __f08_menu_selected - 1
         until __f08_menu_items[__f08_menu_selected][1] ~= nil
