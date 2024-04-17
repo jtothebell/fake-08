@@ -42,7 +42,7 @@ jobs:
       - name: Build
         run: cd platform/libretro && make
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: Xbox-Series-libretro
           path: |
@@ -62,7 +62,7 @@ jobs:
         run: |
           docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir devkitpro/devkitarm /bin/bash -ex /build_dir/.github/workflows/build3ds.sh
       
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: Nintendo 3DS
           path: |
@@ -82,7 +82,7 @@ jobs:
       - name: Build
         run: |
           docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir devkitpro/devkita64 /bin/bash -ex /build_dir/.github/workflows/buildSwitch.sh
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: Nintendo Switch
           path: |
@@ -101,7 +101,7 @@ jobs:
       - name: Build
         run: |
           docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir jondbell/devkitppc-wiiu-sdl2 /bin/bash -ex /build_dir/.github/workflows/buildWiiU.sh
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: Nintendo Wii U
           path: |
@@ -120,7 +120,7 @@ jobs:
       - name: Build
         run: |
           docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir gnuton/vitasdk-docker:20220413 /bin/sh -ex /build_dir/.github/workflows/buildVita.sh
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: PS Vita
           path: |
@@ -139,7 +139,7 @@ jobs:
       - name: Build
         run: |
           docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir mcejp/arm-miyoo-linux-musleabi-gcc /bin/sh -ex /build_dir/.github/workflows/buildBittboy.sh
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: Bittboy
           path: |
@@ -159,7 +159,7 @@ jobs:
       - name: Build
         run: |
           docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir jondbell/union-miyoomini-toolchain /bin/sh -ex /build_dir/.github/workflows/buildMiyooMini.sh
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: MiyooMini
           path: |
@@ -178,7 +178,7 @@ jobs:
       - name: Build
         run: |
           docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir jondbell/gcw0 /bin/sh -ex /build_dir/.github/workflows/buildGcw0.sh
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: Gcw0
           path: |
@@ -207,7 +207,7 @@ jobs:
           cp platform/libretro/libs/arm64-v8a/libfake08.so platform/libretro/libs/libfake08-arm64.so && 
           cp platform/libretro/libs/armeabi-v7a/libfake08.so platform/libretro/libs/libfake08-arm32.so
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: Android-Libretro
           path: |
@@ -229,7 +229,7 @@ jobs:
         run: |
           docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir jondbell/union-miyoomini-toolchain /bin/sh -ex /build_dir/.github/workflows/buildMiyooMini-libretro.sh
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: MiyooMini-libretro
           path: |
@@ -251,7 +251,7 @@ jobs:
         run: |
           docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir jondbell/gcw0 /bin/sh -ex /build_dir/.github/workflows/buildGcw0-libretro.sh
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: GCW0-libretro
           path: |
@@ -277,7 +277,7 @@ jobs:
       - name: Build
         run: |
           docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir devkitpro/devkita64 /bin/bash -ex /build_dir/.github/workflows/buildSwitch-libretro.sh
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: switch-libretro
           path: |
