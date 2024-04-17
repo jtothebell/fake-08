@@ -149,7 +149,6 @@ function menuitem(index, label, callback)
     if index < 1 or index > 5 then return end
 
     if not label or not callback then
-        label = nil
         callback = nil
     end
 
@@ -225,7 +224,7 @@ function __f08_menu_draw()
     local itemcount = 0
     for i=0, 8, 1 do
         item = __f08_menu_items[i]
-        if item and item[1] and item[2] then
+        if item and item[1] then
             itemcount = itemcount + 1
         end
     end
@@ -241,7 +240,7 @@ function __f08_menu_draw()
 
     for i=0, 8, 1 do
         item = __f08_menu_items[i]
-        if item and item[1] and item[2] then
+        if item and item[1] then
             print(item[1], itemx, itemy, 7)
             
             --draw selection indicator
