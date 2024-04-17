@@ -10,7 +10,7 @@ curl -LJO https://github.com/jakcron/Project_CTR/releases/download/v0."$ctr_ver"
 7z e makerom_0"$ctr_ver"_ctrtool.zip -o/usr/bin Ubuntu/makerom
 
 #dl bannertool
-curl -LJO https://github.com/Steveice10/bannertool/releases/download/1.2.0/bannertool.zip
+curl -LJO https://github.com/diasurgical/bannertool/releases/download/1.2.0/bannertool.zip
 7z e bannertool.zip -o/usr/bin linux-x86_64/bannertool
 
 chmod +x /usr/bin/makerom && chmod +x /usr/bin/bannertool
