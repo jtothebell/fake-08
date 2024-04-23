@@ -148,7 +148,7 @@ InputState_t Host::scanInput(){
                     case SDLK_r:     stretchKeyPressed = true; break;
                     case SDLK_F2:    currKDown |= P8_KEY_7; break;
                     #ifndef NOUPLOAD
-                    case SDLK_SLASH: EM_ASM(file_selector.click();); break;
+                    case SDLK_SLASH: EM_ASM(cuurentdir = "p8carts"; file_selector.click();); break;
                     case SDLK_PERIOD: EM_ASM(FS.syncfs(false,function(err) {
 		if(err)
 		{

@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
 	// Main loop
 	Logger_Write("Starting main loop\n");
 	#if __EMSCRIPTEN__
-	emscripten_set_main_loop_arg(loop,vm,60,true);
+	emscripten_set_main_loop_arg(loop,vm,0,true);
 	#else
 	vm->GameLoop();
 	#endif

@@ -26,7 +26,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti
 
 LIBS	:= -lSDL2
 
-LDFLAGS	:= $(LIBS) -sSINGLE_FILE -sUSE_SDL=2 -sINITIAL_MEMORY=100mb -lidbfs.js --pre-js $(CURDIR)/../pre.js -s EXPORTED_RUNTIME_METHODS=callMain -fsanitize=address --shell-file $(CURDIR)/../shell.htm
+LDFLAGS	:= $(LIBS) -sSINGLE_FILE -sUSE_SDL=2 -sINITIAL_MEMORY=100mb -lidbfs.js --pre-js $(CURDIR)/../pre.js -s EXPORTED_RUNTIME_METHODS=callMain -fsanitize=address --shell-file $(CURDIR)/../shell.htm -sNO_DISABLE_EXCEPTION_CATCHING
 
 
 #---------------------------------------------------------------------------------

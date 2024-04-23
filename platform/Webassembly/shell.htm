@@ -20,10 +20,11 @@
         Module['preRun'] = []
     </script>
     <script type='text/javascript'>
-        currentname = "/home/web_user/p8carts"
+        
         const file_reader = new FileReader();
         file_reader.addEventListener("load", readf);
         function readf(event){
+            currentname = "p8carts/"
             //also heavily derivative of Riot's code on Stack Overflow cause I sure as hell don't udnerstand it.
             const uint8Arr = new Uint8Array(file_reader.result);
             console.log(currentname+fname);
