@@ -8,7 +8,7 @@
 #---------------------------------------------------------------------------------
 TARGET		:=	FAKE08.js
 BUILD		:=	build
-SOURCES		:=	${SOURCES} ../SDL2Common/source source
+SOURCES		:=	${SOURCES} source
 INCLUDES	:=	${INCLUDES}
 
 #---------------------------------------------------------------------------------
