@@ -186,7 +186,8 @@ void Host::setPlatformParams(
 
 
 void Host::oneTimeSetup(Audio* audio){
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
+    //Haptic support is not being used and many devices are not compiled with haptic support
+    if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_TIMER|SDL_INIT_JOYSTICK) != 0)
     {
         fprintf(stderr, "SDL could not initialize\n");
         return;
