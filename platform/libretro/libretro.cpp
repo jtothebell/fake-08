@@ -39,8 +39,6 @@ int16_t audioBuffer[audioBufferSize];
 const int PicoScreenWidth = 128;
 const int PicoScreenHeight = 128;
 
-const int BytesPerPixel = 2;
-
 static int scale = 1;
 static int crop_h_left = 0;
 static int crop_h_right = 0;
@@ -72,7 +70,6 @@ static void frame_time_cb(retro_usec_t usec)
 static void check_variables(bool startup)
 {
     struct retro_variable var = {0};
-    char key[256];
     int video_updated = 0;
 
     var.key = "fake08_video_scale";
@@ -468,37 +465,46 @@ EXPORT void retro_run()
             flip = 0;
             break;
     }
+    //TODO: handle rotation/flip/mirroring
 
-    #ifdef TWO_X_SCALE
+    //unsigned incr   = 0;
+    unsigned width  = PicoScreenWidth;
+    unsigned height = PicoScreenHeight;
+    unsigned pitch  = width * sizeof(uint16_t);
 
-    for(int scry = 0; scry < PicoScreenHeight; scry++) {
-        for (int scrx = 0; scrx < PicoScreenWidth; scrx++) {
-            int picox = scrx / drawModeScaleX;
-            int picoy = scry / drawModeScaleY;
-            uint16_t color = _rgb565Colors[screenPaletteMap[getPixelNibble(picox, picoy, picoFb)]];
-            
-            for (int y = 0; y < SCALE; y++) {
-                for (int x = 0; x < SCALE; x++) {
-                    screenBuffer[(scry*SCALE+y)*PicoScreenWidthScaled+scrx*SCALE+x] = color;
+    //incr   += (crop_h_left + crop_h_right);
+    width  -= (crop_h_left + crop_h_right);
+    height -= (crop_v_top + crop_v_bottom);
+    pitch  -= (crop_h_left + crop_h_right) * sizeof(uint16_t);
+
+    if (scale > 1) {
+        for(unsigned scry = 0; scry < height; scry++) {
+            for (unsigned scrx = 0; scrx < width; scrx++) {
+                int picox = scrx / drawModeScaleX;
+                int picoy = scry / drawModeScaleY;
+                uint16_t color = _rgb565Colors[screenPaletteMap[getPixelNibble(picox, picoy, picoFb)]];
+                
+                for (int y = 0; y < scale; y++) {
+                    for (int x = 0; x < scale; x++) {
+                        screenBuffer2x[(scry*scale+y)*PicoScreenWidth*scale+scrx*scale+x] = color;
+                    }
                 }
             }
         }
+
+        video_cb(&screenBuffer2x, width * scale, height * scale, pitch * scale);
     }
-
-
-    #else
-    //TODO: handle rotation/flip/mirroring
-    for(int scry = 0; scry < PicoScreenHeight; scry++) {
-        for (int scrx = 0; scrx < PicoScreenWidth; scrx++) {
-            int picox = scrx / drawModeScaleX;
-            int picoy = scry / drawModeScaleY;
-            screenBuffer[scry*128+scrx] = _rgb565Colors[screenPaletteMap[getPixelNibble(picox, picoy, picoFb)]];
+    else {
+        for(unsigned scry = 0; scry < height; scry++) {
+            for (unsigned scrx = 0; scrx < width; scrx++) {
+                int picox = scrx / drawModeScaleX;
+                int picoy = scry / drawModeScaleY;
+                screenBuffer[scry*width+scrx] = _rgb565Colors[screenPaletteMap[getPixelNibble(picox, picoy, picoFb)]];
+            }
         }
+
+        video_cb(&screenBuffer, width, height, pitch);
     }
-
-    video_cb(&screenBuffer, PicoScreenWidth, PicoScreenHeight, PicoScreenWidth * BytesPerPixel);
-
-    #endif
 
     frame++;
 }
