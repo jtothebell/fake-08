@@ -254,7 +254,7 @@ EXPORT void retro_get_system_info(struct retro_system_info *info)
 {
     memset(info, 0, sizeof(*info));
     info->library_name = "fake-08";
-    info->library_version = "0.0.2.20"; //todo: get from build flags
+    info->library_version = "0.0.2.20a"; //todo: get from build flags
     info->valid_extensions = "p8|png";
     #ifdef _NEED_FULL_PATH_
     info->need_fullpath = true;
@@ -467,12 +467,10 @@ EXPORT void retro_run()
     }
     //TODO: handle rotation/flip/mirroring
 
-    //unsigned incr   = 0;
     unsigned width  = PicoScreenWidth;
     unsigned height = PicoScreenHeight;
     unsigned pitch  = width * sizeof(uint16_t);
 
-    //incr   += (crop_h_left + crop_h_right);
     width  -= (crop_h_left + crop_h_right);
     height -= (crop_v_top + crop_v_bottom);
     pitch  -= (crop_h_left + crop_h_right) * sizeof(uint16_t);
@@ -480,13 +478,13 @@ EXPORT void retro_run()
     if (scale > 1) {
         for(unsigned scry = 0; scry < height; scry++) {
             for (unsigned scrx = 0; scrx < width; scrx++) {
-                int picox = scrx / drawModeScaleX;
-                int picoy = scry / drawModeScaleY;
+                int picox = (scrx + crop_h_left) / drawModeScaleX;
+                int picoy = (scry + crop_v_top) / drawModeScaleY;
                 uint16_t color = _rgb565Colors[screenPaletteMap[getPixelNibble(picox, picoy, picoFb)]];
                 
                 for (int y = 0; y < scale; y++) {
                     for (int x = 0; x < scale; x++) {
-                        screenBuffer2x[(scry*scale+y)*PicoScreenWidth*scale+scrx*scale+x] = color;
+                        screenBuffer2x[(scry*scale+y)*width*scale+scrx*scale+x] = color;
                     }
                 }
             }
@@ -497,8 +495,8 @@ EXPORT void retro_run()
     else {
         for(unsigned scry = 0; scry < height; scry++) {
             for (unsigned scrx = 0; scrx < width; scrx++) {
-                int picox = scrx / drawModeScaleX;
-                int picoy = scry / drawModeScaleY;
+                int picox = (scrx + crop_h_left) / drawModeScaleX;
+                int picoy = (scry + crop_v_top) / drawModeScaleY;
                 screenBuffer[scry*width+scrx] = _rgb565Colors[screenPaletteMap[getPixelNibble(picox, picoy, picoFb)]];
             }
         }
