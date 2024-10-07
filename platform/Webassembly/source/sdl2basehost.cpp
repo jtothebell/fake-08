@@ -3,6 +3,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <errno.h>
+#include <emscripten.h>
 
 #include <fstream>
 #include <iostream>
@@ -308,6 +309,7 @@ bool Host::shouldQuit() {
 }
 
 void Host::waitForTargetFps(){
+
 }
 
 
