@@ -17,6 +17,7 @@ Module['noInitialRun'] = true
 document.addEventListener('click', (ev) => {
     console.log("event is captured only once.");
     args = []
+    document.getElementById("instructions").remove();
     FS.syncfs(true,function(){
         try {
             FS.mkdir("/home/web_user/p8carts")
