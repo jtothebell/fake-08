@@ -309,7 +309,19 @@ bool Host::shouldQuit() {
 }
 
 void Host::waitForTargetFps(){
+    now_time = SDL_GetTicks();
+    frame_time = now_time - last_time;
+	last_time = now_time;
 
+
+	//sleep for remainder of time
+	if (frame_time < targetFrameTimeMs) {
+		uint32_t msToSleep = targetFrameTimeMs - frame_time;
+        
+        emscripten_sleep(msToSleep);
+
+		last_time += msToSleep;
+	}
 }
 
 
