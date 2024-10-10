@@ -17,7 +17,6 @@
 #endif
 
 
-
 int main(int argc, char* argv[])
 {
 	Host *host = new Host();
@@ -70,9 +69,7 @@ int main(int argc, char* argv[])
 
 	// Main loop
 	Logger_Write("Starting main loop\n");
-
 	vm->GameLoop();
-
 	Logger_Write("Turning off vm and exiting logger\n");
 	vm->CloseCart();
 

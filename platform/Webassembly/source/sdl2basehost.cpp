@@ -3,6 +3,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <errno.h>
+#include <emscripten.h>
 
 #include <fstream>
 #include <iostream>
@@ -317,7 +318,7 @@ void Host::waitForTargetFps(){
 	if (frame_time < targetFrameTimeMs) {
 		uint32_t msToSleep = targetFrameTimeMs - frame_time;
         
-        SDL_Delay(msToSleep);
+        emscripten_sleep(msToSleep);
 
 		last_time += msToSleep;
 	}
