@@ -161,9 +161,9 @@ InputState_t Host::scanInput(){
 	}));break;
                 case SDLK_BACKQUOTE: EM_ASM(if(confirm("Do you want to erase all carts?")){
                     FS.syncfs(true, function(){
-                        FS.syncfs(false,function());
+                        FS.syncfs(false,function(){});
                     })
-                })
+                });
                     #endif
                     //case SDLK_F2:    currKBKey = "F2"; currKBDown = true; break;
                     //case SDLK_F4:    currKBKey = "F4"; currKBDown = true; break;

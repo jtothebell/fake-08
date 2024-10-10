@@ -32,9 +32,7 @@
   #include <fix32.h>
 //}
 
-#ifdef __EMSCRIPTEN__
-    #include <emscripten.h>
-#endif
+
 using namespace z8;
 
 static const char BiosCartName[] = "__FAKE08-BIOS.p8";
@@ -692,23 +690,19 @@ string Vm::GetBiosError() {
 }
 
 void Vm::GameLoop() {
-    #ifndef  __EMSCRIPTEN__
+    
     while (_host->shouldRunMainLoop())
     {
-    #endif
+    
         //shouldn't need to set this every frame
         _host->setTargetFps(_targetFps);
 
         //is this better at the end of the loop?
         _host->waitForTargetFps();
 
-        #ifndef __EMSCRIPTEN__
+        
         if (_host->shouldQuit()) break; // break in order to return to hbmenu
         
-        #else
-        if (_host->shouldQuit()) emscripten_cancel_main_loop();
-
-        #endif
         //this should probably be handled just in the host class
         _host->changeStretch();
 
@@ -727,9 +721,9 @@ void Vm::GameLoop() {
 
             _host->playFilledAudioBuffer();
         }
-    #ifndef __EMSCRIPTEN__
+    
     }
-    #endif
+    
 }
 
 bool Vm::ExecuteLua(string luaString, string callbackFunction){

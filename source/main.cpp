@@ -16,17 +16,6 @@
 
 #endif
 
-#if __EMSCRIPTEN__
-
-#include <emscripten.h>
-
-
-
-void loop(void* vm){
-	static_cast<Vm*>(vm)->GameLoop();
-}
-
-#endif
 
 int main(int argc, char* argv[])
 {
@@ -80,11 +69,7 @@ int main(int argc, char* argv[])
 
 	// Main loop
 	Logger_Write("Starting main loop\n");
-	#if __EMSCRIPTEN__
-	emscripten_set_main_loop_arg(loop,vm,0,true);
-	#else
 	vm->GameLoop();
-	#endif
 	Logger_Write("Turning off vm and exiting logger\n");
 	vm->CloseCart();
 
