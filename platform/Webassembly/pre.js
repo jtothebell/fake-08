@@ -11,6 +11,7 @@ Module['preRun'] = function()
     var stderr = null; 
     FS.init(stdin,stdout,stderr);
     FS.mount(IDBFS,{},"/home/web_user/");
+    FS.chdir("/home/web_user");
     
 }
 Module['noInitialRun'] = true
@@ -20,11 +21,16 @@ document.addEventListener('click', (ev) => {
     document.getElementById("instructions").remove();
     FS.syncfs(true,function(){
         try {
-            FS.mkdir("/home/web_user/p8carts")
+            FS.mkdir("/home/web_user/p8carts")            
         } catch (error) {
             
         }
-        
+        try {
+            FS.mkdir("/home/web_user/fake08")            
+        } catch (error) {
+            
+        }
+
         Module.callMain(args);
 });
     

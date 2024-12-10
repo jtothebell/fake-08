@@ -36,12 +36,12 @@ using namespace std;
 SDL_Event event;
 
 
-string _desktopSdl2SettingsDir = "fake08";
-string _desktopSdl2SettingsPrefix = "fake08/";
+string _desktopSdl2SettingsDir = "/home/web_user/fake08";
+string _desktopSdl2SettingsPrefix = "/home/web_user/fake08/";
 string _desktopSdl2customBiosLua = "cartpath = \"~/p8carts/\"\n"
         "selectbtn = \"z\"\n"
         "pausebtn = \"esc\"\n"
-        "exitbtn = \"close window\"\n"
+        "exitbtn = \"close tab\"\n"
         "sizebtn = \"\"";
 
 Host::Host() 
