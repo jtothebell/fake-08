@@ -756,13 +756,90 @@ void Vm::GameLoop() {
 }
 
 bool Vm::ExecuteLua(string luaString, string callbackFunction){
-    int success = luaL_dostring(_luaState, luaString.c_str());
+    // Retrieve the sandbox environment (__cart_sandbox) from the global scope
+    lua_getglobal(_luaState, "__z8_loop");
 
-    if (success != LUA_OK){
-        //bad lua passed
-        Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
-        lua_pop(_luaState, 1);
+    
 
+
+
+    if (lua_isnumber(_luaState, -1)) {
+        fprintf(stderr, "__cart_sandbox is a number (from c)\n");
+        lua_pop(_luaState, 1); // Pop the non-table
+        return false;
+    }
+    if (lua_isboolean(_luaState, -1)) {
+        fprintf(stderr, "__cart_sandbox is a boolean (from c)\n");
+        lua_pop(_luaState, 1); // Pop the non-table
+        return false;
+    }
+    if (lua_isfunction(_luaState, -1)) {
+        fprintf(stderr, "__cart_sandbox is a function (from c)\n");
+        lua_pop(_luaState, 1); // Pop the non-table
+        return false;
+    }
+    if (lua_isnil(_luaState, -1)) {
+        fprintf(stderr, "__cart_sandbox is nil (from c)\n");
+        lua_pop(_luaState, 1); // Pop the non-table
+        return false;
+    }
+    if (lua_isthread(_luaState, -1)) {
+        fprintf(stderr, "__cart_sandbox is a thread (from c)\n");
+        lua_pop(_luaState, 1); // Pop the non-table
+        return false;
+    }
+    if (lua_iscfunction(_luaState, -1)) {
+        fprintf(stderr, "__cart_sandbox is a c function (from c)\n");
+        lua_pop(_luaState, 1); // Pop the non-table
+        return false;
+    }
+    if (lua_isnone(_luaState, -1)) {
+        fprintf(stderr, "__cart_sandbox is none (from c)\n");
+        lua_pop(_luaState, 1); // Pop the non-table
+        return false;
+    }
+    if (lua_islightuserdata(_luaState, -1)) {
+        fprintf(stderr, "__cart_sandbox is a light user data (from c)\n");
+        lua_pop(_luaState, 1); // Pop the non-table
+        return false;
+    }
+    if (lua_isuserdata(_luaState, -1)) {
+        fprintf(stderr, "__cart_sandbox is a user data (from c)\n");
+        lua_pop(_luaState, 1); // Pop the non-table
+        return false;
+    }
+    if (lua_isstring(_luaState, -1)) {
+        fprintf(stderr, "__cart_sandbox is a string (from c)\n");
+        lua_pop(_luaState, 1); // Pop the non-table
+        return false;
+    }
+    if (lua_istable(_luaState, -1)) {
+        fprintf(stderr, "__cart_sandbox is a table (from c)\n");
+    }
+
+    lua_gettop(_luaState);
+    // if (!lua_istable(_luaState, -1)) {
+    //     fprintf(stderr, "__cart_sandbox is not a table (from c)\n");
+    //     lua_pop(_luaState, 1); // Pop the non-table
+    //     return false;
+    // }
+
+    // Load the Lua code with the sandbox as its environment
+    if (luaL_loadstring(_luaState, luaString.c_str()) != LUA_OK) {
+        fprintf(stderr, "Error loading Lua code: %s\n", lua_tostring(_luaState, -1));
+        lua_pop(_luaState, 2); // Remove the error message and sandbox table
+        return false;
+    }
+
+    // Set the environment of the loaded function (now at -2) to the sandbox (at -1)
+    if (!lua_setupvalue(_luaState, -2, 1)) {
+        fprintf(stderr, "Failed to set upvalue\n");
+    }
+
+    // Execute the loaded Lua code in the specified environment
+    if (lua_pcall(_luaState, 0, LUA_MULTRET, 0) != LUA_OK) {
+        fprintf(stderr, "Error executing Lua code: %s\n", lua_tostring(_luaState, -1));
+        lua_pop(_luaState, 2); // Remove the error message and sandbox table
         return false;
     }
 
@@ -775,6 +852,10 @@ bool Vm::ExecuteLua(string luaString, string callbackFunction){
         lua_pop(_luaState, 0);
 
         return result;
+    }
+    else {
+        // Clean up by removing the sandbox table from the stack, if necessary
+        lua_pop(_luaState, 1);
     }
 
     return true;
@@ -971,7 +1052,7 @@ void Vm::vm_memcpy(int destaddr, int sourceaddr, int len){
 
 void Vm::update_prng()
 {
-    auto rngState = _memory->hwState.rngState;
+    uint32_t* rngState = _memory->hwState.rngState;
     rngState[1] = rngState[0] + ((rngState[1] >> 16) | (rngState[1] << 16));
     rngState[0] += rngState[1];
 }
@@ -991,11 +1072,12 @@ fix32 Vm::api_rnd(fix32 in_range)
 
 void Vm::api_srand(fix32 seed)
 {
-    auto rngState = _memory->hwState.rngState;
+    uint32_t* rngState = _memory->hwState.rngState;
     rngState[0] = seed ? seed.bits() : 0xdeadbeef;
     rngState[1] = rngState[0] ^ 0xbead29ba;
-    for (int i = 0; i < 32; ++i)
+    for (int i = 0; i < 32; ++i) {
         update_prng();
+    }
 }
 
 void Vm::update_buttons() {
@@ -1064,12 +1146,43 @@ void Vm::vm_run() {
     //     loadCart(_loadedCart);
     // }
 
-    //this might need to move?
+    //should combine this with other memory reset code
     _memory->Reset();
+
+    //seed rng
+    auto now = std::chrono::high_resolution_clock::now();
+    api_srand(fix32::frombits((int32_t)now.time_since_epoch().count()));
+
+    //set graphics state
+    _graphics->color();
+    _graphics->clip();
+    _graphics->pal();
+
+    _audio->resetAudioState();
+
+    lua_getglobal(_luaState, "__cart_sandbox");
+    if (lua_istable(_luaState, -1)) {
+        printf("__cart_sandbox is a table run 1 (before)\n");
+    } else {
+        printf("__cart_sandbox is not a table run 1 (before)\n");
+    }
+    lua_pop(_luaState, 1);
+
+
 
     lua_getglobal(_luaState, "__z8_run_cart");
     lua_pushstring(_luaState, _loadedCart->LuaString.c_str());
     lua_pcall(_luaState, 1, 0, 0);
+
+
+    lua_getglobal(_luaState, "__cart_sandbox");
+    if (lua_istable(_luaState, -1)) {
+        printf("__cart_sandbox is a table run 2\n");
+    } else {
+        printf("__cart_sandbox is not a table run 2\n");
+    }
+    lua_pop(_luaState, 1);
+
 }
 
 void Vm::vm_extcmd(std::string cmd){
