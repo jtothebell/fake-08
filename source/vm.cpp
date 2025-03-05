@@ -784,9 +784,8 @@ bool Vm::ExecuteLua(string luaString, string callbackFunction) {
     }
     
     if (callbackFunction.length() > 0) {
-        // Get the callback function from the sandbox, not the global environment
-        lua_pushstring(_luaState, callbackFunction.c_str());
-        lua_gettable(_luaState, -2); // Get sandbox[callbackFunction]
+        // Get the callback function from the sandbox
+        lua_getfield(_luaState, -1, callbackFunction.c_str());
         
         if (!lua_isfunction(_luaState, -1)) {
             fprintf(stderr, "Callback function '%s' not found in sandbox\n", callbackFunction.c_str());
@@ -1112,28 +1111,11 @@ void Vm::vm_run() {
 
     _audio->resetAudioState();
 
-    lua_getglobal(_luaState, "__cart_sandbox");
-    if (lua_istable(_luaState, -1)) {
-        printf("__cart_sandbox is a table run 1 (before)\n");
-    } else {
-        printf("__cart_sandbox is not a table run 1 (before)\n");
-    }
-    lua_pop(_luaState, 1);
-
 
 
     lua_getglobal(_luaState, "__z8_run_cart");
     lua_pushstring(_luaState, _loadedCart->LuaString.c_str());
     lua_pcall(_luaState, 1, 0, 0);
-
-
-    lua_getglobal(_luaState, "__cart_sandbox");
-    if (lua_istable(_luaState, -1)) {
-        printf("__cart_sandbox is a table run 2\n");
-    } else {
-        printf("__cart_sandbox is not a table run 2\n");
-    }
-    lua_pop(_luaState, 1);
 
 }
 

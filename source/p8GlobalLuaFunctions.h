@@ -407,7 +407,7 @@ end
 --todo: make this bettter/verify the list
 function __is_api(funcname)
 local picofuncnames = {
-    assert = 1, getmetatable = 1, next = 1, ipairs = 1, pairs = 1, rawequal = 1,
+    assert = 1, getmetatable = 1, inext = 1, next = 1, ipairs = 1, pairs = 1, rawequal = 1,
     rawlen = 1, rawget = 1, rawset = 1, setmetatable = 1, type = 1, pack = 1, unpack = 1,
     load = 1, print = 1,
     max = 1, min = 1, mid = 1, ceil = 1, flr = 1, cos = 1, sin = 1, atan2 = 1, sqrt = 1,
@@ -501,13 +501,13 @@ function __z8_run_cart(cart_code)
 
         
         assert(type(__cart_sandbox) == "table", "__cart_sandbox is not a table (from lua)")
-        printh("__cart_sandbox created from lua")
-        printh("type of __cart_sandbox: " .. type(__cart_sandbox))
+        --printh("__cart_sandbox created from lua")
+        --printh("type of __cart_sandbox: " .. type(__cart_sandbox))
         local code, ex = __z8_load_code(cart_code..glue_code, nil, nil,
                                         __cart_sandbox)
 
-        printh("__cart_sandbox used to load code from lua")
-        printh("type of __cart_sandbox: " .. type(__cart_sandbox))
+        --printh("__cart_sandbox used to load code from lua")
+        --printh("type of __cart_sandbox: " .. type(__cart_sandbox))
         if not code then
             color(14) print('syntax error')
             color(6) print(ex)

@@ -426,11 +426,24 @@ TEST_CASE("Vm memory functions") {
     }
     SUBCASE("pico driller style input"){
         vm->LoadCart("drillerinputtest.p8");
-        vm->vm_run();
+        //this loads the cart + glue code into a coroutine, but does not execute anything yet
+        //should probably get renamed. Same as typing LOAD() in pico 8
+        vm->vm_run(); 
+        vm->Step(); //this will call the cart code, init, and update once
         //30 fps game loop requires 1 step to update and update buttons, and another to draw
 
+        SUBCASE("initial state"){
+            printf("Checking initial state\n");
+            bool btnbits = vm->ExecuteLua(
+                "function btnbitsinitialtest()\n"
+                " return btnbits == 0\n"
+                "end\n",
+                "btnbitsinitialtest");
+
+            CHECK(btnbits);
+        }
+
         SUBCASE("no buttons gives 0"){
-            vm->Step();
             vm->Step();
             bool btnbits = vm->ExecuteLua(
                 "function btnbitstest0()\n"
@@ -442,6 +455,7 @@ TEST_CASE("Vm memory functions") {
         }
         SUBCASE("left pushed returns 1"){
             stubHost->stubInput(1, 1);
+            //requires two loops to ensure the button state is updated on 30 fps game
             vm->Step();
             vm->Step();
             bool btnbits = vm->ExecuteLua(
@@ -454,6 +468,7 @@ TEST_CASE("Vm memory functions") {
         }
         SUBCASE("right pushed returns 2"){
             stubHost->stubInput(2, 2);
+            //requires two loops to ensure the button state is updated on 30 fps game
             vm->Step();
             vm->Step();
             bool btnbits = vm->ExecuteLua(
@@ -466,6 +481,7 @@ TEST_CASE("Vm memory functions") {
         }
         SUBCASE("right pushed detected by band op"){
             stubHost->stubInput(2, 2);
+            //requires two loops to ensure the button state is updated on 30 fps game
             vm->Step();
             vm->Step();
             bool btnbits = vm->ExecuteLua(
