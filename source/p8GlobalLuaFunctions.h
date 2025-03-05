@@ -696,7 +696,7 @@ end
 --
 -- Initialise the VM
 --
-printh("****initialising VM********")
+--printh("****initialising VM********")
 __z8_loop = cocreate(__z8_boot_sequence)
 
 )#";
