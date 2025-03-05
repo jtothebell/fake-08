@@ -150,8 +150,6 @@ TEST_CASE("Loading and running carts") {
             //need to pass this func to the sandbox, not the global state
             bool globalVarLoaded = vm->ExecuteLua(
                 "function globalVarTest()\n"
-                " printh('globalVarTest')\n"
-                " printh('a: '..a)\n"
                 " return a == 1\n"
                 "end\n",
                 "globalVarTest");

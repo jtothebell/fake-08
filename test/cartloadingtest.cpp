@@ -630,10 +630,12 @@ TEST_CASE("Loading and running carts") {
         }
     }
 
-    printf("\n");
-    printf("ERRORS:\n");
-    for (int i = 0; i < errors.size(); i++) {
-        printf("%s\n", errors[i].c_str());
+    if (errors.size() > 0) {
+        printf("\n");
+        printf("ERRORS:\n");
+        for (int i = 0; i < errors.size(); i++) {
+            printf("%s\n", errors[i].c_str());
+        }
     }
     
     //TODO: compile known errors, make sure none are introduced

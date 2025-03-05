@@ -433,7 +433,6 @@ TEST_CASE("Vm memory functions") {
         //30 fps game loop requires 1 step to update and update buttons, and another to draw
 
         SUBCASE("initial state"){
-            printf("Checking initial state\n");
             bool btnbits = vm->ExecuteLua(
                 "function btnbitsinitialtest()\n"
                 " return btnbits == 0\n"
