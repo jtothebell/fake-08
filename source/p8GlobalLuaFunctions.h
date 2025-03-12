@@ -547,36 +547,6 @@ end
 --
 -- Splash sequence
 --
-function __z8_boot_sequence()
-    __z8_reset_state()
-
-    local boot =
-    {
-        [1]  = function() for i=2,127,8 do for j=0,127 do pset(i,j,rnd()*4+j/40) end end end,
-        [7]  = function() for i=0,127,4 do for j=0,127,2 do pset(i,j,(i+j)/8%8+6) end end end,
-        [12] = function() for i=2,127,4 do for j=0,127,3 do pset(i,j,rnd()*4+10) end end end,
-        [17] = function() for i=1,127,2 do for j=0,127 do pset(i,j,pget(i+1,j)) end end end,
-        [22] = function() for j=0,31 do memset(0x6040+j*256,0,192) end end,
-        [27] = cls,
-        [36] = function() local notes = { 0x.5dde, 0x5deb.5be3, 0x.5fef, 0x.57ef, 0x.53ef }
-                          for j=0,#notes-1 do poke4(0x3200+j*4,notes[j+1]) end poke(0x3241, 0x0a)
-                          sfx(0)
-                          local logo = "######  ###  ## ##  ####      ####   ###  "
-                                    .. "##     ## ## ## ## ##        ##  ## ## ## "
-                                    .. "#####  ##### ##### ##### ### ##  ## ##### "
-                                    .. "##     ## ## ####  ##        ##  ## ## ## "
-                                    .. "##     ## ## ## ## #####      ####   ###  "
-                                    .. "                                          "
-                          for j=0,#logo-1 do pset(j%42,6+j/42,sub(logo,j+1,j+1)=='#'and 7) end
-                          end,
-        [45] = function() color(6) print("\n\n\nfake-08 0.0.0") end,
-        [52] = function() print("type help for help\n") end,
-    }
-
-    for step=0,54 do if boot[step] then boot[step]() end flip() end
-
-    __z8_loop = cocreate(__z8_shell)
-end
 
 local function print_clear(s)
     -- empty next line
@@ -696,8 +666,7 @@ end
 --
 -- Initialise the VM
 --
---printh("****initialising VM********")
-__z8_loop = cocreate(__z8_boot_sequence)
+__z8_loop = cocreate(__z8_shell)
 
 )#";
 
