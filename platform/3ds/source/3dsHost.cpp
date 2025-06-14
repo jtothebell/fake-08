@@ -324,16 +324,6 @@ void Host::oneTimeSetup(Audio* audio){
 		cfguExit();
 	}
 	
-	res = frdInit();
-	if (R_SUCCEEDED(res)) {
-		char* name = new char;
-		FRD_GetMyScreenName(name, FRIEND_SCREEN_NAME_SIZE);
-		if(strcmp(name, "CITRA") == 0){
-			Logger_Write("Citra detected, disabling wide mode!\n");
-			consoleModel = 3;
-		}
-		frdExit();
-	}
 
     gfxInitDefault();
     gfxSetWide(consoleModel != 3);	
