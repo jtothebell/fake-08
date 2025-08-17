@@ -29,6 +29,8 @@ int oval(lua_State *L);
 int ovalfill(lua_State *L);
 int rect(lua_State *L);
 int rectfill(lua_State *L);
+int rrect(lua_State *L);
+int rrectfill(lua_State *L);
 int print(lua_State *L);
 int spr(lua_State *L);
 int sspr(lua_State *L);
