@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <cstdint>
 
 //for 1 byte (8 bit) indexes, 128x64
 //should be the equivalent of return y * 64 + (x / 2);
