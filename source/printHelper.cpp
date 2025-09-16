@@ -151,6 +151,7 @@ int print(std::string str, int x, int y, uint8_t c) {
     bool cancelWrap = false;
     uint8_t outlineColor = 0;
     uint8_t outlineNeighbors = 0;
+    bool underline = false;
 
     uint8_t printMode = _ph_mem->hwState.printAttributes;
 
@@ -425,6 +426,9 @@ int print(std::string str, int x, int y, uint8_t c) {
                 n+=2;
                 outlineNeighbors = (uint8_t)strtol(neighborsHexStr.c_str(), NULL, 16);
             }
+            else if (commandChar == 'u'){
+                underline = true;
+            }
 		}
 		else if (ch == 7) { // "\a" audio command
             uint8_t nextChar = str[++n];
@@ -518,6 +522,9 @@ int print(std::string str, int x, int y, uint8_t c) {
                             forceCharHeight);
                     }
                 }
+            }
+            if (underline) {
+                _ph_graphics->rectfill(x-1, y + lineHeight, x + charWidth - 1, y + lineHeight, fgColor);
             }
 			x += charWidth + _ph_graphics->drawCharacter(
                 ch,
