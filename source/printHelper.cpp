@@ -317,9 +317,11 @@ int print(std::string str, int x, int y, uint8_t c) {
                 printMode |= PRINT_MODE_ON;
                 printMode |= PRINT_MODE_SOLID_BG;
             }
-            else if (commandChar == ':' || commandChar == '.'){
+            else if (commandChar == ':' || commandChar == ';' || commandChar == '.' || commandChar == ','){
+                //the docs say ';' and ',' should respect padding, but in my testing
+                //it looks like they behave exactly the same... /shrug
                 charHeight = forceCharHeight > 0 ? forceCharHeight : 8;
-                if (commandChar == ':') {
+                if (commandChar == ':' || commandChar == ';') {
                     std::string hexStr = str.substr(n+1, 16);
                     n+=16;
                     hexStrToBytes(hexStr, charBytes);
