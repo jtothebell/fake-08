@@ -125,15 +125,16 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(vm->vm_dget(13), (fix32)56);
     }
     SUBCASE("poking cart data"){
-        vm->vm_poke(0x5e02, 56);
+        //need to poke after cartdata is called to set the current key, otherwise it will get wiped
         vm->vm_cartdata("dummy");
+        vm->vm_poke(0x5e02, 56);
 
         CHECK_EQ(memory->cartData[2], 56);
         CHECK_EQ(vm->vm_dget(0), (fix32)56);
     }
     SUBCASE("poking and peeking cart data"){
-        vm->vm_poke4(0x5e80, (fix32)133);
         vm->vm_cartdata("dummy");
+        vm->vm_poke4(0x5e80, (fix32)133);
 
         CHECK_EQ(vm->vm_peek4(0x5e80), (fix32)133);
         CHECK_EQ(vm->vm_dget(32), (fix32)133);
@@ -647,6 +648,109 @@ TEST_CASE("Vm memory functions") {
             "0000000000000000000000000000000000000000000000000000000000000000\n";
 
         CHECK_EQ(expected, actual);
+    }
+    SUBCASE("multiple cartdata keys can be used (up to 4)"){
+        vm->vm_cartdata("key1");
+        vm->vm_dset(0, 100);
+        vm->vm_cartdata("key2");
+        vm->vm_cartdata("key3");
+        vm->vm_cartdata("key4");
+        vm->vm_dset(0, 400);
+
+        CHECK_EQ(vm->vm_dget(0), (fix32)400);
+        
+        vm->vm_cartdata("key2");
+        CHECK_EQ(vm->vm_dget(0), (fix32)0);
+        
+        vm->vm_dset(0, 200);
+        CHECK_EQ(vm->vm_dget(0), (fix32)200);
+        
+        vm->vm_cartdata("key1");
+        CHECK_EQ(vm->vm_dget(0), (fix32)100);
+    }
+    SUBCASE("error when trying to use more than 4 cartdata keys"){
+        vm->vm_cartdata("key1");
+        vm->vm_cartdata("key2");
+        vm->vm_cartdata("key3");
+        vm->vm_cartdata("key4");
+        
+        // 5th key should fail
+        CHECK_FALSE(vm->vm_cartdata("key5"));
+        CHECK_EQ(vm->GetBiosError(), "too many cart data keys (max 4)");
+    }
+    SUBCASE("switching between different cartdata keys works correctly"){
+        vm->vm_cartdata("save1");
+        vm->vm_dset(0, 111);
+        vm->vm_dset(1, 222);
+        
+        vm->vm_cartdata("save2");
+        vm->vm_dset(0, 333);
+        vm->vm_dset(1, 444);
+        
+        vm->vm_cartdata("save1");
+        CHECK_EQ(vm->vm_dget(0), (fix32)111);
+        CHECK_EQ(vm->vm_dget(1), (fix32)222);
+        
+        vm->vm_cartdata("save2");
+        CHECK_EQ(vm->vm_dget(0), (fix32)333);
+        CHECK_EQ(vm->vm_dget(1), (fix32)444);
+    }
+    SUBCASE("reusing same cartdata key multiple times works"){
+        // Use the same key multiple times - should work fine
+        vm->vm_cartdata("sharedkey");
+        vm->vm_dset(0, 555);
+        
+        vm->vm_cartdata("sharedkey");
+        CHECK_EQ(vm->vm_dget(0), (fix32)555);
+        
+        vm->vm_dset(1, 666);
+        
+        vm->vm_cartdata("sharedkey");
+        CHECK_EQ(vm->vm_dget(0), (fix32)555);
+        CHECK_EQ(vm->vm_dget(1), (fix32)666);
+    }
+    SUBCASE("backward compatibility - single key usage still works"){
+        vm->vm_cartdata("singlekey");
+        vm->vm_dset(0, 777);
+        vm->vm_dset(1, 888);
+        
+        CHECK_EQ(vm->vm_dget(0), (fix32)777);
+        CHECK_EQ(vm->vm_dget(1), (fix32)888);
+        
+        vm->vm_cartdata("singlekey");
+        CHECK_EQ(vm->vm_dget(0), (fix32)777);
+        CHECK_EQ(vm->vm_dget(1), (fix32)888);
+    }
+    SUBCASE("current active key is tracked correctly for serialization"){
+        vm->vm_cartdata("active1");
+        vm->vm_dset(0, 999);
+        vm->vm_dset(1, 1111);
+        
+        vm->vm_cartdata("active2");
+        vm->vm_dset(0, 2222);
+        vm->vm_dset(1, 3333);
+        
+        vm->vm_cartdata("active1");
+        CHECK_EQ(vm->vm_dget(0), (fix32)999);
+        CHECK_EQ(vm->vm_dget(1), (fix32)1111);
+
+        vm->vm_dset(0, 4444);
+        vm->vm_dset(1, 5555);
+        
+        auto serialized = vm->getSerializedCartData();
+        
+        // 4444 = 0x115C, 5555 = 0x15B3 (in little-endian format)
+        std::string expected = 
+            "115c000015b30000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n"
+            "0000000000000000000000000000000000000000000000000000000000000000\n";
+        
+        CHECK_EQ(expected, serialized);
     }
     SUBCASE("deserializeCartDataToMemory with negative ints"){
         vm->vm_cartdata("serializeTest");

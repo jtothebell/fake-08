@@ -149,6 +149,9 @@ int print(std::string str, int x, int y, uint8_t c) {
     uint8_t charBytes[8];
     uint8_t audioStrBytes[32];
     bool cancelWrap = false;
+    uint8_t outlineColor = 0;
+    uint8_t outlineNeighbors = 0;
+    bool underline = false;
 
     uint8_t printMode = _ph_mem->hwState.printAttributes;
 
@@ -314,9 +317,11 @@ int print(std::string str, int x, int y, uint8_t c) {
                 printMode |= PRINT_MODE_ON;
                 printMode |= PRINT_MODE_SOLID_BG;
             }
-            else if (commandChar == ':' || commandChar == '.'){
+            else if (commandChar == ':' || commandChar == ';' || commandChar == '.' || commandChar == ','){
+                //the docs say ';' and ',' should respect padding, but in my testing
+                //it looks like they behave exactly the same... /shrug
                 charHeight = forceCharHeight > 0 ? forceCharHeight : 8;
-                if (commandChar == ':') {
+                if (commandChar == ':' || commandChar == ';') {
                     std::string hexStr = str.substr(n+1, 16);
                     n+=16;
                     hexStrToBytes(hexStr, charBytes);
@@ -408,6 +413,24 @@ int print(std::string str, int x, int y, uint8_t c) {
                     _ph_mem->data[addr + i] = binStr[i];
                 }
             }
+            else if (commandChar == 'o'){
+                //Pico-8 docs for outline:
+                //The first character after the command "\^o" is the colour, and the following two 
+                // characters are  the neighbours bitfield in hexadecimal. For example, to draw a pixel up 
+                // to the left of each foreground pixel, the value 0x01 can be used:
+
+                // > ?"\^o801hey"
+
+                uint8_t outlineColorChar = str[++n];
+                outlineColor = p0CharToNum(outlineColorChar);
+
+                std::string neighborsHexStr = str.substr(n+1, 2);
+                n+=2;
+                outlineNeighbors = (uint8_t)strtol(neighborsHexStr.c_str(), NULL, 16);
+            }
+            else if (commandChar == 'u'){
+                underline = true;
+            }
 		}
 		else if (ch == 7) { // "\a" audio command
             uint8_t nextChar = str[++n];
@@ -473,6 +496,38 @@ int print(std::string str, int x, int y, uint8_t c) {
             }
             prevX = x;
             prevY = y;
+            if (outlineColor != 0 && outlineNeighbors != 0) {
+                /*
+                    0x01    0x02    0x04
+                    0x08     --     0x10
+                    0x20    0x40    0x80 
+                */
+                int xOffsets[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
+                int yOffsets[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
+
+                for (int i = 0; i < 8; i++) {
+                    int xOffset = xOffsets[i];
+                    int yOffset = yOffsets[i];
+
+                    if (xOffset == 0 && yOffset == 0) {
+                        continue;
+                    }
+                    if (outlineNeighbors & (1 << i)) {
+                        _ph_graphics->drawCharacter(
+                            ch,
+                            x + xOffset,
+                            y + yOffset,
+                            drawPal[outlineColor & 0x0f],
+                            bgColor == 0xff ? 0 : drawPal[bgColor & 0x0f],
+                            printMode,
+                            forceCharWidth,
+                            forceCharHeight);
+                    }
+                }
+            }
+            if (underline) {
+                _ph_graphics->rectfill(x-1, y + lineHeight, x + charWidth - 1, y + lineHeight, fgColor);
+            }
 			x += charWidth + _ph_graphics->drawCharacter(
                 ch,
                 x,

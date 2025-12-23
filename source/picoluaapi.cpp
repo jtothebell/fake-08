@@ -1043,9 +1043,15 @@ int sfx(lua_State *L) {
     if (lua_gettop(L) > 2) {
         offset = (int)lua_tonumber(L, 3);
     }
+    int length = -1;
+    if (lua_gettop(L) > 3) {
+        length = (int)lua_tonumber(L, 4);
+    }
 
-    _audioForLuaApi->api_sfx((int)n, channel, offset);
-    return 0;
+    int result = _audioForLuaApi->api_sfx((int)n, channel, offset, length);
+    lua_pushnumber(L, result);
+
+    return 1;
 }
 
 //Memory

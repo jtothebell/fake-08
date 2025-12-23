@@ -26,40 +26,40 @@ TEST_CASE("audio stats") {
   lua_State *L = luaL_newstate();
 
   SUBCASE("get sfx 0") {
-    audio->api_sfx(5,0,0);
-    audio->api_sfx(6,1,0);
-    audio->api_sfx(7,2,0);
-    audio->api_sfx(8,3,0);
+    audio->api_sfx(5,0,0,31);
+    audio->api_sfx(6,1,0,31);
+    audio->api_sfx(7,2,0,31);
+    audio->api_sfx(8,3,0,31);
 
     lua_pushnumber(L, 16);
     stat(L);
     CHECK_EQ((int) lua_tonumber(L, -1), 5);
   }
   SUBCASE("get sfx 1") {
-    audio->api_sfx(5,0,0);
-    audio->api_sfx(6,1,0);
-    audio->api_sfx(7,2,0);
-    audio->api_sfx(8,3,0);
+    audio->api_sfx(5,0,0,31);
+    audio->api_sfx(6,1,0,31);
+    audio->api_sfx(7,2,0,31);
+    audio->api_sfx(8,3,0,31);
 
     lua_pushnumber(L, 17);
     stat(L);
     CHECK_EQ((int) lua_tonumber(L, -1), 6);
   }
   SUBCASE("get sfx 2") {
-    audio->api_sfx(5,0,0);
-    audio->api_sfx(6,1,0);
-    audio->api_sfx(7,2,0);
-    audio->api_sfx(8,3,0);
+    audio->api_sfx(5,0,0,31);
+    audio->api_sfx(6,1,0,31);
+    audio->api_sfx(7,2,0,31);
+    audio->api_sfx(8,3,0,31);
 
     lua_pushnumber(L, 18);
     stat(L);
     CHECK_EQ((int) lua_tonumber(L, -1), 7);
   }
   SUBCASE("get sfx 3") {
-    audio->api_sfx(5,0,0);
-    audio->api_sfx(6,1,0);
-    audio->api_sfx(7,2,0);
-    audio->api_sfx(8,3,0);
+    audio->api_sfx(5,0,0,31);
+    audio->api_sfx(6,1,0,31);
+    audio->api_sfx(7,2,0,31);
+    audio->api_sfx(8,3,0,31);
 
     lua_pushnumber(L, 19);
     stat(L);
@@ -67,40 +67,40 @@ TEST_CASE("audio stats") {
   }
 
   SUBCASE("get sfx 0 updated") {
-    audio->api_sfx(5,0,0);
-    audio->api_sfx(6,1,0);
-    audio->api_sfx(7,2,0);
-    audio->api_sfx(8,3,0);
+    audio->api_sfx(5,0,0,31);
+    audio->api_sfx(6,1,0,31);
+    audio->api_sfx(7,2,0,31);
+    audio->api_sfx(8,3,0,31);
 
     lua_pushnumber(L, 46);
     stat(L);
     CHECK_EQ((int) lua_tonumber(L, -1), 5);
   }
   SUBCASE("get sfx 1 updated") {
-    audio->api_sfx(5,0,0);
-    audio->api_sfx(6,1,0);
-    audio->api_sfx(7,2,0);
-    audio->api_sfx(8,3,0);
+    audio->api_sfx(5,0,0,31);
+    audio->api_sfx(6,1,0,31);
+    audio->api_sfx(7,2,0,31);
+    audio->api_sfx(8,3,0,31);
 
     lua_pushnumber(L, 47);
     stat(L);
     CHECK_EQ((int) lua_tonumber(L, -1), 6);
   }
   SUBCASE("get sfx 2 updated") {
-    audio->api_sfx(5,0,0);
-    audio->api_sfx(6,1,0);
-    audio->api_sfx(7,2,0);
-    audio->api_sfx(8,3,0);
+    audio->api_sfx(5,0,0,31);
+    audio->api_sfx(6,1,0,31);
+    audio->api_sfx(7,2,0,31);
+    audio->api_sfx(8,3,0,31);
 
     lua_pushnumber(L, 48);
     stat(L);
     CHECK_EQ((int) lua_tonumber(L, -1), 7);
   }
   SUBCASE("get sfx 3 updated") {
-    audio->api_sfx(5,0,0);
-    audio->api_sfx(6,1,0);
-    audio->api_sfx(7,2,0);
-    audio->api_sfx(8,3,0);
+    audio->api_sfx(5,0,0,31);
+    audio->api_sfx(6,1,0,31);
+    audio->api_sfx(7,2,0,31);
+    audio->api_sfx(8,3,0,31);
 
     lua_pushnumber(L, 49);
     stat(L);
@@ -108,14 +108,14 @@ TEST_CASE("audio stats") {
   }
 
   SUBCASE("get note 0") {
-    audio->api_sfx(5,0,0);
+    audio->api_sfx(5,0,0,31);
     lua_pushnumber(L, 20);
     stat(L);
     CHECK_EQ((int) lua_tonumber(L, -1), 0);
   }
 
   SUBCASE("get note 0 updated") {
-    audio->api_sfx(5,0,0);
+    audio->api_sfx(5,0,0,31);
     lua_pushnumber(L, 20);
     stat(L);
     CHECK_EQ((int) lua_tonumber(L, -1), 0);
