@@ -195,6 +195,8 @@ bool Vm::loadCart(Cart* cart) {
     lua_register(_luaState, "ovalfill", ovalfill);
     lua_register(_luaState, "rect", rect);
     lua_register(_luaState, "rectfill", rectfill);
+    lua_register(_luaState, "rrect", rrect);
+    lua_register(_luaState, "rrectfill", rrectfill);
     lua_register(_luaState, "print", print);
     lua_register(_luaState, "cursor", cursor);
     lua_register(_luaState, "spr", spr);

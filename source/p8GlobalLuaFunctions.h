@@ -270,7 +270,8 @@ ovalfill, line, spr, sspr, mget, mset,
 tline, peek, poke, peek2, poke2, peek4,
 poke4, memcpy, memset, max, min, mid, flr, 
 ceil, cos, sin, atan2, rnd, srand, band,
-bor, bxor, bnot, shl, shr, lshr, rotl, rotr =
+bor, bxor, bnot, shl, shr, lshr, rotl, rotr,
+rrect, rrectfill =
 
 time, t, sub, chr, ord, tostr, tonum, 
 add, del, deli, clip, color, pal, palt,
@@ -280,7 +281,8 @@ ovalfill, line, spr, sspr, mget, mset,
 tline, peek, poke, peek2, poke2, peek4,
 poke4, memcpy, memset, max, min, mid, flr, 
 ceil, cos, sin, atan2, rnd, srand, band,
-bor, bxor, bnot, shl, shr, lshr, rotl, rotr
+bor, bxor, bnot, shl, shr, lshr, rotl, rotr,
+rrect, rrectfill
 
 --save state code modified from ps4-p8
 //https://github.com/voliva/ps4-p8/blob/ecba7f93ef9ba73ccb121b45ede6f46e651cef65/pico8_ps4/lua_lang_fns.cpp
