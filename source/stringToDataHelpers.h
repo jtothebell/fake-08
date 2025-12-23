@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <cstdint>
 
 void copy_string_to_sprite_memory(uint8_t sprite_data[128 * 64], std::string data);
 
