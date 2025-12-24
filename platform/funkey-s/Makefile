@@ -17,7 +17,7 @@ INCLUDES	:=	${INCLUDES}
 CC = /opt/funkey-toolchain-shared/bin/arm-linux-g++
 CXX = /opt/funkey-toolchain-shared/bin/arm-linux-g++
 
-CFLAGS	:= -Wall -Ofast -fno-PIC -ffunction-sections -flto -DVER_STR=\"$(APP_VERSION)\" \
+CFLAGS	:= -Wall -Ofast -fno-PIC -ffunction-sections -flto -MMD -MP -DVER_STR=\"$(APP_VERSION)\" \
 			$(DEFINES)
 
 CFLAGS	+=	$(INCLUDE)

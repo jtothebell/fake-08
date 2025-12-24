@@ -22,7 +22,7 @@ CXX = $(BIN_BASE)arm-linux-g++
 
 CC = $(CXX)
 
-CFLAGS	:=	-g -Wall -Ofast -ffunction-sections -Iinc -D_BITTBOY -DVER_STR=\"$(APP_VERSION)\" -march=armv5te -mtune=arm926ej-s \
+CFLAGS	:=	-g -Wall -Ofast -ffunction-sections -MMD -MP -Iinc -D_BITTBOY -DVER_STR=\"$(APP_VERSION)\" -march=armv5te -mtune=arm926ej-s \
 			$(DEFINES)
 
 CFLAGS	+=	$(INCLUDE)

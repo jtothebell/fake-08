@@ -17,6 +17,7 @@ INCLUDES	:=	${INCLUDES}
 CC = $(CXX)
 
 CFLAGS	:=	-g -Wall -Wno-deprecated -ffunction-sections -std=c++17 \
+			-MMD -MP \
 			$(DEFINES)
 
 CFLAGS	+=	$(INCLUDE) -DVER_STR=\"$(APP_VERSION)\"
@@ -24,9 +25,38 @@ CFLAGS	+=	$(INCLUDE) -DVER_STR=\"$(APP_VERSION)\"
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions 
 #-std=gnu++11 was used before... not sure of difference
 
-LIBS	:= -lSDL2
+# SDL2 flags via pkg-config or sdl2-config with sensible fallbacks (Homebrew paths)
+SDL2_CFLAGS := $(shell pkg-config --cflags sdl2 2>/dev/null)
+SDL2_LIBS   := $(shell pkg-config --libs sdl2 2>/dev/null)
 
-LDFLAGS	:= $(LIBS)
+ifeq ($(strip $(SDL2_CFLAGS)),)
+SDL2_CFLAGS := $(shell sdl2-config --cflags 2>/dev/null)
+SDL2_LIBS   := $(shell sdl2-config --libs 2>/dev/null)
+endif
+
+ifeq ($(strip $(SDL2_CFLAGS)),)
+UNAME_S := $(shell uname -s)
+UNAME_M := $(shell uname -m)
+ifeq ($(UNAME_S),Darwin)
+ifeq ($(UNAME_M),arm64)
+# Add parent include dir so #include <SDL2/SDL.h> resolves
+SDL2_CFLAGS := -I/opt/homebrew/include
+SDL2_LIBS   := -L/opt/homebrew/lib -lSDL2
+else
+SDL2_CFLAGS := -I/usr/local/include
+SDL2_LIBS   := -L/usr/local/lib -lSDL2
+endif
+endif
+endif
+
+# Add include flags for SDL2 to both C and C++ compiles
+CFLAGS	+= $(SDL2_CFLAGS)
+CXXFLAGS += $(SDL2_CFLAGS)
+
+# Keep legacy LIBS but prefer SDL2_LIBS for correctness
+LIBS	?= -lSDL2
+
+LDFLAGS	:= $(LIBS) $(SDL2_LIBS)
 
 
 #---------------------------------------------------------------------------------

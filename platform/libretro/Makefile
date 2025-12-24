@@ -168,8 +168,8 @@ CC = $(CXX)
 
 OBJECTS := $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
 
-CFLAGS   += $(fpic) -Wall -D__LIBRETRO__ -DMINIZ_NO_TIME -ffunction-sections -std=gnu++17 -fno-rtti $(INCFLAGS)
-CXXFLAGS += $(fpic) -Wall -D__LIBRETRO__ -DMINIZ_NO_TIME -ffunction-sections -std=gnu++17 -fno-rtti $(INCFLAGS)
+CFLAGS   += $(fpic) -Wall -D__LIBRETRO__ -DMINIZ_NO_TIME -ffunction-sections -MMD -MP -std=gnu++17 -fno-rtti $(INCFLAGS)
+CXXFLAGS += $(fpic) -Wall -D__LIBRETRO__ -DMINIZ_NO_TIME -ffunction-sections -MMD -MP -std=gnu++17 -fno-rtti $(INCFLAGS)
 
 all: $(TARGET)
 

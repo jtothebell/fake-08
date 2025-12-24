@@ -17,6 +17,7 @@ INCLUDES  	:= ../source ../include ../libs/z8lua ../libs/utf8-util ../libs/lodep
 CC = $(CXX)
 
 CFLAGS	:=	-g -Wall -Wno-deprecated -ffunction-sections -std=c++17 \
+			-MMD -MP \
 			$(DEFINES)
 
 CFLAGS	+=	$(INCLUDE) -DVER_STR=\"$(APP_VERSION)\"

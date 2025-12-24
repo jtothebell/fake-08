@@ -22,8 +22,8 @@ using namespace std;
 // sdl
 #include <SDL2/SDL.h>
 
-/*#define WINDOW_SIZE_X 1280
-#define WINDOW_SIZE_Y 720*/
+#define WINDOW_SIZE_X 1280
+#define WINDOW_SIZE_Y 720
 
 #define WINDOW_FLAGS 0
 
@@ -61,8 +61,8 @@ Host::Host(int windowWidth, int windowHeight)
       SDL_Log("Display #%d: current display mode is %dx%dpx @ %dhz.", 0, current.w, current.h, current.refresh_rate);
     }
 
-    int WINDOW_SIZE_X=windowWidth == 0 ? current.w : windowWidth;
-    int WINDOW_SIZE_Y=windowHeight == 0 ? current.h : windowHeight;
+    //int WINDOW_SIZE_X=current.w;
+    //int WINDOW_SIZE_Y=current.h;
 
     struct stat st = {0};
 
