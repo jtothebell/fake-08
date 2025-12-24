@@ -419,7 +419,7 @@ local picofuncnames = {
     poke = 1, poke2 = 1, poke4 = 1, memcpy = 1, memset = 1, stat = 1, printh = 1, extcmd = 1,
     _update_buttons = 1, btn = 1, btnp = 1, cursor = 1, camera = 1, circ = 1, circfill = 1,
     clip = 1, cls = 1, color = 1, fillp = 1, fget = 1, fset = 1, line = 1, map = 1, mget = 1,
-    mset = 1, oval = 1, ovalfill = 1, pal = 1, palt = 1, pget = 1, pset = 1, rect = 1, rectfill = 1,
+    mset = 1, oval = 1, ovalfill = 1, pal = 1, palt = 1, pget = 1, pset = 1, rect = 1, rectfill = 1, rrect = 1, rrectfill = 1,
     serial = 1, sget = 1, sset = 1, spr = 1, sspr = 1, music = 1, sfx = 1, time = 1, tline = 1,
     cocreate = 1, coresume = 1, costatus = 1, yield = 1, trace = 1, stop = 1,
     count = 1, add = 1, sub = 1, foreach = 1, all = 1, del = 1, deli = 1, t = 1, dget = 1,

@@ -80,6 +80,8 @@ bool _initializeLuaState(lua_State* luaState) {
     lua_register(luaState, "ovalfill", ovalfill);
     lua_register(luaState, "rect", rect);
     lua_register(luaState, "rectfill", rectfill);
+    lua_register(luaState, "rrect", rrect);
+    lua_register(luaState, "rrectfill", rrectfill);
     lua_register(luaState, "print", print);
     lua_register(luaState, "cursor", cursor);
     lua_register(luaState, "spr", spr);
