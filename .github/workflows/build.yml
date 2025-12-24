@@ -276,7 +276,7 @@ jobs:
 
       - name: Build
         run: |
-          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir devkitpro/devkita64 /bin/bash -ex /build_dir/.github/workflows/buildSwitch-libretro.sh
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir devkitpro/devkita64:20240324 /bin/bash -ex /build_dir/.github/workflows/buildSwitch-libretro.sh
       - uses: actions/upload-artifact@v4
         with:
           name: switch-libretro

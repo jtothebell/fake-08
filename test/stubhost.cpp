@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <map>
 
 #include <fstream>
 #include <iostream>
@@ -13,16 +14,18 @@ using namespace std;
 #include "stubhost.h"
 
 
-
+//ATTN: none of these statics are thread safe
 static uint8_t stubCurrKDown;
 static uint8_t stubCurrKHeld;
 static bool stubCurrKBdown = false;
 static std::string stubCurrKBkey = "";
+static std::map<std::string, std::string> stubCartDataStorage;
 
 
-
-Host::Host(int windowWidth, int windowHeight)  { }
-StubHost::StubHost() { }
+Host::Host(int windowWidth, int windowHeight)
+StubHost::StubHost() {
+    stubCartDataStorage.clear();
+}
 
 
 void Host::oneTimeSetup(Audio* audio){
@@ -106,10 +109,11 @@ std::string Host::getCartDataFile(std::string cartDataKey) {
 }
 
 std::string Host::getCartDataFileContents(std::string cartDataKey) {
-    return "";
+    return stubCartDataStorage[cartDataKey];
 }
 
 void Host::saveCartData(std::string cartDataKey, std::string contents) {
+    stubCartDataStorage[cartDataKey] = contents;
 }
 
 void Host::writeBufferToFile(std::string fileName, char* buffer, size_t length) {

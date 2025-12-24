@@ -608,7 +608,6 @@ void Graphics::_setPixelFromPen(int x, int y) {
 
 	setPixelNibble(x, y, finalC, screenBuffer);
 }
-//end helper methods
 
 void Graphics::cls() {
 	this->cls(0);
@@ -1281,6 +1280,185 @@ void Graphics::rectfill(int x1, int y1, int x2, int y2, uint8_t col) {
 
 	for (int y = y1; y <= y2; y++) {
 		_private_h_line(x1, x2, y);
+	}
+}
+
+#include <cmath>
+
+int Graphics::_getRRectCutAmount(int radius, int row) {
+    //reverse engineered look up tables for pixel perfect matches (and speed)
+    if (radius == 6) {
+        static int cuts[] = {5,3,2,1,1,0};
+        return (row < 6) ? cuts[row] : 0;
+    } else if (radius == 7) {
+        static int cuts[] = {6,4,3,2,1,1,0};
+        return (row < 7) ? cuts[row] : 0;
+    } else if (radius == 8) {
+        static int cuts[] = {7,5,3,2,2,1,1,0};
+        return (row < 8) ? cuts[row] : 0;
+    } else if (radius == 9) {
+        static int cuts[] = {7,5,4,3,2,1,1,0};
+        return (row < 8) ? cuts[row] : 0;
+    } else if (radius == 10) {
+        static int cuts[] = {7,5,4,3,2,1,1,0};
+        return (row < 8) ? cuts[row] : 0;
+    } else if (radius == 11 || radius == 12) {
+        static int cuts[] = {9,7,5,4,3,2,2,1,1,0,0};
+        return (row < 11) ? cuts[row] : 0;
+    } else if (radius == 13 || radius == 14) {
+        static int cuts[] = {11,8,7,5,4,3,3,2,1,1,1,0,0};
+        return (row < 13) ? cuts[row] : 0;
+    } else if (radius == 15 || radius == 16) {
+        static int cuts[] = {13,10,8,7,5,4,4,3,2,2,1,1,1,0,0};
+        return (row < 15) ? cuts[row] : 0;
+    } else {
+		//not pixel perfect, but it is rounded
+        if (row >= radius) return 0;
+        
+        // Calculate using circle equation
+        double y = static_cast<double>(radius - row - 1);
+        double discriminant = static_cast<double>(radius * radius) - (y * y);
+        
+        if (discriminant <= 0) return 0;
+        
+        double x = static_cast<double>(radius) - std::sqrt(discriminant);
+        int cut = static_cast<int>(x + 0.5) - 1;
+        
+        // Handle the tail end where cuts often stay at 1 for multiple rows
+        // This prevents premature jumps to 0
+        if (cut == 0 && row < radius - 1) {
+            double tail_y = static_cast<double>(radius - row);
+            if (tail_y <= 2.5) {
+                cut = 1;
+            }
+        }
+        
+        return (cut < 0) ? 0 : cut;
+    }
+}
+
+void Graphics::rrect(int x, int y, int w, int h, int r) {
+	this->rrect(x, y, w, h, r, _memory->drawState.color);
+}
+
+void Graphics::rrect(int x, int y, int w, int h, int r, uint8_t col) {
+	color(col);
+
+	// Pico 8 docs say: "The radius used is clamped to fall the range 0 .. min(width,height)/2."
+	int maxRadius = (w < h ? w : h) / 2;
+	if (r > maxRadius) {
+		r = maxRadius;
+	}
+	
+	// no radius: fall back to rect
+	if (r <= 0) {
+		this->rect(x, y, x + w - 1, y + h - 1, col);
+		return;
+	}
+
+	applyCameraToPoint(&x, &y);
+
+	for (int row = 0; row < h; row++) {
+		int cutAmount = 0;
+		
+		if (row < r) {
+			//top half
+			if (r <= 5) {
+				cutAmount = r - 1 - row;
+			} else {
+				int yFromCorner = row;
+				int rSquared = r * r;
+				
+				int maxX = 0;
+				for (int testX = 0; testX < r; testX++) {
+					if (testX * testX + yFromCorner * yFromCorner <= rSquared) {
+						maxX = testX;
+					}
+				}
+				
+				cutAmount = r - 1 - maxX;
+			}
+		} else if (row >= h - r) {
+			// bottom half
+			int bottomRow = h - 1 - row;
+			if (r <= 5) {
+				cutAmount = r - 1 - bottomRow;
+			} else {
+				cutAmount = _getRRectCutAmount(r, bottomRow);
+			}
+		}
+		
+		if (cutAmount < 0) cutAmount = 0;
+		if (cutAmount * 2 >= w) cutAmount = (w - 1) / 2;
+		
+		int lineStart = x + cutAmount;
+		int lineEnd = x + w - 1 - cutAmount;
+		
+		if (lineStart <= lineEnd) {
+			if (row == 0 || row == h - 1) {
+				_private_h_line(lineStart, lineEnd, y + row);
+			} else {
+				_safeSetPixelFromPen(lineStart, y + row);
+				if (lineStart != lineEnd) {
+					_safeSetPixelFromPen(lineEnd, y + row);
+				}
+			}
+		}
+	}
+}
+
+void Graphics::rrectfill(int x, int y, int w, int h, int r) {
+	this->rrectfill(x, y, w, h, r, _memory->drawState.color);
+}
+
+void Graphics::rrectfill(int x, int y, int w, int h, int r, uint8_t col) {
+	color(col);
+
+	// Pico 8 docs say: "The radius used is clamped to fall the range 0 .. min(width,height)/2."
+	int maxRadius = (w < h ? w : h) / 2;
+	if (r > maxRadius) {
+		r = maxRadius;
+	}
+	
+	// no radius: fall back to rectfill
+	if (r <= 0) {
+		this->rectfill(x, y, x + w - 1, y + h - 1, col);
+		return;
+	}
+
+	applyCameraToPoint(&x, &y);
+
+	for (int row = 0; row < h; row++) {
+		int cutAmount = 0;
+		
+		if (row < r) {
+			//top half
+			if (r <= 5) {
+				// Small radius appear to be a simple stepping pattern
+				cutAmount = r - 1 - row;
+			} else {
+				// Large radius: use pixel perfect look ups with fallback
+				cutAmount = _getRRectCutAmount(r, row);
+			}
+		} else if (row >= h - r) {
+			//bottom half
+			int bottomRow = h - 1 - row;
+			if (r <= 5) {
+				cutAmount = r - 1 - bottomRow;
+			} else {
+				cutAmount = _getRRectCutAmount(r, bottomRow);
+			}
+		}
+		
+		if (cutAmount < 0) cutAmount = 0;
+		if (cutAmount * 2 >= w) cutAmount = (w - 1) / 2;
+		
+		int lineStart = x + cutAmount;
+		int lineEnd = x + w - 1 - cutAmount;
+		
+		if (lineStart <= lineEnd) {
+			_private_h_line(lineStart, lineEnd, y + row);
+		}
 	}
 }
 

@@ -45,10 +45,20 @@ audioState_t* Audio::getAudioState() {
     return &_audioState;
 }
 
-void Audio::api_sfx(int sfx, int channel, int offset){
+int Audio::api_sfx(int sfx, int channel, int offset, int length){
+    //TODO: handle length
+    //match pico 8 behavior
+    if (sfx < -2) {
+        sfx = 0;
+    }
+    if (length < 0) {
+        length = 31;
+    }
 
-    if (sfx < -2 || sfx > 63 || channel < -2 || channel > 3 || offset > 31) {
-        return;
+    //pico 8 returns nil in some of these cases, but I think I need to handle that
+    // in the lua api
+    if (sfx > 63 || channel < -2 || channel > 3 || offset > 31 || length > 31) {
+        return 0;
     }
 
     //CHANNEL -2: to stop the given sound from playing on any channel
@@ -58,7 +68,7 @@ void Audio::api_sfx(int sfx, int channel, int offset){
                 _audioState._sfxChannels[i].sfxId = -1;
             }
         }
-        return;
+        return 0;
     }
 
     if (sfx == -1)
@@ -122,7 +132,9 @@ void Audio::api_sfx(int sfx, int channel, int offset){
         _audioState._sfxChannels[channel].prev_note.n.setKey(24);
         // There is no default value for “previous volume”.
         _audioState._sfxChannels[channel].prev_note.n.setVolume(0);
-    }      
+    }
+
+    return channel;
 }
 
 void Audio::api_music(int pattern, int16_t fade_len, int16_t mask){

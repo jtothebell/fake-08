@@ -103,7 +103,7 @@ class Audio {
     void resetAudioState();
     audioState_t* getAudioState();
 
-    void api_sfx(int sfx, int channel, int offset);
+    int api_sfx(int sfx, int channel, int offset, int length);
     void api_music(int pattern, int16_t fade_len, int16_t mask);
 
     int16_t getCurrentSfxId(int channel);

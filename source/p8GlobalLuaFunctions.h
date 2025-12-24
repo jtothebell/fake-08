@@ -181,12 +181,11 @@ function menuitem(index, label, callback)
     if index < 1 or index > 5 then return end
 
     if not label or not callback then
-        label = nil
         callback = nil
     end
 
-    __f08_menu_items[index + 1][1] = label
-    __f08_menu_items[index + 1][2] = callback
+    __f08_menu_items[index][1] = label
+    __f08_menu_items[index][2] = callback
 end
 
 function __addbreadcrumb(label, carttoload)
@@ -217,7 +216,7 @@ function __f08_menu_update()
         until __f08_menu_items[__f08_menu_selected][1] ~= nil
     end
 
-    if btnp(2) and __f08_menu_selected > 1 then
+    if btnp(2) and __f08_menu_selected > 0 then
         repeat
             __f08_menu_selected = __f08_menu_selected - 1
         until __f08_menu_items[__f08_menu_selected][1] ~= nil
@@ -257,7 +256,7 @@ function __f08_menu_draw()
     local itemcount = 0
     for i=0, 8, 1 do
         item = __f08_menu_items[i]
-        if item and item[1] and item[2] then
+        if item and item[1] then
             itemcount = itemcount + 1
         end
     end
@@ -273,7 +272,7 @@ function __f08_menu_draw()
 
     for i=0, 8, 1 do
         item = __f08_menu_items[i]
-        if item and item[1] and item[2] then
+        if item and item[1] then
             print(item[1], itemx, itemy, 7)
             
             --draw selection indicator
@@ -303,7 +302,8 @@ ovalfill, line, spr, sspr, mget, mset,
 tline, peek, poke, peek2, poke2, peek4,
 poke4, memcpy, memset, max, min, mid, flr, 
 ceil, cos, sin, atan2, rnd, srand, band,
-bor, bxor, bnot, shl, shr, lshr, rotl, rotr =
+bor, bxor, bnot, shl, shr, lshr, rotl, rotr,
+rrect, rrectfill =
 
 time, t, sub, chr, ord, tostr, tonum, 
 add, del, deli, clip, color, pal, palt,
@@ -313,7 +313,8 @@ ovalfill, line, spr, sspr, mget, mset,
 tline, peek, poke, peek2, poke2, peek4,
 poke4, memcpy, memset, max, min, mid, flr, 
 ceil, cos, sin, atan2, rnd, srand, band,
-bor, bxor, bnot, shl, shr, lshr, rotl, rotr
+bor, bxor, bnot, shl, shr, lshr, rotl, rotr,
+rrect, rrectfill
 
 --save state code modified from ps4-p8
 //https://github.com/voliva/ps4-p8/blob/ecba7f93ef9ba73ccb121b45ede6f46e651cef65/pico8_ps4/lua_lang_fns.cpp

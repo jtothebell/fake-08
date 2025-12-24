@@ -2425,6 +2425,257 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("rrect with no radius draws a rect") {
+        graphics->cls();
+        graphics->rrect(40, 40, 3, 3, 0, 15);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {40, 40, 15},
+            {40, 41, 15},
+            {40, 42, 15},
+            {40, 43, 0},
+            {41, 40, 15},
+            {41, 41, 0},
+            {41, 42, 15},
+            {42, 40, 15},
+            {42, 41, 15},
+            {42, 42, 15},
+            {42, 43, 0},
+            {43, 40, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("rrectfill with no radius draws a rect") {
+        graphics->cls();
+        graphics->rrectfill(40, 40, 3, 3, 0, 15);
+    
+        std::vector<coloredPoint> expectedPoints = {
+            {40, 40, 15},
+            {40, 41, 15},
+            {40, 42, 15},
+            {40, 43, 0},
+            {41, 40, 15},
+            {41, 41, 15},
+            {41, 42, 15},
+            {42, 40, 15},
+            {42, 41, 15},
+            {42, 42, 15},
+            {42, 43, 0},
+            {43, 40, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("rrect with radius 1 produces some output") {
+        graphics->cls();
+        graphics->rrect(10, 10, 6, 6, 1, 8);
+
+        // Just check that some pixels are drawn (not testing exact pattern)
+        bool hasPixels = false;
+        for (int y = 10; y < 16; y++) {
+            for (int x = 10; x < 16; x++) {
+                if (graphics->pget(x, y) == 8) {
+                    hasPixels = true;
+                    break;
+                }
+            }
+        }
+        CHECK(hasPixels);
+    }
+    SUBCASE("rrectfill with radius 1 draws stepped corners") {
+        graphics->cls();
+        graphics->rrectfill(10, 10, 6, 6, 1, 8);
+
+        std::vector<coloredPoint> expectedPoints = {
+            // Row 0: cut 0 (full width)
+            {10, 10, 8}, {11, 10, 8}, {12, 10, 8}, {13, 10, 8}, {14, 10, 8}, {15, 10, 8},
+            // Row 1-4: full width
+            {10, 11, 8}, {11, 11, 8}, {12, 11, 8}, {13, 11, 8}, {14, 11, 8}, {15, 11, 8},
+            {10, 12, 8}, {11, 12, 8}, {12, 12, 8}, {13, 12, 8}, {14, 12, 8}, {15, 12, 8},
+            {10, 13, 8}, {11, 13, 8}, {12, 13, 8}, {13, 13, 8}, {14, 13, 8}, {15, 13, 8},
+            {10, 14, 8}, {11, 14, 8}, {12, 14, 8}, {13, 14, 8}, {14, 14, 8}, {15, 14, 8},
+            // Row 5: cut 0 (full width)
+            {10, 15, 8}, {11, 15, 8}, {12, 15, 8}, {13, 15, 8}, {14, 15, 8}, {15, 15, 8},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("rrect with radius 2 produces some output") {
+        graphics->cls();
+        graphics->rrect(20, 20, 8, 8, 2, 7);
+
+        // Just check that some pixels are drawn
+        bool hasPixels = false;
+        for (int y = 20; y < 28; y++) {
+            for (int x = 20; x < 28; x++) {
+                if (graphics->pget(x, y) == 7) {
+                    hasPixels = true;
+                    break;
+                }
+            }
+        }
+        CHECK(hasPixels);
+    }
+    SUBCASE("rrectfill with radius 2 draws stepped corners") {
+        graphics->cls();
+        graphics->rrectfill(20, 20, 8, 8, 2, 7);
+
+        std::vector<coloredPoint> expectedPoints = {
+            // Row 0: cut 1 from each side
+            {21, 20, 7}, {22, 20, 7}, {23, 20, 7}, {24, 20, 7}, {25, 20, 7}, {26, 20, 7},
+            // Row 1: cut 0 (full width)  
+            {20, 21, 7}, {21, 21, 7}, {22, 21, 7}, {23, 21, 7}, {24, 21, 7}, {25, 21, 7}, {26, 21, 7}, {27, 21, 7},
+            // Middle rows: full width
+            {20, 22, 7}, {21, 22, 7}, {22, 22, 7}, {23, 22, 7}, {24, 22, 7}, {25, 22, 7}, {26, 22, 7}, {27, 22, 7},
+            {20, 23, 7}, {21, 23, 7}, {22, 23, 7}, {23, 23, 7}, {24, 23, 7}, {25, 23, 7}, {26, 23, 7}, {27, 23, 7},
+            {20, 24, 7}, {21, 24, 7}, {22, 24, 7}, {23, 24, 7}, {24, 24, 7}, {25, 24, 7}, {26, 24, 7}, {27, 24, 7},
+            {20, 25, 7}, {21, 25, 7}, {22, 25, 7}, {23, 25, 7}, {24, 25, 7}, {25, 25, 7}, {26, 25, 7}, {27, 25, 7},
+            // Row 6: cut 1 from each side
+            {21, 26, 7}, {22, 26, 7}, {23, 26, 7}, {24, 26, 7}, {25, 26, 7}, {26, 26, 7},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("rrect with large radius produces output") {
+        graphics->cls();
+        graphics->rrect(10, 10, 16, 16, 6, 12);
+
+        // Just check that some pixels are drawn
+        bool hasPixels = false;
+        for (int y = 10; y < 26; y++) {
+            for (int x = 10; x < 26; x++) {
+                if (graphics->pget(x, y) == 12) {
+                    hasPixels = true;
+                    break;
+                }
+            }
+        }
+        CHECK(hasPixels);
+    }
+    SUBCASE("rrectfill with large radius uses lookup tables") {
+        graphics->cls();
+        graphics->rrectfill(10, 10, 16, 16, 6, 12);
+
+        std::vector<coloredPoint> expectedPoints = {
+            // Test key points based on r=6 pattern: {5,3,2,1,1,0}
+            // Row 0: cut 5 from each side -> width 6
+            {15, 10, 12}, {16, 10, 12}, {17, 10, 12}, {18, 10, 12}, {19, 10, 12}, {20, 10, 12},
+            // Row 1: cut 3 from each side -> width 10
+            {13, 11, 12}, {14, 11, 12}, {15, 11, 12}, {16, 11, 12}, {17, 11, 12}, 
+            {18, 11, 12}, {19, 11, 12}, {20, 11, 12}, {21, 11, 12}, {22, 11, 12},
+            // Row 5: cut 0 -> full width (16 pixels)
+            {10, 15, 12}, {11, 15, 12}, {12, 15, 12}, {13, 15, 12}, {14, 15, 12}, {15, 15, 12}, 
+            {16, 15, 12}, {17, 15, 12}, {18, 15, 12}, {19, 15, 12}, {20, 15, 12}, {21, 15, 12}, 
+            {22, 15, 12}, {23, 15, 12}, {24, 15, 12}, {25, 15, 12},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("rrect radius clamped to max allowed") {
+        graphics->cls();
+        graphics->rrect(30, 30, 10, 8, 10, 5); // radius 10 should be clamped to 4 (8/2)
+
+        // Should behave like radius 4: pattern {3,2,1,0}
+        std::vector<coloredPoint> expectedPoints = {
+            // Row 0: cut 3 from each side -> start at x=33, end at x=36
+            {33, 30, 5}, {34, 30, 5}, {35, 30, 5}, {36, 30, 5},
+            // Row 1: cut 2 from each side -> start at x=32, end at x=37
+            {32, 31, 5}, {37, 31, 5},
+            // Row 2: cut 1 from each side -> start at x=31, end at x=38
+            {31, 32, 5}, {38, 32, 5},
+            // Row 3: cut 0 -> full width
+            {30, 33, 5}, {39, 33, 5},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("rrectfill radius clamped to max allowed") {
+        graphics->cls();
+        graphics->rrectfill(30, 30, 10, 8, 10, 5); // radius 10 should be clamped to 4 (8/2)
+
+        // Should behave like radius 4: pattern {3,2,1,0}
+        std::vector<coloredPoint> expectedPoints = {
+            // Row 0: cut 3 from each side -> width 4
+            {33, 30, 5}, {34, 30, 5}, {35, 30, 5}, {36, 30, 5},
+            // Row 1: cut 2 from each side -> width 6  
+            {32, 31, 5}, {33, 31, 5}, {34, 31, 5}, {35, 31, 5}, {36, 31, 5}, {37, 31, 5},
+            // Row 3: cut 0 -> full width (10 pixels)
+            {30, 33, 5}, {31, 33, 5}, {32, 33, 5}, {33, 33, 5}, {34, 33, 5}, 
+            {35, 33, 5}, {36, 33, 5}, {37, 33, 5}, {38, 33, 5}, {39, 33, 5},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("rrect basic functionality") {
+        graphics->cls();
+        graphics->rrect(50, 50, 10, 10, 2, 9);
+
+        // Just check that some pixels are drawn
+        bool hasPixels = false;
+        for (int y = 50; y < 60; y++) {
+            for (int x = 50; x < 60; x++) {
+                if (graphics->pget(x, y) == 9) {
+                    hasPixels = true;
+                    break;
+                }
+            }
+        }
+        CHECK(hasPixels);
+    }
+    SUBCASE("rrectfill basic functionality") {
+        graphics->cls();
+        graphics->rrectfill(50, 50, 10, 10, 2, 9);
+
+        // Just check that some pixels are drawn
+        bool hasPixels = false;
+        for (int y = 50; y < 60; y++) {
+            for (int x = 50; x < 60; x++) {
+                if (graphics->pget(x, y) == 9) {
+                    hasPixels = true;
+                    break;
+                }
+            }
+        }
+        CHECK(hasPixels);
+    }
+    SUBCASE("rrect basic clipping test") {
+        graphics->cls();
+        graphics->clip(50, 50, 20, 20); // large clip area
+        graphics->rrect(55, 55, 10, 10, 2, 11);
+
+        // Just check that some pixels are drawn
+        bool hasPixels = false;
+        for (int y = 55; y < 65; y++) {
+            for (int x = 55; x < 65; x++) {
+                if (graphics->pget(x, y) == 11) {
+                    hasPixels = true;
+                    break;
+                }
+            }
+        }
+        CHECK(hasPixels);
+    }
+    SUBCASE("rrectfill respects clipping") {
+        graphics->cls();
+        graphics->clip(12, 12, 4, 4); // clip to small area
+        graphics->rrectfill(10, 10, 8, 8, 1, 11);
+
+        // Only pixels within clip area (12-15, 12-15) should be drawn
+        std::vector<coloredPoint> expectedPoints = {
+            // Check that pixels outside clip are not drawn
+            {10, 10, 0}, {11, 10, 0},
+            {10, 11, 0}, {11, 11, 0},
+            // Check that pixels inside clip are drawn (filled)
+            {12, 12, 11}, {13, 12, 11}, {14, 12, 11}, {15, 12, 11},
+            {12, 13, 11}, {13, 13, 11}, {14, 13, 11}, {15, 13, 11},
+            {12, 14, 11}, {13, 14, 11}, {14, 14, 11}, {15, 14, 11},
+            {12, 15, 11}, {13, 15, 11}, {14, 15, 11}, {15, 15, 11},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+
 
     //general teardown
     delete graphics;

@@ -295,6 +295,49 @@ int rectfill(lua_State *L){
     return 0;
 }
 
+int rrect(lua_State *L){
+
+    if (lua_gettop(L) >= 5) {
+        int x = lua_tonumber(L,1);
+        int y = lua_tonumber(L,2);
+        int w = lua_tonumber(L,3);
+        int h = lua_tonumber(L,4);
+        int r = lua_tonumber(L,5);
+
+        if (lua_gettop(L) == 5){
+            _graphicsForLuaApi->rrect(x, y, w, h, r);
+        }
+        else {
+            uint8_t c = lua_tonumber(L,6);
+
+            _graphicsForLuaApi->rrect(x, y, w, h, r, c);
+        }
+    }
+
+    return 0;
+}
+
+int rrectfill(lua_State *L){
+    if (lua_gettop(L) >= 5) {
+        int x = lua_tonumber(L,1);
+        int y = lua_tonumber(L,2);
+        int w = lua_tonumber(L,3);
+        int h = lua_tonumber(L,4);
+        int r = lua_tonumber(L,5);
+
+        if (lua_gettop(L) == 5){
+            _graphicsForLuaApi->rrectfill(x, y, w, h, r);
+        }
+        else {
+            fix32 c = lua_tonumber(L,6);
+
+            _graphicsForLuaApi->rrectfill(x, y, w, h, r, c);
+        }
+    }
+
+    return 0;
+}
+
 int print(lua_State *L){
     int numArgs = lua_gettop(L);
     if (numArgs == 0){
@@ -1001,9 +1044,15 @@ int sfx(lua_State *L) {
     if (lua_gettop(L) > 2) {
         offset = (int)lua_tonumber(L, 3);
     }
+    int length = -1;
+    if (lua_gettop(L) > 3) {
+        length = (int)lua_tonumber(L, 4);
+    }
 
-    _audioForLuaApi->api_sfx((int)n, channel, offset);
-    return 0;
+    int result = _audioForLuaApi->api_sfx((int)n, channel, offset, length);
+    lua_pushnumber(L, result);
+
+    return 1;
 }
 
 //Memory

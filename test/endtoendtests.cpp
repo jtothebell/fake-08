@@ -472,7 +472,8 @@ TEST_CASE("Loading and running carts") {
                 "poke4", "memcpy", "memset", "max", "min", "mid", "flr", 
                 "ceil", "cos", "sin", "atan2", "rnd", "srand", "band",
                 "bor", "bxor", "bnot", "shl", "shr", "lshr", "rotl", "rotr",
-                "mapdraw", "extcmd", "next", "inext", "pairs", "ipairs"
+                "mapdraw", "extcmd", "next", "inext", "pairs", "ipairs",
+                "rrect", "rrectfill"
             };
 
             string missing = "";
