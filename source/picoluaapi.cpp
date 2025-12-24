@@ -17,6 +17,10 @@ using namespace std;
   #include <lauxlib.h>
 //}
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 Graphics* _graphicsForLuaApi;
 Input* _inputForLuaApi;
 Vm* _vmForLuaApi;
@@ -1236,10 +1240,20 @@ int dget(lua_State *L) {
 }
 
 int dset(lua_State *L) {
+    
     int dest = lua_tonumber(L,1);
     fix32 val = lua_tonumber(L,2);
 
     _vmForLuaApi->vm_dset(dest, val);
+
+    EM_ASM(FS.syncfs(false,function(err) {
+		if(err)
+		{
+			alert("FileSystem Save Error: " + err);
+			return false;
+		}
+		return true;
+	}));
 
     return 0;
 }

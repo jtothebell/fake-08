@@ -32,6 +32,7 @@
   #include <fix32.h>
 //}
 
+
 using namespace z8;
 
 static const char BiosCartName[] = "__FAKE08-BIOS.p8";
@@ -693,15 +694,19 @@ string Vm::GetBiosError() {
 }
 
 void Vm::GameLoop() {
+    
     while (_host->shouldRunMainLoop())
     {
+    
         //shouldn't need to set this every frame
         _host->setTargetFps(_targetFps);
 
         //is this better at the end of the loop?
         _host->waitForTargetFps();
 
+        
         if (_host->shouldQuit()) break; // break in order to return to hbmenu
+        
         //this should probably be handled just in the host class
         _host->changeStretch();
 
@@ -720,7 +725,9 @@ void Vm::GameLoop() {
 
             _host->playFilledAudioBuffer();
         }
+    
     }
+    
 }
 
 bool Vm::ExecuteLua(string luaString, string callbackFunction){

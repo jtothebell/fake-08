@@ -11,6 +11,8 @@ Installation will vary by console and executable type. If it is a console with a
 
 Pico 8 cart files go in the `p8carts/` directory of your memory card (SD card on 3DS, Switch, and Wii U, memory card at `ux0:/` on Vita). `.p8` text file carts and `.p8.png` image file carts are supported.
 
+The Standalone webpage is different. You use the '/' key to upload, the '.' key to save everything, and the '`' key to reset the filesystem (don't worry, it will ask you if you're sure you want to reset everything.)
+
 Launch FAKE-08 either via the homebrew menu or normal system UI (depending on how you installed). Use left and right to cycle through carts on the SD card. Choose a cart using the `A` (Nintendo consoles) or `X`(Vita) button. To exit the currently running cart, press `Start` or `+` to open the pause menu and select `Exit to Menu`. Press `R` to cycle between rendering sizes. Press `L` and `R` simultaneously to exit the appication. You can also close it via your console's operating system controls (home button etc).
 
 For bittboy and similar consoles, back up `emus/pico8/pico8.elf`  and replace it with the one from the release. Place your cart files in `roms/pico-8/` and use the front end of choice to launch games. Press the menu button to return to the menu (though you can also press start and exit to the FAKE-08 bios menu if you would like).
@@ -42,6 +44,8 @@ Building for bittboy requires builing your own toolchain first (and will probabl
 
 Building for Miyoo mini uses shauninman's Union Miyoo Mini toolchain: https://github.com/shauninman/union-miyoomini-toolchain
 
+Building the standalone webpage requires emsdk: The installation instructions are available at https://emscripten.org/docs/getting_started/downloads.html
+When emsdk is installed (and sourced), use `emmake make wasm` to build.
 ## Acknowledgements
  * Zep/Lexaloffle software for making pico 8. Buy a copy if you can. You won't regret it. https://www.lexaloffle.com/pico-8.php
  * Nintendo Homebrew Community

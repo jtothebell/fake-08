@@ -57,6 +57,9 @@ clean-miyoomini:
 clean-windows:
 	@$(MAKE) -C platform/windows clean
 
+clean-wasm:
+	@$(MAKE) -C platform/Webassembly clean
+
 3ds:
 	@$(MAKE) -C platform/3ds
 
@@ -74,6 +77,9 @@ vita:
 
 sdl2:
 	@$(MAKE) -C platform/SDL2Desktop
+
+wasm:
+	@$(MAKE) -C platform/Webassembly
 
 sdl:
 	@$(MAKE) -C platform/SDL1_2
