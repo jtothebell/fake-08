@@ -47,7 +47,9 @@ class Vm {
 
     string _cartLoadError;
 
-    string _cartdataKey;
+    string _cartdataKeys[4];
+    int _cartdataKeyCount;
+    string _currentCartdataKey;
 
     string _cartBreadcrumb;
     string _cartParam;

@@ -239,7 +239,8 @@ Vm::Vm(
         _cartChangeQueued(false),
         _nextCartKey(""),
         _cartLoadError(""),
-        _cartdataKey("")
+        _cartdataKeyCount(0),
+        _currentCartdataKey("")
 {
     _host = host;
 
@@ -339,7 +340,8 @@ bool abortLua;
 bool Vm::loadCart(Cart* cart) {
     _picoFrameCount = 0;
 
-    _cartdataKey = "";
+    _cartdataKeyCount = 0;
+    _currentCartdataKey = "";
 
     //reset memory (may have to be more selective about zeroing out to be accurate?)
     _memory->Reset();
@@ -670,8 +672,8 @@ void Vm::CloseCart() {
     // }
 
     Logger_Write("writing cart data\n");
-    if (_cartdataKey.length() > 0) {
-        _host->saveCartData(_cartdataKey, getSerializedCartData());
+    if (_currentCartdataKey.length() > 0) {
+        _host->saveCartData(_currentCartdataKey, getSerializedCartData());
     }
 
     Logger_Write("resetting state\n");
@@ -888,11 +890,6 @@ void Vm::vm_poke4(int addr, fix32 value){
 
 bool Vm::vm_cartdata(string key) {
     //match pico 8 errors
-    if (_cartdataKey != "") {
-        QueueCartChange(DefaultCartName);
-        _cartLoadError = "cartdata() can only be called once";
-        return false;
-    }
     if (key.length() == 0 || key.length() > 64) {
         QueueCartChange(DefaultCartName);
         _cartLoadError = "cart data id too long";
@@ -900,9 +897,42 @@ bool Vm::vm_cartdata(string key) {
     }
     //todo: validate chars
 
-    _cartdataKey = key;
+    // If we have a current key, save its data before switching
+    if (_currentCartdataKey.length() > 0) {
+        _host->saveCartData(_currentCartdataKey, getSerializedCartData());
+    }
 
-    auto cartDataStr = _host->getCartDataFileContents(_cartdataKey);
+    // Check if this key is already in our list
+    bool keyExists = false;
+    for (int i = 0; i < _cartdataKeyCount; i++) {
+        if (_cartdataKeys[i] == key) {
+            keyExists = true;
+            break;
+        }
+    }
+
+    // If it's a new key, add it to our list (up to 4 keys max)
+    if (!keyExists) {
+        if (_cartdataKeyCount >= 4) {
+            QueueCartChange(DefaultCartName);
+            _cartLoadError = "too many cart data keys (max 4)";
+            return false;
+        }
+        _cartdataKeys[_cartdataKeyCount] = key;
+        _cartdataKeyCount++;
+    }
+
+    // Only clear memory if we're switching to a different key
+    if (_currentCartdataKey != key) {
+        // Clear the cart data memory (0x5e00-0x5eff)
+        memset(&_memory->data[0x5e00], 0, 0x100);
+    }
+
+    // Set this as the current active key
+    _currentCartdataKey = key;
+
+    // Try to load data from file for this key
+    auto cartDataStr = _host->getCartDataFileContents(_currentCartdataKey);
 
     //todo: validate hex format
     if (cartDataStr.length() > 0) {
@@ -911,10 +941,6 @@ bool Vm::vm_cartdata(string key) {
     } else {
         return false;
     }
-
-    //call host to get current cart data and init- set memory
-    //file name should match pico 8: {key}.p8d.txt in the cdata directory
-    //call host to get that string if anything exists
 }
 
 fix32 Vm::vm_dget(uint8_t n) {
