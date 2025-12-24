@@ -317,8 +317,8 @@ bor, bxor, bnot, shl, shr, lshr, rotl, rotr,
 rrect, rrectfill
 
 --save state code modified from ps4-p8
-//https://github.com/voliva/ps4-p8/blob/ecba7f93ef9ba73ccb121b45ede6f46e651cef65/pico8_ps4/lua_lang_fns.cpp
-//MIT license
+--https://github.com/voliva/ps4-p8/blob/ecba7f93ef9ba73ccb121b45ede6f46e651cef65/pico8_ps4/lua_lang_fns.cpp
+--MIT license
 
 eris.perm = {}
 eris.unperm = {}
