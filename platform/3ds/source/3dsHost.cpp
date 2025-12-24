@@ -19,6 +19,9 @@ using namespace std;
 #include "../../../source/nibblehelpers.h"
 #include "../../../source/PicoRam.h"
 #include "../../../source/filehelpers.h"
+#include "../../../source/logger.h"
+
+#include "Keyboard.h"
 
 #define SCREEN_WIDTH 400;
 #define SCREEN_HEIGHT 240;
@@ -36,6 +39,7 @@ const int __3ds_TopScreenHeight = SCREEN_HEIGHT;
 const int __3ds_BottomScreenWidth = SCREEN_2_WIDTH;
 const int __3ds_BottomScreenHeight = SCREEN_2_HEIGHT;
 
+static Keyboard kb;
 
 const int PicoScreenWidth = 128;
 const int PicoScreenHeight = 128;
@@ -319,6 +323,7 @@ void Host::oneTimeSetup(Audio* audio){
 		CFGU_GetSystemModel(&consoleModel);
 		cfguExit();
 	}
+	
 
     gfxInitDefault();
     gfxSetWide(consoleModel != 3);	
@@ -327,6 +332,8 @@ void Host::oneTimeSetup(Audio* audio){
 	//C2D_Init(C2D_DEFAULT_MAX_OBJECTS); //4096
     C2D_Init(32); //need very few objects? this probably doesn't really help perf
 	C2D_Prepare();
+	
+	kb.Init(); //the keyboard's texture needs to be loaded *before* the p8 screen is created, otherwise it gets corrupted
 
     topTarget = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
     /*
@@ -375,26 +382,17 @@ void Host::oneTimeSetup(Audio* audio){
 
     loadSettingsIni();
 
-    setRenderParamsFromStretch(stretch);
+    forceStretch(stretch);
 
-    if (stretch == AltScreenPixelPerfect) {
-        mouseOffsetX = (__3ds_BottomScreenWidth - PicoScreenWidth) / 2;
-        mouseOffsetY = (__3ds_BottomScreenHeight - PicoScreenHeight) / 2;
-        scaleX = 1.0;
-        scaleY = 1.0;
-    }
-    else{
-        mouseOffsetX = (__3ds_BottomScreenWidth - __3ds_BottomScreenHeight) / 2;
-        mouseOffsetY = 0;
-        scaleX = 0.53;
-        scaleY = 0.53;
-    }
+
 }
 
 void Host::oneTimeCleanup(){
     saveSettingsIni();
 
     audioCleanup();
+	
+	kb.Cleanup();
 
     C3D_TexDelete(pico_tex);
 
@@ -409,53 +407,47 @@ void Host::oneTimeCleanup(){
 
 void Host::setTargetFps(int targetFps){
     targetFrameTimeMs = 1000.0 / (float)targetFps;
+	kb.UpdateTickSpeed(targetFps);
 }
 
 void Host::changeStretch(){
     if ((currKDown32 & KEY_SELECT) && resizekey == YesResize) {
         if (stretch == PixelPerfect) {
             stretch = StretchToFit;
-            mouseOffsetX = (__3ds_BottomScreenWidth - __3ds_BottomScreenHeight) / 2;
-            mouseOffsetY = 0;
-            scaleX = 0.53;
-            scaleY = 0.53;
         }
         else if (stretch == StretchToFit) {
             stretch = StretchAndOverflow;
-            mouseOffsetX = (__3ds_BottomScreenWidth - __3ds_BottomScreenHeight) / 2;
-            mouseOffsetY = 0;
-            scaleX = 0.53;
-            scaleY = 0.53;
         }
         else if (stretch == StretchAndOverflow) {
             stretch = AltScreenPixelPerfect;
-            mouseOffsetX = (__3ds_BottomScreenWidth - PicoScreenWidth) / 2;
-            mouseOffsetY = (__3ds_BottomScreenHeight - PicoScreenHeight) / 2;
-            scaleX = 1.0;
-            scaleY = 1.0;
         }
         else if (stretch == AltScreenPixelPerfect) {
             stretch = AltScreenStretch;
-            mouseOffsetX = (__3ds_BottomScreenWidth - __3ds_BottomScreenHeight) / 2;
-            mouseOffsetY = 0;
-            scaleX = 0.53;
-            scaleY = 0.53;
         }
         else {
             stretch = PixelPerfect;
-            mouseOffsetX = (__3ds_BottomScreenWidth - __3ds_BottomScreenHeight) / 2;
-            mouseOffsetY = 0;
-            scaleX = 0.53;
-            scaleY = 0.53;
         }
 
-        setRenderParamsFromStretch(stretch);
+        forceStretch(stretch);
 
     }
 }
 
 void Host::forceStretch(StretchOption newStretch) {
+	kb.UpdateStretch(stretch);
 	setRenderParamsFromStretch(stretch);
+	if (stretch == AltScreenPixelPerfect) {
+        mouseOffsetX = (__3ds_BottomScreenWidth - PicoScreenWidth) / 2;
+        mouseOffsetY = (__3ds_BottomScreenHeight - PicoScreenHeight) / 2;
+        scaleX = 1.0;
+        scaleY = 1.0;
+    }
+    else{
+        mouseOffsetX = (__3ds_BottomScreenWidth - __3ds_BottomScreenHeight) / 2;
+        mouseOffsetY = 0;
+        scaleX = 0.53;
+        scaleY = 0.53;
+    }
 }
 
 InputState_t Host::scanInput(){
@@ -468,8 +460,16 @@ InputState_t Host::scanInput(){
 
 	//Read the touch screen coordinates
 	hidTouchRead(&touch);
+	
+	//update keyboard
+	if(currKDown32 & KEY_X){
+		kb.Toggle();
+		forceStretch(stretch);
+	}
+	
+	kb.GetKey(currKBDown, currKBKey, touch);
 
-    if (touch.px > 0 && touch.py > 0) {
+    if (touch.px > 0 && touch.py > 0 && kb.AllowMouse()) {
         touchLocationX = (touch.px - mouseOffsetX) * scaleX;
         touchLocationY = (touch.py - mouseOffsetY) * scaleY;
         mouseBtnState = 1;
@@ -483,7 +483,10 @@ InputState_t Host::scanInput(){
         ConvertInputToP8(currKHeld32),
         (int16_t)touchLocationX,
         (int16_t)touchLocationY,
-        mouseBtnState
+        mouseBtnState,
+		currKBDown,
+		currKBKey
+		
     };
 }
 
@@ -653,6 +656,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
         
         C2D_TargetClear(bottomTarget, CLEAR_COLOR);
         C2D_SceneBegin(bottomTarget);
+		
 
         if (bottomSubTexWidth > 0 && bottomSubTexHeight > 0) {
             pico_subtex->width = bottomSubTexWidth;
@@ -684,10 +688,11 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
                 flipHorizontal,
                 flipVertical);
         }
-		
-		//keyboard goes here probably
 
 		C2D_Flush();
+		
+		kb.Draw();
+		
 
 	C3D_FrameEnd(0);
 }
@@ -743,7 +748,7 @@ const char* Host::logFilePrefix() {
 }
 
 std::string Host::customBiosLua() {
-    return "";
+    return "platform = '3ds'";
 }
 
 std::string Host::getCartDirectory() {

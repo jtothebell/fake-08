@@ -335,6 +335,21 @@ bool Vm::loadCart(Cart* cart) {
     
     #endif
 
+	//customize bios per host's requirements
+    if (cart->FullCartPath == BiosCartName || cart->FullCartPath == SettingsCartName) {
+        std::string customBiosLua = _host->customBiosLua();
+
+        if (customBiosLua.length() > 0) {
+            int doStrRes = luaL_dostring(_luaState, customBiosLua.c_str());
+
+            if (doStrRes != LUA_OK){
+                //bad lua passed
+                Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
+                lua_pop(_luaState, 1);
+            }
+        }
+    }
+	
     // Push the _init function on the top of the lua stack (or nil if it doesn't exist)
     lua_getglobal(_luaState, "_init");
 
@@ -364,20 +379,7 @@ bool Vm::loadCart(Cart* cart) {
     lua_pop(_luaState, 0);
 
 
-    //customize bios per host's requirements
-    if (cart->FullCartPath == BiosCartName || cart->FullCartPath == SettingsCartName) {
-        std::string customBiosLua = _host->customBiosLua();
-
-        if (customBiosLua.length() > 0) {
-            int doStrRes = luaL_dostring(_luaState, customBiosLua.c_str());
-
-            if (doStrRes != LUA_OK){
-                //bad lua passed
-                Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
-                lua_pop(_luaState, 1);
-            }
-        }
-    }
+    
 
     if (_cartBreadcrumb.length() > 0) {
         ExecuteLua("__addbreadcrumb(\"" + _cartBreadcrumb +"\", \"" + _prevCartKey +"\")", "");

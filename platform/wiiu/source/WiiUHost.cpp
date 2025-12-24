@@ -578,6 +578,7 @@ const char* Host::logFilePrefix() {
 
 std::string Host::customBiosLua() {
     return "cartpath = \"sd:/p8carts/\"\n"
+		"platform = 'wiiu'\n"
         "pausebtn = \"+\"";
 }
 
