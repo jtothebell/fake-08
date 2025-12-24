@@ -22,7 +22,7 @@ static std::string stubCurrKBkey = "";
 static std::map<std::string, std::string> stubCartDataStorage;
 
 
-Host::Host(int windowWidth, int windowHeight)
+Host::Host(int windowWidth, int windowHeight) { }
 StubHost::StubHost() {
     stubCartDataStorage.clear();
 }
