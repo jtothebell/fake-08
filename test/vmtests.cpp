@@ -840,6 +840,16 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(4, graphics->getDrawPalMappedColor(4));
         CHECK_EQ(0, memory->hwState.alternatePaletteFlag);
     }
+    SUBCASE("pause menu - initial state is not paused") {
+        CHECK(vm->IsPaused() == false);
+    }
+    SUBCASE("pause menu - togglePauseMenu toggles state") {
+        CHECK(vm->IsPaused() == false);
+        vm->togglePauseMenu();
+        CHECK(vm->IsPaused() == true);
+        vm->togglePauseMenu();
+        CHECK(vm->IsPaused() == false);
+    }
 
     delete stubHost;
     delete graphics;
