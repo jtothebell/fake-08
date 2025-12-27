@@ -106,6 +106,7 @@ class Vm {
     string CurrentCartFilename();
 
     void togglePauseMenu();
+    bool IsPaused();
 
     std::string getSerializedCartData();
     void deserializeCartDataToMemory(std::string cartDataStr);

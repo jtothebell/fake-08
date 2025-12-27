@@ -1388,6 +1388,12 @@ int togglepausemenu(lua_State *L) {
     return 0;
 }
 
+int ispaused(lua_State *L) {
+    lua_pushboolean(L, _vmForLuaApi->IsPaused());
+
+    return 1;
+}
+
 int resetcart(lua_State *L) {
     _vmForLuaApi->QueueCartChange(_vmForLuaApi->CurrentCartFilename());
 

@@ -424,7 +424,8 @@ local picofuncnames = {
     cocreate = 1, coresume = 1, costatus = 1, yield = 1, trace = 1, stop = 1,
     count = 1, add = 1, sub = 1, foreach = 1, all = 1, del = 1, deli = 1, t = 1, dget = 1,
     dset = 1, cartdata = 1, load = 1, save = 1, info = 1, abort = 1, folder = 1,
-    resume = 1, reboot = 1, dir = 1, ls = 1, flip = 1, mapdraw = 1, menuitem = 1
+    resume = 1, reboot = 1, dir = 1, ls = 1, flip = 1, mapdraw = 1, menuitem = 1,
+    __ispaused = 1
  }
  return picofuncnames[funcname] == 1
 end
@@ -523,6 +524,15 @@ end
 -- FIXME: this function is quite a mess
 function __z8_tick()
     if (costatus(__z8_loop) == "dead") return -1
+
+    -- Check if pause menu is active
+    if __ispaused() then
+        _update_buttons()
+        __f08_menu_update()
+        __f08_menu_draw()
+        return 0
+    end
+
     ret, err = coresume(__z8_loop)
 
     -- XXX: test eris persistence

@@ -51,6 +51,7 @@ bool _initializeLuaState(lua_State* luaState) {
     lua_register(luaState, "__loaddefaultcart", loaddefaultcart);
     lua_register(luaState, "__loadsettingscart", loadsettingscart);
     lua_register(luaState, "__togglepausemenu", togglepausemenu);
+    lua_register(luaState, "__ispaused", ispaused);
     lua_register(luaState, "__resetcart", resetcart);
     lua_register(luaState, "__load", load);
 	
@@ -495,6 +496,10 @@ void Vm::togglePauseMenu(){
         memcpy(&_memory->drawState, _drawStateCopy, 64);
     }
     
+}
+
+bool Vm::IsPaused(){
+    return _pauseMenu;
 }
 
 
@@ -1070,6 +1075,11 @@ void Vm::update_buttons() {
     else {
         _input->SetMouse(0, 0, 0);
         _input->SetKeyboard(false,"");
+    }
+
+    // Check for pause button (bit 6 / 0x40)
+    if (_input->btnp(6)) {
+        togglePauseMenu();
     }
 }
 
