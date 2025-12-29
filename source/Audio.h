@@ -89,6 +89,7 @@ enum
 class Audio {
     PicoRam* _memory;
     audioState_t _audioState;
+    bool _paused;
 
     void set_music_pattern(int pattern);
     
@@ -114,5 +115,7 @@ class Audio {
 
     void FillAudioBuffer(void *audioBuffer,size_t offset, size_t size);
     void FillMonoAudioBuffer(void *audioBuffer,size_t offset, size_t size);
+
+    void setPaused(bool paused);
 };
 

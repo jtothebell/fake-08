@@ -491,6 +491,9 @@ void Vm::togglePauseMenu(){
         _graphics->clip();
         _graphics->camera();
         _graphics->color();
+
+        // Pause audio
+        _audio->setPaused(true);
     }
     else{
         //restore old draw state
@@ -498,6 +501,9 @@ void Vm::togglePauseMenu(){
         // Clear input on next update so the button press that closed the menu
         // doesn't get passed to the cart
         _clearInputOnResume = true;
+
+        // Resume audio
+        _audio->setPaused(false);
     }
     
 }
@@ -709,6 +715,7 @@ void Vm::QueueCartChange(std::string filename){
     _cartChangeQueued = true;
     _pauseMenu = false;
     _clearInputOnResume = true;
+    _audio->setPaused(false);
 }
 
 void Vm::QueueCartChange(const unsigned char* cartData, size_t size){
@@ -718,6 +725,7 @@ void Vm::QueueCartChange(const unsigned char* cartData, size_t size){
     _cartChangeQueued = true;
     _pauseMenu = false;
     _clearInputOnResume = true;
+    _audio->setPaused(false);
 }
 
 int Vm::GetTargetFps() {

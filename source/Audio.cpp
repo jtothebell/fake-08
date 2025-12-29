@@ -17,8 +17,13 @@
 
 Audio::Audio(PicoRam* memory){
     _memory = memory;
+    _paused = false;
     
     resetAudioState();
+}
+
+void Audio::setPaused(bool paused) {
+    _paused = paused;
 }
 
 void Audio::resetAudioState() {
@@ -251,6 +256,14 @@ void Audio::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
 
     uint32_t *buffer = (uint32_t *)audioBuffer;
 
+    // Output silence when paused
+    if (_paused) {
+        for (size_t i = 0; i < size; ++i){
+            buffer[i] = 0;
+        }
+        return;
+    }
+
     for (size_t i = 0; i < size; ++i){
         int32_t sample = 0;
 
@@ -272,6 +285,14 @@ void Audio::FillMonoAudioBuffer(void *audioBuffer, size_t offset, size_t size){
     }
 
     int16_t *buffer = (int16_t *)audioBuffer;
+
+    // Output silence when paused
+    if (_paused) {
+        for (size_t i = 0; i < size; ++i){
+            buffer[i] = 0;
+        }
+        return;
+    }
 
     for (size_t i = 0; i < size; ++i){
         int32_t sample = 0;
