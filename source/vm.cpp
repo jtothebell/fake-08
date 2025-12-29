@@ -1111,8 +1111,7 @@ void Vm::update_buttons() {
     }
 
     // Check for pause button (bit 6 / 0x40)
-    // Don't trigger pause in devkitMode - Enter key is used for command input
-    if (_input->btnp(6) && !_memory->drawState.devkitMode) {
+    if (_input->btnp(6)) {
         togglePauseMenu();
     }
 }

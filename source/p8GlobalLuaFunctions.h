@@ -666,6 +666,8 @@ function __z8_shell()
             -- does not remain in later frames
             local on = t() * 5 % 2 > 1
             if (on) rectfill(caret * 4 + 8, start_y, caret * 4 + 11, start_y + 4, 8)
+            -- Suppress pause menu if Enter key is pending (will be processed next frame)
+            if stat(30) then poke(0x5f30, 1) end
             flip()
             if (on) rectfill(caret * 4 + 8, start_y, caret * 4 + 11, start_y + 4, 0)
         end
