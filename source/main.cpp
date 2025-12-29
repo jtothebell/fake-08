@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
 	if (loadCart){
 		Logger_Write("Loading arg cart \n");
 		vm->LoadCart(cart);
-		//vm->vm_run();
+		vm->vm_run();
 	}
 	// else {
 	// 	vm->LoadBiosCart();
