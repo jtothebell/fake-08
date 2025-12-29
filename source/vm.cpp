@@ -252,6 +252,7 @@ Vm::Vm(
     _memory = memory;
 
     _pauseMenu = false;
+    _clearInputOnResume = false;
     memset(_drawStateCopy, 0, sizeof(drawState_t));
     
     if (graphics == nullptr) {
@@ -494,6 +495,9 @@ void Vm::togglePauseMenu(){
     else{
         //restore old draw state
         memcpy(&_memory->drawState, _drawStateCopy, 64);
+        // Clear input on next update so the button press that closed the menu
+        // doesn't get passed to the cart
+        _clearInputOnResume = true;
     }
     
 }
@@ -577,6 +581,18 @@ bool Vm::Step(){
         ret = (int)lua_tonumber(_luaState, -1) >= 0;
     }
     lua_pop(_luaState, 1);
+
+    // Process any queued cart change (from reset, load, etc.)
+    if (_cartChangeQueued) {
+        _prevCartKey = CurrentCartFilename();
+        if (_nextCartSize > 0){
+            LoadCart(_nextCartData, _nextCartSize);
+        }
+        else {
+            LoadCart(_nextCartKey);
+        }
+        vm_run();
+    }
 
     return ret;
 }
@@ -692,6 +708,7 @@ void Vm::QueueCartChange(std::string filename){
     _nextCartSize = 0;
     _cartChangeQueued = true;
     _pauseMenu = false;
+    _clearInputOnResume = true;
 }
 
 void Vm::QueueCartChange(const unsigned char* cartData, size_t size){
@@ -700,6 +717,7 @@ void Vm::QueueCartChange(const unsigned char* cartData, size_t size){
     _nextCartSize = size;
     _cartChangeQueued = true;
     _pauseMenu = false;
+    _clearInputOnResume = true;
 }
 
 int Vm::GetTargetFps() {
@@ -1067,6 +1085,21 @@ void Vm::api_srand(fix32 seed)
 void Vm::update_buttons() {
     //get button states from hardware
     auto inputState = _host->scanInput();
+    
+    // If we just resumed from pause menu, clear input so the button press
+    // that closed the menu doesn't get passed to the cart.
+    // Keep clearing until the user releases all buttons.
+    if (_clearInputOnResume) {
+        // Check if action buttons (4=O, 5=X) are still held
+        if ((inputState.KHeld & 0x30) == 0) {
+            _clearInputOnResume = false;
+        }
+        _input->SetState(0, 0);
+        _input->SetMouse(0, 0, 0);
+        _input->SetKeyboard(false, "");
+        return;
+    }
+    
     _input->SetState(inputState.KDown, inputState.KHeld);
     if (_memory->drawState.devkitMode) {
         _input->SetMouse(inputState.mouseX, inputState.mouseY, inputState.mouseBtnState);
@@ -1149,7 +1182,12 @@ void Vm::vm_run() {
 
     _audio->resetAudioState();
 
-
+    // Clear any pending input so button presses from pause menu don't
+    // get seen by the cart's _init() function. The flag stays set so the
+    // first _update_buttons() call will also return cleared input.
+    if (_clearInputOnResume) {
+        _input->SetState(0, 0);
+    }
 
     lua_getglobal(_luaState, "__z8_run_cart");
     lua_pushstring(_luaState, _loadedCart->LuaString.c_str());

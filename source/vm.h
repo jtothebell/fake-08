@@ -40,6 +40,7 @@ class Vm {
 
     bool _cartChangeQueued;
     bool _pauseMenu;
+    bool _clearInputOnResume;
     string _prevCartKey;
     string _nextCartKey;
     const unsigned char* _nextCartData;
