@@ -664,12 +664,15 @@ end
 
 inits = {classic_init,fancy_init,list_init}
 function _init()
-	if __getsetting then
-		theme = __getsetting('menustyle')
-	else
-		theme = 2
-	end
-	theme = theme % #inits --don't load a nonexistant menu style
+	--disabling menu styles - they are currently broken
+	--if __getsetting then
+	--	theme = __getsetting('menustyle')
+	--else
+	--	theme = 2
+	--end
+	--theme = theme % #inits --don't load a nonexistant menu style
+	
+	theme = 0
 	
 	inits[theme+1]()
 end

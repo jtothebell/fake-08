@@ -590,6 +590,7 @@ bool Vm::Step(){
 
     // Process any queued cart change (from reset, load, etc.)
     if (_cartChangeQueued) {
+        Logger_Write("Processing cart change, _pauseMenu = %s\n", _pauseMenu ? "true" : "false");
         _prevCartKey = CurrentCartFilename();
         if (_nextCartSize > 0){
             LoadCart(_nextCartData, _nextCartSize);
@@ -599,7 +600,9 @@ bool Vm::Step(){
         }
         // Only run if cart loaded successfully (has Lua code)
         if (_loadedCart && !_loadedCart->LuaString.empty()) {
+            Logger_Write("Before vm_run, _pauseMenu = %s\n", _pauseMenu ? "true" : "false");
             vm_run();
+            Logger_Write("After vm_run, _pauseMenu = %s\n", _pauseMenu ? "true" : "false");
         }
         else {
             Logger_Write("Cart load failed, not running vm_run()\n");
@@ -1182,8 +1185,12 @@ void Vm::vm_run() {
     //     loadCart(_loadedCart);
     // }
 
+    Logger_Write("vm_run: before Reset(), screenDataMemMapping = 0x%02x\n", _memory->hwState.screenDataMemMapping);
+
     //should combine this with other memory reset code
     _memory->Reset();
+
+    Logger_Write("vm_run: after Reset(), screenDataMemMapping = 0x%02x\n", _memory->hwState.screenDataMemMapping);
 
     //seed rng
     auto now = std::chrono::high_resolution_clock::now();
