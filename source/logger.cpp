@@ -57,8 +57,13 @@ void Logger_Write(const char * format, ...)
     fflush(m_file);
 
     #if PRINT_TO_CONSOLE
-	vfprintf(stdout, format, args);
+	va_list args2;
+	va_start(args2, format);
+	vfprintf(stdout, format, args2);
+	fflush(stdout);
+	va_end(args2);
 	#endif
+	va_end(args);
     #endif
 }
 
