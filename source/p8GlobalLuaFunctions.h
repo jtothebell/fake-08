@@ -425,7 +425,9 @@ local picofuncnames = {
     count = 1, add = 1, sub = 1, foreach = 1, all = 1, del = 1, deli = 1, t = 1, dget = 1,
     dset = 1, cartdata = 1, load = 1, save = 1, info = 1, abort = 1, folder = 1,
     resume = 1, reboot = 1, dir = 1, ls = 1, flip = 1, mapdraw = 1, menuitem = 1,
-    __ispaused = 1
+    
+    __ispaused = 1, __resetcart = 1, __loaddefaultcart = 1, __loadsettingscart = 1,
+    __listcarts = 1, __getbioserror = 1, __getsetting = 1, __setsetting = 1, __loadlabel = 1
  }
  return picofuncnames[funcname] == 1
 end

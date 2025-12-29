@@ -208,6 +208,8 @@ InputState_t Host::scanInput(){
 vector<string> Host::listcarts(){
     vector<string> carts;
 
+    Logger_Write("Host::listcarts scanning directory: %s\n", _cartDirectory.c_str());
+
     DIR *dir;
     struct dirent *ent;
     if ((dir = opendir (_cartDirectory.c_str())) != NULL) {
@@ -218,8 +220,10 @@ vector<string> Host::listcarts(){
             }
         }
         closedir (dir);
+        Logger_Write("Host::listcarts found %zu carts\n", carts.size());
     } else {
         /* could not open directory */
+        Logger_Write("Host::listcarts failed to open directory: %s\n", _cartDirectory.c_str());
         perror ("");
     }
     

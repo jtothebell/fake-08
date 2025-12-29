@@ -27,6 +27,17 @@ sizebtn = "select to cycle screen sizes"
 
 darkenpal = {0,0,1,1,5,5,13,5,5,13,13,13,1,13,13}
 darkenpal[0] = 0
+
+-- pico8-compatible helper to find last occurrence of a character
+function findlastchar(s, c)
+	local lastidx = nil
+	for i = 1, #s do
+		if sub(s, i, i) == c then
+			lastidx = i
+		end
+	end
+	return lastidx
+end
 -->8
 --classic
 
@@ -35,15 +46,12 @@ function classic_init()
 	carts={}
 	numcarts = 0
 	
-	usestring = true
-	
 	if __getsetting then
 			pal(1, __getsetting('p8_bgcolor'))
 			pal(7, __getsetting('p8_textcolor'))
 	else
 		carts = {'cart1.p8','cart2.p8.png','thirdcart.p8'}
 		numcarts = 3
-		usestring = false
 	end
 	
 	
@@ -91,10 +99,7 @@ function classic_update()
 	
 	if cidx > 0 and cidx <= numcarts then
 		carttoload = carts[cidx]
-		local lastslashidx = nil
-		if usestring then
-			lastslashidx = string.find(carttoload, "/[^/]*$")
-		end
+		local lastslashidx = findlastchar(carttoload, "/")
 		local dispstr = carttoload
 		if lastslashidx ~= nil and lastslashidx > 0 then
 			dispstr = sub(dispstr, lastslashidx + 1)
@@ -105,6 +110,7 @@ function classic_update()
 	end
 	
 	if runcmd then
+		runcmd = false
 		--make call to global
 		--load cart here
 		
@@ -157,8 +163,6 @@ function fancy_init()
 	carts={}
 	numcarts = 0
 	
-	usestring = true
-	
 	showerror = false
 	bioserror = ''
 	errortable = {'error! press ❎ to close.'}
@@ -206,7 +210,6 @@ function fancy_init()
 		--cartnames = {'cart1.p8','cart2.p8.png','thirdcart.p8','cart4.p8','5cart.p8','c6.p8','theseventhcart.p8.png'}
 		cartnames = {}
 		numcarts = #cartnames
-		usestring = false
 	end
 	
 	loading = true
@@ -425,8 +428,6 @@ function list_init()
 	carts={}
 	numcarts = 0
 	
-	usestring = true
-	
 	showerror = false
 	bioserror = ''
 	errortable = {'error! press ❎ to close.'}
@@ -478,7 +479,6 @@ function list_init()
 		--cartnames = {'cart1.p8','cart2.p8.png','thirdcart.p8','cart4.p8','5cart.p8','c6.p8','theseventhcart.p8.png'}
 		cartnames = {}
 		numcarts = #cartnames
-		usestring = false
 	end
 	
 	loading = true
