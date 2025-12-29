@@ -443,7 +443,6 @@ function create_sandbox()
 end
 
 __test_table = {test = 1}
-__cart_sandbox = create_sandbox()
 
 
 
@@ -503,15 +502,9 @@ function __z8_run_cart(cart_code)
         -- may be stored in local variables.
         --__z8_load_code points to lua's load function https://www.lua.org/manual/5.2/manual.html#pdf-load
 
-        
-        assert(type(__cart_sandbox) == "table", "__cart_sandbox is not a table (from lua)")
-        --printh("__cart_sandbox created from lua")
-        --printh("type of __cart_sandbox: " .. type(__cart_sandbox))
         local code, ex = __z8_load_code(cart_code..glue_code, nil, nil,
-                                        __cart_sandbox)
+                                        create_sandbox())
 
-        --printh("__cart_sandbox used to load code from lua")
-        --printh("type of __cart_sandbox: " .. type(__cart_sandbox))
         if not code then
             color(14) print('syntax error')
             color(6) print(ex)
