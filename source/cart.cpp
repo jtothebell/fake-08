@@ -443,7 +443,15 @@ Cart::Cart(std::string filename, std::string cartDirectory){
         filename = filename + ".p8";
     }
 
-    if (cartDirectory.length() > 0 && ! isAbsolutePath(filename)) {
+    // Check for built-in carts before prepending cart directory
+    bool isDefaultCart = (filename == "__FAKE08-DEFAULT.p8");
+    bool isSettingsCart = (filename == "__FAKE08-SETTINGS.p8");
+
+    if (isDefaultCart || isSettingsCart) {
+        // Built-in carts don't need a directory path
+        FullCartPath = filename;
+    }
+    else if (cartDirectory.length() > 0 && ! isAbsolutePath(filename)) {
         FullCartPath = cartDirectory + "/" + filename;
     }
     else {
@@ -452,17 +460,19 @@ Cart::Cart(std::string filename, std::string cartDirectory){
     //zero out cart rom so no garbage is left over
     initCartRom();
 
-    Logger_Write("getting file contents\n");
+    Logger_Write("getting file contents for %s\n", FullCartPath.c_str());
 
     std::string firstFourChars = get_first_four_chars(FullCartPath);
     
-    if (FullCartPath == "__FAKE08-DEFAULT.p8" || FullCartPath == "__FAKE08-SETTINGS.p8" || firstFourChars == "pico"){
+    if (isDefaultCart || isSettingsCart || firstFourChars == "pico"){
         std::string cartStr; 
 
-        if (FullCartPath == "__FAKE08-DEFAULT.p8") {
+        if (isDefaultCart) {
+            Logger_Write("Loading built-in default cart\n");
             cartStr = fake08DefaultCart;
         }
-		else if (FullCartPath == "__FAKE08-SETTINGS.p8") {
+        else if (isSettingsCart) {
+            Logger_Write("Loading built-in settings cart\n");
             cartStr = fake08SettingsP8;
         }
         else {

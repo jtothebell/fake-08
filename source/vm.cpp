@@ -597,7 +597,13 @@ bool Vm::Step(){
         else {
             LoadCart(_nextCartKey);
         }
-        vm_run();
+        // Only run if cart loaded successfully (has Lua code)
+        if (_loadedCart && !_loadedCart->LuaString.empty()) {
+            vm_run();
+        }
+        else {
+            Logger_Write("Cart load failed, not running vm_run()\n");
+        }
     }
 
     return ret;
