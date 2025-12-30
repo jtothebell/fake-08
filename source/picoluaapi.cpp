@@ -10,6 +10,7 @@ using namespace std;
 #include "vm.h"
 #include "logger.h"
 #include "printHelper.h"
+#include "emojiconversion.h"
 
 //extern "C" {
   #include <lua.h>
@@ -1249,7 +1250,8 @@ int printh(lua_State *L) {
     if (lua_isstring(L, 1)){
         const char * str = "";
         str = lua_tolstring(L, 1, nullptr);
-        printf("%s\n", str);
+        std::string utf8str = charset::pico8_to_utf8(str);
+        printf("%s\n", utf8str.c_str());
     }
     return 0;
 }
