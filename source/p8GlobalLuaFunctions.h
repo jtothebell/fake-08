@@ -415,7 +415,7 @@ local picofuncnames = {
     abs = 1, sgn = 1, band = 1, bor = 1, bxor = 1, bnot = 1, shl = 1, shr = 1, lshr = 1,
     rotl = 1, rotr = 1, tostr = 1, tonum = 1, srand = 1, rnd = 1, ord = 1, chr = 1,
     split = 1,
-    run = 1, reload = 1, dget = 1, dset = 1, peek = 1, peek2 = 1, peek4 = 1,
+    run = 1, reload = 1, reset = 1, dget = 1, dset = 1, peek = 1, peek2 = 1, peek4 = 1,
     poke = 1, poke2 = 1, poke4 = 1, memcpy = 1, memset = 1, stat = 1, printh = 1, extcmd = 1,
     _update_buttons = 1, btn = 1, btnp = 1, cursor = 1, camera = 1, circ = 1, circfill = 1,
     clip = 1, cls = 1, color = 1, fillp = 1, fget = 1, fset = 1, line = 1, map = 1, mget = 1,
@@ -425,6 +425,7 @@ local picofuncnames = {
     count = 1, add = 1, sub = 1, foreach = 1, all = 1, del = 1, deli = 1, t = 1, dget = 1,
     dset = 1, cartdata = 1, load = 1, save = 1, info = 1, abort = 1, folder = 1,
     resume = 1, reboot = 1, dir = 1, ls = 1, flip = 1, mapdraw = 1, menuitem = 1,
+    cstore = 1, _set_fps = 1,
     
     __ispaused = 1, __resetcart = 1, __loaddefaultcart = 1, __loadsettingscart = 1,
     __listcarts = 1, __getbioserror = 1, __getsetting = 1, __setsetting = 1, __loadlabel = 1
@@ -442,8 +443,7 @@ function create_sandbox()
     return t;
 end
 
-__test_table = {test = 1}
-
+__cart_sandbox = nil
 
 
 
@@ -502,8 +502,13 @@ function __z8_run_cart(cart_code)
         -- may be stored in local variables.
         --__z8_load_code points to lua's load function https://www.lua.org/manual/5.2/manual.html#pdf-load
 
+        if __cart_sandbox ~= nil then
+            __cart_sandbox = nil
+        end
+
+        __cart_sandbox = create_sandbox()
         local code, ex = __z8_load_code(cart_code..glue_code, nil, nil,
-                                        create_sandbox())
+                                        __cart_sandbox)
 
         if not code then
             color(14) print('syntax error')
