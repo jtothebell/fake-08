@@ -495,6 +495,115 @@ TEST_CASE("Vm memory functions") {
         vm->CloseCart();
     }
 
+    SUBCASE("emoji button variables are available in sandbox"){
+        vm->LoadCart("emojibuttons.p8");
+        vm->vm_run();
+        vm->Step();
+
+        SUBCASE("emoji button variables resolve to correct numeric values"){
+            // Test that ⬅️ = 0, ➡️ = 1, ⬆️ = 2, ⬇️ = 3, 🅾️ = 4, ❎ = 5
+            bool left_correct = vm->ExecuteLua(
+                "function test_left_val()\n"
+                " return left_val == 0\n"
+                "end\n",
+                "test_left_val");
+            CHECK(left_correct);
+
+            bool right_correct = vm->ExecuteLua(
+                "function test_right_val()\n"
+                " return right_val == 1\n"
+                "end\n",
+                "test_right_val");
+            CHECK(right_correct);
+
+            bool up_correct = vm->ExecuteLua(
+                "function test_up_val()\n"
+                " return up_val == 2\n"
+                "end\n",
+                "test_up_val");
+            CHECK(up_correct);
+
+            bool down_correct = vm->ExecuteLua(
+                "function test_down_val()\n"
+                " return down_val == 3\n"
+                "end\n",
+                "test_down_val");
+            CHECK(down_correct);
+
+            bool o_correct = vm->ExecuteLua(
+                "function test_o_val()\n"
+                " return o_val == 4\n"
+                "end\n",
+                "test_o_val");
+            CHECK(o_correct);
+
+            bool x_correct = vm->ExecuteLua(
+                "function test_x_val()\n"
+                " return x_val == 5\n"
+                "end\n",
+                "test_x_val");
+            CHECK(x_correct);
+        }
+
+        SUBCASE("btn with emoji argument checks correct button"){
+            // Press O button (bit 4 = 16) and verify btn(🅾️) returns true but btn(❎) returns false
+            stubHost->stubInput(16, 16); // O button pressed
+            vm->Step();
+            vm->Step();
+
+            bool o_pressed = vm->ExecuteLua(
+                "function test_btn_o()\n"
+                " return btn_o == true\n"
+                "end\n",
+                "test_btn_o");
+            CHECK(o_pressed);
+
+            bool x_not_pressed = vm->ExecuteLua(
+                "function test_btn_x_not()\n"
+                " return btn_x == false\n"
+                "end\n",
+                "test_btn_x_not");
+            CHECK(x_not_pressed);
+
+            bool left_not_pressed = vm->ExecuteLua(
+                "function test_btn_left_not()\n"
+                " return btn_left == false\n"
+                "end\n",
+                "test_btn_left_not");
+            CHECK(left_not_pressed);
+        }
+
+        SUBCASE("left button does not trigger O or X button checks"){
+            // Press left button (bit 0 = 1) and verify btn(🅾️) and btn(❎) return false
+            stubHost->stubInput(1, 1); // Left button pressed
+            vm->Step();
+            vm->Step();
+
+            bool left_pressed = vm->ExecuteLua(
+                "function test_left_pressed()\n"
+                " return btn_left == true\n"
+                "end\n",
+                "test_left_pressed");
+            CHECK(left_pressed);
+
+            bool o_not_pressed = vm->ExecuteLua(
+                "function test_o_not_pressed()\n"
+                " return btn_o == false\n"
+                "end\n",
+                "test_o_not_pressed");
+            CHECK(o_not_pressed);
+
+            bool x_not_pressed = vm->ExecuteLua(
+                "function test_x_not_pressed()\n"
+                " return btn_x == false\n"
+                "end\n",
+                "test_x_not_pressed");
+            CHECK(x_not_pressed);
+        }
+
+        vm->CloseCart();
+    }
+
     SUBCASE("togglepausemenu resets and restores draw state") {
         graphics->pal(10, 12, 0);
         graphics->fillp(25);
