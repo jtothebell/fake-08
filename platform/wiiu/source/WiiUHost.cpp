@@ -113,7 +113,7 @@ void audioSetup(){
     want.freq = SAMPLERATE;
     want.format = AUDIO_S16SYS;
     want.channels = 2;
-    want.samples = 4096;
+    want.samples = 512;
     want.callback = FillAudioDeviceBuffer;
     
 

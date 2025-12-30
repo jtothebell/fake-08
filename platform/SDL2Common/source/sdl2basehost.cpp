@@ -95,7 +95,7 @@ void audioSetup(){
     want.freq = SAMPLERATE;
     want.format = AUDIO_S16;
     want.channels = 2;
-    want.samples = 4096;
+    want.samples = 512;  // Lower buffer size for reduced audio latency (~23ms vs ~186ms)
     want.callback = FillAudioDeviceBuffer;
     
 
