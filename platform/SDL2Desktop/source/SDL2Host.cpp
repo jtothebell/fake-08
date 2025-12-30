@@ -140,9 +140,9 @@ InputState_t Host::scanInput(){
                     case SDLK_RIGHT: currKDown |= P8_KEY_RIGHT; break;
                     case SDLK_UP:    currKDown |= P8_KEY_UP; break;
                     case SDLK_DOWN:  currKDown |= P8_KEY_DOWN; break;
-                    case SDLK_z:     currKDown |= P8_KEY_X; break;
-                    case SDLK_x:     currKDown |= P8_KEY_O; break;
-                    case SDLK_c:     currKDown |= P8_KEY_X; break;
+                    case SDLK_z:     currKDown |= P8_KEY_O; break;
+                    case SDLK_x:     currKDown |= P8_KEY_X; break;
+                    case SDLK_c:     currKDown |= P8_KEY_O; break;
                     case SDLK_r:     stretchKeyPressed = true; break;
                     case SDLK_F2:    currKDown |= P8_KEY_7; break;
 
@@ -160,9 +160,9 @@ InputState_t Host::scanInput(){
                     case SDLK_RIGHT: kUp |= P8_KEY_RIGHT; break;
                     case SDLK_UP:    kUp |= P8_KEY_UP; break;
                     case SDLK_DOWN:  kUp |= P8_KEY_DOWN; break;
-                    case SDLK_z:     kUp |= P8_KEY_X; break;
-                    case SDLK_x:     kUp |= P8_KEY_O; break;
-                    case SDLK_c:     kUp |= P8_KEY_X; break;
+                    case SDLK_z:     kUp |= P8_KEY_O; break;
+                    case SDLK_x:     kUp |= P8_KEY_X; break;
+                    case SDLK_c:     kUp |= P8_KEY_O; break;
                 }
                 break;
 

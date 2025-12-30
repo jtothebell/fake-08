@@ -33,6 +33,7 @@ platform/SDL2Desktop/obj/*.o
 platform/SDL2Desktop/*.d
 platform/SDL2Desktop/fake08
 platform/SDL2Desktop/FAKE08
+platform/SDL2Desktop/FAKE08-master
 pico.log
 platform/vita/eboot.bin
 platform/vita/*.velf
@@ -49,3 +50,4 @@ platform/libretro/fake08_libretro.dylib
 platform/libretro/libs/
 platform/libretro/obj/
 .DS_Store
+
