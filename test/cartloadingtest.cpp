@@ -586,7 +586,7 @@ TEST_CASE("Loading and running carts") {
 
     DIR *dir;
     struct dirent *ent;
-    if ((dir = opendir (_cartDirectory.c_str())) != NULL) {
+    if (!_cartDirectory.empty() && (dir = opendir (_cartDirectory.c_str())) != NULL) {
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
             if (isCartFile(ent->d_name) 
@@ -596,9 +596,9 @@ TEST_CASE("Loading and running carts") {
             }
         }
         closedir (dir);
-    } else {
+    } else if (!_cartDirectory.empty()) {
         /* could not open directory */
-        perror ("");
+        perror ("Cart directory");
     }
     sort(carts.begin(), carts.end());
 
