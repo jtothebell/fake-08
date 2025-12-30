@@ -592,7 +592,7 @@ void Cart::setSfx(std::string sfxString) {
     while (std::getline(s, line)) {
         buf[0] = line[0];
         buf[1] = line[1];
-        uint8_t editorMode = (uint8_t)strtol(buf, NULL, 16);
+        uint8_t filters = (uint8_t)strtol(buf, NULL, 16);
 
         buf[0] = line[2];
         buf[1] = line[3];
@@ -606,7 +606,7 @@ void Cart::setSfx(std::string sfxString) {
         buf[1] = line[7];
         uint8_t loopRangeEnd = (uint8_t)strtol(buf, NULL, 16);
 
-        CartRom.SfxData[sfxIdx].editorMode = editorMode;
+        CartRom.SfxData[sfxIdx].filters = filters;
         CartRom.SfxData[sfxIdx].speed = noteDuration;
         CartRom.SfxData[sfxIdx].loopRangeStart = loopRangeStart;
         CartRom.SfxData[sfxIdx].loopRangeEnd = loopRangeEnd;

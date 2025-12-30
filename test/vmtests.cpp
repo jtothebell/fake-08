@@ -366,7 +366,7 @@ TEST_CASE("Vm memory functions") {
         }
         SUBCASE("Sfx data is populated") {
             CHECK(memory->sfx[0].data[0] == 13);
-            CHECK(memory->sfx[0].editorMode == 0);
+            CHECK(memory->sfx[0].filters == 0);
             CHECK(memory->sfx[0].loopRangeEnd == 0);
             CHECK(memory->sfx[0].loopRangeEnd == 0);
             CHECK(memory->sfx[0].speed == 29);

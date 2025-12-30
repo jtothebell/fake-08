@@ -12,112 +12,105 @@
 
 #include "synth.h"
 
-//#include <lol/noise> // lol::perlin_noise
 #include <cmath>     // std::fabs, std::fmod
-#include <algorithm> //std::min, std::max
-
-//temp for printf debugging
-//#include <stdio.h>
+#include <cstdlib>   // rand
 
 namespace z8
 {
 
-float synth::waveform(int instrument, float advance)
+// Simple random function returning float in range [-1, 1]
+static float rand_float()
 {
-    using std::fabs;
-    using std::fmod;
+    return ((float)rand() / (float)RAND_MAX) * 2.0f - 1.0f;
+}
 
-    //const from picolove:
-    //local function note_to_hz(note)
-	//  return 440 * 2 ^ ((note - 33) / 12)
-    //end
-    //local tscale = note_to_hz(63) / __sample_rate
-    const float tscale = 0.11288053831187f;
+float synth::waveform(synth_param &params)
+{
+    using std::fabs, std::fmod;
 
+    float advance = params.phi;
     float t = fmod(advance, 1.f);
     float ret = 0.f;
+
+    bool noiz = params.filters & 0x2;
+    bool buzz = params.filters & 0x4;
 
     // Multipliers were measured from PICO-8 WAV exports. Waveforms are
     // inferred from those exports by guessing what the original formulas
     // could be.
-    switch (instrument)
+    switch (params.instrument)
     {
         case INST_TRIANGLE:
-            return 0.5f * (fabs(4.f * t - 2.0f) - 1.0f);
+            ret = 1.0f - fabs(4.f * t - 2.0f);
+            if (buzz) {
+                // seems to be averaged with a tilted saw
+                static float const a = 0.875f;
+                float bret = t < a ? 2.f * t / a - 1.f
+                            : 2.f * (1.f - t) / (1.f - a) - 1.f;
+                ret = ret * 0.75f + bret * 0.25f;
+            }
+            return ret * 0.5f;
         case INST_TILTED_SAW:
         {
-            static float const a = 0.9f;
+            float a = buzz ? 0.975f : 0.875f;
             ret = t < a ? 2.f * t / a - 1.f
                         : 2.f * (1.f - t) / (1.f - a) - 1.f;
             return ret * 0.5f;
         }
         case INST_SAW:
-            return 0.653f * (t < 0.5f ? t : t - 1.f);
+            ret = (t < 0.5f ? t : t - 1.f);
+            // slight offset looping on 2x period
+            if (buzz) ret = ret * 0.83f - (fabs(fmod(advance, 2.f) - 1.0f) < 0.5 ? 0.085f : 0.0f);
+            return 0.653f * ret;
         case INST_SQUARE:
-            return t < 0.5f ? 0.25f : -0.25f;
+            return t < (buzz ? 0.4f : 0.5f) ? 0.25f : -0.25f;
         case INST_PULSE:
-            return t < 1.f / 3 ? 0.25f : -0.25f;
+            return t < (buzz ? 0.255f : 0.316f) ? 0.25f : -0.25f;
         case INST_ORGAN:
             ret = t < 0.5f ? 3.f - fabs(24.f * t - 6.f)
                            : 1.f - fabs(16.f * t - 12.f);
+            if (buzz)
+            {
+                // add a cut on the first of the two triangles
+                ret = t < 0.5f ? ret * 2.0f + 3.0f : ret;
+                ret = (t < 0.5f && ret>-1.875f) ? ret * 0.2f - 1.0f : ret + 0.5f;
+            }
             return ret / 9.f;
         case INST_NOISE:
         {
-            // Spectral analysis indicates this is some kind of brown noise,
-            // but losing almost 10dB per octave. I thought using Perlin noise
-            // would be fun, but it’s definitely not accurate.
-            //
-            // This may help us create a correct filter:
-            // http://www.firstpr.com.au/dsp/pink-noise/
+            //const float tscale = 22050 / key_to_freq(63);
+            const float tscale = 8.858923f;
+            float scale = (advance - params.last_advance) * tscale;
+            float new_sample = (params.last_sample + scale * rand_float()) / (1.0f + scale);
+            
+            float factor = 1.0f - params.key / 63.0f;
+            ret = new_sample * 1.5f * (1.0f + factor * factor);
+                        
+            if (noiz)
+            {
+                // sound a bit like a saw tooth but not quite
+                ret *= 2.0f*(t < 0.5f ? t : t - 1.f);
+            }
 
-            //TODO: not even doing zepto 8 noise here
+            params.last_advance = advance;
+            params.last_sample = new_sample;
 
-            //static lol::perlin_noise<1> noise;
-            //for (float m = 1.75f, d = 1.f; m <= 128; m *= 2.25f, d *= 0.75f)
-            //    ret += d * noise.eval(lol::vec_t<float, 1>(m * advance));
-
-            //ret = ((float)rand() / (float)RAND_MAX);
-
-            //return ret * 0.4f;
-
-            //picolove noise function in lua
-            //zepto8 phi == picolove oscpos (x parameter in picolove generator func, advance in synth.cpp waveform function)
-            //-- noise
-            //osc[6] = function()
-            //    local lastx = 0
-            //    local sample = 0
-            //    local lsample = 0
-            //    local tscale = note_to_hz(63) / __sample_rate
-            //1,041.8329
-            //    return function(x)
-            //        local scale = (x - lastx) / tscale
-            //        lsample = sample
-            //        sample = (lsample + scale * (math.random() * 2 - 1)) / (1 + scale)
-            //        lastx = x
-            //        return math.min(math.max((lsample + sample) * 4 / 3 * (1.75 - scale), -1), 1) *
-            //            0.7
-            //    end
-            //end
-            //printf("tscale: %f\n", tscale);
-            //printf("advance: %f\n", advance);
-
-            float scale = (advance - lastadvance) / tscale;
-            //printf("scale: %f\n", scale);
-            lsample = sample;
-            sample = (lsample + scale * (((float)rand() / (float)RAND_MAX) * 2.0f - 1.0f)) / (1.0f + scale);
-            //printf("sample: %f\n", sample);
-            lastadvance = advance;
-            float endval = std::min(std::max((lsample + sample) * 4.0f / 3.0f * (1.75f - scale), -1.0f), 1.0f) * 0.2f;
-            //printf("endval: %f\n", endval);
-            return endval;
+            return ret;
         }
         case INST_PHASER:
-        {   // This one has a subfrequency of freq/128 that appears
-            // to modulate two signals using a triangle wave
-            // FIXME: amplitude seems to be affected, too
-            float k = fabs(2.f * fmod(advance / 128.f, 1.f) - 1.f);
-            float u = fmod(t + 0.5f * k, 1.0f);
-            ret = fabs(4.f * u - 2.f) - fabs(8.f * t - 4.f);
+        {   // sum of two triangle waves with a slightly different frequency
+            // the ratio between the frequency seems to be around 110 for c2
+            // but it is 97 for c0 and 127 for c5, not sure how to adjust that
+            ret = 2.f - fabs(8.f * t - 4.f);
+            ret += 1.f - fabs(4.f * fmod(advance * 109.f/110.f, 1.f) - 2.f);
+            if (buzz)
+            {
+                // original triangle has freq 1, 3, 5, 7, 9 ...
+                // add waves at 2, 6, 10, 14
+                ret += 0.25f - fabs(1.f * fmod(advance * 2.0f + 0.5f, 1.f) - 0.5f);
+                // add waves at 4, 12, 20, 28
+                ret += 0.125f - fabs(0.5f * fmod(advance * 4.0f, 1.f) - 0.25f);
+            }
             return ret / 6.f;
         }
     }
@@ -126,4 +119,3 @@ float synth::waveform(int instrument, float advance)
 }
 
 } // namespace z8
-
