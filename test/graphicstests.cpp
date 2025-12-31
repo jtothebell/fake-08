@@ -1629,6 +1629,40 @@ TEST_CASE("graphics class behaves as expected") {
 
         CHECK_EQ(251, result);
     }
+    SUBCASE("mset out of bounds does nothing"){
+        graphics->mset(-1, 16, 1);
+        graphics->mset(128, 16, 1);
+        graphics->mset(10, -1, 1);
+        graphics->mset(10, 64, 1);
+        graphics->mset(128, 64, 1);
+
+        auto result1 = graphics->mget(-1, 16);
+        auto result2 = graphics->mget(128, 16);
+        auto result3 = graphics->mget(10, -1);
+        auto result4 = graphics->mget(10, 64);
+        auto result5 = graphics->mget(128, 64);
+
+        CHECK_EQ(0, result1);
+        CHECK_EQ(0, result2);
+        CHECK_EQ(0, result3);
+        CHECK_EQ(0, result4);
+        CHECK_EQ(0, result5);
+    }
+    SUBCASE("mset out of bounds of big map doesn't crash"){
+        picoRam.data[0x5f56] = 0x80;
+        const int cely = 128;
+        const int celx = 128; //128 is out of bounds, but the index is inbounds
+        const int mapW = 128;
+        const int idx = cely * mapW + celx;
+
+        auto resultBefore = picoRam.userData[idx];
+
+        graphics->mset(celx, cely, resultBefore + 1);
+
+        auto resultAfter = picoRam.userData[idx];
+
+        CHECK_EQ(resultBefore, resultAfter);
+    }
     SUBCASE("map with no layer argument draws map cell sprite"){
         for(int i = 0; i < 128; i++) {
             for (int j = 0; j < 32; j++)

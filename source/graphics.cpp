@@ -1756,11 +1756,14 @@ void Graphics::mset(int celx, int cely, uint8_t snum){
 	const int mapW = _memory->hwState.widthOfTheMap == 0 ? 256 : _memory->hwState.widthOfTheMap;
 	const int mapH = mapSize / mapW;
 
-	const int idx = cely * mapW + celx;
+	const int maxXIdx = mapW - 1;
+	const int maxYIdx = mapH - 1;
 
-	if (celx < 0 || celx > mapW || cely < 0 || cely > mapH) {
+	if (celx < 0 || celx > maxXIdx || cely < 0 || cely > maxYIdx) {
         return;
 	}
+
+	const int idx = cely * mapW + celx;
 
 	if (bigMap){
 		const int offset = 0x8000 - mapSize;
