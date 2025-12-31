@@ -767,7 +767,7 @@ string Vm::GetBiosError() {
 }
 
 void Vm::GameLoop() {
-    Logger_Write("Start of GameLoop()");
+    Logger_Write("Start of GameLoop()\n");
     while (_host->shouldRunMainLoop())
     {
         //shouldn't need to set this every frame
