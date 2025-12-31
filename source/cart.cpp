@@ -158,6 +158,9 @@ bool Cart::loadCartFromPng(std::vector<unsigned char> image) {
     uint8_t version = 0;
 
     for(size_t i = 0; i < imageBytes; i += 4) {
+        if (i + 3 >= imageBytes) {
+            break;
+        }
         //get argb values
         uint8_t r = image[i];
         uint8_t g = image[i + 1];
