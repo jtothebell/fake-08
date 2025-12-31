@@ -601,10 +601,20 @@ bool Vm::Step(){
         char const *message = lua_tostring(_luaState, -1);
         Logger_Write("error calling tick function: %s\n", message);
         _cartLoadError = "Error in main loop: " + std::string(message);
+        lua_pop(_luaState, 1);
+        // Return to menu on error
+        QueueCartChange(DefaultCartName);
+        return false;
     }
     else
     {
-        ret = (int)lua_tonumber(_luaState, -1) >= 0;
+        int tickResult = (int)lua_tonumber(_luaState, -1);
+        ret = tickResult >= 0;
+        // If __z8_tick returned -1, it means there was an error (already handled in Lua)
+        // but we should ensure error message is set if it's not already
+        if (tickResult == -1 && _cartLoadError.empty()) {
+            _cartLoadError = "Error in cart execution";
+        }
     }
     lua_pop(_luaState, 1);
 
@@ -1234,7 +1244,16 @@ void Vm::vm_run() {
 
     lua_getglobal(_luaState, "__z8_run_cart");
     lua_pushstring(_luaState, _loadedCart->LuaString.c_str());
-    lua_pcall(_luaState, 1, 0, 0);
+    int status = lua_pcall(_luaState, 1, 0, 0);
+    if (status != LUA_OK)
+    {
+        char const *message = lua_tostring(_luaState, -1);
+        Logger_Write("error in vm_run: %s\n", message);
+        _cartLoadError = "Error loading cart: " + std::string(message);
+        lua_pop(_luaState, 1);
+        // Return to menu on error
+        QueueCartChange(DefaultCartName);
+    }
 
 }
 

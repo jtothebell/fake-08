@@ -581,6 +581,9 @@ function __z8_tick()
         __z8_stopped = false -- FIXME: what now?
     elseif not ret then
         printh(tostr(err))
+        -- Return to menu on error
+        __loaddefaultcart()
+        return -1
     end
     return 0
 end
