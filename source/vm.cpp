@@ -362,6 +362,9 @@ bool Vm::loadCart(Cart* cart) {
             _cartLoadError = "No Lua to load. Aborting cart load";
         }
         Logger_Write("%s\n", _cartLoadError.c_str());
+        
+        // Clear cart change queue to prevent infinite loop
+        _cartChangeQueued = false;
 
         return false;
     }
@@ -397,7 +400,11 @@ bool Vm::loadCart(Cart* cart) {
         ExecuteLua("__addbreadcrumb(\"" + _cartBreadcrumb +"\", \"" + _prevCartKey +"\")", "");
     }
 
-    _cartLoadError = "";
+    // Only clear error if we successfully loaded a non-default cart
+    // (preserve error when loading default cart to display it)
+    if (cart->FullCartPath != DefaultCartName) {
+        _cartLoadError = "";
+    }
 
     return true;
 }
@@ -444,13 +451,26 @@ void Vm::LoadCart(std::string filename, bool loadBiosOnFail){
 
     _cartLoadError = cart->LoadError;
 
+    // If cart has a load error (file not found, etc.), load default cart with error
+    if (cart->LoadError.length() > 0) {
+        Logger_Write("Cart load error: %s\n", cart->LoadError.c_str());
+        // Save the error message so default cart can display it
+        _cartLoadError = cart->LoadError;
+        delete cart;
+        // Load default cart to display error
+        LoadBiosCart();
+        return;
+    }
+
     bool success = loadCart(cart);
     Logger_Write("Loaded cart into vm\n");
 
-    if (loadBiosOnFail && !success) {
-        CloseCart();
-        //todo: show an error message on the bios?
-        //LoadBiosCart();
+    if (!success) {
+        delete cart;
+        if (_cartLoadError.length() == 0) {
+            _cartLoadError = "Cart file has no Lua code";
+        }
+        LoadBiosCart();
     }
 }
 
@@ -606,6 +626,8 @@ bool Vm::Step(){
         }
         else {
             Logger_Write("Cart load failed, not running vm_run()\n");
+            // Clear cart change queue to prevent infinite retry loop
+            _cartChangeQueued = false;
         }
     }
 

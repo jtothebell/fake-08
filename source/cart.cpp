@@ -463,6 +463,15 @@ Cart::Cart(std::string filename, std::string cartDirectory){
     Logger_Write("getting file contents for %s\n", FullCartPath.c_str());
 
     std::string firstFourChars = get_first_four_chars(FullCartPath);
+
+    // For non-built-in carts, check if file exists first
+    if (!isDefaultCart && !isSettingsCart) {
+        if (firstFourChars.length() == 0) {
+            LoadError = "cart file not found: " + FullCartPath;
+            Logger_Write("%s\n", LoadError.c_str());
+            return;
+        }
+    }
     
     if (isDefaultCart || isSettingsCart || firstFourChars == "pico"){
         std::string cartStr; 
@@ -477,6 +486,12 @@ Cart::Cart(std::string filename, std::string cartDirectory){
         }
         else {
             cartStr = get_file_contents(FullCartPath.c_str());
+            // File existence already checked above, but double-check just in case
+            if (cartStr.length() == 0) {
+                LoadError = "cart file not found: " + FullCartPath;
+                Logger_Write("%s\n", LoadError.c_str());
+                return;
+            }
         }
         Logger_Write("Got file contents... parsing cart\n");
 
@@ -497,6 +512,9 @@ Cart::Cart(std::string filename, std::string cartDirectory){
         Logger_Write("got valid png cart\n");
     }
     else {
+        // File exists but format is unknown
+        LoadError = "unknown cart file format: " + FullCartPath;
+        Logger_Write("%s\n", LoadError.c_str());
         return;
     }
 }
