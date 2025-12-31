@@ -114,6 +114,10 @@ bool Input::getKeyDown() {
 }
 
 const char* Input::getKey() {
+    // Found this bug in Terra
+    // PICO-8 behavior: stat(31) appears to consume the key from the buffer
+    // After reading, stat(30) should return false until next key press
+    _kbDown = false;
     return _kbKey.c_str();
 }
 
