@@ -503,7 +503,10 @@ function __z8_run_cart(cart_code)
                     _update_buttons()
                     _update60()
                 elseif _update then
-                    if (do_frame) _update_buttons() _update()
+                    if (do_frame) then 
+                        _update_buttons() 
+                        _update()
+                    end
                     do_frame = not do_frame
                 else
                     _update_buttons()
