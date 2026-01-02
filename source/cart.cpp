@@ -442,7 +442,9 @@ Cart::Cart(std::string filename, std::string cartDirectory){
         filename = filename.substr(1);
     }
 
-    if (getFileExtension(filename) == "") {
+    std::string fileExtension = getFileExtension(filename);
+
+    if (fileExtension == "") {
         filename = filename + ".p8";
     }
 
@@ -466,6 +468,18 @@ Cart::Cart(std::string filename, std::string cartDirectory){
     Logger_Write("getting file contents for %s\n", FullCartPath.c_str());
 
     std::string firstFourChars = get_first_four_chars(FullCartPath);
+
+    if (fileExtension == "" && firstFourChars.length() == 0) {
+        //fallback for cart loading by key - support .p8 and .p8.png
+        filename = filename + ".png";
+        // Rebuild full path with cart directory (same logic as initial path build)
+        if (cartDirectory.length() > 0 && !isAbsolutePath(filename)) {
+            FullCartPath = cartDirectory + "/" + filename;
+        } else {
+            FullCartPath = filename;
+        }
+        firstFourChars = get_first_four_chars(FullCartPath);
+    }
 
     // For non-built-in carts, check if file exists first
     if (!isDefaultCart && !isSettingsCart) {

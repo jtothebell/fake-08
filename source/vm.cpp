@@ -1333,7 +1333,6 @@ void Vm::vm_load(std::string filename, std::string breadcrumb, std::string param
     QueueCartChange(filename);
     LoadCart(_nextCartKey);
 
-
     //todo: don't call this here?  probably need to change load to not clear out some memory?
     vm_run();
 }
