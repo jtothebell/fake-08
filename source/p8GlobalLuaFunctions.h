@@ -124,6 +124,19 @@ sub = string.sub
 pack = table.pack
 unpack = table.unpack
 
+function stop()
+    __z8_stopped = true
+    --error()
+end
+
+function assert(cond, msg)
+    if not cond then
+        color(14) print("assertion failed:")
+        color(6) print(msg or "assert()")
+        stop()
+    end
+end
+
 function cartdata(s)
     if __cartdata() then
         print('cartdata() can only be called once')
