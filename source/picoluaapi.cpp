@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 #include <tuple>
+#include <cstdio>
+#include <chrono>
 using namespace std;
 
 #include "picoluaapi.h"
@@ -1090,8 +1092,15 @@ int peek(lua_State *L) {
     uint16_t addr = (uint16_t)lua_tointeger(L,1);
 
     if (numArgs > 1) {
-        numToReturn = lua_tonumber(L,2);
+        int tmpNumToReturn = lua_tonumber(L,2);
+        //pico 8 docs say up to 8192
+        if (tmpNumToReturn > 0 && tmpNumToReturn <= 8192) {
+            numToReturn = tmpNumToReturn;
+        }
     }
+
+    // Ensure Lua stack has enough space for the values we're about to push
+    lua_checkstack(L, numToReturn);
 
     for(int i = 0; i < numToReturn; i++) {
         uint8_t val = _vmForLuaApi->vm_peek(addr + i);
@@ -1114,7 +1123,12 @@ int poke(lua_State *L) {
     _vmForLuaApi->vm_poke(dest, val);
 
     if (numArgs > 2) {
-        for(int i = 1; i <= (numArgs - 2); i++) {
+        //pico 8 docs say up to 8192
+        int effectiveNumArgs = numArgs - 2;
+        if (effectiveNumArgs > 8192) {
+            effectiveNumArgs = 8192;
+        }
+        for(int i = 1; i <= effectiveNumArgs; i++) {
             val = lua_tonumber(L, 2 + i);
             _vmForLuaApi->vm_poke(dest + i, val);
         }
