@@ -410,7 +410,7 @@ function __is_api(funcname)
 local picofuncnames = {
     assert = 1, getmetatable = 1, inext = 1, next = 1, ipairs = 1, pairs = 1, rawequal = 1,
     rawlen = 1, rawget = 1, rawset = 1, setmetatable = 1, type = 1, pack = 1, unpack = 1,
-    load = 1, print = 1,
+    load = 1, print = 1, select = 1,
     max = 1, min = 1, mid = 1, ceil = 1, flr = 1, cos = 1, sin = 1, atan2 = 1, sqrt = 1,
     abs = 1, sgn = 1, band = 1, bor = 1, bxor = 1, bnot = 1, shl = 1, shr = 1, lshr = 1,
     rotl = 1, rotr = 1, tostr = 1, tonum = 1, srand = 1, rnd = 1, ord = 1, chr = 1,
