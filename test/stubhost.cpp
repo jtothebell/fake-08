@@ -135,6 +135,15 @@ std::string Host::getCartDirectory() {
     return "carts";
 }
 
+void Host::setCartDirectory(std::string cartDirectory) {
+    _cartDirectory = cartDirectory;
+}
+
+std::vector<std::string> Host::listdirs() {
+    std::vector<std::string> dirs;
+    return dirs;
+}
+
 
 void Host::setUpPaletteColors(){
     _paletteColors[0] = COLOR_00;

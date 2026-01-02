@@ -1362,6 +1362,42 @@ int listcarts(lua_State *L) {
     return 1;
 }
 
+int listdirs(lua_State *L) {
+    vector<string> dirs = _vmForLuaApi->GetDirList();
+
+    lua_createtable(L, dirs.size(), 0);
+    int newTable = lua_gettop(L);
+    int index = 1;
+
+    for(size_t i = 0; i < dirs.size(); i++){
+        lua_pushstring(L, dirs[i].c_str());
+        lua_rawseti(L, newTable, index);
+        
+        ++index;
+    }
+
+    return 1;
+}
+
+int cd(lua_State *L) {
+    const char* dir = "";
+    if (lua_gettop(L) > 0 && lua_isstring(L, 1)){
+        dir = lua_tolstring(L, 1, nullptr);
+    }
+
+    bool result = _vmForLuaApi->ChangeDirectory(dir);
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int pwd(lua_State *L) {
+    string dir = _vmForLuaApi->GetCurrentDirectory();
+    lua_pushstring(L, dir.c_str());
+
+    return 1;
+}
+
 
 
 int getbioserror(lua_State *L) {

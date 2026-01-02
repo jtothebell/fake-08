@@ -22,6 +22,7 @@
 #include "p8GlobalLuaFunctions.h"
 #include "hostVmShared.h"
 #include "emojiconversion.h"
+#include "filehelpers.h"
 
 #include "NoLabel.h"
 
@@ -47,6 +48,9 @@ bool _initializeLuaState(lua_State* luaState) {
     //system
     //must be registered before loading globals for pause menu to work
     lua_register(luaState, "__listcarts", listcarts);
+    lua_register(luaState, "__listdirs", listdirs);
+    lua_register(luaState, "__cd", cd);
+    lua_register(luaState, "__pwd", pwd);
     lua_register(luaState, "__getbioserror", getbioserror);
     lua_register(luaState, "__loaddefaultcart", loaddefaultcart);
     lua_register(luaState, "__loadsettingscart", loadsettingscart);
@@ -444,6 +448,17 @@ void Vm::LoadCart(std::string filename, bool loadBiosOnFail){
     Logger_Write("Loading cart %s\n", filename.c_str());
     CloseCart();
 
+    // If the filename is an absolute path, update the cart directory
+    if (isAbsolutePath(filename)) {
+        std::string dir = getDirectory(filename);
+        if (dir.length() > 0) {
+            Logger_Write("Setting cart directory to %s\n", dir.c_str());
+            _host->setCartDirectory(dir);
+            // Also update the cart list for the default cart
+            SetCartList(_host->listcarts());
+        }
+    }
+
     Logger_Write("Calling Cart Constructor\n");
     auto cartDir = _host->getCartDirectory();
     Cart *cart = new Cart(filename, cartDir);
@@ -792,6 +807,45 @@ void Vm::SetCartList(vector<string> cartList){
 
 vector<string> Vm::GetCartList(){
     return _cartList;
+}
+
+vector<string> Vm::GetDirList(){
+    return _host->listdirs();
+}
+
+bool Vm::ChangeDirectory(string dir){
+    std::string currentDir = _host->getCartDirectory();
+    std::string newDir;
+    
+    if (dir == "..") {
+        // Go up one directory
+        size_t lastSlash = currentDir.find_last_of("/\\");
+        if (lastSlash != std::string::npos && lastSlash > 0) {
+            newDir = currentDir.substr(0, lastSlash);
+        } else {
+            return false; // Already at root
+        }
+    } else if (dir.length() > 0 && (dir[0] == '/' || dir.find(':') != std::string::npos)) {
+        // Absolute path
+        newDir = dir;
+    } else {
+        // Relative path
+        newDir = currentDir + "/" + dir;
+    }
+    
+    // Verify the directory exists by trying to list its contents
+    _host->setCartDirectory(newDir);
+    vector<string> testList = _host->listcarts();
+    
+    // Update cart list even if empty (the directory might only contain subdirs)
+    SetCartList(testList);
+    
+    Logger_Write("Changed directory to: %s\n", newDir.c_str());
+    return true;
+}
+
+string Vm::GetCurrentDirectory(){
+    return _host->getCartDirectory();
 }
 
 string Vm::GetBiosError() {

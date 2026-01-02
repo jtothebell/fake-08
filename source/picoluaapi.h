@@ -95,6 +95,9 @@ int printh(lua_State *L);
 
 //file system/vm functions
 int listcarts(lua_State *L);
+int listdirs(lua_State *L);
+int cd(lua_State *L);
+int pwd(lua_State *L);
 
 int getbioserror(lua_State *L);
 int loaddefaultcart(lua_State *L);

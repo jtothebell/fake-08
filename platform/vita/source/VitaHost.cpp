@@ -302,4 +302,34 @@ vector<string> Host::listcarts(){
     return carts;
 }
 
+std::vector<std::string> Host::listdirs() {
+    std::vector<std::string> dirs;
+
+    SceUID dir = 0;
+    int ret = 0;
+
+    if (R_SUCCEEDED(dir = sceIoDopen(_cartDirectory.c_str()))) {
+        
+        do {
+            SceIoDirent dirent;
+
+            if (R_FAILED(ret = sceIoDread(dir, &dirent))) {
+                continue;
+            }
+            
+            if (dirent.d_name[0] == '.') {
+                continue;
+            }
+
+            if (SCE_S_ISDIR(dirent.d_stat.st_mode)) {
+                dirs.push_back(dirent.d_name);
+            }
+        } while (ret > 0);
+
+        sceIoDclose(dir);
+    }
+
+    return dirs;
+}
+
 

@@ -45,6 +45,9 @@ function classic_init()
 
 	carts={}
 	numcarts = 0
+	dirs={}
+	numdirs = 0
+	currentdirname = ""
 	
 	if __getsetting then
 			pal(1, __getsetting('p8_bgcolor'))
@@ -55,17 +58,36 @@ function classic_init()
 	end
 	
 	
-	cidx=0
+	cidx=0  -- cart index (left/right)
+	didx=0  -- dir index (up/down): 0=pwd, 1=cd .., 2+=dirs
+	mode=0  -- 0=cart mode, 1=dir mode
 	carttoload = ""
 	t=0
 	linebuffer=""
 	
 	bgcolor=1
 	runcmd=false
+	cdcmd=false
 
 	if __listcarts then
 		carts = __listcarts()
 		numcarts = #carts
+	end
+	
+	if __listdirs then
+		dirs = __listdirs()
+		numdirs = #dirs
+	end
+	
+	-- get current directory name (just the last component)
+	if __pwd then
+		local fullpath = __pwd()
+		local lastslash = findlastchar(fullpath, "/")
+		if lastslash then
+			currentdirname = sub(fullpath, lastslash + 1)
+		else
+			currentdirname = fullpath
+		end
 	end
 
 	if __getbioserror then
@@ -73,20 +95,51 @@ function classic_init()
 	end
 end
 
+function classic_refreshlists()
+	if __listcarts then
+		carts = __listcarts()
+		numcarts = #carts
+	end
+	if __listdirs then
+		dirs = __listdirs()
+		numdirs = #dirs
+	end
+	-- refresh current directory name
+	if __pwd then
+		local fullpath = __pwd()
+		local lastslash = findlastchar(fullpath, "/")
+		if lastslash then
+			currentdirname = sub(fullpath, lastslash + 1)
+		else
+			currentdirname = fullpath
+		end
+	end
+	cidx = 0
+	didx = 0
+end
+
 function classic_update()
 	t+=1
+	
+	-- left/right: navigate carts
 	if btnp(1) then
+		mode = 0
 		cidx = min((cidx + 1), numcarts)
 	end
 	if btnp(0) then
+		mode = 0
 		cidx = max((cidx - 1), 1)
 	end
 	
+	-- up/down: navigate directories
 	if btnp(2) then
-		cidx = max((cidx - 10), 1)
+		mode = 1
+		didx = max((didx - 1), 0)
 	end
 	if btnp(3) then
-		cidx = min((cidx + 10), numcarts)
+		mode = 1
+		didx = min((didx + 1), numdirs + 1)
+		-- +1 because: 0=pwd, 1=cd .., 2+ = actual dirs
 	end
 
 	if btnp(4) then
@@ -94,29 +147,74 @@ function classic_update()
 	end
 	if btnp(5) then
 		linebuffer = ""
-		runcmd = true
+		if mode == 0 then
+			runcmd = true
+		else
+			cdcmd = true
+		end
 	end
 	
-	if cidx > 0 and cidx <= numcarts then
-		carttoload = carts[cidx]
-		local lastslashidx = findlastchar(carttoload, "/")
-		local dispstr = carttoload
-		if lastslashidx ~= nil and lastslashidx > 0 then
-			dispstr = sub(dispstr, lastslashidx + 1)
+	-- update linebuffer based on mode
+	if mode == 0 then
+		-- cart mode
+		if cidx > 0 and cidx <= numcarts then
+			carttoload = carts[cidx]
+			local lastslashidx = findlastchar(carttoload, "/")
+			local dispstr = carttoload
+			if lastslashidx ~= nil and lastslashidx > 0 then
+				dispstr = sub(dispstr, lastslashidx + 1)
+			end
+			linebuffer = "load " .. dispstr
+		else
+			carttoload = ""
+			if numcarts < 1 then
+				linebuffer = "(no carts in directory)"
+			end
 		end
-		linebuffer = "load " .. dispstr
 	else
-		carttoload = ""
+		-- dir mode
+		if didx == 0 then
+			if __pwd then
+				linebuffer = "pwd: " .. __pwd()
+			else
+				linebuffer = "pwd"
+			end
+		elseif didx == 1 then
+			linebuffer = "cd .."
+		else
+			local dirIdx = didx - 1
+			if dirIdx <= numdirs then
+				linebuffer = "cd " .. dirs[dirIdx]
+			end
+		end
 	end
 	
 	if runcmd then
 		runcmd = false
-		--make call to global
-		--load cart here
-		
 		if load and carttoload then
 			load(carttoload)
 		end
+	end
+	
+	if cdcmd then
+		cdcmd = false
+		if didx == 0 then
+			-- pwd: just show, do nothing
+		elseif didx == 1 then
+			-- cd ..
+			if __cd then
+				__cd("..")
+				classic_refreshlists()
+			end
+		else
+			local dirIdx = didx - 1
+			if dirIdx <= numdirs and __cd then
+				__cd(dirs[dirIdx])
+				classic_refreshlists()
+			end
+		end
+		mode = 0
+		linebuffer = ""
 	end
 		
 end
@@ -131,16 +229,10 @@ function classic_draw()
 	print("a homebrew pico-8 emulator")
 	print("currently in alpha (" .. versionstr .. ")")
 	print("")
-	print("place p8 carts in " .. cartpath)
-	if numcarts < 1 then
-		print("--no carts found--")
-	else
-		print("⬅️➡️ to navigate carts 1 by 1")
-		print("⬆️⬇️ to navigate carts 10 by 10")
-		print("🅾️ (" .. selectbtn .. ") to load selected cart")
-		print(pausebtn .. " to close current cart")
-	end
-	print(sizebtn)
+	print("dir: " .. currentdirname)
+	print("⬅️➡️ load carts (" .. numcarts .. " found)")
+	print("⬆️⬇️ cd dirs (" .. numdirs .. " found)")
+	print("🅾️ (" .. selectbtn .. ") to execute")
 	print(exitbtn .. " to exit")
 	print("")
 	-- 18 pixels from cursor() call, then 

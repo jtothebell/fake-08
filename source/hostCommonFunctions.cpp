@@ -297,6 +297,10 @@ int Host::getSetting(std::string sname) {
 	
 }
 
+void Host::setCartDirectory(std::string cartDirectory) {
+    _cartDirectory = cartDirectory;
+}
+
 void Host::setSetting(std::string sname, int sval) {
 	if(sname == "kbmode"){ //why cant you use strings in switch statements in c++ :(
 		Logger_Write("setting KB mode\n");

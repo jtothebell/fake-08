@@ -120,6 +120,11 @@ std::string Host::getCartDirectory() {
     return _currentCartDirectory;
 }
 
+std::vector<std::string> Host::listdirs() {
+    std::vector<std::string> dirs;
+    return dirs;
+}
+
 void Host::overrideLogFilePrefix(const char* newPrefix) {
     _logFilePrefix = newPrefix;
     

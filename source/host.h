@@ -142,6 +142,8 @@ class Host {
     void writeBufferToFile(std::string cartDataKey, char* buffer, size_t length);
 
     std::string getCartDirectory();
+    void setCartDirectory(std::string cartDirectory);
+    std::vector<std::string> listdirs();
 	
     //settings
     int getSetting(std::string sname);

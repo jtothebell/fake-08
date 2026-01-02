@@ -443,7 +443,8 @@ local picofuncnames = {
     cstore = 1, _set_fps = 1,
     -- fake-08 internal
     __ispaused = 1, __resetcart = 1, __loaddefaultcart = 1, __loadsettingscart = 1,
-    __listcarts = 1, __getbioserror = 1, __getsetting = 1, __setsetting = 1, __loadlabel = 1
+    __listcarts = 1, __listdirs = 1, __cd = 1, __pwd = 1,
+    __getbioserror = 1, __getsetting = 1, __setsetting = 1, __loadlabel = 1
  }
  return picofuncnames[funcname] == 1
 end
