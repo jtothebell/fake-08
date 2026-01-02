@@ -408,30 +408,52 @@ end
 --todo: make this bettter/verify the list
 function __is_api(funcname)
 local picofuncnames = {
+    -- standard lua functions
     assert = 1, getmetatable = 1, inext = 1, next = 1, ipairs = 1, pairs = 1, rawequal = 1,
     rawlen = 1, rawget = 1, rawset = 1, setmetatable = 1, type = 1, pack = 1, unpack = 1,
-    load = 1, print = 1, select = 1,
+    load = 1, print = 1, select = 1, tostring = 1,
+    -- pico-8 math
     max = 1, min = 1, mid = 1, ceil = 1, flr = 1, cos = 1, sin = 1, atan2 = 1, sqrt = 1,
     abs = 1, sgn = 1, band = 1, bor = 1, bxor = 1, bnot = 1, shl = 1, shr = 1, lshr = 1,
     rotl = 1, rotr = 1, tostr = 1, tonum = 1, srand = 1, rnd = 1, ord = 1, chr = 1,
     split = 1,
+    -- pico-8 system
     run = 1, reload = 1, reset = 1, dget = 1, dset = 1, peek = 1, peek2 = 1, peek4 = 1,
     poke = 1, poke2 = 1, poke4 = 1, memcpy = 1, memset = 1, stat = 1, printh = 1, extcmd = 1,
-    _update_buttons = 1, btn = 1, btnp = 1, cursor = 1, camera = 1, circ = 1, circfill = 1,
+    -- pico-8 input
+    _update_buttons = 1, btn = 1, btnp = 1,
+    -- pico-8 graphics
+    cursor = 1, camera = 1, circ = 1, circfill = 1,
     clip = 1, cls = 1, color = 1, fillp = 1, fget = 1, fset = 1, line = 1, map = 1, mget = 1,
     mset = 1, oval = 1, ovalfill = 1, pal = 1, palt = 1, pget = 1, pset = 1, rect = 1, rectfill = 1, rrect = 1, rrectfill = 1,
-    serial = 1, sget = 1, sset = 1, spr = 1, sspr = 1, music = 1, sfx = 1, time = 1, tline = 1,
+    serial = 1, sget = 1, sset = 1, spr = 1, sspr = 1, tline = 1,
+    -- pico-8 audio
+    music = 1, sfx = 1,
+    -- pico-8 time
+    time = 1, t = 1,
+    -- pico-8 coroutines
     cocreate = 1, coresume = 1, costatus = 1, yield = 1, trace = 1, stop = 1,
-    count = 1, add = 1, sub = 1, foreach = 1, all = 1, del = 1, deli = 1, t = 1, dget = 1,
-    dset = 1, cartdata = 1, load = 1, save = 1, info = 1, abort = 1, folder = 1,
+    -- pico-8 table helpers
+    count = 1, add = 1, sub = 1, foreach = 1, all = 1, del = 1, deli = 1,
+    -- pico-8 cart data
+    dget = 1, dset = 1, cartdata = 1,
+    -- pico-8 cart management
+    load = 1, save = 1, info = 1, abort = 1, folder = 1,
     resume = 1, reboot = 1, dir = 1, ls = 1, flip = 1, mapdraw = 1, menuitem = 1,
     cstore = 1, _set_fps = 1,
-    
+    -- fake-08 internal
     __ispaused = 1, __resetcart = 1, __loaddefaultcart = 1, __loadsettingscart = 1,
     __listcarts = 1, __getbioserror = 1, __getsetting = 1, __setsetting = 1, __loadlabel = 1
  }
  return picofuncnames[funcname] == 1
 end
+
+-- Missing PICO-8 API functions: holdframe, exit
+-- Missing editor/system functions: import, export, cd, mkdir, help,
+--   splore, login, backup, install_games, install_demos, keyconfig, shutdown, scoresub
+-- Internal PICO-8 functions: _pausemenu, _update_framerate,
+--   __flip, __trace, __type, _map_display, _mark_cpu, _set_mainloop_exists, _startframe,
+--   _menuitem, _get_menu_item_selected, set_draw_slice
 
 function create_sandbox()
     local t = {}
