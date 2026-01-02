@@ -589,7 +589,7 @@ void Graphics::_setPixelFromPen(int x, int y) {
 	}
 
 	//finalC = getDrawPalMappedColor(finalC);
-	finalC = drawState.drawPaletteMap[finalC & 0x0f] & 0x0f; 
+	finalC = drawState.drawPaletteMap[finalC & 0x0f] & 0x0f;
 
 	//from pico 8 wiki:
 	//dst_color = (dst_color & ~write_mask) | (src_color & write_mask & read_mask)
@@ -1580,10 +1580,19 @@ std::tuple<int, int> Graphics::drawCharacterFromBytes(
 	fgColor &= 0x0f;
 	bgColor &= 0x0f;
 
+	// Font data is always 8 bytes per character (8 rows of 8 pixels), even if charHeight or charWidth > 8
+	// Rows/Cols beyond 8 should be blank (charHeight > 8 affects line spacing, not glyph size)
+	const int maxFontDataRows = 8;
+	
 	for (int relDestY = 0; relDestY < charHeight * hFactor; relDestY++) {
 		for(int relDestX = 0; relDestX < charWidth * wFactor; relDestX++) {
-
-			bool on = BITMASK(relDestX / wFactor) & chBytes[relDestY / hFactor];
+			// Only read from font data if within the 8x8 limit
+			int fontRow = relDestY / hFactor;
+			int fontCol = relDestX / wFactor;
+			if ((fontRow >= maxFontDataRows || fontCol >= maxFontDataRows)) {
+				continue;
+			}
+			bool on = BITMASK(fontCol) & chBytes[fontRow];
 			on &= hFactor == 1 || !evenPxOnly || (relDestY % 2 == 0);
 			on &= wFactor == 1 || !evenPxOnly || (relDestX % 2 == 0);
 

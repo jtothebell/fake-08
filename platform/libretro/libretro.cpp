@@ -481,7 +481,7 @@ EXPORT void retro_run()
             for (unsigned scrx = 0; scrx < width; scrx++) {
                 int picox = (scrx + crop_h_left) / drawModeScaleX;
                 int picoy = (scry + crop_v_top) / drawModeScaleY;
-                uint16_t color = _rgb565Colors[screenPaletteMap[getPixelNibble(picox, picoy, picoFb)]];
+                uint16_t color = _rgb565Colors[screenPaletteMap[getPixelNibble(picox, picoy, picoFb)] & 0x8f];
                 
                 for (int y = 0; y < scale; y++) {
                     for (int x = 0; x < scale; x++) {
@@ -498,7 +498,7 @@ EXPORT void retro_run()
             for (unsigned scrx = 0; scrx < width; scrx++) {
                 int picox = (scrx + crop_h_left) / drawModeScaleX;
                 int picoy = (scry + crop_v_top) / drawModeScaleY;
-                screenBuffer[scry*width+scrx] = _rgb565Colors[screenPaletteMap[getPixelNibble(picox, picoy, picoFb)]];
+                screenBuffer[scry*width+scrx] = _rgb565Colors[screenPaletteMap[getPixelNibble(picox, picoy, picoFb)] & 0x8f];
             }
         }
 

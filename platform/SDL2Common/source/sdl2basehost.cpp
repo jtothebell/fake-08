@@ -333,7 +333,9 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
     for (int y = 0; y < PicoScreenHeight; y ++){
         for (int x = 0; x < PicoScreenWidth; x ++){
             uint8_t c = getPixelNibble(x, y, picoFb);
-            Color col = _paletteColors[screenPaletteMap[c]];
+            // Apply 0x8F mask per PICO-8 spec: system color indices are masked with 0x8F
+            // This maps values like 149 to valid palette indices (149 & 0x8F = 133)
+            Color col = _paletteColors[screenPaletteMap[c] & 0x8f];
 
             base = ((Uint8 *)pixels) + (4 * ( y * PicoScreenHeight + x));
             base[0] = col.Blue;

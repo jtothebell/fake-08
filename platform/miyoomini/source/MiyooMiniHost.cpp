@@ -496,7 +496,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
         for (int y = 0; y < PicoScreenHeight; y ++){
             for (int x = 0; x < PicoScreenWidth; x ++){
                 uint8_t c = getPixelNibble(x, y, picoFb);
-                uint32_t col = _mapped32BitColors[screenPaletteMap[c]];
+                uint32_t col = _mapped32BitColors[screenPaletteMap[c] & 0x8f];
 
                 base = ((uint32_t *)pixels) + ( y * PicoScreenHeight + (127 - x));
                 base[0] = col;
@@ -508,7 +508,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
         for (int y = 0; y < PicoScreenHeight; y ++){
             for (int x = 0; x < PicoScreenWidth; x ++){
                 uint8_t c = getPixelNibble(x, y, picoFb);
-                uint32_t col = _mapped32BitColors[screenPaletteMap[c]];
+                uint32_t col = _mapped32BitColors[screenPaletteMap[c] & 0x8f];
 
                 base = ((uint32_t *)pixels) + ((127 - y) * PicoScreenHeight + x);
                 base[0] = col;
@@ -520,7 +520,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
         for (int y = 0; y < PicoScreenHeight; y ++){
             for (int x = 0; x < PicoScreenWidth; x ++){
                 uint8_t c = getPixelNibble(x, y, picoFb);
-                uint32_t col = _mapped32BitColors[screenPaletteMap[c]];
+                uint32_t col = _mapped32BitColors[screenPaletteMap[c] & 0x8f];
 
                 base = ((uint32_t *)pixels) + ((127 - y) * PicoScreenHeight + (127 - x));
                 base[0] = col;
@@ -532,7 +532,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
         for (int y = 0; y < PicoScreenHeight; y ++){
             for (int x = 0; x < PicoScreenWidth; x ++){
                 uint8_t c = getPixelNibble(x, y, picoFb);
-                uint32_t col = _mapped32BitColors[screenPaletteMap[c]];
+                uint32_t col = _mapped32BitColors[screenPaletteMap[c] & 0x8f];
 
                 base = ((uint32_t *)pixels) + (x * PicoScreenHeight + (127 - y));
                 base[0] = col;
@@ -544,7 +544,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
         for (int y = 0; y < PicoScreenHeight; y ++){
             for (int x = 0; x < PicoScreenWidth; x ++){
                 uint8_t c = getPixelNibble(x, y, picoFb);
-                uint32_t col = _mapped32BitColors[screenPaletteMap[c]];
+                uint32_t col = _mapped32BitColors[screenPaletteMap[c] & 0x8f];
 
                 base = ((uint32_t *)pixels) + ((127 - y) * PicoScreenHeight + (127 - x));
                 base[0] = col;
@@ -556,7 +556,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
         for (int y = 0; y < PicoScreenHeight; y ++){
             for (int x = 0; x < PicoScreenWidth; x ++){
                 uint8_t c = getPixelNibble(x, y, picoFb);
-                uint32_t col = _mapped32BitColors[screenPaletteMap[c]];
+                uint32_t col = _mapped32BitColors[screenPaletteMap[c] & 0x8f];
 
                 base = ((uint32_t *)pixels) + ((127 - x) * PicoScreenHeight + y);
                 base[0] = col;
@@ -567,7 +567,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
         for (int y = 0; y < PicoScreenHeight; y ++){
             for (int x = 0; x < PicoScreenWidth; x ++){
                 uint8_t c = getPixelNibble(x, y, picoFb);
-                uint32_t col = _mapped32BitColors[screenPaletteMap[c]];
+                uint32_t col = _mapped32BitColors[screenPaletteMap[c] & 0x8f];
 
                 #ifdef _DESKTOP
                 base = ((uint32_t *)pixels) + (y * PicoScreenHeight + x);

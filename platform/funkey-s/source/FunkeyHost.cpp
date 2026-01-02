@@ -268,7 +268,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
     for (int y = 0; y < (PicoScreenHeight); y ++){
         for (int x = 0; x < PicoScreenWidth; x ++){
             uint8_t c = getPixelNibble(x, y, picoFb);
-            uint16_t col = _mapped16BitColors[screenPaletteMap[c]];
+            uint16_t col = _mapped16BitColors[screenPaletteMap[c] & 0x8f];
 
             base = ((uint16_t *)pixels) + ( y * PicoScreenHeight + x);
             base[0] = col;

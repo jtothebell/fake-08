@@ -442,7 +442,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
     for (int y = 0; y < PicoScreenHeight; y ++){
         for (int x = 0; x < PicoScreenWidth; x ++){
             uint8_t c = getPixelNibble(x, y, picoFb);
-            Color col = _paletteColors[screenPaletteMap[c]];
+            Color col = _paletteColors[screenPaletteMap[c] & 0x8f];
 
             base = ((Uint8 *)pixels) + (4 * ( y * PicoScreenHeight + x));
             base[0] = col.Red;

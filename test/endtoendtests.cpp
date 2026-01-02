@@ -47,7 +47,7 @@ bool verifyScreenshot(Vm* vm, Host* host, std::string screenshotFilename) {
         int x = pixIdx % 128;
         int y = pixIdx / 128;
         uint8_t c = getPixelNibble(x, y, picoFb);
-        Color col = paletteColors[screenPaletteMap[c]];
+        Color col = paletteColors[screenPaletteMap[c] & 0x8f];
 
         //black varies by pico 8 version. allow for either so I don't have to
         //retake all the screenshots

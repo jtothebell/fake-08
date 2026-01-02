@@ -517,7 +517,7 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
     size_t pixIdx = 0;
 
     for (pixIdx = 0; pixIdx < pico_pixel_buffer_size; pixIdx++){
-        pico_pixel_buffer[pixIdx] = _rgb565Colors[screenPaletteMap[getPixelNibble(pixIdx % 128, pixIdx / 128, picoFb)]];
+        pico_pixel_buffer[pixIdx] = _rgb565Colors[screenPaletteMap[getPixelNibble(pixIdx % 128, pixIdx / 128, picoFb)] & 0x8f];
     }
 
     //not sure if this is necessary?

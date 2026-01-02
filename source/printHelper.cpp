@@ -3,7 +3,6 @@
 #include "printHelper.h"
 #include "nibblehelpers.h"
 
-#include <string>
 #include "graphics.h"
 #include "vm.h"
 #include "Audio.h"
@@ -467,9 +466,13 @@ int print(std::string str, int x, int y, uint8_t c) {
 		}
         else if (ch == 14) { //"\014" Turn on custom font stored at 0x5600
             printMode |= PRINT_MODE_CUSTOM_FONT;
+            charWidth = _ph_mem->data[0x5600];
+            charHeight = _ph_mem->data[0x5602];
 		}
         else if (ch == 15) { //"\015" Turn off custom font stored at 0x5600
             printMode &= ~(PRINT_MODE_CUSTOM_FONT);
+            charWidth = 4;
+            charHeight = 6;
 		}
 		else if (ch == '\n') {
 			x = homeX;
@@ -529,7 +532,7 @@ int print(std::string str, int x, int y, uint8_t c) {
             if (underline) {
                 _ph_graphics->rectfill(x-1, y + lineHeight, x + charWidth - 1, y + lineHeight, fgColor);
             }
-			x += charWidth + _ph_graphics->drawCharacter(
+            int extraWidth = _ph_graphics->drawCharacter(
                 ch,
                 x,
                 y,
@@ -538,6 +541,7 @@ int print(std::string str, int x, int y, uint8_t c) {
                 printMode,
                 forceCharWidth,
                 forceCharHeight);
+			x += charWidth + extraWidth;
 
             while (framesToPause > 0){
                 //TODO: yield here? not sure how to handle this
