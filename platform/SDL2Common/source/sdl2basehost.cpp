@@ -450,25 +450,3 @@ std::string Host::getCartDirectory() {
     return _cartDirectory;
 }
 
-std::vector<std::string> Host::listdirs() {
-    std::vector<std::string> dirs;
-
-    DIR *dir;
-    struct dirent *ent;
-    if ((dir = opendir (_cartDirectory.c_str())) != NULL) {
-        while ((ent = readdir (dir)) != NULL) {
-            if (ent->d_name[0] == '.') {
-                continue;
-            }
-            std::string fullPath = _cartDirectory + "/" + ent->d_name;
-            DIR* testDir = opendir(fullPath.c_str());
-            if (testDir != NULL) {
-                closedir(testDir);
-                dirs.push_back(ent->d_name);
-            }
-        }
-        closedir (dir);
-    }
-    
-    return dirs;
-}
