@@ -197,3 +197,50 @@ TEST_CASE("print") {
     CHECK_EQ(picoRam.drawState.text_y, 0);
   }
 }
+
+
+TEST_CASE("peek with large count") {
+  // setup
+  PicoRam picoRam;
+  picoRam.Reset();
+  Audio* audio = new Audio(&picoRam);
+  std::string fontdata = get_font_data();
+  Graphics* graphics = new Graphics(fontdata, &picoRam);
+  Input* input = new Input(&picoRam);
+  StubHost* stubHost = new StubHost();
+  Vm* vm = new Vm(stubHost, &picoRam, graphics, input, audio);
+  initPicoApi(&picoRam, graphics, input, vm, audio);
+  lua_State *L = luaL_newstate();
+
+  SUBCASE("peek with 1000 return values does not crash") {
+    // Write known values to memory
+    for (int i = 0; i < 1000; i++) {
+      picoRam.data[0x1000 + i] = (uint8_t)(i & 0xFF);
+    }
+
+    lua_pushnumber(L, 0x1000);  // addr
+    lua_pushnumber(L, 1000);     // count
+    int numResults = peek(L);
+
+    CHECK_EQ(numResults, 1000);
+  }
+
+  SUBCASE("peek with 8192 return values (PICO-8 max) does not crash") {
+    // Write known values to memory
+    for (int i = 0; i < 8192; i++) {
+      picoRam.data[0x1000 + i] = (uint8_t)(i & 0xFF);
+    }
+
+    lua_pushnumber(L, 0x1000);  // addr
+    lua_pushnumber(L, 8192);    // count (PICO-8 max)
+    int numResults = peek(L);
+
+    CHECK_EQ(numResults, 8192);
+  }
+
+  delete vm;
+  delete audio;
+  delete graphics;
+  delete input;
+  delete stubHost;
+}
