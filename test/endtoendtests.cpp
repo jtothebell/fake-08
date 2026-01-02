@@ -906,6 +906,54 @@ TEST_CASE("Loading and running carts") {
 
         vm->CloseCart();
     }
+    SUBCASE("peek with large count test"){
+        vm->LoadCart("peek_large_count.p8", false);
+        vm->vm_run();
+        vm->Step();
+
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("screen matches screenshot"){
+            vm->Step();
+
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/peek_large_count_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
+    SUBCASE("chr with large args test"){
+        vm->LoadCart("chr_large_args.p8", false);
+        vm->vm_run();
+        vm->Step();
+
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("screen matches screenshot"){
+            vm->Step();
+
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/chr_large_args_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
+    SUBCASE("ord with nil arg test"){
+        vm->LoadCart("ord_nil_arg.p8", false);
+        vm->vm_run();
+        vm->Step();
+
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("screen matches screenshot"){
+            vm->Step();
+
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/ord_nil_arg_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
     
     delete vm;
     delete host;
