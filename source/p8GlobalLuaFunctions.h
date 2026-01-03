@@ -406,6 +406,8 @@ function load(arg)
 
     success, msg = __load(arg), ""
 
+    return success
+
     
     --if success then
     --    print('ok')

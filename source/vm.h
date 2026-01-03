@@ -70,12 +70,12 @@ class Vm {
        Audio* audio = nullptr);
     ~Vm();
 
-    void LoadBiosCart();
+    bool LoadBiosCart();
     
     void LoadSettingsCart();
 
-    void LoadCart(string filename, bool loadBiosOnFail = true);
-    void LoadCart(const unsigned char* cartData, size_t size, bool loadBiosOnFail = true);
+    bool LoadCart(string filename, bool loadBiosOnFail = true);
+    bool LoadCart(const unsigned char* cartData, size_t size, bool loadBiosOnFail = true);
 
     // void UpdateAndDraw();
     bool Step();
@@ -144,7 +144,7 @@ class Vm {
     void vm_run();
     void vm_extcmd(string  cmd);
 
-    void vm_load(string filename, string breadcrumb, string param);
+    bool vm_load(string filename, string breadcrumb, string param);
 
     void vm_reset();
 

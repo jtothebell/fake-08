@@ -1347,6 +1347,9 @@ int load(lua_State *L) {
         }
 
         bool result = _vmForLuaApi->vm_load(filename, breadcrumb, param);
+        if (result) {
+            //todo: abort current cart?
+        }
         lua_pushboolean(L, result);
 
         return 1;

@@ -413,7 +413,7 @@ bool Vm::loadCart(Cart* cart) {
     return true;
 }
 
-void Vm::LoadBiosCart(){
+bool Vm::LoadBiosCart(){
     CloseCart();
     Cart *cart = new Cart(DefaultCartName, "");
 
@@ -422,6 +422,7 @@ void Vm::LoadBiosCart(){
     if (!success) {
         CloseCart();
     }
+    return success;
 }
 
 void Vm::LoadSettingsCart(){
@@ -436,14 +437,14 @@ void Vm::LoadSettingsCart(){
     }
 }
 
-void Vm::LoadCart(std::string filename, bool loadBiosOnFail){
+bool Vm::LoadCart(std::string filename, bool loadBiosOnFail){
     // if (filename == "__FAKE08-DEFAULT.p8") {
     //     LoadBiosCart();
     //     return;
     // }
     if (filename == "__FAKE08-SETTINGS.p8") {
         LoadSettingsCart();
-        return;
+        return true;
     }
     Logger_Write("Loading cart %s\n", filename.c_str());
     CloseCart();
@@ -474,7 +475,7 @@ void Vm::LoadCart(std::string filename, bool loadBiosOnFail){
         delete cart;
         // Load default cart to display error
         LoadBiosCart();
-        return;
+        return false;
     }
 
     bool success = loadCart(cart);
@@ -487,9 +488,11 @@ void Vm::LoadCart(std::string filename, bool loadBiosOnFail){
         }
         LoadBiosCart();
     }
+
+    return success;
 }
 
-void Vm::LoadCart(const unsigned char* cartData, size_t size, bool loadBiosOnFail){
+bool Vm::LoadCart(const unsigned char* cartData, size_t size, bool loadBiosOnFail){
     Logger_Write("Loading cart from memory\n");
     CloseCart();
 
@@ -505,6 +508,8 @@ void Vm::LoadCart(const unsigned char* cartData, size_t size, bool loadBiosOnFai
         //todo: show an error message on the bios?
         //LoadBiosCart();
     }
+
+    return success;
 }
 
 void Vm::togglePauseMenu(){
@@ -1324,7 +1329,7 @@ void Vm::vm_extcmd(std::string cmd){
     }
 }
 
-void Vm::vm_load(std::string filename, std::string breadcrumb, std::string param){
+bool Vm::vm_load(std::string filename, std::string breadcrumb, std::string param){
     Logger_Write("vm_load: loading %s\n", filename.c_str());
     
     _cartBreadcrumb = breadcrumb;
@@ -1338,11 +1343,15 @@ void Vm::vm_load(std::string filename, std::string breadcrumb, std::string param
     
     _prevCartKey = CurrentCartFilename();
     
-    LoadCart(filename);
+    bool success = LoadCart(filename);
+    Logger_Write("vm_load: load result: %s\n", success ? "true" : "false");
     
     // Only run if cart loaded successfully
-    if (_loadedCart && !_loadedCart->LuaString.empty()) {
+    if (success) {
         vm_run();
+        return true;
+    } else {
+        return false;
     }
 }
 
