@@ -996,6 +996,13 @@ int stat(lua_State *L) {
         case 100:
             lua_pushstring(L, _vmForLuaApi->getCartBreadcrumb().c_str());
             return 1;
+        //101 and 102 are something to do with the bbs - 
+        case 101:
+            lua_pushnil(L);
+            return 1;
+        case 102:
+            lua_pushnumber(L, 0);
+            return 1;
         //unknown? used by serial carts
         case 108:
             lua_pushnumber(L, 32);
@@ -1339,7 +1346,10 @@ int load(lua_State *L) {
             param = lua_tolstring(L, 3, nullptr);
         }
 
-        _vmForLuaApi->vm_load(filename, breadcrumb, param);
+        bool result = _vmForLuaApi->vm_load(filename, breadcrumb, param);
+        lua_pushboolean(L, result);
+
+        return 1;
     }
 
     return 0;
