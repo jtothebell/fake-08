@@ -535,19 +535,23 @@ function __z8_run_cart(cart_code)
         if _update or _update60 or _draw then
             local do_frame = true
             while true do
+                local should_draw = false
                 if _update60 then
                     _update_buttons()
                     _update60()
+                    should_draw = true
                 elseif _update then
                     if (do_frame) then 
                         _update_buttons() 
                         _update()
+                        should_draw = true
                     end
                     do_frame = not do_frame
                 else
                     _update_buttons()
+                    should_draw = true
                 end
-                if (_draw and do_frame) _draw()
+                if (_draw and should_draw) _draw()
                 yield()
             end
         end
