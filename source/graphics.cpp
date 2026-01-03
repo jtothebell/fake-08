@@ -21,7 +21,6 @@ using namespace std;
 #include <fix32.h>
 using namespace z8;
 
-
 //call initialize to make sure defaults are correct
 Graphics::Graphics(std::string fontdata, PicoRam* memory) {
 	_memory = memory;
@@ -1604,12 +1603,11 @@ std::tuple<int, int> Graphics::drawCharacterFromBytes(
 					on = !on;
 				}
 				
-				if (on) {
-					setPixelNibble(absDestX, absDestY, fgColor, screenBuffer);			
-				}
-				if(!on && (solidBg || bgColor > 0)) {
-					setPixelNibble(absDestX, absDestY, bgColor, screenBuffer);
-				}
+			if (on) {
+				setPixelNibble(absDestX, absDestY, fgColor, screenBuffer);			
+			} else if (solidBg) {
+				setPixelNibble(absDestX, absDestY, bgColor, screenBuffer);
+			}
 			}
 		}
 	}

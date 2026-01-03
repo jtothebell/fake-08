@@ -881,6 +881,58 @@ TEST_CASE("Print helper functions") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("\\#p0 (char 2) automatically enables SOLID_BG mode") {
+        graphics->cls();
+
+        // \x02 (char 2) sets bgColor and enables solid bg mode
+        print("\x02""4 ", 0, 0);
+
+        //the space should just be a solid bg color of 4
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 0, 4}, // bg fill from space
+            {1, 0, 4},
+            {2, 0, 4},
+            {3, 0, 4},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("⁶-# disables solid bg mode - subsequent chars have no bg fill") {
+        graphics->cls();
+
+        // \x02 4 enables solid bg with color 4
+        // Then \x06 -# disables solid bg mode
+        print("\x02""4 \x06""-# ", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 0, 4},
+            {1, 0, 4},
+            {2, 0, 4},
+            {3, 0, 4},
+            {4, 0, 0},
+            {5, 0, 0},
+            {6, 0, 0},
+            {7, 0, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("⁶-# disables bg fill for raw pixel drawing too") {
+        graphics->cls();
+
+        print("\x02""4\x06"":0000000000000000\x06""-#\x06"":0000000000000000", 0, 0);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {0, 0, 4},
+            {1, 0, 4},
+            {7, 0, 4},
+            {8, 0, 0},
+            {9, 0, 0},
+            {15, 0, 0},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
 
     delete stubHost;
     delete graphics;

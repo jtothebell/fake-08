@@ -954,6 +954,22 @@ TEST_CASE("Loading and running carts") {
 
         vm->CloseCart();
     }
+    SUBCASE("p8scii solid bg with custom font test"){
+        vm->LoadCart("p8scii_bg_custom_font_test.p8", false);
+        vm->vm_run();
+        vm->Step();
+
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("screen matches screenshot"){
+            vm->Step();
+
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/p8scii_bg_custom_font_test_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
     
     delete vm;
     delete host;

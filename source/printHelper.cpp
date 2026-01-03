@@ -133,6 +133,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 	_ph_mem->drawState.text_x = x;
 	_ph_mem->drawState.text_y = y;
     int length = str.length();
+    
     int homeX = x;
     int homeY = y;
     int prevX = x;
@@ -200,6 +201,8 @@ int print(std::string str, int x, int y, uint8_t c) {
 		else if (ch == 2) { // "\#{p0}" draw text on a solid background color
 			uint8_t bgColChar = str[++n];
 			bgColor = p0CharToNum(bgColChar);
+			printMode |= PRINT_MODE_ON;
+			printMode |= PRINT_MODE_SOLID_BG;
 		}
 		else if (ch == 3) { // "\-{p0}" move text cursor horizontally by 16-p0 pixels
 			uint8_t pixelCountChar = str[++n];
@@ -375,7 +378,7 @@ int print(std::string str, int x, int y, uint8_t c) {
                     else if (turnOffModeChar == 'b') {
                         printMode &= ~(PRINT_MODE_PADDING);
                     }
-                    else if (turnOffModeChar == 'b') {
+                    else if (turnOffModeChar == '#') {
                         printMode &= ~(PRINT_MODE_SOLID_BG);
                     }
                 }
@@ -493,7 +496,7 @@ int print(std::string str, int x, int y, uint8_t c) {
 		}
 		else if (ch >= 0x10) {
             lineHeight = charHeight > lineHeight ? charHeight : lineHeight;
-            if (bgColor != 0xff) {
+            if (printMode & PRINT_MODE_SOLID_BG) {
                 uint8_t prevPenColor = _ph_mem->drawState.color;
                 _ph_graphics->rectfill(x-1, y-1, x + charWidth-1, y + lineHeight-1, bgColor);
                 _ph_mem->drawState.color = prevPenColor;
