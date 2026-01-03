@@ -1497,16 +1497,26 @@ int Graphics::drawCharacter(
 	int defaultCharHeight = useCustomFont ? _memory->data[0x5602] : 5;
 
 	if (ch > 0x0f) {
-		uint8_t charWidth = 
-			ch < 0x80
-			? forceCharWidth > -1 && forceCharWidth < 4 ? forceCharWidth : defaultCharWidth
-			: forceCharWidth > -1 && forceCharWidth < 4 ? (forceCharWidth + 4) : defaultWideCharWidth;
+		// Determine render width:
+		// - If forceCharWidth is set (0-3 via \^x), use it to limit rendering
+		// - For custom fonts without forced width, render all 8 columns (charWidth only affects cursor)
+		// - For standard font, use defaultCharWidth (glyph data matches the width)
+		bool widthIsForced = forceCharWidth > -1 && forceCharWidth < 4;
+		uint8_t renderWidth;
+		if (widthIsForced) {
+			renderWidth = ch < 0x80 ? forceCharWidth : (forceCharWidth + 4);
+		} else if (useCustomFont) {
+			renderWidth = 8; // Custom fonts: render all 8 columns
+		} else {
+			renderWidth = ch < 0x80 ? defaultCharWidth : defaultWideCharWidth; // Standard font
+		}
 
 		if (ch >= 0x80) {
 			extraCharWidth = defaultWideCharWidth - defaultCharWidth;
 		}
 
-		uint8_t charHeight = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : defaultCharHeight;
+		// Height: use forced height if set, otherwise use defaultCharHeight from font metadata
+		uint8_t renderHeight = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : defaultCharHeight;
 		
 		auto result = drawCharacterFromBytes(
 			useCustomFont ? &(_memory->data[0x5600 + ch*8]) : &(defaultFontBinaryData[ch*8]),
@@ -1515,8 +1525,8 @@ int Graphics::drawCharacter(
 			fgColor,
 			bgColor,
 			printMode,
-			charWidth,
-			charHeight
+			renderWidth,
+			renderHeight
 		);
 		extraCharWidth += get<0>(result);
 	}

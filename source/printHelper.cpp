@@ -544,7 +544,20 @@ int print(std::string str, int x, int y, uint8_t c) {
                 printMode,
                 forceCharWidth,
                 forceCharHeight);
-			x += charWidth + extraWidth;
+            
+            // Apply per-character width adjustment if flag 0x1 is set at 0x5605
+            int perCharWidthAdj = 0;
+            if ((printMode & PRINT_MODE_CUSTOM_FONT) && (_ph_mem->data[0x5605] & 0x01)) {
+                int nibbleIdx = ch - 16;
+                if (nibbleIdx >= 0 && nibbleIdx < 240) {
+                    uint8_t adjByte = _ph_mem->data[0x5608 + nibbleIdx/2];
+                    uint8_t adjNibble = (nibbleIdx % 2 == 0) ? (adjByte & 0x0f) : (adjByte >> 4);
+                    perCharWidthAdj = (adjNibble & 0x07);
+                    if (perCharWidthAdj >= 4) perCharWidthAdj = perCharWidthAdj - 8; // convert 4,5,6,7 to -4,-3,-2,-1
+                }
+            }
+            
+			x += charWidth + extraWidth + perCharWidthAdj;
 
             while (framesToPause > 0){
                 //TODO: yield here? not sure how to handle this
