@@ -1325,16 +1325,25 @@ void Vm::vm_extcmd(std::string cmd){
 }
 
 void Vm::vm_load(std::string filename, std::string breadcrumb, std::string param){
+    Logger_Write("vm_load: loading %s\n", filename.c_str());
+    
     _cartBreadcrumb = breadcrumb;
     if (param.length() > 0) {
         _cartParam = param;
     }
 
-    QueueCartChange(filename);
-    LoadCart(_nextCartKey);
-
-    //todo: don't call this here?  probably need to change load to not clear out some memory?
-    vm_run();
+    if (_currentCartdataKey.length() > 0) {
+        _host->saveCartData(_currentCartdataKey, getSerializedCartData());
+    }
+    
+    _prevCartKey = CurrentCartFilename();
+    
+    LoadCart(filename);
+    
+    // Only run if cart loaded successfully
+    if (_loadedCart && !_loadedCart->LuaString.empty()) {
+        vm_run();
+    }
 }
 
 void Vm::vm_reset(){

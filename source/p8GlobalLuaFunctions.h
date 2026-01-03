@@ -22,6 +22,7 @@ __z8_load_code = load
 --todo: see if we need the other z8 stuff
 __z8_stopped = false
 __z8_persist_delay = 0
+__z8_cart_running = false
 
 function all(c)
     if (c==nil or #c==0) return function() end
@@ -530,35 +531,30 @@ function __z8_reset_cartdata()
 end
 
 function __z8_run_cart(cart_code)
+    -- Glue code that manages the game loop after the cart's code runs.
     local glue_code = [[--
         if (_init) _init()
         if _update or _update60 or _draw then
-            local do_frame = true
             while true do
-                local should_draw = false
                 if _update60 then
                     _update_buttons()
                     _update60()
-                    should_draw = true
-                elseif _update then
-                    if (do_frame) then 
-                        _update_buttons() 
-                        _update()
-                        should_draw = true
-                    end
-                    do_frame = not do_frame
                 else
+                    yield() -- yield each other frame for 30fps
                     _update_buttons()
-                    should_draw = true
+                    if (_update) _update()
                 end
-                if (_draw and should_draw) _draw()
-                yield()
+                if _draw then
+                    _draw()
+                    flip()
+                else
+                    yield()
+                end
             end
         end
     ]]
 
     __z8_loop = cocreate(function()
-
         -- Memory should be reset to default by the VM before this call
         -- First reload cart into memory
         reload()
@@ -568,10 +564,10 @@ function __z8_run_cart(cart_code)
 
         -- Load cart and run the user-provided functions. Note that if the
         -- cart code returns before the end, our added code will not be
-        -- executed, and nothing will work. This is also PICO-8’s behaviour.
+        -- executed, and nothing will work. This is also PICO-8's behaviour.
         -- The code has to be appended as a string because the functions
         -- may be stored in local variables.
-        --__z8_load_code points to lua's load function https://www.lua.org/manual/5.2/manual.html#pdf-load
+        -- __z8_load_code points to lua's load function https://www.lua.org/manual/5.2/manual.html#pdf-load
 
         if __cart_sandbox ~= nil then
             __cart_sandbox = nil
@@ -586,6 +582,9 @@ function __z8_run_cart(cart_code)
             color(6) print(ex)
             error()
         end
+
+        -- Mark that a cart is now running (used for pause menu logic)
+        __z8_cart_running = true
 
         -- Run cart code
         code()
