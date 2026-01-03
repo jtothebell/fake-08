@@ -5,7 +5,7 @@ orig1 = peek4(0x5f00)
 orig2 = peek4(0x5f04)
 orig3 = peek4(0x5f08)
 orig4 = peek4(0x5f0c)
-cartdata("dummy")
+cartdata("peek4test_cdata")
 
 function set_layer(top)
 	if top then

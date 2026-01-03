@@ -67,6 +67,43 @@ bool verifyScreenshot(Vm* vm, Host* host, std::string screenshotFilename) {
         pixelsMatch &= pixelMatches;
     }
 
+    // If pixels don't match, save the actual screen for comparison
+    // Uncomment this block for debugging screenshot mismatches
+    /*
+    if (!pixelsMatch) {
+        std::vector<unsigned char> actualImage;
+        actualImage.resize(128 * 128 * 4);
+        
+        for (int y = 0; y < 128; y++) {
+            for (int x = 0; x < 128; x++) {
+                uint8_t c = getPixelNibble(x, y, picoFb);
+                Color col = paletteColors[screenPaletteMap[c] & 0x8f];
+                size_t idx = (y * 128 + x) * 4;
+                actualImage[idx] = col.Red;
+                actualImage[idx + 1] = col.Green;
+                actualImage[idx + 2] = col.Blue;
+                actualImage[idx + 3] = 255;
+            }
+        }
+        
+        // Generate output filename based on input
+        std::string actualFilename = screenshotFilename;
+        size_t dotPos = actualFilename.rfind('.');
+        if (dotPos != std::string::npos) {
+            actualFilename = actualFilename.substr(0, dotPos) + "_actual.png";
+        } else {
+            actualFilename += "_actual.png";
+        }
+        
+        unsigned encodeError = lodepng::encode(actualFilename, actualImage, 128, 128);
+        if (encodeError) {
+            printf("Failed to save actual screenshot to %s\n", actualFilename.c_str());
+        } else {
+            printf("Saved actual screenshot to %s\n", actualFilename.c_str());
+        }
+    }
+    */
+
     return pixelsMatch;
 
 }
@@ -535,7 +572,8 @@ TEST_CASE("Loading and running carts") {
             CHECK(vm->GetBiosError() == "");
         }
         SUBCASE("sceen matches screenshot"){
-            //first frame doesn't have uniform colors
+            //first frame doesn't have uniform colors, and since this is a 30 fps cart we have to step extra times
+            vm->Step();
             vm->Step();
             vm->Step();
 
