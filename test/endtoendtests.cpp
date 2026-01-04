@@ -1024,6 +1024,22 @@ TEST_CASE("Loading and running carts") {
 
         vm->CloseCart();
     }
+    SUBCASE("color with negative number test"){
+        vm->LoadCart("neg_scrn_pal_test.p8", false);
+        vm->vm_run();
+        vm->Step();
+
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("screen matches screenshot"){
+            vm->Step();
+
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/neg_scrn_pal_test_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
     
     delete vm;
     delete host;

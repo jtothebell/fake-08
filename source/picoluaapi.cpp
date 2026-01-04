@@ -90,10 +90,10 @@ int pget(lua_State *L){
 
 int color(lua_State *L){
     uint8_t prev = 0;
-    uint8_t c = 0;
+    int16_t c = 0;
     if (lua_gettop(L) > 0) {
         c = lua_tonumber(L,1);
-        prev = _graphicsForLuaApi->color((uint8_t)c);
+        prev = _graphicsForLuaApi->color(c);
     }
     else {
         prev = _graphicsForLuaApi->color();
@@ -122,7 +122,7 @@ int line (lua_State *L){
     else if (lua_gettop(L) == 3) {
         int x1 = lua_tonumber(L,1);
         int y1 = lua_tonumber(L,2);
-        uint8_t c = lua_tonumber(L,3);
+        int16_t c = lua_tonumber(L,3);
 
         _graphicsForLuaApi->line(x1, y1, c);
     }
@@ -139,7 +139,7 @@ int line (lua_State *L){
         int y1 = lua_tonumber(L,2);
         int x2 = lua_tonumber(L,3);
         int y2 = lua_tonumber(L,4);
-        uint8_t c = lua_tonumber(L,5);
+        int16_t c = lua_tonumber(L,5);
 
         _graphicsForLuaApi->line(x1, y1, x2, y2, c);
     }
@@ -182,7 +182,7 @@ int circ(lua_State *L){
     }
     else if (lua_gettop(L) > 3){
         int r = lua_tonumber(L,3);
-        uint8_t c = lua_tonumber(L,4);
+        int16_t c = lua_tonumber(L,4);
 
         _graphicsForLuaApi->circ(ox, oy, r, c);
     }
@@ -203,7 +203,7 @@ int circfill(lua_State *L){
     }
     else if (lua_gettop(L) > 3){
         int r = lua_tonumber(L,3);
-        uint8_t c = lua_tonumber(L,4);
+        int16_t c = lua_tonumber(L,4);
 
         _graphicsForLuaApi->circfill(ox, oy, r, c);
     }
@@ -224,7 +224,7 @@ int oval(lua_State *L){
 
         }
         else {
-            uint8_t c = lua_tonumber(L,5);
+            int16_t c = lua_tonumber(L,5);
 
             _graphicsForLuaApi->oval(x1, y1, x2, y2, c);
         }
@@ -245,7 +245,7 @@ int ovalfill(lua_State *L){
 
         }
         else {
-            fix32 c = lua_tonumber(L,5);
+            int16_t c = lua_tonumber(L,5);
 
             _graphicsForLuaApi->ovalfill(x1, y1, x2, y2, c);
         }
@@ -267,7 +267,7 @@ int rect(lua_State *L){
 
         }
         else {
-            uint8_t c = lua_tonumber(L,5);
+            int16_t c = lua_tonumber(L,5);
 
             _graphicsForLuaApi->rect(x1, y1, x2, y2, c);
         }
@@ -288,7 +288,7 @@ int rectfill(lua_State *L){
 
         }
         else {
-            fix32 c = lua_tonumber(L,5);
+            int16_t c = lua_tonumber(L,5);
 
             _graphicsForLuaApi->rectfill(x1, y1, x2, y2, c);
         }
@@ -310,7 +310,7 @@ int rrect(lua_State *L){
             _graphicsForLuaApi->rrect(x, y, w, h, r);
         }
         else {
-            uint8_t c = lua_tonumber(L,6);
+            int16_t c = lua_tonumber(L,6);
 
             _graphicsForLuaApi->rrect(x, y, w, h, r, c);
         }
@@ -331,7 +331,7 @@ int rrectfill(lua_State *L){
             _graphicsForLuaApi->rrectfill(x, y, w, h, r);
         }
         else {
-            fix32 c = lua_tonumber(L,6);
+            int16_t c = lua_tonumber(L,6);
 
             _graphicsForLuaApi->rrectfill(x, y, w, h, r, c);
         }
@@ -378,7 +378,7 @@ int print(lua_State *L){
         newx = print(str);
     }
     else if (numArgs == 2) {
-        uint8_t c = lua_tonumber(L,2);
+        int16_t c = lua_tonumber(L,2);
 
         _graphicsForLuaApi->color(c);
         newx = print(str);
@@ -393,7 +393,7 @@ int print(lua_State *L){
         int x = lua_tonumber(L,2);
         int y = lua_tonumber(L,3);
 
-        uint8_t c = lua_tonumber(L,4);
+        int16_t c = lua_tonumber(L,4);
 
         newx = print(str, x, y, c);
     }
@@ -523,7 +523,7 @@ int sget(lua_State *L) {
 int sset(lua_State *L) {
     int x = lua_tonumber(L,1);
     int y = lua_tonumber(L,2);
-    uint8_t c = lua_tonumber(L,3);
+    int16_t c = lua_tonumber(L,3);
     _graphicsForLuaApi->sset(x, y, c);
 
     return 0;
@@ -584,7 +584,7 @@ int mget(lua_State *L) {
 int mset(lua_State *L) {
     int celx = lua_tonumber(L,1);
     int cely = lua_tonumber(L,2);
-    uint8_t snum = lua_tonumber(L, 3);
+    int16_t snum = lua_tonumber(L, 3);
 
     _graphicsForLuaApi->mset(celx, cely, snum);
 
@@ -621,7 +621,7 @@ int gfx_map(lua_State *L) {
     if (argc > 5) {
         celh = lua_tonumber(L,6);
     }
-    uint8_t layer = 0;
+    int16_t layer = 0;
 
     if (argc > 6){
         layer = lua_tonumber(L,7);
@@ -640,9 +640,9 @@ int pal(lua_State *L) {
         return 0;
     }
 
-    uint8_t p = 0;
-    uint8_t c0 = 0;
-    uint8_t c1 = 0;
+    int16_t p = 0;
+    int16_t c0 = 0;
+    int16_t c1 = 0;
 
     if (lua_istable(L, 1)){
         if (numArgs > 1) {
@@ -729,7 +729,7 @@ int cursor(lua_State *L) {
         prev = _graphicsForLuaApi->cursor(x, y);
     }
     else{
-        uint8_t c = lua_tonumber(L,3);
+        int16_t c = lua_tonumber(L,3);
 
         prev =_graphicsForLuaApi->cursor(x, y, c);
     }

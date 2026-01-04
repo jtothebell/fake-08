@@ -959,6 +959,42 @@ TEST_CASE("Vm memory functions") {
         vm->togglePauseMenu();
         CHECK(vm->IsPaused() == false);
     }
+    SUBCASE("picoluaapi handles negative colors correctly"){
+        SUBCASE("pset negative number gets set correctly"){
+            vm->LoadCart("cartparsetest.p8");
+
+            vm->vm_run(); 
+            vm->Step();
+
+            bool result = vm->ExecuteLua(
+                "function psetnegativetest()\n"
+                " pset(0, 0, -1)\n"
+                " return pget(0, 0) == 15\n"
+                "end\n",
+                "psetnegativetest");
+
+            CHECK(result);
+
+        }
+        SUBCASE("pal negative number gets set correctly"){
+            vm->LoadCart("cartpalnegativetest.p8");
+
+            vm->vm_run(); 
+            vm->Step();
+
+
+            bool result = vm->ExecuteLua(
+                "function palnegativetest()\n"
+                " pal(0, -1, 0)\n"
+                " pset(0, 0, 0)\n"
+                " return pget(0, 0) == 15\n"
+                "end\n",
+                "palnegativetest");
+
+            CHECK(result);
+
+        }
+    }
 
     delete stubHost;
     delete graphics;
