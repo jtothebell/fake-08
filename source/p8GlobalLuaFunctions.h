@@ -582,7 +582,7 @@ function __z8_run_cart(cart_code)
         if not code then
             color(14) print('syntax error')
             color(6) print(ex)
-            error()
+            error(ex or "syntax error")
         end
 
         -- Mark that a cart is now running (used for pause menu logic)
