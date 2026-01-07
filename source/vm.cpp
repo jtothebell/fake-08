@@ -1276,12 +1276,8 @@ void Vm::vm_run() {
     //     loadCart(_loadedCart);
     // }
 
-    Logger_Write("vm_run: before Reset(), screenDataMemMapping = 0x%02x\n", _memory->hwState.screenDataMemMapping);
-
     //should combine this with other memory reset code
     _memory->Reset();
-
-    Logger_Write("vm_run: after Reset(), screenDataMemMapping = 0x%02x\n", _memory->hwState.screenDataMemMapping);
 
     //seed rng
     auto now = std::chrono::high_resolution_clock::now();
@@ -1344,7 +1340,6 @@ bool Vm::vm_load(std::string filename, std::string breadcrumb, std::string param
     _prevCartKey = CurrentCartFilename();
     
     bool success = LoadCart(filename);
-    Logger_Write("vm_load: load result: %s\n", success ? "true" : "false");
     
     // Only run if cart loaded successfully
     if (success) {

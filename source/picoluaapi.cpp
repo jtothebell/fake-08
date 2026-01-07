@@ -1099,9 +1099,9 @@ int peek(lua_State *L) {
 
     if (numArgs > 1) {
         int tmpNumToReturn = lua_tonumber(L,2);
-        //pico 8 docs say up to 8192
-        if (tmpNumToReturn > 0 && tmpNumToReturn <= 8192) {
-            numToReturn = tmpNumToReturn;
+        //pico 8 docs say up to 8192 - clamp to this limit
+        if (tmpNumToReturn > 0) {
+            numToReturn = tmpNumToReturn > 8192 ? 8192 : tmpNumToReturn;
         }
     }
 
