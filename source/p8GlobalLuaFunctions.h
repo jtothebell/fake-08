@@ -576,6 +576,8 @@ function __z8_run_cart(cart_code)
         end
 
         __cart_sandbox = create_sandbox()
+        -- Store sandbox in registry for C fallback (used when _ENV is modified)
+        rawset(debug.getregistry(), "__PICO8_SANDBOX", __cart_sandbox)
         local code, ex = __z8_load_code(cart_code..glue_code, nil, nil,
                                         __cart_sandbox)
 

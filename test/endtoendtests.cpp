@@ -1040,6 +1040,22 @@ TEST_CASE("Loading and running carts") {
 
         vm->CloseCart();
     }
+    SUBCASE("env modification test"){
+        vm->LoadCart("nested_env_test.p8", false);
+        vm->vm_run();
+        vm->Step();
+
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("screen matches screenshot"){
+            vm->Step();
+
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/nested_env_test_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
     
     delete vm;
     delete host;
