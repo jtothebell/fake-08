@@ -14,8 +14,10 @@ end
 
 function _draw()
  cls()
- outlined_text("all levels unlocked!", 12, 106, 4, 13)
- ?"all levels unlocked!", 0, 0, 4, 13
+ local res1=outlined_text("all levels unlocked!", 12, 106, 4, 13)
+ print(res1)
+ local res2=?"all levels unlocked!", 0, 0, 4, 13
+ print(res2)
 end
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
