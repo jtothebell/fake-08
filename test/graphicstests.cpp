@@ -2709,6 +2709,76 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("Memory mapping for sprite sheet buffer") {
+        picoRam.hwState.spriteSheetMemMapping = 0x00;
+        uint8_t* buffer = graphics->GetP8SpriteSheetBuffer();
+        CHECK_EQ(buffer, picoRam.spriteSheetData);
+
+        picoRam.hwState.spriteSheetMemMapping = 0x60;
+        buffer = graphics->GetP8SpriteSheetBuffer();
+        CHECK_EQ(buffer, picoRam.screenBuffer);
+
+        picoRam.hwState.spriteSheetMemMapping = 0x80;
+        buffer = graphics->GetP8SpriteSheetBuffer();
+        CHECK_EQ(buffer, picoRam.userData);
+
+        picoRam.hwState.spriteSheetMemMapping = 0xA0;
+        buffer = graphics->GetP8SpriteSheetBuffer();
+        CHECK_EQ(buffer, picoRam.userData + 0x2000);
+
+        picoRam.hwState.spriteSheetMemMapping = 0xC0;
+        buffer = graphics->GetP8SpriteSheetBuffer();
+        CHECK_EQ(buffer, picoRam.userData + 0x4000);
+
+        picoRam.hwState.spriteSheetMemMapping = 0xE0;
+        buffer = graphics->GetP8SpriteSheetBuffer();
+        CHECK_EQ(buffer, picoRam.userData + 0x6000);
+    }
+    SUBCASE("Memory mapping for frame buffer") {
+        picoRam.hwState.screenDataMemMapping = 0x00;
+        uint8_t* buffer = graphics->GetP8FrameBuffer();
+        CHECK_EQ(buffer, picoRam.spriteSheetData);
+
+        picoRam.hwState.screenDataMemMapping = 0x60;
+        buffer = graphics->GetP8FrameBuffer();
+        CHECK_EQ(buffer, picoRam.screenBuffer);
+
+        picoRam.hwState.screenDataMemMapping = 0x80;
+        buffer = graphics->GetP8FrameBuffer();
+        CHECK_EQ(buffer, picoRam.userData);
+
+        picoRam.hwState.screenDataMemMapping = 0xA0;
+        buffer = graphics->GetP8FrameBuffer();
+        CHECK_EQ(buffer, picoRam.userData + 0x2000);
+
+        picoRam.hwState.screenDataMemMapping = 0xC0;
+        buffer = graphics->GetP8FrameBuffer();
+        CHECK_EQ(buffer, picoRam.userData + 0x4000);
+
+        picoRam.hwState.screenDataMemMapping = 0xE0;
+        buffer = graphics->GetP8FrameBuffer();
+        CHECK_EQ(buffer, picoRam.userData + 0x6000);
+    }
+    SUBCASE("Sprite rendering with upper memory mapping") {
+        picoRam.hwState.spriteSheetMemMapping = 0xC0;
+        
+        uint8_t* spriteBuffer = graphics->GetP8SpriteSheetBuffer();
+        
+        for (int y = 0; y < 8; y++) {
+            for (int byteX = 0; byteX < 4; byteX++) { // 4 bytes = 8 pixels wide
+                int byteIdx = y * 64 + byteX; // 64 bytes per row
+                spriteBuffer[byteIdx] = 0x55; // Pattern: 5,5 (both pixels are color 5)
+            }
+        }
+        
+        graphics->cls();
+        graphics->spr(0, 10, 10, 1.0, 1.0, false, false);
+        
+        CHECK_EQ(graphics->pget(10, 10), 5); // top-left should be color 5
+        CHECK_EQ(graphics->pget(11, 10), 5); // next pixel should be color 5
+        CHECK_EQ(graphics->pget(10, 11), 5); // below should be color 5
+        CHECK_EQ(graphics->pget(17, 17), 5); // bottom-right should be color 5
+    }
 
 
     //general teardown

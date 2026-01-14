@@ -33,17 +33,34 @@ Graphics::Graphics(std::string fontdata, PicoRam* memory) {
 	color();
 }
 
-
+// Upper memory mapping: 0x80->0x8000, 0xA0->0xA000, 0xC0->0xC000, 0xE0->0xE000
+// Mapping values are in 256-byte increments, userData starts at 0x8000
+// offset = (mapping << 8) - 0x8000 = (mapping - 0x80) << 8
 uint8_t* Graphics::GetP8FrameBuffer(){
-	return _memory->hwState.screenDataMemMapping == 0 
-		? _memory->spriteSheetData 
-		: _memory->screenBuffer;
+	uint8_t mapping = _memory->hwState.screenDataMemMapping;
+	if (mapping == 0) {
+		return _memory->spriteSheetData;
+	} else if (mapping == 0x60) {
+		return _memory->screenBuffer;
+	} else if (mapping >= 0x80) {
+		
+		int offset = (mapping - 0x80) << 8;
+		return _memory->userData + offset;
+	}
+	return _memory->screenBuffer;
 }
 
 uint8_t* Graphics::GetP8SpriteSheetBuffer(){
-	return _memory->hwState.spriteSheetMemMapping == 0x60
-		? _memory->screenBuffer 
-		: _memory->spriteSheetData;
+	uint8_t mapping = _memory->hwState.spriteSheetMemMapping;
+	if (mapping == 0) {
+		return _memory->spriteSheetData;
+	} else if (mapping == 0x60) {
+		return _memory->screenBuffer;
+	} else if (mapping >= 0x80) {
+		int offset = (mapping - 0x80) << 8;
+		return _memory->userData + offset;
+	}
+	return _memory->spriteSheetData;
 }
 
 uint8_t* Graphics::GetScreenPaletteMap(){
