@@ -4,6 +4,8 @@
 #include "lauxlib.h"
 #include "lualib.h"
 
+#include <string>
+
 TEST_CASE("shortprint (?)") {
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
