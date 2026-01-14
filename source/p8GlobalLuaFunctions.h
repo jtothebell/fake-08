@@ -401,10 +401,10 @@ function flip()
 end
 
 -- Load a cart from file or URL
-function load(arg)
+function load(arg, arg2, arg3)
     local success, msg
 
-    success, msg = __load(arg), ""
+    success, msg = __load(arg, arg2, arg3), ""
 
     return success
 
