@@ -469,7 +469,7 @@ Cart::Cart(std::string filename, std::string cartDirectory){
 
     std::string firstFourChars = get_first_four_chars(FullCartPath);
 
-    if (fileExtension == "" && firstFourChars.length() == 0) {
+    if ((fileExtension == "" || fileExtension == ".p8") && firstFourChars.length() == 0) {
         //fallback for cart loading by key - support .p8 and .p8.png
         filename = filename + ".png";
         // Rebuild full path with cart directory (same logic as initial path build)
