@@ -155,12 +155,13 @@ void Graphics::copySpriteToScreen(
 			//			? bothPix & 0x0f //just first 4 bits
 			//			: bothPix >> 4;  //just last 4 bits
 			uint8_t lc = bothPix & 0x0f;
-			uint8_t rc = bothPix >> 4;
+			uint8_t rc = (bothPix >> 4) & 0x0f;
 			
 			const int finaly = scr_y + y;
 			int finalx = scr_x + (flip_x ? x + 1 : x);
 			
 			if (x > 0 || !startWithHalf){
+				lc &= 0x0f; // Ensure color is only 4 bits before palette lookup
 				if (!(drawState.drawPaletteMap[lc] >> 4)){
 					lc = drawState.drawPaletteMap[lc] & 0x0f;
 
@@ -188,6 +189,7 @@ void Graphics::copySpriteToScreen(
 			}
 
 			if (x < scr_w) {
+				rc &= 0x0f; // Ensure color is only 4 bits before palette lookup
 				if (!(drawState.drawPaletteMap[rc] >> 4)){
 					rc = drawState.drawPaletteMap[rc] & 0x0f;
 
@@ -347,7 +349,8 @@ void Graphics::copyStretchSpriteToScreen(
 
 					uint8_t c = shiftedPixIndex % 2 == 0 
 						? bothPix & 0x0f //just first 4 bits
-						: bothPix >> 4;  //just last 4 bits
+						: (bothPix >> 4) & 0x0f;  //just last 4 bits
+					c &= 0x0f; // Ensure color is only 4 bits before palette lookup
 
 					if (_memory->drawState.drawPaletteMap[c] >> 4){
 						continue;
@@ -397,7 +400,8 @@ void Graphics::copyStretchSpriteToScreen(
 
 					uint8_t c = shiftedPixIndex % 2 == 0 
 						? bothPix & 0x0f //just first 4 bits
-						: bothPix >> 4;  //just last 4 bits
+						: (bothPix >> 4) & 0x0f;  //just last 4 bits
+					c &= 0x0f; // Ensure color is only 4 bits before palette lookup
 
 					if (_memory->drawState.drawPaletteMap[c] >> 4){
 						continue;
@@ -1840,7 +1844,14 @@ void Graphics::pal() {
 void Graphics::pal(uint8_t p) {
 	for (uint8_t c = 0; c < 16; c++) {
 		if (p == 0) {
-			_memory->drawState.drawPaletteMap[c] = c;
+			// Preserve transparency bit when resetting palette mapping
+			// But ensure color 0 is transparent by default if it wasn't set
+			uint8_t transparencyBit = _memory->drawState.drawPaletteMap[c] & 0x10;
+			if (c == 0 && transparencyBit == 0) {
+				// Color 0 should be transparent by default
+				transparencyBit = 0x10;
+			}
+			_memory->drawState.drawPaletteMap[c] = c | transparencyBit;
 		} else if (p == 1) {
 			_memory->drawState.screenPaletteMap[c] = c;
 		}

@@ -2779,6 +2779,34 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(graphics->pget(10, 11), 5); // below should be color 5
         CHECK_EQ(graphics->pget(17, 17), 5); // bottom-right should be color 5
     }
+    SUBCASE("Sprite transparency with upper memory mapping") {
+        //map sprite sheet to upper memory
+        picoRam.hwState.spriteSheetMemMapping = 0xC0;
+        
+        graphics->palt();
+        
+        //create a sprite with alternating pixels
+        for (int y = 0; y < 8; y++) {
+            for (int x = 0; x < 8; x++) {
+                //left pixel is opaque (5), right pixel is transparent (0)
+                uint8_t color = x % 2 == 0 ? 5 : 0;
+                graphics->sset(x, y, color);
+            }
+        }
+        
+        graphics->cls(2);
+        graphics->spr(0, 10, 10, 1.0, 1.0, false, false);
+        
+        // Even X positions should be opaque (color 5)
+        CHECK_EQ(graphics->pget(10, 10), 5);
+        CHECK_EQ(graphics->pget(12, 10), 5);
+        CHECK_EQ(graphics->pget(14, 10), 5);
+        
+        // Odd X positions should be background color (color 2)
+        CHECK_EQ(graphics->pget(11, 10), 2);
+        CHECK_EQ(graphics->pget(13, 10), 2);
+        CHECK_EQ(graphics->pget(15, 10), 2);
+    }
 
 
     //general teardown
