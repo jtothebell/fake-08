@@ -323,3 +323,77 @@ TEST_CASE("Alternative not equal (!=)") {
 
     lua_close(L);
 }
+TEST_CASE("Nested Shorthand IF logic") {
+    lua_State *L = luaL_newstate();
+    luaL_openlibs(L);
+
+    SUBCASE("shorthand if with shortprint swallowing next line") {
+        const char* code = 
+        "res=0 c=2\n"
+        "if c==1 then\n"
+        "  if (1==1) ? 'test'\n"
+        "elseif c==2 then\n"
+        "  res=2\n"
+        "end\n"
+        "return res";
+        int result = luaL_dostring(L, code);
+        CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
+        if (result == LUA_OK) {
+            // Prior to a bug fix in lparser.c, the 'elseif' is swallowed by the inner 'if',
+            // resulting in res remaining 0.
+            CHECK_EQ(lua_tointeger(L, -1), 2);
+        }
+    }
+
+    SUBCASE("shorthand if with else on same line") {
+        const char* code = 
+        "if (1==0) return 1 else return 2";
+        int result = luaL_dostring(L, code);
+        CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
+        if (result == LUA_OK) {
+            CHECK_EQ(lua_tointeger(L, -1), 2);
+        }
+    }
+
+    SUBCASE("shorthand if nested with outer else if (same line recursion)") {
+        const char* code = 
+        "res=0 if(1==0) res=1 else if(1==1) res=2\n"
+        "return res";
+        int result = luaL_dostring(L, code);
+        CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
+        if (result == LUA_OK) {
+            CHECK_EQ(lua_tointeger(L, -1), 2);
+        }
+    }
+
+    lua_close(L);
+}
+
+TEST_CASE("Shorthand IF braces logic") {
+    lua_State *L = luaL_newstate();
+    luaL_openlibs(L);
+
+    SUBCASE("shorthand if with braces") {
+        const char* code = 
+        "x=0 if (1==1) x=1\n"
+        "return x";
+        int result = luaL_dostring(L, code);
+        CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
+        if (result == LUA_OK) {
+            CHECK_EQ(lua_tointeger(L, -1), 1);
+        }
+    }
+
+    SUBCASE("shorthand if without braces") {
+        const char* code = 
+        "x=0 if 1==1 x=1\n"
+        "return x";
+        int result = luaL_dostring(L, code);
+        CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
+        if (result == LUA_OK) {
+            CHECK_EQ(lua_tointeger(L, -1), 1);
+        }
+    }
+
+    lua_close(L);
+}
