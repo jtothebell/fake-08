@@ -459,6 +459,29 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("circfill({ox}, {oy}, {r}, {c}) with inverted mode fills outside circle") {
+        graphics->cls(8);
+        picoRam.drawState.colorSettingFlag = 0x02; // Enable inverted fill mode 
+        graphics->circfill(40, 40, 2, 13);
+        std::vector<coloredPoint> expectedPoints = {
+            // Inside circle should be background color (8)
+            {40, 40, 8}, 
+            {39, 40, 8},
+            {40, 39, 8},
+            {41, 40, 8},
+            {40, 41, 8},
+            // Outside circle should be filled color (13)
+            {40, 37, 13},
+            {40, 43, 13},
+            {37, 40, 13},
+            {43, 40, 13},
+            
+            {0, 0, 13},
+            {127, 127, 13},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
     SUBCASE("oval({x0}, {x1}, {y0}, {y1}, {c}) draws an ellipse") {
         graphics->cls();
         graphics->oval(40, 40, 45, 42, 13);

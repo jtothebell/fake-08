@@ -1006,7 +1006,75 @@ void Graphics::circfill(int ox, int oy, int r){
 	this->circfill(ox, oy, r, _memory->drawState.color);
 }
 
+void Graphics::_invertedCircfill(int ox, int oy, int r, uint8_t col){
+	color(col);
+
+	applyCameraToPoint(&ox, &oy);
+
+	int clipLeft = _memory->drawState.clip_xb;
+	int clipRight = _memory->drawState.clip_xe;
+	int clipTop = _memory->drawState.clip_yb;
+	int clipBottom = _memory->drawState.clip_ye;
+
+	int circleTop = oy - r;
+	int circleBottom = oy + r;
+
+	// Fill rows above the circle
+	for (int row = clipTop; row < circleTop && row < clipBottom; row++) {
+		_private_h_line(clipLeft, clipRight - 1, row);
+	}
+
+	// Fill rows that intersect the circle (left and right of circle)
+	if (r >= 0) {
+		int x = -r, y = 0, err = 2 - 2 * r;
+		int lastY = -1;
+		do {
+			// For each y offset, draw lines outside the circle
+			if (oy + y != lastY) {
+				// Right side of screen (to the right of circle)
+				if (ox + x + 1 < clipRight) {
+					_private_h_line(ox - x + 1, clipRight - 1, oy + y);
+				}
+				// Left side of screen (to the left of circle)
+				if (ox + x - 1 >= clipLeft) {
+					_private_h_line(clipLeft, ox + x - 1, oy + y);
+				}
+			}
+			if (y > 0 && oy - y != lastY) {
+				// Right side of screen (to the right of circle)
+				if (ox + x + 1 < clipRight) {
+					_private_h_line(ox - x + 1, clipRight - 1, oy - y);
+				}
+				// Left side of screen (to the left of circle)
+				if (ox + x - 1 >= clipLeft) {
+					_private_h_line(clipLeft, ox + x - 1, oy - y);
+				}
+			}
+			lastY = oy + y;
+			int savedR = r;
+			r = err;
+			if (r > x)
+				err += ++x * 2 + 1;
+			if (r <= y)
+				err += ++y * 2 + 1;
+			r = savedR;
+		} while (x < 0);
+	}
+
+	// Fill rows below the circle
+	for (int row = circleBottom + 1; row < clipBottom; row++) {
+		_private_h_line(clipLeft, clipRight - 1, row);
+	}
+}
+
 void Graphics::circfill(int ox, int oy, int r, uint8_t col){
+	// Check if inverted fill mode is enabled (bit 1 of colorSettingFlag at 0x5f34)
+	bool invertedFill = (_memory->drawState.colorSettingFlag & 0x02) != 0;
+
+	if (invertedFill) {
+		return _invertedCircfill(ox, oy, r, col);
+	}
+
 	color(col);
 
 	applyCameraToPoint(&ox, &oy);

@@ -60,6 +60,8 @@ class Graphics {
 	void _private_v_line (int y1, int y2, int x);
 	int _getRRectCutAmount(int radius, int row);
 
+	void _invertedCircfill(int ox, int oy, int r, uint8_t col);
+
 	public:
 	Graphics(std::string fontdata, PicoRam* memory);
 
