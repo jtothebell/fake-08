@@ -82,7 +82,7 @@ TEST_CASE("Load simple p8 cart") {
     }
     SUBCASE("Sfx data is populated") {
         CHECK(cart->CartRom.SfxData[0].data[0] == 13);
-        CHECK(cart->CartRom.SfxData[0].filters == 0);
+        CHECK(cart->CartRom.SfxData[0].editorMode == 0);
         CHECK(cart->CartRom.SfxData[0].loopRangeEnd == 0);
         CHECK(cart->CartRom.SfxData[0].loopRangeEnd == 0);
         CHECK(cart->CartRom.SfxData[0].speed == 29);
@@ -165,7 +165,7 @@ TEST_CASE("Load simple png cart") {
     }
     SUBCASE("Sfx data is populated") {
         CHECK(cart->CartRom.SfxData[0].data[0] == 13);
-        CHECK(cart->CartRom.SfxData[0].filters == 0);
+        CHECK(cart->CartRom.SfxData[0].editorMode == 0);
         CHECK(cart->CartRom.SfxData[0].loopRangeEnd == 0);
         CHECK(cart->CartRom.SfxData[0].loopRangeEnd == 0);
         CHECK(cart->CartRom.SfxData[0].speed == 29);

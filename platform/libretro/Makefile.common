@@ -64,7 +64,6 @@ SOURCES_CXX := $(CORE_DIR)/platform/libretro/libretro.cpp \
                 $(CORE_DIR)/source/cart.cpp \
                 $(CORE_DIR)/source/emojiconversion.cpp \
                 $(CORE_DIR)/source/filehelpers.cpp \
-                $(CORE_DIR)/source/filter.cpp \
                 $(CORE_DIR)/source/fontdata.cpp \
                 $(CORE_DIR)/source/graphics.cpp \
                 $(CORE_DIR)/source/hostCommonFunctions.cpp \

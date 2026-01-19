@@ -1,7 +1,6 @@
 #pragma once
 
 #include "PicoRam.h"
-#include "synth.h"
 
 #include <string>
 
@@ -93,12 +92,12 @@ class Audio {
     bool _paused;
 
     void set_music_pattern(int pattern);
-    void update_sfx_state(sfx_state& cur_sfx, z8::synth_param& new_synth, 
-                          float freq_factor, float length, bool is_music, 
-                          bool can_loop, bool half_rate, double inv_frames_per_second);
-    float get_synth_sample(z8::synth_param& params);
-    void launch_sfx(int16_t sfx, int16_t chan, float offset, float length, bool is_music);
     
+    public:
+    float getSampleForSfx(rawSfxChannel &channel, float freqShift = 1.0f);
+    int16_t getSampleForChannel(int channel);
+    float getSampleForNote(noteChannel &note_channel, rawSfxChannel &parentChannel, rawSfxChannel *childChannel, note prev_note, float freqShift, bool forceRemainder);
+
     public:
     Audio(PicoRam* memory);
 
@@ -119,3 +118,4 @@ class Audio {
 
     void setPaused(bool paused);
 };
+

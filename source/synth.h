@@ -12,25 +12,8 @@
 
 #pragma once
 
-#include <cstdint>
-
 namespace z8
 {
-
-// Synth parameters for waveform generation
-struct synth_param
-{
-    uint8_t instrument = 0;
-    bool custom = false;
-    uint8_t filters = 0;
-    uint8_t key = 0;
-    float freq = 0;
-    float volume = 0;
-    float phi = 0;
-    float last_advance = 0;
-    float last_sample = 0;
-    bool is_music = false;
-};
 
 //
 // A waveform generator
@@ -51,7 +34,18 @@ public:
         INST_PHASER     = 7,
     };
 
-    static float waveform(synth_param &params);
+    static float waveform(int instrument, float advance);
+
+    //These are inline so they don't have to be declared in the class
+    //c++17 allows this, but if need for c++11 "inline" can be removed and they
+    //can be declared in synth.cpp
+    //also not threadsafe, but this is all single threaded anyway
+    private:
+        inline static float lastadvance;
+        inline static float sample;
+        inline static float lsample;
+        
 };
 
 } // namespace z8
+

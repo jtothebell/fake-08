@@ -3,8 +3,6 @@
 #include <cstdint>
 #include <cstring> 
 #include <string>
-#include "filter.h"
-#include "synth.h"
 
 /*
 0x0 	0x0fff 	Sprite sheet (0-127)
@@ -111,11 +109,7 @@ struct sfx {
         {
             note notes[32];
 
-            // 0: filters + editor flag
-            // 1: speed (1-255)
-            // 2: loop start
-            // 3: loop end
-            uint8_t filters;
+            uint8_t editorMode;
             uint8_t speed;
             uint8_t loopRangeStart;
             uint8_t loopRangeEnd;
@@ -125,50 +119,52 @@ struct sfx {
     };
 };
 
-// Audio states: music channel
 struct musicChannel {
-    int16_t count = -1;
+    int16_t count = 0;
     int16_t pattern = -1;
-    uint8_t mask = 0;
-    float volume_music = 0.5f;
-    float volume_sfx = 0.5f;
-    float fade_volume = 0.f;
-    float fade_volume_step = 0.f;
-    double offset = -1;
-    float length = 0;
+    int8_t master = -1;
+    uint8_t mask = 0xf;
+    uint8_t speed = 0;
+    float volume = 0.f;
+    float volume_step = 0.f;
+    float offset = 0.f;
+	uint8_t length = 0;
 };
 
-// SFX playback state
-struct sfx_state {
-    int16_t sfx = -1;
-    double offset = 0;
-    double time = 0;
-    int8_t prev_key = 0;
-    float prev_vol = 0;
+struct noteChannel {
+    float phi = 0;
+    note n;
 };
 
-// Audio channel state
-struct sfxChannel {
-    sfx_state main_sfx;
-    sfx_state custom_sfx;
-
-    int16_t sfx_music = -1;
-    float length = 0;
+struct rawSfxChannel {
+    int16_t sfxId = -1;
+    float offset = 0;
     bool can_loop = true;
     bool is_music = false;
+    noteChannel current_note;
+    noteChannel prev_note;
+    virtual rawSfxChannel *getChildChannel() {
+      return NULL;
+    }
+    virtual rawSfxChannel *getPrevChildChannel() {
+      return NULL;
+    }
+    virtual void rotateChannels() {
+    }
+};
 
-    z8::synth_param last_synth;
-    z8::synth_param fade_synth;
-    float fade = 0.0f;
-    uint8_t last_main_instrument = 0;
-    uint8_t last_main_key = 0;
-
-    int reverb_index = 0;
-    float reverb_2[366] = {};
-    float reverb_4[732] = {};
-
-    z8::filter damp1;
-    z8::filter damp2;
+struct sfxChannel : rawSfxChannel {
+    rawSfxChannel customInstrumentChannel;
+    rawSfxChannel prevInstrumentChannel;
+    virtual rawSfxChannel *getChildChannel() {
+      return &(this->customInstrumentChannel);
+    }
+    virtual rawSfxChannel *getPrevChildChannel() {
+      return &(this->prevInstrumentChannel);
+    }
+    virtual void rotateChannels() {
+      prevInstrumentChannel = customInstrumentChannel;
+    }
 };
 
 struct audioState_t {
