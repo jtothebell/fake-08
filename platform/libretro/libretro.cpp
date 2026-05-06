@@ -748,7 +748,7 @@ EXPORT bool retro_load_game(struct retro_game_info const *info)
     check_variables(true);
 
     if (!info) {
-        _vm->QueueCartChange("__FAKE08-BIOS.p8");
+        _vm->LoadCart("__FAKE08-BIOS.p8");
         return true;
     }
 
@@ -760,10 +760,10 @@ EXPORT bool retro_load_game(struct retro_game_info const *info)
 
     if (info->size > 0) {
         const unsigned char* data = reinterpret_cast<const unsigned char*>(info->data);
-        _vm->QueueCartChange(data, info->size);
+        _vm->LoadCart(data, info->size);
     }
     else {
-        _vm->QueueCartChange(info->path);
+        _vm->LoadCart(info->path);
     }
 
     return true;
