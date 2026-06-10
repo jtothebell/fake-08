@@ -13,7 +13,6 @@ using namespace std;
 
 #include "../../SDL2Common/source/sdl2basehost.h"
 #include "../../../source/hostVmShared.h"
-#include "../../../source/nibblehelpers.h"
 #include "../../../source/filehelpers.h"
 #include "../../../source/logger.h"
 
@@ -45,6 +44,19 @@ string _desktopSdl2customBiosLua = "cartpath = \"~/p8carts/\"\n"
 
 Host::Host(int windowWidth, int windowHeight) 
 {
+    if (g_runAndExit) {
+        setPlatformParams(
+            128,
+            128,
+            WINDOW_FLAGS,
+            RENDERER_FLAGS,
+            PIXEL_FORMAT,
+            _desktopSdl2SettingsPrefix,
+            _desktopSdl2customBiosLua,
+            "");
+        return;
+    }
+
     SDL_DisplayMode current;
 
     SDL_Init(SDL_INIT_VIDEO);
@@ -98,6 +110,10 @@ Host::Host(int windowWidth, int windowHeight)
 
 
 InputState_t Host::scanInput(){
+    if (g_runAndExit) {
+        return InputState_t {0, 0, 0, 0, 0, false, ""};
+    }
+
     currKDown = 0;
     uint8_t kUp = 0;
     stretchKeyPressed = false;

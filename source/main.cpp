@@ -17,24 +17,38 @@
 
 #endif
 
-
+bool g_runAndExit = false;
 
 int main(int argc, char* argv[])
 {
 	//default to full resolution
 	int windowWidth = 0;
 	int windowHeight = 0;
+	int exitFrames = 1;
 	int opt;
 
-	while ((opt = getopt(argc, argv, "w:h:")) != -1) {
+	while ((opt = getopt(argc, argv, "w:h:xf:")) != -1) {
     	switch (opt) {
     		case 'w': windowWidth = (int)strtol(optarg, NULL, 10); break;
     		case 'h': windowHeight = (int)strtol(optarg, NULL, 10); break;
+    		case 'x': g_runAndExit = true; break;
+    		case 'f':
+    			exitFrames = (int)strtol(optarg, NULL, 10);
+    			if (exitFrames < 0) {
+    				fprintf(stderr, "frame count must be >= 0\n");
+    				return 2;
+    			}
+    			break;
+    		default:
+    			fprintf(stderr, "Usage: %s [-x] [-f frames] [-w width] [-h height] [cart.p8]\n", argv[0]);
+    			return 2;
         }
     }
 
-	printf("windowWidth: %d\n", windowWidth);
-	printf("windowHeight: %d\n", windowHeight);
+	if (!g_runAndExit) {
+		printf("windowWidth: %d\n", windowWidth);
+		printf("windowHeight: %d\n", windowHeight);
+	}
 
 	Host *host = new Host(windowWidth, windowHeight);
 	PicoRam *memory = new PicoRam();
@@ -81,10 +95,17 @@ int main(int argc, char* argv[])
 	}
 	#endif
 
+	if (g_runAndExit && !loadCart) {
+		fprintf(stderr, "%s: -x requires a cart path\n", argv[0]);
+		delete vm;
+		delete host;
+		Logger_Exit();
+		return 2;
+	}
 	
 	if (loadCart){
 		Logger_Write("Loading arg cart \n");
-		vm->LoadCart(cart, true);
+		vm->LoadCart(cart, !g_runAndExit);
 	}
 	else {
 		Logger_Write("Loading bios cart\n");
@@ -93,10 +114,28 @@ int main(int argc, char* argv[])
 
 	vm->vm_run();
 
-	// Main loop
-	Logger_Write("Starting main loop\n");
+	if (g_runAndExit) {
+		for (int frame = 0; frame < exitFrames; ++frame) {
+			if (!vm->Step()) {
+				break;
+			}
+		}
 
-	vm->GameLoop();
+		if (!vm->GetBiosError().empty()) {
+			fprintf(stderr, "cart error: %s\n", vm->GetBiosError().c_str());
+			vm->CloseCart();
+			host->oneTimeCleanup();
+			delete vm;
+			delete host;
+			Logger_Exit();
+			return 1;
+		}
+	}
+	else {
+		// Main loop
+		Logger_Write("Starting main loop\n");
+		vm->GameLoop();
+	}
 
 	Logger_Write("Turning off vm and exiting logger\n");
 	vm->CloseCart();
@@ -114,5 +153,4 @@ int main(int argc, char* argv[])
 
 	return 0;
 }
-
 

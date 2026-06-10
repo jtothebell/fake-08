@@ -90,3 +90,6 @@ enum PrintMode_t
 	PRINT_MODE_STRIPEY = 0x40,
 	PRINT_MODE_CUSTOM_FONT = 0x80
 };
+
+// Set by main when -x is passed: run cart and exit without the main loop.
+extern bool g_runAndExit;

@@ -186,6 +186,10 @@ void Host::setPlatformParams(
 
 
 void Host::oneTimeSetup(Audio* audio){
+    if (g_runAndExit) {
+        return;
+    }
+
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
         fprintf(stderr, "SDL could not initialize\n");
@@ -246,6 +250,10 @@ void Host::oneTimeSetup(Audio* audio){
 }
 
 void Host::oneTimeCleanup(){
+    if (g_runAndExit) {
+        return;
+    }
+
     saveSettingsIni();
 
     audioCleanup();
