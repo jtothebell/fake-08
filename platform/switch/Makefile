@@ -2,13 +2,6 @@
 .SUFFIXES:
 #---------------------------------------------------------------------------------
 
-ifeq ($(strip $(DEVKITPRO)),)
-$(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>/devkitpro")
-endif
-
-TOPDIR ?= $(CURDIR)
-include $(DEVKITPRO)/libnx/switch_rules
-
 #---------------------------------------------------------------------------------
 # TARGET is the name of the output
 # BUILD is the directory where object files & intermediate files will be placed
@@ -42,6 +35,17 @@ DATA		:=	data
 INCLUDES	:=	${INCLUDES}
 EXEFS_SRC	:=	exefs_src
 #ROMFS	:=	romfs
+
+ifeq ($(filter clean,$(MAKECMDGOALS)),)
+ifeq ($(strip $(DEVKITPRO)),)
+$(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>/devkitpro")
+endif
+
+TOPDIR ?= $(CURDIR)
+include $(DEVKITPRO)/libnx/switch_rules
+else
+TOPDIR ?= $(CURDIR)
+endif
 
 #---------------------------------------------------------------------------------
 # options for code generation

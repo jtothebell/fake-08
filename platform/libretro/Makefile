@@ -167,6 +167,7 @@ include Makefile.common
 CC = $(CXX)
 
 OBJECTS := $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
+DEPS := $(OBJECTS:.o=.d)
 
 CFLAGS   += $(fpic) -Wall -D__LIBRETRO__ -DMINIZ_NO_TIME -ffunction-sections -MMD -MP -std=gnu++17 -fno-rtti $(INCFLAGS)
 CXXFLAGS += $(fpic) -Wall -D__LIBRETRO__ -DMINIZ_NO_TIME -ffunction-sections -MMD -MP -std=gnu++17 -fno-rtti $(INCFLAGS)
@@ -190,7 +191,7 @@ endif
 	$(Q)$(CXX) $(CFLAGS) $(fpic) -c -o $@ $<
 
 clean:
-	rm -f $(OBJECTS) $(TARGET)
+	rm -f $(OBJECTS) $(DEPS) $(TARGET) fake08_libretro.so fake08_libretro.dylib fake08_libretro.dll fake08_libretro.a
 
 echo:
 	@echo echo ...

@@ -14,7 +14,8 @@ LIBS = -lSDL2 -lScePower_stub  -lSceDisplay_stub -lSceCtrl_stub -lSceAudio_stub 
 
 CFILES   := $(foreach dir,$(SOURCES), $(wildcard $(dir)/*.c))
 CPPFILES   := $(foreach dir,$(SOURCES), $(wildcard $(dir)/*.cpp))
-OBJS     := $(CFILES:.c=.o) $(CPPFILES:.cpp=.o) 
+OBJS     := $(CFILES:.c=.o) $(CPPFILES:.cpp=.o)
+DEPS     := $(OBJS:.o=.d)
 
 export INCLUDE		:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 				$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
@@ -61,7 +62,7 @@ $(PROJECT).elf: $(OBJS)
 
 
 clean:
-	rm -f $(PROJECT).velf $(PROJECT).elf $(PROJECT).vpk param.sfo eboot.bin $(OBJS)
+	rm -f $(PROJECT).velf $(PROJECT).elf $(PROJECT).vpk param.sfo eboot.bin $(OBJS) $(DEPS)
 
 vpksend: $(PROJECT).vpk
 	curl -T $(PROJECT).vpk ftp://$(PSVITAIP):1337/ux0:/

@@ -2,18 +2,6 @@
 .SUFFIXES:
 #-------------------------------------------------------------------------------
 
-ifeq ($(strip $(DEVKITPRO)),)
-$(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>/devkitpro")
-endif
-
-TOPDIR ?= $(CURDIR)
-include $(DEVKITPRO)/wut/share/wut_rules
-
-#-------------------------------------------------------------------------------
-# pkg-config for libraries flags
-#-------------------------------------------------------------------------------
-PKGCONF		:=	$(PORTLIBS_PATH)/wiiu/bin/powerpc-eabi-pkg-config
-
 #-------------------------------------------------------------------------------
 # TARGET is the name of the output
 # BUILD is the directory where object files & intermediate files will be placed
@@ -27,6 +15,22 @@ INCLUDES	:=	${INCLUDES}
 ROMFS		:=	romfs
 LIBRARIES	:=	SDL2_gfx SDL2_image SDL2_mixer SDL2_ttf sdl2 \
 			freetype2 zlib libpng libjpeg
+
+ifeq ($(filter clean,$(MAKECMDGOALS)),)
+ifeq ($(strip $(DEVKITPRO)),)
+$(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>/devkitpro")
+endif
+
+TOPDIR ?= $(CURDIR)
+include $(DEVKITPRO)/wut/share/wut_rules
+else
+TOPDIR ?= $(CURDIR)
+endif
+
+#-------------------------------------------------------------------------------
+# pkg-config for libraries flags
+#-------------------------------------------------------------------------------
+PKGCONF		:=	$(PORTLIBS_PATH)/wiiu/bin/powerpc-eabi-pkg-config
 
 #-------------------------------------------------------------------------------
 # options for code generation
