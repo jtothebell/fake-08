@@ -17,6 +17,7 @@ using namespace std;
 #include "stringToDataHelpers.h"
 
 #include "logger.h"
+#include "rrectCuts.h"
 
 #include <fix32.h>
 using namespace z8;
@@ -1493,58 +1494,76 @@ void Graphics::rectfill(int x1, int y1, int x2, int y2, int32_t col) {
 	}
 }
 
-#include <cmath>
+int Graphics::_rrectCornerCut(int r, int cornerRow, int w, int h) const {
+	if (r <= 0 || cornerRow < 0) {
+		return 0;
+	}
 
-int Graphics::_getRRectCutAmount(int radius, int row) {
-    //reverse engineered look up tables for pixel perfect matches (and speed)
-    if (radius == 6) {
-        static int cuts[] = {5,3,2,1,1,0};
-        return (row < 6) ? cuts[row] : 0;
-    } else if (radius == 7) {
-        static int cuts[] = {6,4,3,2,1,1,0};
-        return (row < 7) ? cuts[row] : 0;
-    } else if (radius == 8) {
-        static int cuts[] = {7,5,3,2,2,1,1,0};
-        return (row < 8) ? cuts[row] : 0;
-    } else if (radius == 9) {
-        static int cuts[] = {7,5,4,3,2,1,1,0};
-        return (row < 8) ? cuts[row] : 0;
-    } else if (radius == 10) {
-        static int cuts[] = {7,5,4,3,2,1,1,0};
-        return (row < 8) ? cuts[row] : 0;
-    } else if (radius == 11 || radius == 12) {
-        static int cuts[] = {9,7,5,4,3,2,2,1,1,0,0};
-        return (row < 11) ? cuts[row] : 0;
-    } else if (radius == 13 || radius == 14) {
-        static int cuts[] = {11,8,7,5,4,3,3,2,1,1,1,0,0};
-        return (row < 13) ? cuts[row] : 0;
-    } else if (radius == 15 || radius == 16) {
-        static int cuts[] = {13,10,8,7,5,4,4,3,2,2,1,1,1,0,0};
-        return (row < 15) ? cuts[row] : 0;
-    } else {
-		//not pixel perfect, but it is rounded
-        if (row >= radius) return 0;
-        
-        // Calculate using circle equation
-        double y = static_cast<double>(radius - row - 1);
-        double discriminant = static_cast<double>(radius * radius) - (y * y);
-        
-        if (discriminant <= 0) return 0;
-        
-        double x = static_cast<double>(radius) - std::sqrt(discriminant);
-        int cut = static_cast<int>(x + 0.5) - 1;
-        
-        // Handle the tail end where cuts often stay at 1 for multiple rows
-        // This prevents premature jumps to 0
-        if (cut == 0 && row < radius - 1) {
-            double tail_y = static_cast<double>(radius - row);
-            if (tail_y <= 2.5) {
-                cut = 1;
-            }
-        }
-        
-        return (cut < 0) ? 0 : cut;
-    }
+	// PICO-8 shrinks the corner arc when the rect is too narrow to fit full rounding.
+	int rCorner = r;
+	int maxCornerX = (w - 2) / 2;
+	int maxCornerY = (h - 2) / 2;
+	if (rCorner > maxCornerX) {
+		rCorner = maxCornerX;
+	}
+	if (rCorner > maxCornerY) {
+		rCorner = maxCornerY;
+	}
+	if (rCorner <= 0 || cornerRow >= rCorner) {
+		return 0;
+	}
+
+	return RRECT_CORNER_CUTS[rCorner][cornerRow];
+}
+
+void Graphics::_invertedRRectfill(int x, int y, int w, int h, int r, uint8_t col) {
+	color(col);
+
+	applyCameraToPoint(&x, &y);
+
+	int clipLeft = _memory->drawState.clip_xb;
+	int clipRight = _memory->drawState.clip_xe;
+	int clipTop = _memory->drawState.clip_yb;
+	int clipBottom = _memory->drawState.clip_ye;
+
+	int maxRadius = (w < h ? w : h) / 2;
+	if (r > maxRadius) {
+		r = maxRadius;
+	}
+
+	for (int cy = clipTop; cy < clipBottom; cy++) {
+		int row = cy - y;
+		int cut = 0;
+
+		if (r > 0 && row >= 0 && row < h) {
+			if (row < r) {
+				cut = _rrectCornerCut(r, row, w, h);
+			} else if (row >= h - r) {
+				cut = _rrectCornerCut(r, h - 1 - row, w, h);
+			}
+		}
+
+		if (cut < 0) {
+			cut = 0;
+		}
+		if (cut * 2 >= w) {
+			cut = (w - 1) / 2;
+		}
+
+		int rectLeft = x + cut;
+		int rectRight = x + w - 1 - cut;
+
+		if (cy < y || cy >= y + h) {
+			_private_h_line(clipLeft, clipRight - 1, cy);
+		} else {
+			if (rectLeft > clipLeft) {
+				_private_h_line(clipLeft, rectLeft - 1, cy);
+			}
+			if (rectRight < clipRight - 1) {
+				_private_h_line(rectRight + 1, clipRight - 1, cy);
+			}
+		}
+	}
 }
 
 void Graphics::rrect(int x, int y, int w, int h, int r) {
@@ -1554,13 +1573,15 @@ void Graphics::rrect(int x, int y, int w, int h, int r) {
 void Graphics::rrect(int x, int y, int w, int h, int r, int32_t col) {
 	color(col);
 
-	// Pico 8 docs say: "The radius used is clamped to fall the range 0 .. min(width,height)/2."
+	if (w <= 0 || h <= 0) {
+		return;
+	}
+
 	int maxRadius = (w < h ? w : h) / 2;
 	if (r > maxRadius) {
 		r = maxRadius;
 	}
-	
-	// no radius: fall back to rect
+
 	if (r <= 0) {
 		this->rect(x, y, x + w - 1, y + h - 1, col);
 		return;
@@ -1570,48 +1591,56 @@ void Graphics::rrect(int x, int y, int w, int h, int r, int32_t col) {
 
 	for (int row = 0; row < h; row++) {
 		int cutAmount = 0;
-		
+
 		if (row < r) {
-			//top half
-			if (r <= 5) {
-				cutAmount = r - 1 - row;
-			} else {
-				int yFromCorner = row;
-				int rSquared = r * r;
-				
-				int maxX = 0;
-				for (int testX = 0; testX < r; testX++) {
-					if (testX * testX + yFromCorner * yFromCorner <= rSquared) {
-						maxX = testX;
-					}
-				}
-				
-				cutAmount = r - 1 - maxX;
-			}
+			cutAmount = _rrectCornerCut(r, row, w, h);
 		} else if (row >= h - r) {
-			// bottom half
-			int bottomRow = h - 1 - row;
-			if (r <= 5) {
-				cutAmount = r - 1 - bottomRow;
-			} else {
-				cutAmount = _getRRectCutAmount(r, bottomRow);
-			}
+			cutAmount = _rrectCornerCut(r, h - 1 - row, w, h);
 		}
-		
-		if (cutAmount < 0) cutAmount = 0;
-		if (cutAmount * 2 >= w) cutAmount = (w - 1) / 2;
-		
+
+		if (cutAmount < 0) {
+			cutAmount = 0;
+		}
+		if (cutAmount * 2 >= w) {
+			cutAmount = (w - 1) / 2;
+		}
+
 		int lineStart = x + cutAmount;
 		int lineEnd = x + w - 1 - cutAmount;
-		
+
 		if (lineStart <= lineEnd) {
 			if (row == 0 || row == h - 1) {
 				_private_h_line(lineStart, lineEnd, y + row);
-			} else {
-				_safeSetPixelFromPen(lineStart, y + row);
-				if (lineStart != lineEnd) {
-					_safeSetPixelFromPen(lineEnd, y + row);
+			} else if (row < r) {
+				int prevCut = _rrectCornerCut(r, row - 1, w, h);
+				int span = prevCut - cutAmount - 1;
+				if (span > 0) {
+					_private_h_line(lineStart, lineStart + span, y + row);
+					_private_h_line(lineEnd - span, lineEnd, y + row);
+				} else {
+					_safeSetPixelFromPen(lineStart, y + row);
+					if (lineStart != lineEnd) {
+						_safeSetPixelFromPen(lineEnd, y + row);
+					}
 				}
+			} else if (row >= h - r) {
+				int cornerRow = h - 1 - row;
+				int outerCut = cornerRow > 0
+					? _rrectCornerCut(r, cornerRow - 1, w, h)
+					: cutAmount;
+				int span = outerCut - cutAmount - 1;
+				if (span > 0) {
+					_private_h_line(lineStart, lineStart + span, y + row);
+					_private_h_line(lineEnd - span, lineEnd, y + row);
+				} else {
+					_safeSetPixelFromPen(lineStart, y + row);
+					if (lineStart != lineEnd) {
+						_safeSetPixelFromPen(lineEnd, y + row);
+					}
+				}
+			} else {
+				_safeSetPixelFromPen(x, y + row);
+				_safeSetPixelFromPen(x + w - 1, y + row);
 			}
 		}
 	}
@@ -1622,15 +1651,21 @@ void Graphics::rrectfill(int x, int y, int w, int h, int r) {
 }
 
 void Graphics::rrectfill(int x, int y, int w, int h, int r, int32_t col) {
+	if (_isInvertedFill(col)) {
+		return _invertedRRectfill(x, y, w, h, r, _penColorFromDrawColor(col));
+	}
+
 	color(col);
 
-	// Pico 8 docs say: "The radius used is clamped to fall the range 0 .. min(width,height)/2."
+	if (w <= 0 || h <= 0) {
+		return;
+	}
+
 	int maxRadius = (w < h ? w : h) / 2;
 	if (r > maxRadius) {
 		r = maxRadius;
 	}
-	
-	// no radius: fall back to rectfill
+
 	if (r <= 0) {
 		this->rectfill(x, y, x + w - 1, y + h - 1, col);
 		return;
@@ -1640,32 +1675,23 @@ void Graphics::rrectfill(int x, int y, int w, int h, int r, int32_t col) {
 
 	for (int row = 0; row < h; row++) {
 		int cutAmount = 0;
-		
+
 		if (row < r) {
-			//top half
-			if (r <= 5) {
-				// Small radius appear to be a simple stepping pattern
-				cutAmount = r - 1 - row;
-			} else {
-				// Large radius: use pixel perfect look ups with fallback
-				cutAmount = _getRRectCutAmount(r, row);
-			}
+			cutAmount = _rrectCornerCut(r, row, w, h);
 		} else if (row >= h - r) {
-			//bottom half
-			int bottomRow = h - 1 - row;
-			if (r <= 5) {
-				cutAmount = r - 1 - bottomRow;
-			} else {
-				cutAmount = _getRRectCutAmount(r, bottomRow);
-			}
+			cutAmount = _rrectCornerCut(r, h - 1 - row, w, h);
 		}
-		
-		if (cutAmount < 0) cutAmount = 0;
-		if (cutAmount * 2 >= w) cutAmount = (w - 1) / 2;
-		
+
+		if (cutAmount < 0) {
+			cutAmount = 0;
+		}
+		if (cutAmount * 2 >= w) {
+			cutAmount = (w - 1) / 2;
+		}
+
 		int lineStart = x + cutAmount;
 		int lineEnd = x + w - 1 - cutAmount;
-		
+
 		if (lineStart <= lineEnd) {
 			_private_h_line(lineStart, lineEnd, y + row);
 		}

@@ -2607,15 +2607,15 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->rrectfill(10, 10, 6, 6, 1, 8);
 
         std::vector<coloredPoint> expectedPoints = {
-            // Row 0: cut 0 (full width)
-            {10, 10, 8}, {11, 10, 8}, {12, 10, 8}, {13, 10, 8}, {14, 10, 8}, {15, 10, 8},
-            // Row 1-4: full width
+            // Row 0: cut 1 from each side
+            {11, 10, 8}, {12, 10, 8}, {13, 10, 8}, {14, 10, 8},
+            // Rows 1-4: full width
             {10, 11, 8}, {11, 11, 8}, {12, 11, 8}, {13, 11, 8}, {14, 11, 8}, {15, 11, 8},
             {10, 12, 8}, {11, 12, 8}, {12, 12, 8}, {13, 12, 8}, {14, 12, 8}, {15, 12, 8},
             {10, 13, 8}, {11, 13, 8}, {12, 13, 8}, {13, 13, 8}, {14, 13, 8}, {15, 13, 8},
             {10, 14, 8}, {11, 14, 8}, {12, 14, 8}, {13, 14, 8}, {14, 14, 8}, {15, 14, 8},
-            // Row 5: cut 0 (full width)
-            {10, 15, 8}, {11, 15, 8}, {12, 15, 8}, {13, 15, 8}, {14, 15, 8}, {15, 15, 8},
+            // Row 5: cut 1 from each side
+            {11, 15, 8}, {12, 15, 8}, {13, 15, 8}, {14, 15, 8},
         };
 
         checkPoints(graphics, expectedPoints);
@@ -2641,10 +2641,10 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->rrectfill(20, 20, 8, 8, 2, 7);
 
         std::vector<coloredPoint> expectedPoints = {
-            // Row 0: cut 1 from each side
-            {21, 20, 7}, {22, 20, 7}, {23, 20, 7}, {24, 20, 7}, {25, 20, 7}, {26, 20, 7},
-            // Row 1: cut 0 (full width)  
-            {20, 21, 7}, {21, 21, 7}, {22, 21, 7}, {23, 21, 7}, {24, 21, 7}, {25, 21, 7}, {26, 21, 7}, {27, 21, 7},
+            // Row 0: cut 2 from each side
+            {22, 20, 7}, {23, 20, 7}, {24, 20, 7}, {25, 20, 7},
+            // Row 1: cut 1 from each side
+            {21, 21, 7}, {22, 21, 7}, {23, 21, 7}, {24, 21, 7}, {25, 21, 7}, {26, 21, 7},
             // Middle rows: full width
             {20, 22, 7}, {21, 22, 7}, {22, 22, 7}, {23, 22, 7}, {24, 22, 7}, {25, 22, 7}, {26, 22, 7}, {27, 22, 7},
             {20, 23, 7}, {21, 23, 7}, {22, 23, 7}, {23, 23, 7}, {24, 23, 7}, {25, 23, 7}, {26, 23, 7}, {27, 23, 7},
@@ -2652,6 +2652,8 @@ TEST_CASE("graphics class behaves as expected") {
             {20, 25, 7}, {21, 25, 7}, {22, 25, 7}, {23, 25, 7}, {24, 25, 7}, {25, 25, 7}, {26, 25, 7}, {27, 25, 7},
             // Row 6: cut 1 from each side
             {21, 26, 7}, {22, 26, 7}, {23, 26, 7}, {24, 26, 7}, {25, 26, 7}, {26, 26, 7},
+            // Row 7: cut 2 from each side
+            {22, 27, 7}, {23, 27, 7}, {24, 27, 7}, {25, 27, 7},
         };
 
         checkPoints(graphics, expectedPoints);
@@ -2695,16 +2697,15 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->cls();
         graphics->rrect(30, 30, 10, 8, 10, 5); // radius 10 should be clamped to 4 (8/2)
 
-        // Should behave like radius 4: pattern {3,2,1,0}
         std::vector<coloredPoint> expectedPoints = {
-            // Row 0: cut 3 from each side -> start at x=33, end at x=36
             {33, 30, 5}, {34, 30, 5}, {35, 30, 5}, {36, 30, 5},
-            // Row 1: cut 2 from each side -> start at x=32, end at x=37
-            {32, 31, 5}, {37, 31, 5},
-            // Row 2: cut 1 from each side -> start at x=31, end at x=38
+            {31, 31, 5}, {32, 31, 5}, {37, 31, 5}, {38, 31, 5},
             {31, 32, 5}, {38, 32, 5},
-            // Row 3: cut 0 -> full width
             {30, 33, 5}, {39, 33, 5},
+            {30, 34, 5}, {39, 34, 5},
+            {31, 35, 5}, {38, 35, 5},
+            {31, 36, 5}, {32, 36, 5}, {37, 36, 5}, {38, 36, 5},
+            {33, 37, 5}, {34, 37, 5}, {35, 37, 5}, {36, 37, 5},
         };
 
         checkPoints(graphics, expectedPoints);
@@ -2757,6 +2758,29 @@ TEST_CASE("graphics class behaves as expected") {
             }
         }
         CHECK(hasPixels);
+    }
+    SUBCASE("rrectfill({x}, {y}, {w}, {h}, {r}, {c}) with inverted mode fills outside rounded rect") {
+        graphics->cls(8);
+        picoRam.drawState.colorSettingFlag = 0x02;
+        graphics->rrectfill(40, 40, 11, 11, 2, 13 | 0x1800);
+        std::vector<coloredPoint> expectedPoints = {
+            {45, 45, 8},
+            {0, 0, 13},
+            {127, 127, 13},
+            {40, 39, 13},
+            {51, 45, 13},
+        };
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("rrectfill({x}, {y}, {w}, {h}, {r}, {c}) with invert flag but no 0x1800 fills normally") {
+        graphics->cls(8);
+        picoRam.drawState.colorSettingFlag = 0x02;
+        graphics->rrectfill(40, 40, 11, 11, 2, 13);
+        std::vector<coloredPoint> expectedPoints = {
+            {45, 45, 13},
+            {0, 0, 8},
+        };
+        checkPoints(graphics, expectedPoints);
     }
     SUBCASE("rrect basic clipping test") {
         graphics->cls();

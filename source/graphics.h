@@ -58,12 +58,13 @@ class Graphics {
 	void _safeSetPixelFromPen(int x, int y);
 	void _private_h_line (int x1, int x2, int y);
 	void _private_v_line (int y1, int y2, int x);
-	int _getRRectCutAmount(int radius, int row);
 
 	void _invertedCircfill(int ox, int oy, int r, uint8_t col);
 	void _invertedRectfill(int x1, int y1, int x2, int y2, uint8_t col);
 	void _invertedOvalfill(int x0, int y0, int x1, int y1, uint8_t col);
+	void _invertedRRectfill(int x, int y, int w, int h, int r, uint8_t col);
 	int _ellipseHalfWidthAtRow(int xc, int yc, int xr, int yr, int y) const;
+	int _rrectCornerCut(int r, int cornerRow, int w, int h) const;
 	bool _isInvertedFill(int32_t col) const;
 	uint8_t _penColorFromDrawColor(int32_t col) const;
 
