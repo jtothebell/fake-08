@@ -82,6 +82,22 @@ TEST_CASE("IF and WHILE shorthand") {
         }
     }
 
+    SUBCASE("nested short while with short if in outer while") {
+        const char* code =
+        "local t,e=3,\"abcdefghi\"\n"
+        "local o,n,f=3,1,8\n"
+        "while t<#e do\n"
+        "while(o>0)o-=1n+=1if(n>f)n=1\n"
+        "t+=2 end\n"
+        "return t\n";
+        int result = luaL_dostring(L, code);
+        CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
+        if (result == LUA_OK) {
+            CHECK_EQ(lua_type(L, -1), LUA_TNUMBER);
+            CHECK_EQ(lua_tointeger(L, -1), 9);
+        }
+    }
+
     lua_close(L);
 }
 
