@@ -51,3 +51,6 @@ platform/libretro/libs/
 platform/libretro/obj/
 .DS_Store
 
+# Local investigation carts
+test/carts/scratch/
+
