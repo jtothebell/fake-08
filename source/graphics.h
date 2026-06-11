@@ -61,6 +61,11 @@ class Graphics {
 	int _getRRectCutAmount(int radius, int row);
 
 	void _invertedCircfill(int ox, int oy, int r, uint8_t col);
+	void _invertedRectfill(int x1, int y1, int x2, int y2, uint8_t col);
+	void _invertedOvalfill(int x0, int y0, int x1, int y1, uint8_t col);
+	int _ellipseHalfWidthAtRow(int xc, int yc, int xr, int yr, int y) const;
+	bool _isInvertedFill(int32_t col) const;
+	uint8_t _penColorFromDrawColor(int32_t col) const;
 
 	public:
 	Graphics(std::string fontdata, PicoRam* memory);
@@ -77,44 +82,44 @@ class Graphics {
 	void cls(uint8_t color);
 
 	void pset(int x, int y);
-	void pset(int x, int y, uint8_t col);
+	void pset(int x, int y, int32_t col);
 	uint8_t pget(int x, int y);
 
 	uint8_t color();
-	uint8_t color(uint8_t c);
+	uint8_t color(int32_t c);
 
 	void line ();
-	void line (uint8_t col);
+	void line (int32_t col);
 	void line (int x1, int y1);
-	void line (int x1, int y1, uint8_t col);
+	void line (int x1, int y1, int32_t col);
 	void line (int x1, int y1, int x2, int y2);
-	void line (int x1, int y1, int x2, int y2, uint8_t col);
+	void line (int x1, int y1, int x2, int y2, int32_t col);
 
 	void tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my);
 	void tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 mdx, fix32 mdy);
 
 	void circ(int ox, int oy);
 	void circ(int ox, int oy, int r);
-	void circ(int ox, int oy, int r, uint8_t col);
+	void circ(int ox, int oy, int r, int32_t col);
 	void circfill(int ox, int oy);
 	void circfill(int ox, int oy, int r);
-	void circfill(int ox, int oy, int r, uint8_t col);
+	void circfill(int ox, int oy, int r, int32_t col);
 
 	void oval(int x0, int y0, int x1, int y1);
-	void oval(int x0, int y0, int x1, int y1, uint8_t col);
+	void oval(int x0, int y0, int x1, int y1, int32_t col);
 
 	void ovalfill(int x0, int y0, int x1, int y1);
-	void ovalfill(int x0, int y0, int x1, int y1, uint8_t col);
+	void ovalfill(int x0, int y0, int x1, int y1, int32_t col);
 
 	void rect(int x1, int y1, int x2, int y2);
-	void rect(int x1, int y1, int x2, int y2, uint8_t col);
+	void rect(int x1, int y1, int x2, int y2, int32_t col);
 	void rectfill(int x1, int y1, int x2, int y2);
-	void rectfill(int x1, int y1, int x2, int y2, uint8_t col);
+	void rectfill(int x1, int y1, int x2, int y2, int32_t col);
 
 	void rrect(int x, int y, int w, int h, int r);
-	void rrect(int x, int y, int w, int h, int r, uint8_t col);
+	void rrect(int x, int y, int w, int h, int r, int32_t col);
 	void rrectfill(int x, int y, int w, int h, int r);
-	void rrectfill(int x, int y, int w, int h, int r, uint8_t col);
+	void rrectfill(int x, int y, int w, int h, int r, int32_t col);
 
 	fix32 fillp(fix32 pat);
 
@@ -187,7 +192,7 @@ class Graphics {
 
 	std::tuple<uint8_t, uint8_t> cursor();
 	std::tuple<uint8_t, uint8_t> cursor(int x, int y);
-	std::tuple<uint8_t, uint8_t> cursor(int x, int y, uint8_t col);
+	std::tuple<uint8_t, uint8_t> cursor(int x, int y, int32_t col);
 
 };
 

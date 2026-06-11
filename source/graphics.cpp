@@ -651,7 +651,7 @@ void Graphics::pset(int x, int y){
 	this->pset(x, y, _memory->drawState.color);
 }
 
-void Graphics::pset(int x, int y, uint8_t col){
+void Graphics::pset(int x, int y, int32_t col){
 	color(col);
 
 	applyCameraToPoint(&x, &y);
@@ -675,12 +675,68 @@ uint8_t Graphics::color(){
 	return color(6);
 }
 
-uint8_t Graphics::color(uint8_t col){
+uint8_t Graphics::color(int32_t col){
 	uint8_t prev = _memory->drawState.color;
 
-	_memory->drawState.color = col;
+	_memory->drawState.color = _penColorFromDrawColor(col);
 
 	return prev;
+}
+
+bool Graphics::_isInvertedFill(int32_t col) const {
+	return (_memory->drawState.colorSettingFlag & 0x02) != 0
+		&& (col & 0x1800) != 0;
+}
+
+uint8_t Graphics::_penColorFromDrawColor(int32_t col) const {
+	if ((col & 0x1800) != 0) {
+		if ((col & 0xff) != 0) {
+			return col & 0xff;
+		}
+		return (col >> 8) & 0x0f;
+	}
+	if ((col & 0x1000) != 0 && (col & 0xff) == 0) {
+		return (col >> 8) & 0x0f;
+	}
+	if (col >= 0 && col <= 0xff) {
+		return (uint8_t)col;
+	}
+	return col & 0x0f;
+}
+
+static int isqrtInt(int n) {
+	if (n <= 0) {
+		return 0;
+	}
+	int x = n;
+	int y = (x + 1) / 2;
+	while (y < x) {
+		x = y;
+		y = (x + n / x) / 2;
+	}
+	return x;
+}
+
+int Graphics::_ellipseHalfWidthAtRow(int xc, int yc, int xr, int yr, int y) const {
+	int dy = y - yc;
+	int bsq = yr * yr;
+	int asq = xr * xr;
+
+	if (bsq == 0) {
+		return dy == 0 ? xr : -1;
+	}
+
+	int dy2 = dy * dy;
+	if (dy2 > bsq) {
+		return -1;
+	}
+
+	int inner = asq * (bsq - dy2);
+	if (inner <= 0) {
+		return 0;
+	}
+
+	return isqrtInt(inner) / yr;
 }
 
 void Graphics::line () {
@@ -690,7 +746,7 @@ void Graphics::line () {
 	_memory->drawState.lineInvalid = 1;
 }
 
-void Graphics::line (uint8_t col){
+void Graphics::line (int32_t col){
 	color(col);
 
 	this->line();
@@ -702,7 +758,7 @@ void Graphics::line (int x1, int y1){
 	}
 }
 
-void Graphics::line (int x1, int y1, uint8_t col){
+void Graphics::line (int x1, int y1, int32_t col){
 	if (_memory->drawState.lineInvalid == false){
 		this->line(_memory->drawState.line_x, _memory->drawState.line_y, x1, y1, col);
 	}
@@ -816,7 +872,7 @@ void Graphics::_private_v_line (int y1, int y2, int x){
 	}
 }
 
-void Graphics::line(int x0, int y0, int x1, int y1, uint8_t col) {
+void Graphics::line(int x0, int y0, int x1, int y1, int32_t col) {
 	_memory->drawState.line_x = x1;
 	_memory->drawState.line_y = y1;
 	_memory->drawState.lineInvalid = 0;
@@ -966,7 +1022,7 @@ void Graphics::circ(int ox, int oy, int r){
 	this->circ(ox, oy, r, _memory->drawState.color);
 }
 
-void Graphics::circ(int ox, int oy, int r, uint8_t col){
+void Graphics::circ(int ox, int oy, int r, int32_t col){
 	color(col);
 
 	applyCameraToPoint(&ox, &oy);
@@ -1067,12 +1123,70 @@ void Graphics::_invertedCircfill(int ox, int oy, int r, uint8_t col){
 	}
 }
 
-void Graphics::circfill(int ox, int oy, int r, uint8_t col){
-	// Check if inverted fill mode is enabled (bit 1 of colorSettingFlag at 0x5f34)
-	bool invertedFill = (_memory->drawState.colorSettingFlag & 0x02) != 0;
+void Graphics::_invertedRectfill(int x1, int y1, int x2, int y2, uint8_t col) {
+	color(col);
 
-	if (invertedFill) {
-		return _invertedCircfill(ox, oy, r, col);
+	x1 -= _memory->drawState.camera_x;
+	y1 -= _memory->drawState.camera_y;
+	x2 -= _memory->drawState.camera_x;
+	y2 -= _memory->drawState.camera_y;
+
+	sortCoordsForRect(&x1, &y1, &x2, &y2);
+
+	int clipLeft = _memory->drawState.clip_xb;
+	int clipRight = _memory->drawState.clip_xe;
+	int clipTop = _memory->drawState.clip_yb;
+	int clipBottom = _memory->drawState.clip_ye;
+
+	for (int y = clipTop; y < clipBottom; y++) {
+		if (y < y1 || y > y2) {
+			_private_h_line(clipLeft, clipRight - 1, y);
+		} else {
+			if (x1 > clipLeft) {
+				_private_h_line(clipLeft, x1 - 1, y);
+			}
+			if (x2 < clipRight - 1) {
+				_private_h_line(x2 + 1, clipRight - 1, y);
+			}
+		}
+	}
+}
+
+void Graphics::_invertedOvalfill(int x0, int y0, int x1, int y1, uint8_t col) {
+	color(col);
+
+	applyCameraToPoint(&x0, &y0);
+	applyCameraToPoint(&x1, &y1);
+	sortCoordsForRect(&x0, &y0, &x1, &y1);
+
+	int xr = (x1 - x0) / 2;
+	int yr = (y1 - y0) / 2;
+	int xc = x0 + xr;
+	int yc = y0 + yr;
+
+	int clipLeft = _memory->drawState.clip_xb;
+	int clipRight = _memory->drawState.clip_xe;
+	int clipTop = _memory->drawState.clip_yb;
+	int clipBottom = _memory->drawState.clip_ye;
+
+	for (int y = clipTop; y < clipBottom; y++) {
+		int wx = _ellipseHalfWidthAtRow(xc, yc, xr, yr, y);
+		if (wx < 0) {
+			_private_h_line(clipLeft, clipRight - 1, y);
+		} else {
+			if (xc - wx - 1 >= clipLeft) {
+				_private_h_line(clipLeft, xc - wx - 1, y);
+			}
+			if (xc + wx + 1 < clipRight) {
+				_private_h_line(xc + wx + 1, clipRight - 1, y);
+			}
+		}
+	}
+}
+
+void Graphics::circfill(int ox, int oy, int r, int32_t col){
+	if (_isInvertedFill(col)) {
+		return _invertedCircfill(ox, oy, r, _penColorFromDrawColor(col));
 	}
 
 	color(col);
@@ -1106,7 +1220,7 @@ void Graphics::oval(int x0, int y0, int x1, int y1) {
 }
 
 //https://stackoverflow.com/a/8448181
-void Graphics::oval(int x0, int y0, int x1, int y1, uint8_t col) {
+void Graphics::oval(int x0, int y0, int x1, int y1, int32_t col) {
 	color(col);
 
 	applyCameraToPoint(&x0, &y0);
@@ -1201,7 +1315,11 @@ void Graphics::ovalfill(int x0, int y0, int x1, int y1) {
 }
 
 //https://stackoverflow.com/a/8448181
-void Graphics::ovalfill(int x0, int y0, int x1, int y1, uint8_t col){
+void Graphics::ovalfill(int x0, int y0, int x1, int y1, int32_t col){
+	if (_isInvertedFill(col)) {
+		return _invertedOvalfill(x0, y0, x1, y1, _penColorFromDrawColor(col));
+	}
+
 	color(col);
 
 	applyCameraToPoint(&x0, &y0);
@@ -1307,8 +1425,8 @@ void Graphics::rect(int x1, int y1, int x2, int y2) {
 	this->rect(x1, y1, x2, y2, _memory->drawState.color);
 }
 
-void Graphics::rect(int x1, int y1, int x2, int y2, uint8_t col) {
-	_memory->drawState.color = col;
+void Graphics::rect(int x1, int y1, int x2, int y2, int32_t col) {
+	_memory->drawState.color = _penColorFromDrawColor(col);
 
 	//applyCameraToPoint(&x1, &y1);
 	x1 -= _memory->drawState.camera_x;
@@ -1341,10 +1459,14 @@ void Graphics::rectfill(int x1, int y1, int x2, int y2) {
 	this->rectfill(x1, y1, x2, y2, _memory->drawState.color);
 }
 
-void Graphics::rectfill(int x1, int y1, int x2, int y2, uint8_t col) {
+void Graphics::rectfill(int x1, int y1, int x2, int y2, int32_t col) {
+	if (_isInvertedFill(col)) {
+		return _invertedRectfill(x1, y1, x2, y2, _penColorFromDrawColor(col));
+	}
+
 	auto &drawState = _memory->drawState;
 
-	drawState.color = col;
+	drawState.color = _penColorFromDrawColor(col);
 
 	//applyCameraToPoint(&x1, &y1);
 	x1 -= drawState.camera_x;
@@ -1429,7 +1551,7 @@ void Graphics::rrect(int x, int y, int w, int h, int r) {
 	this->rrect(x, y, w, h, r, _memory->drawState.color);
 }
 
-void Graphics::rrect(int x, int y, int w, int h, int r, uint8_t col) {
+void Graphics::rrect(int x, int y, int w, int h, int r, int32_t col) {
 	color(col);
 
 	// Pico 8 docs say: "The radius used is clamped to fall the range 0 .. min(width,height)/2."
@@ -1499,7 +1621,7 @@ void Graphics::rrectfill(int x, int y, int w, int h, int r) {
 	this->rrectfill(x, y, w, h, r, _memory->drawState.color);
 }
 
-void Graphics::rrectfill(int x, int y, int w, int h, int r, uint8_t col) {
+void Graphics::rrectfill(int x, int y, int w, int h, int r, int32_t col) {
 	color(col);
 
 	// Pico 8 docs say: "The radius used is clamped to fall the range 0 .. min(width,height)/2."
@@ -1978,7 +2100,7 @@ std::tuple<uint8_t, uint8_t> Graphics::cursor(int x, int y) {
 	return prev;
 }
 
-std::tuple<uint8_t, uint8_t> Graphics::cursor(int x, int y, uint8_t col) {
+std::tuple<uint8_t, uint8_t> Graphics::cursor(int x, int y, int32_t col) {
 	color(col);
 
 	return this->cursor(x, y);

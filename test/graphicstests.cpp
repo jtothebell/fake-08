@@ -462,7 +462,7 @@ TEST_CASE("graphics class behaves as expected") {
     SUBCASE("circfill({ox}, {oy}, {r}, {c}) with inverted mode fills outside circle") {
         graphics->cls(8);
         picoRam.drawState.colorSettingFlag = 0x02; // Enable inverted fill mode 
-        graphics->circfill(40, 40, 2, 13);
+        graphics->circfill(40, 40, 2, 13 | 0x1800);
         std::vector<coloredPoint> expectedPoints = {
             // Inside circle should be background color (8)
             {40, 40, 8}, 
@@ -480,6 +480,68 @@ TEST_CASE("graphics class behaves as expected") {
             {127, 127, 13},
         };
 
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("circfill({ox}, {oy}, {r}, {c}) with invert flag but no 0x1800 fills normally") {
+        graphics->cls(8);
+        picoRam.drawState.colorSettingFlag = 0x02;
+        graphics->circfill(40, 40, 2, 13);
+        std::vector<coloredPoint> expectedPoints = {
+            {40, 40, 13},
+            {39, 40, 13},
+            {40, 39, 13},
+            {41, 40, 13},
+            {40, 41, 13},
+            {0, 0, 8},
+            {127, 127, 8},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("rectfill({x1}, {y1}, {x2}, {y2}, {c}) with inverted mode fills outside rect") {
+        graphics->cls(8);
+        picoRam.drawState.colorSettingFlag = 0x02;
+        graphics->rectfill(40, 40, 60, 60, 13 | 0x1800);
+        std::vector<coloredPoint> expectedPoints = {
+            {50, 50, 8},
+            {0, 0, 13},
+            {127, 127, 13},
+            {40, 39, 13},
+            {61, 50, 13},
+        };
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("rectfill({x1}, {y1}, {x2}, {y2}, {c}) with invert flag but no 0x1800 fills normally") {
+        graphics->cls(8);
+        picoRam.drawState.colorSettingFlag = 0x02;
+        graphics->rectfill(40, 40, 60, 60, 13);
+        std::vector<coloredPoint> expectedPoints = {
+            {50, 50, 13},
+            {0, 0, 8},
+        };
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("ovalfill({x0}, {x1}, {y0}, {y1}, {c}) with inverted mode fills outside ellipse") {
+        graphics->cls(8);
+        picoRam.drawState.colorSettingFlag = 0x02;
+        graphics->ovalfill(40, 40, 60, 60, 13 | 0x1800);
+        std::vector<coloredPoint> expectedPoints = {
+            {50, 50, 8},
+            {0, 0, 13},
+            {127, 127, 13},
+            {40, 39, 13},
+            {61, 50, 13},
+        };
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("ovalfill({x0}, {x1}, {y0}, {y1}, {c}) with invert flag but no 0x1800 fills normally") {
+        graphics->cls(8);
+        picoRam.drawState.colorSettingFlag = 0x02;
+        graphics->ovalfill(40, 40, 60, 60, 13);
+        std::vector<coloredPoint> expectedPoints = {
+            {50, 50, 13},
+            {0, 0, 8},
+        };
         checkPoints(graphics, expectedPoints);
     }
     SUBCASE("oval({x0}, {x1}, {y0}, {y1}, {c}) draws an ellipse") {
