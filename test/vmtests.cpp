@@ -1005,3 +1005,82 @@ TEST_CASE("Vm memory functions") {
 
     delete memory;
 }
+
+TEST_CASE("short-if mset in for loop") {
+    StubHost* stubHost = new StubHost();
+    PicoRam* memory = new PicoRam();
+    memory->Reset();
+    Graphics* graphics = new Graphics(get_font_data(), memory);
+    Input* input = new Input(memory);
+    Audio* audio = new Audio(memory);
+    Vm* vm = new Vm(stubHost, memory, graphics, input, audio);
+
+    CHECK(vm->LoadCart("dx_ice_for.p8", false));
+    vm->vm_run();
+    CHECK(vm->Step());
+
+    bool mapOk = vm->ExecuteLua(
+        "function check_map()\n"
+        " return mget(0,0)==18 and mget(1,0)==18\n"
+        "end\n",
+        "check_map");
+    CHECK(mapOk);
+
+    delete vm;
+    delete audio;
+    delete input;
+    delete graphics;
+    delete stubHost;
+    delete memory;
+}
+
+TEST_CASE("collision g missing entity.dd does not use global dd") {
+    StubHost* stubHost = new StubHost();
+    PicoRam* memory = new PicoRam();
+    memory->Reset();
+    Graphics* graphics = new Graphics(get_font_data(), memory);
+    Input* input = new Input(memory);
+    Audio* audio = new Audio(memory);
+    Vm* vm = new Vm(stubHost, memory, graphics, input, audio);
+
+    CHECK(vm->LoadCart("g_dd_global_shadow.p8", false));
+    vm->vm_run();
+    CHECK(vm->Step());
+
+    bool distOk = vm->ExecuteLua(
+        "function check_dist()\n"
+        " local b1={e=104,d=440,i=0,o=0,a=0}\n"
+        " local i1={e=596,d=413,f=true,i=0,o=0,a=0,c={t=\"red\"}}\n"
+        " return g(b1,i1,.3)==492\n"
+        "end\n",
+        "check_dist");
+    CHECK(distOk);
+
+    delete vm;
+    delete audio;
+    delete input;
+    delete graphics;
+    delete stubHost;
+    delete memory;
+}
+
+TEST_CASE("collision g from powerup w closure") {
+    StubHost* stubHost = new StubHost();
+    PicoRam* memory = new PicoRam();
+    memory->Reset();
+    Graphics* graphics = new Graphics(get_font_data(), memory);
+    Input* input = new Input(memory);
+    Audio* audio = new Audio(memory);
+    Vm* vm = new Vm(stubHost, memory, graphics, input, audio);
+
+    CHECK(vm->LoadCart("d9_g_test.p8", false));
+    vm->vm_run();
+    CHECK(vm->Step());
+
+    delete vm;
+    delete audio;
+    delete input;
+    delete graphics;
+    delete stubHost;
+    delete memory;
+}

@@ -369,6 +369,68 @@ TEST_CASE("Nested Shorthand IF logic") {
     lua_close(L);
 }
 
+TEST_CASE("g collision param d shadows global d with entity tables") {
+    lua_State *L = luaL_newstate();
+    luaL_openlibs(L);
+
+    const char* code =
+        "function d() return \"memcpy\" end\n"
+        "function g(d,n,e)local f,a,o,e,c=e or 1,n.e-d.e,n.d-d.d,1,(d.dd or 5)+(n.dd or 5) return a end\n"
+        "function memcpy() end\n"
+        "local b1={e=104,d=200,i=0,o=0,a=0,dd=5}\n"
+        "local i1={e=596,d=300,f=true,dd=5,i=0,o=0,a=0,c={t=\"red\"},u=d,d4=d}\n"
+        "return g(b1,i1,.3)";
+
+    int result = luaL_dostring(L, code);
+    CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
+    if (result == LUA_OK) {
+        CHECK_EQ(lua_tointeger(L, -1), 492);
+    }
+
+    lua_close(L);
+}
+
+TEST_CASE("g collision param d shadows global d when entity lacks dd field") {
+    lua_State *L = luaL_newstate();
+    luaL_openlibs(L);
+
+    SUBCASE("global env") {
+        const char* code =
+            "function d() end\n"
+            "function C(x,y,a,b)local x,y=(x-a)/64,(y-b)/64 return sqrt(x*x+y*y)*64 end\n"
+            "function g(d,n,e)local f,a,o,e,c=e or 1,n.e-d.e,n.d-d.d,C(d.e,d.d,n.e,n.d),(d.dd or 5)+(n.dd or 5) return a end\n"
+            "local b1={e=104,d=440,i=0,o=0,a=0}\n"
+            "local i1={e=596,d=413,f=true,i=0,o=0,a=0,c={t=\"red\"}}\n"
+            "return g(b1,i1,.3)";
+
+        int result = luaL_dostring(L, code);
+        CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
+        if (result == LUA_OK) {
+            CHECK_EQ(lua_tointeger(L, -1), 492);
+        }
+    }
+
+    SUBCASE("sandbox env like cart") {
+        const char* code =
+            "local sandbox={}\n"
+            "function sandbox.d() end\n"
+            "function sandbox.C(x,y,a,b)local x,y=(x-a)/64,(y-b)/64 return sqrt(x*x+y*y)*64 end\n"
+            "local chunk,err=load([[function g(d,n,e)local f,a,o,e,c=e or 1,n.e-d.e,n.d-d.d,C(d.e,d.d,n.e,n.d),(d.dd or 5)+(n.dd or 5) return a end]],nil,nil,sandbox)\n"
+            "chunk()\n"
+            "local b1={e=104,d=440,i=0,o=0,a=0,k=function()end,w=function(d)end}\n"
+            "local i1={e=596,d=413,f=true,i=0,o=0,a=0,c={t=\"red\"}}\n"
+            "return sandbox.g(b1,i1,.3)";
+
+        int result = luaL_dostring(L, code);
+        CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
+        if (result == LUA_OK) {
+            CHECK_EQ(lua_tointeger(L, -1), 492);
+        }
+    }
+
+    lua_close(L);
+}
+
 TEST_CASE("Shorthand IF braces logic") {
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
