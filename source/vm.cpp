@@ -1358,6 +1358,9 @@ void Vm::vm_reset(){
     _memory->hwState.screenDataMemMapping = 0x60;
     _memory->hwState.mapMemMapping = 0x20;
     _memory->hwState.widthOfTheMap = 128;
+    for (uint8_t c = 0; c < 16; c++) {
+        _memory->hwState.alternatePaletteMap[c] = c | (c << 4);
+    }
 
     _graphics->color();
     _graphics->clip();

@@ -388,32 +388,32 @@ int print(std::string str, int x, int y, uint8_t c) {
                 cancelWrap = true;
 
                 std::string addrHexStr = str.substr(n+1, 4);
-                n+=4;
+                n += 4;
                 int addr = (int)strtol(addrHexStr.c_str(), NULL, 16);
 
-                int size = length - n;
-                std::string binStr = str.substr(n + 1, size);
-                n+=size;
-
-                for(size_t i = 0; i < size; i++) {
-                    _ph_mem->data[addr + i] = binStr[i];
+                size_t dataStart = n + 1;
+                for (size_t i = dataStart; i < length; i++) {
+                    _ph_mem->data[addr++] = str[i];
                 }
+                n = length - 1;
             }
             else if (commandChar == '@'){
                 std::string addrHexStr = str.substr(n+1, 4);
-                n+=4;
+                n += 4;
                 int addr = (int)strtol(addrHexStr.c_str(), NULL, 16);
 
                 std::string sizeHexStr = str.substr(n+1, 4);
-                n+=4;
+                n += 4;
 
                 int size = (int)strtol(sizeHexStr.c_str(), NULL, 16);
 
-                std::string binStr = str.substr(n + 1, size);
-                n+= size;
-
-                for(size_t i = 0; i < size; i++) {
-                    _ph_mem->data[addr + i] = binStr[i];
+                size_t dataStart = n + 1;
+                for (int i = 0; i < size && dataStart + (size_t)i < length; i++) {
+                    _ph_mem->data[addr + i] = str[dataStart + i];
+                }
+                n = dataStart + (size_t)size - 1;
+                if (n >= length) {
+                    n = length - 1;
                 }
             }
             else if (commandChar == 'o'){

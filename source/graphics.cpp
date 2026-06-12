@@ -162,9 +162,9 @@ void Graphics::copySpriteToScreen(
 			int finalx = scr_x + (flip_x ? x + 1 : x);
 			
 			if (x > 0 || !startWithHalf){
-				lc &= 0x0f; // Ensure color is only 4 bits before palette lookup
-				if (!(drawState.drawPaletteMap[lc] >> 4)){
-					lc = drawState.drawPaletteMap[lc] & 0x0f;
+				uint8_t mapped;
+				if (getSpritePixelColor(lc, finalx, finaly, mapped)) {
+					lc = mapped;
 
 					int screenPixelIdx = COMBINED_IDX(finalx, finaly);
 					if (lastScreenBuffIdx != screenPixelIdx) {
@@ -190,9 +190,9 @@ void Graphics::copySpriteToScreen(
 			}
 
 			if (x < scr_w) {
-				rc &= 0x0f; // Ensure color is only 4 bits before palette lookup
-				if (!(drawState.drawPaletteMap[rc] >> 4)){
-					rc = drawState.drawPaletteMap[rc] & 0x0f;
+				uint8_t mapped;
+				if (getSpritePixelColor(rc, finalx, finaly, mapped)) {
+					rc = mapped;
 
 					int screenPixelIdx = COMBINED_IDX(finalx, finaly);
 					if (lastScreenBuffIdx != screenPixelIdx) {
@@ -351,13 +351,14 @@ void Graphics::copyStretchSpriteToScreen(
 					uint8_t c = shiftedPixIndex % 2 == 0 
 						? bothPix & 0x0f //just first 4 bits
 						: (bothPix >> 4) & 0x0f;  //just last 4 bits
-					c &= 0x0f; // Ensure color is only 4 bits before palette lookup
 
-					if (_memory->drawState.drawPaletteMap[c] >> 4){
+					const int finalx = scr_x + x;
+					const int finaly = scr_y + y;
+					uint8_t mapped;
+					if (!getSpritePixelColor(c, finalx, finaly, mapped)) {
 						continue;
 					}
-					c = drawState.drawPaletteMap[c] & 0x0f;
-					setPixelNibble(scr_x + x, scr_y + y, c, screenBuffer);
+					setPixelNibble(finalx, finaly, mapped, screenBuffer);
 				}
 			} else {
 				for (int x = 0; x < scr_w; x++) {
@@ -373,11 +374,13 @@ void Graphics::copyStretchSpriteToScreen(
 						? bothPix & 0x0f //just first 4 bits
 						: bothPix >> 4;  //just last 4 bits
 					
-					if (_memory->drawState.drawPaletteMap[c] >> 4){
+					const int finalx = scr_x + x;
+					const int finaly = scr_y + y;
+					uint8_t mapped;
+					if (!getSpritePixelColor(c, finalx, finaly, mapped)) {
 						continue;
 					}
-					c = drawState.drawPaletteMap[c] & 0x0f;
-					setPixelNibble(scr_x + x, scr_y + y, c, screenBuffer);
+					setPixelNibble(finalx, finaly, mapped, screenBuffer);
 				}
 			}
 		}
@@ -402,23 +405,21 @@ void Graphics::copyStretchSpriteToScreen(
 					uint8_t c = shiftedPixIndex % 2 == 0 
 						? bothPix & 0x0f //just first 4 bits
 						: (bothPix >> 4) & 0x0f;  //just last 4 bits
-					c &= 0x0f; // Ensure color is only 4 bits before palette lookup
-
-					if (_memory->drawState.drawPaletteMap[c] >> 4){
-						continue;
-					}
-					c = drawState.drawPaletteMap[c] & 0x0f;
 
 					const int finalx = scr_x + x;
 					const int finaly = scr_y + y;
+					uint8_t mapped;
+					if (!getSpritePixelColor(c, finalx, finaly, mapped)) {
+						continue;
+					}
 
 					uint8_t source = (BITMASK(0) & finalx) == 0 
 							? screenBuffer[COMBINED_IDX(finalx, finaly)] & 0x0f //just first 4 bits
 							: screenBuffer[COMBINED_IDX(finalx, finaly)] >> 4;
 
-					c = (source & ~writeMask) | (c & writeMask & readMask);
+					mapped = (source & ~writeMask) | (mapped & writeMask & readMask);
 
-					setPixelNibble(finalx, finaly, c, screenBuffer);
+					setPixelNibble(finalx, finaly, mapped, screenBuffer);
 				}
 			} else {
 				for (int x = 0; x < scr_w; x++) {
@@ -433,22 +434,21 @@ void Graphics::copyStretchSpriteToScreen(
 					uint8_t c = (pixIndex >> 16) % 2 == 0 
 						? bothPix & 0x0f //just first 4 bits
 						: bothPix >> 4;  //just last 4 bits
-
-					if (_memory->drawState.drawPaletteMap[c] >> 4){
-						continue;
-					}
-					c = drawState.drawPaletteMap[c] & 0x0f;
 					
 					const int finalx = scr_x + x;
 					const int finaly = scr_y + y;
+					uint8_t mapped;
+					if (!getSpritePixelColor(c, finalx, finaly, mapped)) {
+						continue;
+					}
 					
 					uint8_t source = (BITMASK(0) & finalx) == 0 
 							? screenBuffer[COMBINED_IDX(finalx, finaly)] & 0x0f //just first 4 bits
 							: screenBuffer[COMBINED_IDX(finalx, finaly)] >> 4;
 
-					c = (source & ~writeMask) | (c & writeMask & readMask);
+					mapped = (source & ~writeMask) | (mapped & writeMask & readMask);
 
-					setPixelNibble(finalx, finaly, c, screenBuffer);
+					setPixelNibble(finalx, finaly, mapped, screenBuffer);
 				}
 			}
 		}
@@ -495,6 +495,48 @@ bool Graphics::isOnScreen(int x, int y) {
 bool Graphics::isColorTransparent(uint8_t color) {
 	color = color & 0x0f;
 	return (_memory->drawState.drawPaletteMap[color] >> 4) > 0; //upper bits indicate transparency
+}
+
+void Graphics::resetAlternatePalette() {
+	for (uint8_t c = 0; c < 16; c++) {
+		_memory->hwState.alternatePaletteMap[c] = c | (c << 4);
+	}
+}
+
+bool Graphics::fillpAppliesToSprites() const {
+	// 0x5f33 bit 1: apply fill pattern to sprites (see PICO-8 fillp() manual)
+	return (_memory->drawState.fillPatternTransparencyBit & 0x02) != 0;
+}
+
+bool Graphics::getSpritePixelColor(uint8_t rawColor, int screenX, int screenY, uint8_t &outCol) const {
+	auto &drawState = _memory->drawState;
+	rawColor &= 0x0f;
+
+	if (drawState.drawPaletteMap[rawColor] >> 4) {
+		return false;
+	}
+
+	uint8_t c = drawState.drawPaletteMap[rawColor] & 0x0f;
+
+	if (fillpAppliesToSprites()) {
+		uint8_t entry = _memory->hwState.alternatePaletteMap[c];
+		uint8_t bitPlace = 15 - ((screenX & 3) + 4 * (screenY & 3));
+		uint16_t fillp = ((uint16_t)drawState.fillPattern[1] << 8) + drawState.fillPattern[0];
+		bool altColor = (fillp >> bitPlace) & 0x1;
+
+		if (altColor && (drawState.fillPatternTransparencyBit & 1)) {
+			return false;
+		}
+
+		c = altColor ? ((entry >> 4) & 0x0f) : (entry & 0x0f);
+	}
+
+	if (drawState.drawPaletteMap[c] >> 4) {
+		return false;
+	}
+
+	outCol = drawState.drawPaletteMap[c] & 0x0f;
+	return true;
 }
 
 uint8_t Graphics::getDrawPalMappedColor(uint8_t color) {
@@ -1717,19 +1759,27 @@ void Graphics::rrectfill(int x, int y, int w, int h, int r, int32_t col) {
 }
 
 fix32 Graphics::fillp(fix32 pat) {
+	uint8_t prevFlags = _memory->drawState.fillPatternTransparencyBit;
 	int32_t prev = (_memory->drawState.fillPattern[0] << 16)
                  | (_memory->drawState.fillPattern[1] << 24)
-                 | (_memory->drawState.fillPatternTransparencyBit << 8);
+                 | ((prevFlags & 0x01) ? 0x8000 : 0)
+                 | ((prevFlags & 0x02) ? 0x4000 : 0)
+                 | ((prevFlags & 0x04) ? 0x2000 : 0);
 
 	uint8_t patByte0 = pat.bits() >> 16;
 	uint8_t patByte1 = pat.bits() >> 24;
 
-	uint8_t patTranspByte = pat.bits() >> 15;
+	uint16_t frac = pat.bits() & 0xffff;
+	// Fractional fillp flags map to 0x5f33 (not 0x5f5f):
+	// .100 transparency, .010 apply to sprites, .001 secondary palette globally
+	uint8_t fillpFlags = 0;
+	if (frac & 0x8000) fillpFlags |= 0x01;
+	if (frac & 0x4000) fillpFlags |= 0x02;
+	if (frac & 0x2000) fillpFlags |= 0x04;
 
 	_memory->drawState.fillPattern[0] = patByte0;
 	_memory->drawState.fillPattern[1] = patByte1;
-
-	_memory->drawState.fillPatternTransparencyBit = patTranspByte & 1;
+	_memory->drawState.fillPatternTransparencyBit = fillpFlags;
 
 	return z8::fix32::frombits(prev);
 }
@@ -2072,6 +2122,7 @@ void Graphics::pal() {
 		_memory->drawState.screenPaletteMap[c] = c;
 	}
 
+	resetAlternatePalette();
 	this->palt();
 }
 
@@ -2088,8 +2139,11 @@ void Graphics::pal(uint8_t p) {
 			_memory->drawState.drawPaletteMap[c] = c | transparencyBit;
 		} else if (p == 1) {
 			_memory->drawState.screenPaletteMap[c] = c;
+		} else if (p == 2) {
+			_memory->hwState.alternatePaletteMap[c] = c | (c << 4);
 		}
 	}
+
 }
 
 uint8_t Graphics::pal(uint8_t c0, uint8_t c1, uint8_t p){
@@ -2105,6 +2159,10 @@ uint8_t Graphics::pal(uint8_t c0, uint8_t c1, uint8_t p){
 		prev = _memory->drawState.screenPaletteMap[c0] & 0xf;
 		c1 &= 0x8f;
 		_memory->drawState.screenPaletteMap[c0] = c1;
+	} else if (p == 2) {
+		prev = _memory->hwState.alternatePaletteMap[c0] & 0x0f;
+		uint8_t packed = c1 > 15 ? (c1 & 0xff) : ((c1 & 0x0f) | ((c1 & 0x0f) << 4));
+		_memory->hwState.alternatePaletteMap[c0] = packed;
 	}
 
 	return prev;

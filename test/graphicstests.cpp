@@ -2101,6 +2101,63 @@ TEST_CASE("graphics class behaves as expected") {
 
         CHECK_EQ(prev.bits(), 0x33cc0000);
     }
+    SUBCASE("fillp sprite flag sets 0x5f33 bit 1"){
+        graphics->fillp(49110.25);
+
+        CHECK_EQ(picoRam.drawState.fillPattern[0], 0xd6);
+        CHECK_EQ(picoRam.drawState.fillPattern[1], 0xbf);
+        CHECK_EQ(picoRam.drawState.fillPatternTransparencyBit & 0x02, 0x02);
+        CHECK_EQ(picoRam.data[0x5f33], 0x02);
+        CHECK_EQ(picoRam.hwState.alternatePaletteFlag, 0);
+    }
+    SUBCASE("fillp 0xbfd6.4 hex pattern matches sprite flag in 0x5f33"){
+        graphics->fillp(49110.25);
+
+        CHECK_EQ(picoRam.drawState.fillPattern[0], 0xd6);
+        CHECK_EQ(picoRam.drawState.fillPattern[1], 0xbf);
+        CHECK_EQ(picoRam.data[0x5f33], 0x02);
+        CHECK_EQ(picoRam.data[0x5f5f], 0);
+    }
+    SUBCASE("fillp transparency flag sets 0x5f33 bit 0"){
+        graphics->fillp(23130.5);
+
+        CHECK((picoRam.drawState.fillPatternTransparencyBit & 0x01) != 0);
+        CHECK_EQ(picoRam.data[0x5f33] & 0x01, 0x01);
+    }
+    SUBCASE("pal p=2 maps secondary palette for sprite fillp"){
+        for (int x = 0; x < 8; x++) {
+            for (int y = 0; y < 8; y++) {
+                graphics->sset(x, y, 2);
+            }
+        }
+        graphics->cls(0);
+        graphics->pal();
+        graphics->palt(1, true);
+        graphics->fillp(49110.25);
+        for (uint8_t c = 0; c < 14; c++) {
+            graphics->pal(c, 15, 2);
+        }
+        graphics->sspr(0, 0, 8, 8, 10, 10, 16, 16, false, false);
+        CHECK((picoRam.drawState.fillPatternTransparencyBit & 0x02) != 0);
+        CHECK_EQ(picoRam.hwState.alternatePaletteMap[2], 0xff);
+        CHECK(graphics->pget(14, 14) != 0);
+    }
+    SUBCASE("pal p=2 all-zero secondary makes sprite fillp transparent"){
+        for (int x = 0; x < 8; x++) {
+            for (int y = 0; y < 8; y++) {
+                graphics->sset(x, y, 2);
+            }
+        }
+        graphics->cls(0);
+        graphics->pal();
+        graphics->palt(1, true);
+        graphics->fillp(49110.25);
+        for (uint8_t c = 0; c < 16; c++) {
+            graphics->pal(c, 0, 2);
+        }
+        graphics->sspr(0, 0, 8, 8, 10, 10, 16, 16, false, false);
+        CHECK_EQ(graphics->pget(14, 14), 0);
+    }
     SUBCASE("fill pattern affects rectfill"){
         //0b0101101001011010 - 1x1 checkerboard
         graphics->fillp(0x5A5A);

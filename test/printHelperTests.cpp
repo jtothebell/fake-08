@@ -881,6 +881,39 @@ TEST_CASE("Print helper functions") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("p8scii poke (\\^!) writes only the given bytes") {
+        memory->hwState.btnpRepeatDelay = 0;
+        memory->hwState.btnpRepeatInterval = 0;
+        memory->hwState.colorBitmask = 0xff;
+
+        print("\x06!" "5f5c" "\x09\x06", 0, 0);
+
+        CHECK_EQ(memory->hwState.btnpRepeatDelay, 9);
+        CHECK_EQ(memory->hwState.btnpRepeatInterval, 6);
+        CHECK_EQ(memory->hwState.colorBitmask, 0xff);
+    }
+    SUBCASE("p8scii sized poke (\\^@) writes only the given bytes") {
+        memory->data[0x7000] = 0;
+        memory->data[0x7001] = 0;
+        memory->data[0x7002] = 0;
+        memory->data[0x7003] = 0;
+
+        print("\x06@" "7000" "0004" "abcd", 0, 0);
+
+        CHECK_EQ(memory->data[0x7000], (uint8_t)'a');
+        CHECK_EQ(memory->data[0x7001], (uint8_t)'b');
+        CHECK_EQ(memory->data[0x7002], (uint8_t)'c');
+        CHECK_EQ(memory->data[0x7003], (uint8_t)'d');
+    }
+    SUBCASE("p8scii poke (\\^!) does not block subsequent drawing") {
+        memory->hwState.colorBitmask = 0xff;
+
+        print("\x06!" "5f5c" "\x09\x06", 0, 0);
+        graphics->cls();
+        graphics->rectfill(10, 10, 20, 20, 7);
+
+        CHECK(graphics->pget(15, 15) == 7);
+    }
     SUBCASE("\\#p0 (char 2) automatically enables SOLID_BG mode") {
         graphics->cls();
 

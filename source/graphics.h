@@ -69,6 +69,10 @@ class Graphics {
 	bool _isInvertedFill(int32_t col) const;
 	uint8_t _penColorFromDrawColor(int32_t col) const;
 
+	void resetAlternatePalette();
+	bool fillpAppliesToSprites() const;
+	bool getSpritePixelColor(uint8_t rawColor, int screenX, int screenY, uint8_t &outCol) const;
+
 	public:
 	Graphics(std::string fontdata, PicoRam* memory);
 

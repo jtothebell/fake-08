@@ -9,6 +9,7 @@
 #include "stubhost.h"
 
 #include "../source/fontdata.h"
+#include "../source/nibblehelpers.h"
 
 
 TEST_CASE("Vm memory functions") {
@@ -44,6 +45,10 @@ TEST_CASE("Vm memory functions") {
             }
             else if (i == 0x5f57) {
                 correctValues &= memory->data[i] == 128;
+            }
+            else if (i >= 0x5f60 && i <= 0x5f6f) {
+                uint8_t c = i - 0x5f60;
+                correctValues &= memory->data[i] == (uint8_t)(c | (c << 4));
             }
             else if (i < 0x4300 || i > 0x5eff) {
                 correctValues &= memory->data[i] == 0;
@@ -1076,6 +1081,34 @@ TEST_CASE("collision g from powerup w closure") {
     CHECK(vm->LoadCart("d9_g_test.p8", false));
     vm->vm_run();
     CHECK(vm->Step());
+
+    delete vm;
+    delete audio;
+    delete input;
+    delete graphics;
+    delete stubHost;
+    delete memory;
+}
+
+TEST_CASE("p8scii poke preserves draw state and sspr works") {
+    StubHost* stubHost = new StubHost();
+    PicoRam* memory = new PicoRam();
+    memory->Reset();
+    Graphics* graphics = new Graphics(get_font_data(), memory);
+    Input* input = new Input(memory);
+    Audio* audio = new Audio(memory);
+    Vm* vm = new Vm(stubHost, memory, graphics, input, audio);
+
+    CHECK(vm->LoadCart("p8scii_poke_sspr.p8", false));
+    vm->vm_run();
+
+    CHECK(vm->Step());
+    CHECK_EQ(memory->data[0x5f5c], 9);
+    CHECK_EQ(memory->data[0x5f5d], 6);
+    CHECK_EQ(memory->data[0x5f5e], 0xff);
+
+    CHECK(vm->Step());
+    CHECK(graphics->pget(66, 66) != 0);
 
     delete vm;
     delete audio;

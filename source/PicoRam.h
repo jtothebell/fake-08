@@ -284,6 +284,9 @@ struct PicoRam
         hwState.screenDataMemMapping = 0x60;
         hwState.mapMemMapping = 0x20;
         hwState.widthOfTheMap = 128;
+        for (uint8_t c = 0; c < 16; c++) {
+            hwState.alternatePaletteMap[c] = c | (c << 4);
+        }
     }
     
     union
