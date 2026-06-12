@@ -322,6 +322,27 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("line() entirely below clip draws nothing") {
+        graphics->cls();
+        for (int x = 0; x < 128; x++) {
+            graphics->line(x, 200, x, 128, 8);
+        }
+
+        for (int x = 0; x < 128; x++) {
+            CHECK_EQ(graphics->pget(x, 127), 0);
+        }
+    }
+    SUBCASE("line() to y=128 clips to bottom row only when start is on screen") {
+        graphics->cls();
+        graphics->line(10, 120, 10, 128, 8);
+
+        for (int y = 0; y < 119; y++) {
+            CHECK_EQ(graphics->pget(10, y), 0);
+        }
+        for (int y = 120; y <= 127; y++) {
+            CHECK_EQ(graphics->pget(10, y), 8);
+        }
+    }
 
     SUBCASE("circ({ox}, {oy}) uses pen color and radius of 4") {
         graphics->cls();

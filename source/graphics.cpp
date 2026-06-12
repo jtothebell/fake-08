@@ -779,7 +779,7 @@ void Graphics::_private_h_line(int x1, int x2, int y){
 	}
 
 	if ((x1 < drawState.clip_xb && x2 < drawState.clip_xb) ||
-		(x1 > drawState.clip_xe && x2 > drawState.clip_xe)) {
+		(x1 >= drawState.clip_xe && x2 >= drawState.clip_xe)) {
 			return;
 	}
 
@@ -836,7 +836,7 @@ void Graphics::_private_v_line (int y1, int y2, int x){
 	}
 
 	if ((y1 < drawState.clip_yb && y2 < drawState.clip_yb) ||
-		(y1 > drawState.clip_ye && y2 > drawState.clip_ye)) {
+		(y1 >= drawState.clip_ye && y2 >= drawState.clip_ye)) {
 			return;
 	}
 
