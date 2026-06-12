@@ -475,3 +475,22 @@ TEST_CASE("Shorthand IF braces logic") {
 
     lua_close(L);
 }
+
+TEST_CASE("if do keyword") {
+    lua_State *L = luaL_newstate();
+    luaL_openlibs(L);
+
+    SUBCASE("do can be used instead of then") {
+        const char* code =
+        "local x=0\n"
+        "if true do x=1 end\n"
+        "return x";
+        int result = luaL_dostring(L, code);
+        CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
+        if (result == LUA_OK) {
+            CHECK_EQ(lua_tointeger(L, -1), 1);
+        }
+    }
+
+    lua_close(L);
+}
