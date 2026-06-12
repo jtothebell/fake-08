@@ -1117,3 +1117,52 @@ TEST_CASE("p8scii poke preserves draw state and sspr works") {
     delete stubHost;
     delete memory;
 }
+
+TEST_CASE("intoruins title cart writes entdata to userData for multicart load") {
+    StubHost* stubHost = new StubHost();
+    PicoRam* memory = new PicoRam();
+    memory->Reset();
+    Graphics* graphics = new Graphics(get_font_data(), memory);
+    Input* input = new Input(memory);
+    Audio* audio = new Audio(memory);
+    Vm* vm = new Vm(stubHost, memory, graphics, input, audio);
+
+    CHECK(vm->LoadCart("handoff_entdata_a.p8", false));
+    vm->vm_run();
+    CHECK(vm->Step());
+
+    CHECK(memory->data[0x8002] != 0);
+    CHECK(vm->vm_peek2(0x8000) > 8192);
+
+    delete vm;
+    delete audio;
+    delete input;
+    delete graphics;
+    delete stubHost;
+    delete memory;
+}
+
+TEST_CASE("large entdata handoff via userData survives cart load") {
+    StubHost* stubHost = new StubHost();
+    PicoRam* memory = new PicoRam();
+    memory->Reset();
+    Graphics* graphics = new Graphics(get_font_data(), memory);
+    Input* input = new Input(memory);
+    Audio* audio = new Audio(memory);
+    Vm* vm = new Vm(stubHost, memory, graphics, input, audio);
+
+    CHECK(vm->LoadCart("handoff_entdata_a.p8", false));
+    vm->vm_run();
+    CHECK(vm->Step());
+
+    CHECK(vm->LoadCart("handoff_entdata_b.p8", false));
+    vm->vm_run();
+    CHECK(vm->Step());
+
+    delete vm;
+    delete audio;
+    delete input;
+    delete graphics;
+    delete stubHost;
+    delete memory;
+}

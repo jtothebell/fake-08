@@ -13,6 +13,9 @@
 #include "vm.h"
 #include "PicoRam.h"
 
+// PICO-8 v0.2.5+ peek/poke/chr limit (was 8192 before)
+constexpr int PICO8_MAX_PEEK_POKE_COUNT = 32767;
+
 //this can probably go away when I'm loading actual carts and just have to expose api to lua
 void initPicoApi(PicoRam* memory, Graphics* graphics, Input* input, Vm* vm, Audio* audio);
 

@@ -225,17 +225,29 @@ TEST_CASE("peek with large count") {
     CHECK_EQ(numResults, 1000);
   }
 
-  SUBCASE("peek with 8192 return values (PICO-8 max) does not crash") {
+  SUBCASE("peek with 8192 return values does not crash") {
     // Write known values to memory
     for (int i = 0; i < 8192; i++) {
       picoRam.data[0x1000 + i] = (uint8_t)(i & 0xFF);
     }
 
     lua_pushnumber(L, 0x1000);  // addr
-    lua_pushnumber(L, 8192);    // count (PICO-8 max)
+    lua_pushnumber(L, 8192);    // count
     int numResults = peek(L);
 
     CHECK_EQ(numResults, 8192);
+  }
+
+  SUBCASE("peek with 10000 return values (PICO-8 multicart entstr) works") {
+    for (int i = 0; i < 10000; i++) {
+      picoRam.data[0x8002 + i] = (uint8_t)(i & 0xFF);
+    }
+
+    lua_pushnumber(L, 0x8002);
+    lua_pushnumber(L, 10000);
+    int numResults = peek(L);
+
+    CHECK_EQ(numResults, 10000);
   }
 
   delete vm;

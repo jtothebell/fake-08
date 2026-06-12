@@ -1104,9 +1104,10 @@ int peek(lua_State *L) {
 
     if (numArgs > 1) {
         int tmpNumToReturn = lua_tonumber(L,2);
-        //pico 8 docs say up to 8192 - clamp to this limit
         if (tmpNumToReturn > 0) {
-            numToReturn = tmpNumToReturn > 8192 ? 8192 : tmpNumToReturn;
+            numToReturn = tmpNumToReturn > PICO8_MAX_PEEK_POKE_COUNT
+                ? PICO8_MAX_PEEK_POKE_COUNT
+                : tmpNumToReturn;
         }
     }
 
@@ -1134,10 +1135,9 @@ int poke(lua_State *L) {
     _vmForLuaApi->vm_poke(dest, val);
 
     if (numArgs > 2) {
-        //pico 8 docs say up to 8192
         int effectiveNumArgs = numArgs - 2;
-        if (effectiveNumArgs > 8192) {
-            effectiveNumArgs = 8192;
+        if (effectiveNumArgs > PICO8_MAX_PEEK_POKE_COUNT) {
+            effectiveNumArgs = PICO8_MAX_PEEK_POKE_COUNT;
         }
         for(int i = 1; i <= effectiveNumArgs; i++) {
             val = lua_tonumber(L, 2 + i);
