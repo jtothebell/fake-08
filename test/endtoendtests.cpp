@@ -1056,6 +1056,15 @@ TEST_CASE("Loading and running carts") {
 
         vm->CloseCart();
     }
+    SUBCASE("env param _ENV global fallback (shrinko8 localfillp)"){
+        vm->LoadCart("env_param_localfillp.p8", false);
+        vm->vm_run();
+        vm->Step();
+
+        CHECK(vm->GetBiosError() == "");
+
+        vm->CloseCart();
+    }
     SUBCASE("tilde (~) operator (bxor) test"){
         vm->LoadCart("tilde_bxor_test.p8", false);
         vm->vm_run();
