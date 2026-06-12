@@ -1166,3 +1166,78 @@ TEST_CASE("large entdata handoff via userData survives cart load") {
     delete stubHost;
     delete memory;
 }
+
+TEST_CASE("changelog engine fixes") {
+    StubHost* stubHost = new StubHost();
+    PicoRam* memory = new PicoRam();
+    memory->Reset();
+    Graphics* graphics = new Graphics(get_font_data(), memory);
+    Input* input = new Input(memory);
+    Audio* audio = new Audio(memory);
+    Vm* vm = new Vm(stubHost, memory, graphics, input, audio);
+
+    CHECK(vm->LoadCart("printh_harness_example.p8", false));
+    vm->vm_run();
+    CHECK(vm->Step());
+
+    SUBCASE("deli with explicit nil index is a no-op") {
+        CHECK(vm->ExecuteLua(
+            "function check_deli_nil()\n"
+            " local t={1,2,3}\n"
+            " deli(t,nil)\n"
+            " return #t==3 and t[3]==3\n"
+            "end\n",
+            "check_deli_nil"));
+    }
+
+    SUBCASE("deli with no index deletes last element") {
+        CHECK(vm->ExecuteLua(
+            "function check_deli_last()\n"
+            " local t={1,2,3}\n"
+            " deli(t)\n"
+            " return #t==2 and t[2]==2\n"
+            "end\n",
+            "check_deli_last"));
+    }
+
+    SUBCASE("add with nil index appends") {
+        CHECK(vm->ExecuteLua(
+            "function check_add_nil()\n"
+            " local t={1,2}\n"
+            " add(t,3,nil)\n"
+            " return #t==3 and t[3]==3\n"
+            "end\n",
+            "check_add_nil"));
+    }
+
+    SUBCASE("mod by zero returns zero") {
+        CHECK(vm->ExecuteLua(
+            "function check_mod0()\n"
+            " return 5%0==0 and (-3)%0==0\n"
+            "end\n",
+            "check_mod0"));
+    }
+
+    SUBCASE("atan2(1,0x8000) edge case") {
+        CHECK(vm->ExecuteLua(
+            "function check_atan2()\n"
+            " return atan2(1,0x8000)==0.25\n"
+            "end\n",
+            "check_atan2"));
+    }
+
+    SUBCASE("fget out of range returns 0") {
+        CHECK(vm->ExecuteLua(
+            "function check_fget()\n"
+            " return fget(256)==0 and fget(-1)==0\n"
+            "end\n",
+            "check_fget"));
+    }
+
+    delete vm;
+    delete audio;
+    delete input;
+    delete graphics;
+    delete stubHost;
+    delete memory;
+}
