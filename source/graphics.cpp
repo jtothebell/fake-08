@@ -796,15 +796,24 @@ void Graphics::line (int32_t col){
 }
 
 void Graphics::line (int x1, int y1){
-	if (this->_memory->drawState.lineInvalid == false){
-		this->line(_memory->drawState.line_x, _memory->drawState.line_y, x1, y1, _memory->drawState.color);
+	if (this->_memory->drawState.lineInvalid) {
+		_memory->drawState.line_x = x1;
+		_memory->drawState.line_y = y1;
+		_memory->drawState.lineInvalid = 0;
+		return;
 	}
+	this->line(_memory->drawState.line_x, _memory->drawState.line_y, x1, y1, _memory->drawState.color);
 }
 
 void Graphics::line (int x1, int y1, int32_t col){
-	if (_memory->drawState.lineInvalid == false){
-		this->line(_memory->drawState.line_x, _memory->drawState.line_y, x1, y1, col);
+	if (_memory->drawState.lineInvalid) {
+		_memory->drawState.line_x = x1;
+		_memory->drawState.line_y = y1;
+		_memory->drawState.lineInvalid = 0;
+		color(col);
+		return;
 	}
+	this->line(_memory->drawState.line_x, _memory->drawState.line_y, x1, y1, col);
 }
 
 void Graphics::line (int x1, int y1, int x2, int y2){

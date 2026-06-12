@@ -145,23 +145,47 @@ TEST_CASE("graphics class behaves as expected") {
             picoRam.drawState.lineInvalid == true &&
             picoRam.drawState.color == 14) == true);
     }
-    SUBCASE("line({x}, {y}) without valid line state does nothing") {
+    SUBCASE("line({x}, {y}) after line() sets start without drawing") {
         graphics->cls();
         graphics->line();
         graphics->line(10, 11);
 
-        bool isAllColor = true;
-        for(int x = 0; x < 128; x++){
-            for(int y = 0; y < 128; y++){
-                isAllColor &= graphics->pget(0, 0) == 0;
-            }
-        }
+        CHECK(picoRam.drawState.line_x == 10);
+        CHECK(picoRam.drawState.line_y == 11);
+        CHECK(picoRam.drawState.lineInvalid == false);
+        CHECK_EQ(graphics->pget(10, 11), 0);
+    }
+    SUBCASE("line({x}, {y}, {c}) after line() sets start without drawing") {
+        graphics->cls();
+        graphics->line();
+        graphics->line(10, 11, 7);
 
-        CHECK(
-            (picoRam.drawState.line_x == 0 && 
-            picoRam.drawState.line_y == 0 &&
-            picoRam.drawState.lineInvalid == true &&
-            isAllColor) == true);
+        CHECK(picoRam.drawState.line_x == 10);
+        CHECK(picoRam.drawState.line_y == 11);
+        CHECK(picoRam.drawState.lineInvalid == false);
+        CHECK_EQ(graphics->pget(10, 11), 0);
+    }
+    SUBCASE("line chain after line() draws connected segments") {
+        graphics->cls();
+        graphics->line();
+        graphics->line(5, 5);
+        graphics->line(15, 5, 7);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {5, 5, 7},
+            {6, 5, 7},
+            {7, 5, 7},
+            {8, 5, 7},
+            {9, 5, 7},
+            {10, 5, 7},
+            {11, 5, 7},
+            {12, 5, 7},
+            {13, 5, 7},
+            {14, 5, 7},
+            {15, 5, 7},
+        };
+
+        checkPoints(graphics, expectedPoints);
     }
     SUBCASE("line({x}, {y}) with valid line state updates state") {
         graphics->cls();
