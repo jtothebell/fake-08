@@ -2024,6 +2024,43 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("tline frac bits change texture coordinate scale"){
+        auto fillSprite = [&](uint8_t snum, uint8_t col) {
+            const int sx = (snum % 16) * 8;
+            const int sy = (snum / 16) * 8;
+            for (int x = 0; x < 8; x++) {
+                for (int y = 0; y < 8; y++) {
+                    graphics->sset(sx + x, sy + y, col);
+                }
+            }
+        };
+
+        fillSprite(1, 5);
+        fillSprite(2, 6);
+        fillSprite(3, 7);
+        fillSprite(4, 8);
+
+        for (int x = 0; x < 16; x++) {
+            graphics->mset(x, 0, (x % 4) + 1);
+        }
+
+        picoRam.drawState.tlineMapWidth = 4;
+        picoRam.drawState.tlineMapHeight = 0;
+        picoRam.drawState.tlineMapXOffset = 0;
+        picoRam.drawState.tlineMapYOffset = 0;
+
+        graphics->cls();
+        graphics->setTlineFracBits(16);
+        graphics->tline(10, 50, 26, 50, fix32(0), fix32(0), fix32(2), fix32(0));
+        CHECK_EQ(graphics->pget(11, 50), 5);
+
+        graphics->cls();
+        graphics->setTlineFracBits(13);
+        graphics->tline(10, 50, 26, 50, fix32(0), fix32(0), fix32(2), fix32(0));
+        CHECK_EQ(graphics->pget(11, 50), 7);
+
+        graphics->setTlineFracBits(13);
+    }
     SUBCASE("fillp(pat) sets values in memory"){
         //0011001111001100 - 2x2 checkerboard
         graphics->fillp(0x33cc);

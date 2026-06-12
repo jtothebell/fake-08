@@ -13,6 +13,7 @@ class Graphics {
 	uint8_t fontSpriteData[128 * 64];
 
 	PicoRam* _memory;
+	uint8_t _tlineFracBits = 13;
 
 	void copySpriteToScreen(
 		uint8_t* spritebuffer,
@@ -98,6 +99,7 @@ class Graphics {
 
 	void tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my);
 	void tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 mdx, fix32 mdy);
+	void setTlineFracBits(uint8_t bits);
 
 	void circ(int ox, int oy);
 	void circ(int ox, int oy, int r);

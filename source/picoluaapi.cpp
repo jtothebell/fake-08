@@ -148,6 +148,11 @@ int line (lua_State *L){
 }
 
 int tline (lua_State *L){
+    if (lua_gettop(L) == 1) {
+        _graphicsForLuaApi->setTlineFracBits((uint8_t)lua_tonumber(L, 1));
+        return 0;
+    }
+
     int x0 = 0, y0 = 0, x1 = 0, y1 = 0;
     fix32 mx = 0, my = 0, mdx = fix32::frombits(0x2000), mdy = 0;
 

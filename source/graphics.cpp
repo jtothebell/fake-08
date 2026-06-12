@@ -936,6 +936,23 @@ fix32 getTlineMask(uint8_t dim){
 	return fix32(dim) - fix32::frombits(1);
 }
 
+static fix32 getTlineCoordMask(uint8_t dim, uint8_t fracBits){
+	if (dim == 0) {
+		return fix32::frombits(0xffffff);
+	}
+
+	int scaledDim = (int)dim << (fracBits - 13);
+	if (scaledDim >= 256) {
+		return fix32::frombits(0xffffff);
+	}
+
+	return getTlineMask((uint8_t)scaledDim);
+}
+
+void Graphics::setTlineFracBits(uint8_t bits){
+	_tlineFracBits = bits == 0 ? 13 : bits;
+}
+
 //ported from zepto 8 impl
 void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 mdx, fix32 mdy){
 	applyCameraToPoint(&x0, &y0);
@@ -954,10 +971,11 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 m
 	int yend = clampYCoordToClip(y1);
 
 	auto &ds = _memory->drawState;
+	const uint8_t fracBits = _tlineFracBits;
 
 	// Retrieve masks for wrap-around and subtract 0x0.0001
-	fix32 xmask = getTlineMask(ds.tlineMapWidth);
-	fix32 ymask = getTlineMask(ds.tlineMapHeight);
+	fix32 xmask = getTlineCoordMask(ds.tlineMapWidth, fracBits);
+	fix32 ymask = getTlineCoordMask(ds.tlineMapHeight, fracBits);
 
 	// Advance texture coordinates; do it in steps to avoid overflows
     int delta = abs(xDifGreater ? x - x0 : y - y0);
@@ -970,8 +988,10 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 m
 
 	for (;;) {
         // Find sprite in map memory
-        int sx = (ds.tlineMapXOffset + int(mx & xmask));
-        int sy = (ds.tlineMapYOffset + int(my & ymask));
+		const int mapPx = (mx & xmask).bits() >> fracBits;
+		const int mapPy = (my & ymask).bits() >> fracBits;
+        int sx = ds.tlineMapXOffset + (mapPx >> 3);
+        int sy = ds.tlineMapYOffset + (mapPy >> 3);
 		uint8_t sprite = mget(sx, sy);
         //uint8_t bits = fget(sprite);
 
@@ -981,11 +1001,9 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 m
         // If found, draw pixel //todo layer param
 		//if (cell && ((layer == 0) || (fget(cell) & layer))) {
         if (sprite) {
-            //uint8_t col = _memory->spriteSheetData.gfx.get(spr_x + (int(mx << 3) & 0x7),
-            //                        spr_y + (int(my << 3) & 0x7));
 			uint8_t col = getPixelNibble(
-				spr_x + (int(mx << 3) & 0x7),
-				spr_y + (int(my << 3) & 0x7),
+				spr_x + (mapPx & 0x7),
+				spr_y + (mapPy & 0x7),
 				_memory->spriteSheetData);
 
             if (!isColorTransparent(col) && isWithinClip(x, y)) {
