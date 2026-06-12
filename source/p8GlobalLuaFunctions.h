@@ -87,10 +87,20 @@ function del(c,v)
     end
 end
 
-function deli(c,i)
+function deli(c,...)
     if c != nil then
-        -- delete at i if specified, otherwise at the end
-        i=i and mid(1,i\1,#c) or #c
+        -- delete at i if specified, otherwise at the end.
+        -- explicit nil index is a no-op (v0.2.2); omit index to delete last.
+        local n=select("#",...)
+        local i
+        if n==0 then
+            i=#c
+        elseif (...) == nil then
+            return
+        else
+            i=select(1,...)
+        end
+        i=mid(1,i\1,#c)
         local v=c[i]
         for j=i,#c do c[j]=c[j+1] end
         return v
