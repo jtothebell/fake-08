@@ -474,10 +474,10 @@ void Audio::update_sfx_state(sfx_state& cur_sfx, z8::synth_param& new_synth,
             }
             case FX_VIBRATO:
             {
-                // 7.5f and 0.25f were found empirically by matching
-                // frequency graphs of PICO-8 instruments.
-                float t = (float)(fabs(fmod(7.5 * offset / offset_per_second, 1.0)) - 0.5) - 0.25f;
-                // Vibrato half a semi-tone, so multiply by pow(2,1/12)
+                // Triangle wave modulation at 7.5 Hz, depth = half a semitone.
+                // The original code had fabs() wrapping only fmod(), producing
+                // a sawtooth modulation. Correct form: fabs(fmod(...) - 0.5).
+                float t = (float)(fabs(fmod(7.5 * offset / offset_per_second, 1.0) - 0.5) - 0.25);
                 freq = lerp(freq, freq * 1.059463094359f, t);
                 break;
             }
