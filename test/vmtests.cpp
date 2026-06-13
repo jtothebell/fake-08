@@ -1241,3 +1241,29 @@ TEST_CASE("changelog engine fixes") {
     delete stubHost;
     delete memory;
 }
+
+TEST_CASE("multicart breadcrumb preserves memory and returns") {
+    StubHost* stubHost = new StubHost();
+    PicoRam* memory = new PicoRam();
+    memory->Reset();
+    Graphics* graphics = new Graphics(get_font_data(), memory);
+    Input* input = new Input(memory);
+    Audio* audio = new Audio(memory);
+    Vm* vm = new Vm(stubHost, memory, graphics, input, audio);
+
+    CHECK(vm->LoadCart("multicart_main.p8", false));
+    vm->vm_run();
+
+    CHECK(vm->Step());
+    CHECK(vm->Step());
+    CHECK(vm->Step());
+
+    CHECK(vm->vm_peek4(0x4310) == (fix32)0x1234);
+
+    delete vm;
+    delete audio;
+    delete input;
+    delete graphics;
+    delete stubHost;
+    delete memory;
+}

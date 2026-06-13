@@ -54,6 +54,7 @@ class Vm {
 
     string _cartBreadcrumb;
     string _cartParam;
+    bool _pendingCartTransition;
 
     vector<string> _cartList;
 
@@ -145,6 +146,7 @@ class Vm {
     void vm_extcmd(string  cmd);
 
     bool vm_load(string filename, string breadcrumb, string param);
+    bool vm_go_back();
 
     void vm_reset();
 
@@ -172,6 +174,8 @@ class Vm {
     
     string getCartBreadcrumb();
     string getCartParam();
+
+    bool consumePendingCartTransition();
 
     size_t serializeLuaState(char* dest);
     void deserializeLuaState(const char* src, size_t len);

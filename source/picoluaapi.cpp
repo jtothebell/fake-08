@@ -1334,7 +1334,8 @@ int extcmd(lua_State *L){
 
     _vmForLuaApi->vm_extcmd(str);
 
-    return 0;
+    lua_pushboolean(L, _vmForLuaApi->consumePendingCartTransition());
+    return 1;
 }
 
 int load(lua_State *L) {
@@ -1351,13 +1352,7 @@ int load(lua_State *L) {
             param = lua_tolstring(L, 3, nullptr);
         }
 
-        bool result = _vmForLuaApi->vm_load(filename, breadcrumb, param);
-        if (result) {
-            //todo: abort current cart?
-        }
-        lua_pushboolean(L, result);
-
-        return 1;
+        _vmForLuaApi->vm_load(filename, breadcrumb, param);
     }
 
     return 0;

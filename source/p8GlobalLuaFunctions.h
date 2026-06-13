@@ -412,23 +412,14 @@ end
 
 -- Load a cart from file or URL
 function load(arg, arg2, arg3)
-    local success, msg
+    __load(arg, arg2, arg3)
+    error("__z8_cart_transition__", 0)
+end
 
-    success, msg = __load(arg, arg2, arg3), ""
-
-    return success
-
-    
-    --if success then
-    --    print('ok')
-    --else
-    --    color(14)
-    --    print('failed')
-    --    local x,y = cursor()
-    --    cursor(0, y)
-    --    print(msg)
-    --end
-    
+function extcmd(cmd)
+    if __extcmd(cmd) then
+        error("__z8_cart_transition__", 0)
+    end
 end
 
 --todo: make this bettter/verify the list
@@ -633,6 +624,9 @@ function __z8_tick()
     if __z8_stopped then
         __z8_stopped = false -- FIXME: what now?
     elseif not ret then
+        if err and (err == "__z8_cart_transition__" or sub(tostr(err), -22) == "__z8_cart_transition__") then
+            return 0
+        end
         printh(tostr(err))
         -- Return to menu on error
         __loaddefaultcart()

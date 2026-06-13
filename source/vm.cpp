@@ -144,7 +144,7 @@ bool _initializeLuaState(lua_State* luaState) {
     lua_register(luaState, "stat", stat);
     lua_register(luaState, "_update_buttons", _update_buttons);
     lua_register(luaState, "run", run);
-    lua_register(luaState, "extcmd", extcmd);
+    lua_register(luaState, "__extcmd", extcmd);
     lua_register(luaState, "_set_fps", setFps);
 
     //rng
@@ -245,7 +245,8 @@ Vm::Vm(
         _nextCartKey(""),
         _cartLoadError(""),
         _cartdataKeyCount(0),
-        _currentCartdataKey("")
+        _currentCartdataKey(""),
+        _pendingCartTransition(false)
 {
     _host = host;
 
@@ -401,7 +402,12 @@ bool Vm::loadCart(Cart* cart) {
 
     //move this to cart glue code?
     if (_cartBreadcrumb.length() > 0) {
-        ExecuteLua("__addbreadcrumb(\"" + _cartBreadcrumb +"\", \"" + _prevCartKey +"\")", "");
+        std::string breadcrumbLua = "__addbreadcrumb(\"" + _cartBreadcrumb + "\", \"" + _prevCartKey + "\")";
+        int breadcrumbRes = luaL_dostring(_luaState, breadcrumbLua.c_str());
+        if (breadcrumbRes != LUA_OK) {
+            Logger_Write("Error adding breadcrumb: %s\n", lua_tostring(_luaState, -1));
+            lua_pop(_luaState, 1);
+        }
     }
 
     // Only clear error if we successfully loaded a non-default cart
@@ -1313,7 +1319,6 @@ void Vm::vm_run() {
 }
 
 void Vm::vm_extcmd(std::string cmd){
-    //screenshots, recording, and breadcrumb not supported
     if (cmd == "reset"){
         QueueCartChange(CurrentCartFilename());
     }
@@ -1323,6 +1328,20 @@ void Vm::vm_extcmd(std::string cmd){
     else if (cmd == "shutdown") {
         QueueCartChange(DefaultCartName);
     }
+    else if (cmd == "go_back" || cmd == "breadcrumb") {
+        vm_go_back();
+    }
+}
+
+bool Vm::vm_go_back(){
+    if (_prevCartKey.length() == 0) {
+        return false;
+    }
+
+    _cartBreadcrumb = "";
+    QueueCartChange(_prevCartKey);
+    _pendingCartTransition = true;
+    return true;
 }
 
 bool Vm::vm_load(std::string filename, std::string breadcrumb, std::string param){
@@ -1338,16 +1357,9 @@ bool Vm::vm_load(std::string filename, std::string breadcrumb, std::string param
     }
     
     _prevCartKey = CurrentCartFilename();
-    
-    bool success = LoadCart(filename);
-    
-    // Only run if cart loaded successfully
-    if (success) {
-        vm_run();
-        return true;
-    } else {
-        return false;
-    }
+    QueueCartChange(filename);
+    _pendingCartTransition = true;
+    return true;
 }
 
 void Vm::vm_reset(){
@@ -1429,6 +1441,14 @@ std::string Vm::getCartBreadcrumb() {
 
 std::string Vm::getCartParam() {
     return _cartParam;
+}
+
+bool Vm::consumePendingCartTransition() {
+    if (!_pendingCartTransition) {
+        return false;
+    }
+    _pendingCartTransition = false;
+    return true;
 }
 
 
