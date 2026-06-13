@@ -724,6 +724,22 @@ TEST_CASE("Loading and running carts") {
 
         vm->CloseCart();
     }
+    SUBCASE("line slopes visual test"){
+        vm->LoadCart("graphics/line_slopes_visual.p8", false);
+        vm->vm_run();
+        vm->Step();
+
+        SUBCASE("No error reported"){
+            CHECK(vm->GetBiosError() == "");
+        }
+        SUBCASE("sceen matches screenshot"){
+            vm->Step();
+
+            CHECK(verifyScreenshot(vm, host, "carts/screenshots/line_slopes_visual_f01.png"));
+        }
+
+        vm->CloseCart();
+    }
     SUBCASE("shorthand print (?) test"){
         vm->LoadCart("short_print_test.p8", false);
         vm->vm_run();

@@ -322,6 +322,126 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
+    SUBCASE("line({x1}, {y1}, {x2}, {y2}, {c}) draws (2:1 shallow up-left)") {
+        graphics->cls();
+        graphics->line(22, 12, 2, 2, 7);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {2, 2, 7},
+            {3, 3, 7},
+            {4, 3, 7},
+            {5, 4, 7},
+            {6, 4, 7},
+            {7, 5, 7},
+            {8, 5, 7},
+            {9, 6, 7},
+            {10, 6, 7},
+            {11, 7, 7},
+            {12, 7, 7},
+            {13, 8, 7},
+            {14, 8, 7},
+            {15, 9, 7},
+            {16, 9, 7},
+            {17, 10, 7},
+            {18, 10, 7},
+            {19, 11, 7},
+            {20, 11, 7},
+            {21, 12, 7},
+            {22, 12, 7},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("line({x1}, {y1}, {x2}, {y2}, {c}) draws (1:2 steep up-left)") {
+        graphics->cls();
+        graphics->line(12, 22, 2, 2, 7);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {2, 2, 7},
+            {3, 3, 7},
+            {3, 4, 7},
+            {4, 5, 7},
+            {4, 6, 7},
+            {5, 7, 7},
+            {5, 8, 7},
+            {6, 9, 7},
+            {6, 10, 7},
+            {7, 11, 7},
+            {7, 12, 7},
+            {8, 13, 7},
+            {8, 14, 7},
+            {9, 15, 7},
+            {9, 16, 7},
+            {10, 17, 7},
+            {10, 18, 7},
+            {11, 19, 7},
+            {11, 20, 7},
+            {12, 21, 7},
+            {12, 22, 7},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("line({x1}, {y1}, {x2}, {y2}, {c}) draws (2:1 shallow down-right)") {
+        graphics->cls();
+        graphics->line(2, 2, 22, 12, 7);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {2, 2, 7},
+            {3, 3, 7},
+            {4, 3, 7},
+            {5, 4, 7},
+            {6, 4, 7},
+            {7, 5, 7},
+            {8, 5, 7},
+            {9, 6, 7},
+            {10, 6, 7},
+            {11, 7, 7},
+            {12, 7, 7},
+            {13, 8, 7},
+            {14, 8, 7},
+            {15, 9, 7},
+            {16, 9, 7},
+            {17, 10, 7},
+            {18, 10, 7},
+            {19, 11, 7},
+            {20, 11, 7},
+            {21, 12, 7},
+            {22, 12, 7},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
+    SUBCASE("line({x1}, {y1}, {x2}, {y2}, {c}) draws (offset up-left)") {
+        graphics->cls();
+        graphics->line(27, 13, 7, 3, 7);
+
+        std::vector<coloredPoint> expectedPoints = {
+            {7, 3, 7},
+            {8, 4, 7},
+            {9, 4, 7},
+            {10, 5, 7},
+            {11, 5, 7},
+            {12, 6, 7},
+            {13, 6, 7},
+            {14, 7, 7},
+            {15, 7, 7},
+            {16, 8, 7},
+            {17, 8, 7},
+            {18, 9, 7},
+            {19, 9, 7},
+            {20, 10, 7},
+            {21, 10, 7},
+            {22, 11, 7},
+            {23, 11, 7},
+            {24, 12, 7},
+            {25, 12, 7},
+            {26, 13, 7},
+            {27, 13, 7},
+        };
+
+        checkPoints(graphics, expectedPoints);
+    }
     SUBCASE("overdrawn line() still draws (horizontal)") {
         graphics->cls();
         graphics->line(-10, 1, 138, 1, 5);

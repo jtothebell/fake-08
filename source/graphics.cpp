@@ -941,9 +941,43 @@ void Graphics::line(int x0, int y0, int x1, int y1, int32_t col) {
 	else if (y0 == y1) {
 		_private_h_line(x0, x1, y0);
 	}
+	else if (y0 > y1) {
+		// PICO-8 uses classic axis-dominant Bresenham for upward diagonals.
+		int dx = abs(x1 - x0);
+		int dy = abs(y1 - y0);
+		int sx = x0 < x1 ? 1 : -1;
+		int sy = -1;
+		int x = x0;
+		int y = y0;
+
+		if (dx > dy) {
+			int err = dx / 2;
+			while (x != x1) {
+				_safeSetPixelFromPen(x, y);
+				err -= dy;
+				if (err < 0) {
+					y += sy;
+					err += dx;
+				}
+				x += sx;
+			}
+			_safeSetPixelFromPen(x1, y1);
+		} else {
+			int err = dy / 2;
+			while (y != y1) {
+				_safeSetPixelFromPen(x, y);
+				err -= dx;
+				if (err < 0) {
+					x += sx;
+					err += dy;
+				}
+				y += sy;
+			}
+			_safeSetPixelFromPen(x1, y1);
+		}
+	}
 	else {
-		//tac08 line impl for diagonals (this should work for horizontal and vertical as well,
-		//but it has more branching)
+		// tac08 line impl for downward diagonals
 		int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
 		int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
 		int err = dx + dy, e2; /* error value e_xy */
