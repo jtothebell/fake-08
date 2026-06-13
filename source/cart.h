@@ -5,12 +5,9 @@
 
 #include "graphics.h"
 
-
-struct CartRomData
-{
-    union
-    {
-        struct 
+struct CartRomData {
+    union {
+        struct
         {
             uint8_t SpriteSheetData[128 * 64];
             uint8_t MapData[128 * 32];
@@ -29,8 +26,8 @@ class Cart {
     void initCartRom();
 
     void setSpriteSheet(std::string spriteSheetString);
-	void setSpriteFlags(std::string spriteFlagsString);
-	void setMapData(std::string mapString);
+    void setSpriteFlags(std::string spriteFlagsString);
+    void setMapData(std::string mapString);
 
     void setSfx(std::string sfxString);
     void setMusic(std::string musicString);
@@ -40,10 +37,10 @@ class Cart {
     bool loadCartFromPng(std::vector<unsigned char> image);
 
     bool loadCartFromString(std::string cartStr);
-	
-    public:
-    Cart (std::string filename, std::string cartDirectory);
-    Cart (const unsigned char* cartData, size_t size);
+
+  public:
+    Cart(std::string filename, std::string cartDirectory);
+    Cart(const unsigned char* cartData, size_t size);
     ~Cart();
 
     std::string FullCartPath;
@@ -60,7 +57,7 @@ class Cart {
     std::string LabelString;
 
     CartRomData CartRom;
-    
+
     //used to be 15616
     //32768 + 5 (6)
     uint8_t CartLuaData[32774];

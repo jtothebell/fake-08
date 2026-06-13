@@ -11,11 +11,9 @@
 //  See http://www.wtfpl.net/ for more details.
 //
 
-
 // I know codecvt_utf8 is deprecated, but let’s hope C++ comes with a
 // replacement before they actually remove the feature.
 #define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING 1
-
 
 #include <cstdint>
 #include <locale>
@@ -28,7 +26,6 @@
 
 #include "emojiconversion.h"
 
-
 std::string_view charset::to_utf8[256];
 std::u32string_view charset::to_utf32[256];
 
@@ -36,8 +33,7 @@ static uint8_t multibyte_start[256];
 static std::map<std::string, uint8_t> to_pico8;
 std::regex charset::utf8_regex = charset::static_init();
 
-std::regex charset::static_init()
-{
+std::regex charset::static_init() {
     std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> cvt;
 
     // The complete PICO-8 charmap, from 0 to 255. We cannot just store
@@ -55,11 +51,10 @@ std::regex charset::static_init()
     static auto utf32_chars = cvt.from_bytes(utf8_chars, &utf8_chars[sizeof(utf8_chars)]);
 
     // Create all sorts of lookup tables for PICO-8 character conversions
-    char const *p8 = utf8_chars;
-    auto const *p32 = (char32_t const *)utf32_chars.data();
+    char const* p8 = utf8_chars;
+    auto const* p32 = (char32_t const*)utf32_chars.data();
     std::string regex("(");
-    for (int i = 0; i < 256; ++i)
-    {
+    for (int i = 0; i < 256; ++i) {
         size_t len32 = p32[1] == 0xfe0f ? 2 : 1;
         size_t len8 = ((0xe5000000 >> ((*p8 >> 3) & 0x1e)) & 3) + len32 * len32;
         to_utf8[i] = std::string_view(p8, len8);
@@ -67,8 +62,7 @@ std::regex charset::static_init()
         to_pico8[std::string(p8, len8)] = i;
 
         // Build a regex that lets us do faster (maybe?) UTF-8 conversions
-        if (len8 > 1)
-        {
+        if (len8 > 1) {
             multibyte_start[(uint8_t)*p8] = 1;
             regex += std::string(p8, len8) + '|';
         }
@@ -81,23 +75,16 @@ std::regex charset::static_init()
     return std::regex(regex);
 }
 
-std::string charset::utf8_to_pico8(std::string const &str)
-{
+std::string charset::utf8_to_pico8(std::string const& str) {
     std::string ret;
     std::smatch sm;
 
-    for (auto p = str.begin(); p != str.end(); )
-    {
+    for (auto p = str.begin(); p != str.end();) {
         // Only pass known start characters through the expensive regex
-        if (multibyte_start[(uint8_t)*p]
-             && std::regex_search(p, str.end(), sm, utf8_regex)
-             && sm.length() > 1)
-        {
+        if (multibyte_start[(uint8_t)*p] && std::regex_search(p, str.end(), sm, utf8_regex) && sm.length() > 1) {
             ret += to_pico8[sm.str()];
             p += sm.length();
-        }
-        else
-        {
+        } else {
             ret += *p++;
         }
     }
@@ -105,64 +92,58 @@ std::string charset::utf8_to_pico8(std::string const &str)
     return ret;
 }
 
-std::string charset::pico8_to_utf8(std::string const &str)
-{
+std::string charset::pico8_to_utf8(std::string const& str) {
     std::string ret;
     for (uint8_t ch : str)
         ret += std::string(to_utf8[ch]);
     return ret;
 }
 
+std::string charset::upper_to_emoji(std::string str) {
 
+    std::map<std::string, std::string> uemap = {
+        {"A", "█"},
+        {"B", "▒"},
+        {"C", "🐱"},
+        {"D", "⬇️"},
+        {"E", "░"},
+        {"F", "✽"},
+        {"G", "●"},
+        {"H", "♥"},
+        {"I", "☉"},
+        {"J", "웃"},
+        {"K", "⌂"},
+        {"L", "⬅️"},
+        {"M", "😐"},
+        {"N", "♪"},
+        {"O", "🅾️"},
+        {"P", "◆"},
+        {"Q", "…"},
+        {"R", "➡️"},
+        {"S", "★"},
+        {"T", "⧗"},
+        {"U", "⬆️"},
+        {"V", "ˇ"},
+        {"W", "∧"},
+        {"X", "❎"},
+        {"Y", "▤"},
+        {"Z", "▥"}};
 
-std::string charset::upper_to_emoji(std::string str)
-{
+    std::string newstring = "";
 
-	std::map<std::string,std::string> uemap = {
-		{"A","█"},
-		{"B","▒"},
-		{"C","🐱"},
-		{"D","⬇️"},
-		{"E","░"},
-		{"F","✽"},
-		{"G","●"},
-		{"H","♥"},
-		{"I","☉"},
-		{"J","웃"},
-		{"K","⌂"},
-		{"L","⬅️"},
-		{"M","😐"},
-		{"N","♪"},
-		{"O","🅾️"},
-		{"P","◆"},
-		{"Q","…"},
-		{"R","➡️"},
-		{"S","★"},
-		{"T","⧗"},
-		{"U","⬆️"},
-		{"V","ˇ"},
-		{"W","∧"},
-		{"X","❎"},
-		{"Y","▤"},
-		{"Z","▥"}
-	};
-	
-	
-	std::string newstring = "";
-	
-	for(unsigned i = 0; i < str.length(); i++){
-		
-		std::string c = "";
-		c += str.at(i);
-		auto loc = uemap.find(c);
-		
-		if(loc == uemap.end()){
-			newstring += c;
-			
-		}else{
-			newstring += uemap.at(c);
-		}
-	}
-	
+    for (unsigned i = 0; i < str.length(); i++) {
+
+        std::string c = "";
+        c += str.at(i);
+        auto loc = uemap.find(c);
+
+        if (loc == uemap.end()) {
+            newstring += c;
+
+        } else {
+            newstring += uemap.at(c);
+        }
+    }
+
     return charset::utf8_to_pico8(newstring);
 }

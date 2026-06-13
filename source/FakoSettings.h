@@ -6,8 +6,7 @@
 #define VER_STR "v0.0.0.0"
 #endif
 
-
-const char * fake08SettingsP8 = R"#(
+const char* fake08SettingsP8 = R"#(
 pico-8 cartridge // http://www.pico-8.com
 version 33
 __lua__

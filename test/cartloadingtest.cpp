@@ -21,8 +21,7 @@
 #include "../source/nibblehelpers.h"
 #include "../source/filehelpers.h"
 
-
-const vector<string> cartsToIgnore ({
+const vector<string> cartsToIgnore({
     "15666.p8.png",
     "16069.p8.png",
     "16355.p8.png",
@@ -257,7 +256,7 @@ const vector<string> cartsToIgnore ({
     "frozax_windrose-0.p8.png",
     "fruitlicker-1.p8.png",
     "gajeyabin-0.p8.png",
-    "game_and_timer_ball-2.p8.png", //sigsegv
+    "game_and_timer_ball-2.p8.png",   //sigsegv
     "game_and_timer_vermin-1.p8.png", //sigsegv
     "gbc_startup-0.p8.png",
     "ghostbuster-0.p8.png",
@@ -520,15 +519,13 @@ const vector<string> cartsToIgnore ({
     "wall_jump_platformer-4.p8.png",
 });
 
-string checkCart(Vm* vm, string cartDirectory, string cart){
+string checkCart(Vm* vm, string cartDirectory, string cart) {
     printf("%s\n", cart.c_str());
     vm->LoadCart(cartDirectory + "/" + cart, false);
 
     if (vm->GetBiosError() != "") {
         return vm->GetBiosError();
-    }
-    else
-    {
+    } else {
         vm->Step();
 
         if (vm->GetBiosError() != "") {
@@ -575,42 +572,36 @@ string checkCart_wrapper(string cartDirectory, string cart)
 }
 */
 
-
 TEST_CASE("Loading and running carts") {
     vector<string> carts;
     vector<string> errors;
 
-
     //TODO: build library of carts to test- set up compiler flag?
     std::string _cartDirectory = "";
 
-    DIR *dir;
-    struct dirent *ent;
-    if (!_cartDirectory.empty() && (dir = opendir (_cartDirectory.c_str())) != NULL) {
+    DIR* dir;
+    struct dirent* ent;
+    if (!_cartDirectory.empty() && (dir = opendir(_cartDirectory.c_str())) != NULL) {
         /* print all the files and directories within directory */
-        while ((ent = readdir (dir)) != NULL) {
-            if (isCartFile(ent->d_name) 
-                && ! isCPostFile(ent->d_name)
-                && std::find(cartsToIgnore.begin(), cartsToIgnore.end(), ent->d_name) == cartsToIgnore.end()) {
+        while ((ent = readdir(dir)) != NULL) {
+            if (isCartFile(ent->d_name) && !isCPostFile(ent->d_name) && std::find(cartsToIgnore.begin(), cartsToIgnore.end(), ent->d_name) == cartsToIgnore.end()) {
                 carts.push_back(ent->d_name);
             }
         }
-        closedir (dir);
+        closedir(dir);
     } else if (!_cartDirectory.empty()) {
         /* could not open directory */
-        perror ("Cart directory");
+        perror("Cart directory");
     }
     sort(carts.begin(), carts.end());
 
     //sort(cartsToIgnore.begin(), cartsToIgnore.end());
     string lastKnownError = cartsToIgnore[cartsToIgnore.size() - 1];
 
-
     Host* host = new Host();
     Vm* vm = new Vm(host);
 
-
-    for(int i = 0; i < carts.size(); i++) {
+    for (int i = 0; i < carts.size(); i++) {
 
         //if (carts[i] < lastKnownError) {
         //    continue;
@@ -624,8 +615,7 @@ TEST_CASE("Loading and running carts") {
             if (result.length() > 0) {
                 errors.push_back(carts[i] + ": " + result);
             }
-        }
-        catch(std::runtime_error& e) {
+        } catch (std::runtime_error& e) {
             errors.push_back(carts[i] + ": Timeout" + e.what());
         }
     }
@@ -637,11 +627,9 @@ TEST_CASE("Loading and running carts") {
             printf("%s\n", errors[i].c_str());
         }
     }
-    
+
     //TODO: compile known errors, make sure none are introduced
 
     delete vm;
     delete host;
-    
 }
-

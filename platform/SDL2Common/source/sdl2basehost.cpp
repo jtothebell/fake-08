@@ -24,7 +24,6 @@ using namespace std;
 int _windowWidth = 128;
 int _windowHeight = 128;
 
-
 int _screenWidth = 128;
 int _screenHeight = 128;
 
@@ -50,12 +49,12 @@ bool stretchKeyPressed = false;
 Audio* _audio;
 
 SDL_Window* window;
-SDL_Renderer *renderer;
-SDL_Texture *texture = NULL;
+SDL_Renderer* renderer;
+SDL_Texture* texture = NULL;
 SDL_AudioSpec want, have;
 SDL_AudioDeviceID dev;
-void *pixels;
-uint8_t *base;
+void* pixels;
+uint8_t* base;
 int pitch;
 
 SDL_Rect DestR;
@@ -67,8 +66,7 @@ int joystickCount = 0;
 
 bool audioInitialized = false;
 
-
-void postFlipFunction(){
+void postFlipFunction() {
     // We're done rendering, so we end the frame here.
     SDL_UnlockTexture(texture);
     SDL_RenderCopyEx(renderer, texture, &SrcR, &DestR, textureAngle, NULL, flip);
@@ -76,28 +74,25 @@ void postFlipFunction(){
     SDL_RenderPresent(renderer);
 }
 
-void audioCleanup(){
+void audioCleanup() {
     audioInitialized = false;
 
     SDL_CloseAudioDevice(dev);
 }
 
-
-void FillAudioDeviceBuffer(void* UserData, Uint8* DeviceBuffer, int Length)
-{
+void FillAudioDeviceBuffer(void* UserData, Uint8* DeviceBuffer, int Length) {
     _audio->FillAudioBuffer(DeviceBuffer, 0, Length / 4);
 }
 
-void audioSetup(){
+void audioSetup() {
     //modifed from SDL docs: https://wiki.libsdl.org/SDL_OpenAudioDevice
 
     SDL_memset(&want, 0, sizeof(want)); /* or SDL_zero(want) */
     want.freq = SAMPLERATE;
     want.format = AUDIO_S16;
     want.channels = 2;
-    want.samples = 512;  // Lower buffer size for reduced audio latency (~23ms vs ~186ms)
+    want.samples = 512; // Lower buffer size for reduced audio latency (~23ms vs ~186ms)
     want.callback = FillAudioDeviceBuffer;
-    
 
     dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
     if (dev == 0) {
@@ -111,32 +106,26 @@ void audioSetup(){
     }
 }
 
-void _changeStretch(StretchOption newStretch){
+void _changeStretch(StretchOption newStretch) {
     if (newStretch == PixelPerfect) {
         _screenWidth = PicoScreenWidth;
         _screenHeight = PicoScreenHeight;
-    }
-    else if (newStretch == StretchToFit) {
+    } else if (newStretch == StretchToFit) {
         _screenWidth = _windowHeight;
         _screenHeight = _windowHeight;
-    }
-    else if (newStretch == StretchToFill){
+    } else if (newStretch == StretchToFill) {
         _screenWidth = _windowWidth;
-        _screenHeight = _windowHeight; 
-    }
-    else if (newStretch == PixelPerfectStretch) {
+        _screenHeight = _windowHeight;
+    } else if (newStretch == PixelPerfectStretch) {
         _screenWidth = _maxNoStretchWidth;
-        _screenHeight = _maxNoStretchHeight; 
-    }
-    else if (newStretch == FourByThreeVertPerfect) {
+        _screenHeight = _maxNoStretchHeight;
+    } else if (newStretch == FourByThreeVertPerfect) {
         _screenWidth = _maxNoStretchHeight * 4 / 3;
-        _screenHeight = _maxNoStretchHeight; 
-    }
-    else if (newStretch == FourByThreeStretch) {
+        _screenHeight = _maxNoStretchHeight;
+    } else if (newStretch == FourByThreeStretch) {
         _screenWidth = _windowHeight * 4 / 3;
-        _screenHeight = _windowHeight; 
+        _screenHeight = _windowHeight;
     }
-    
 
     DestR.x = _windowWidth / 2 - _screenWidth / 2;
     DestR.y = _windowHeight / 2 - _screenHeight / 2;
@@ -160,11 +149,10 @@ void Host::setPlatformParams(
     uint32_t sdlPixelFormat,
     std::string logFilePrefix,
     std::string customBiosLua,
-    std::string cartDirectory) 
-{
+    std::string cartDirectory) {
     _windowWidth = windowWidth;
     _windowHeight = windowHeight;
-    
+
     //assume wide screen, height is limiting factor
     int maxNoStretchFactor = _windowHeight / PicoScreenHeight;
 
@@ -181,38 +169,32 @@ void Host::setPlatformParams(
     _logFilePrefix = logFilePrefix;
     _customBiosLua = customBiosLua;
     _cartDirectory = cartDirectory;
-
 }
 
-
-void Host::oneTimeSetup(Audio* audio){
+void Host::oneTimeSetup(Audio* audio) {
     if (g_runAndExit) {
         return;
     }
 
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
-    {
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         fprintf(stderr, "SDL could not initialize\n");
         return;
     }
 
     window = SDL_CreateWindow("FAKE-08", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, _windowWidth, _windowHeight, _windowFlags);
-	if (!window) 
-    { 
+    if (!window) {
         quit = 1;
-        return; 
+        return;
     }
-	
-	renderer = SDL_CreateRenderer(window, -1, _rendererFlags);
-	if (!renderer) 
-    { 
+
+    renderer = SDL_CreateRenderer(window, -1, _rendererFlags);
+    if (!renderer) {
         quit = 1;
         return;
     }
 
     texture = SDL_CreateTexture(renderer, _pixelFormat, SDL_TEXTUREACCESS_STREAMING, PicoScreenWidth, PicoScreenHeight);
-    if (!texture)
-    {
+    if (!texture) {
         fprintf(stderr, "Error creating texture.\n");
         quit = 1;
         return;
@@ -225,10 +207,10 @@ void Host::oneTimeSetup(Audio* audio){
 
     joystickCount = SDL_NumJoysticks();
     for (int i = 0; i < joystickCount; i++) {
-		if (SDL_JoystickOpen(i) == NULL) {
-			printf("Failed to open joystick %d!\n", i);
-			quit = 1;
-		}
+        if (SDL_JoystickOpen(i) == NULL) {
+            printf("Failed to open joystick %d!\n", i);
+            quit = 1;
+        }
     }
 
     last_time = 0;
@@ -249,7 +231,7 @@ void Host::oneTimeSetup(Audio* audio){
     mouseOffsetY = DestR.y;
 }
 
-void Host::oneTimeCleanup(){
+void Host::oneTimeCleanup() {
     if (g_runAndExit) {
         return;
     }
@@ -264,30 +246,25 @@ void Host::oneTimeCleanup(){
     SDL_Quit();
 }
 
-void Host::setTargetFps(int targetFps){
+void Host::setTargetFps(int targetFps) {
     targetFrameTimeMs = 1000 / targetFps;
 }
 
-void Host::changeStretch(){
+void Host::changeStretch() {
     if (stretchKeyPressed && resizekey == YesResize) {
         StretchOption newStretch = stretch;
 
         if (stretch == PixelPerfectStretch) {
             newStretch = PixelPerfect;
-        }
-        else if (stretch == PixelPerfect) {
+        } else if (stretch == PixelPerfect) {
             newStretch = StretchToFit;
-        }
-        else if (stretch == StretchToFit) {
+        } else if (stretch == StretchToFit) {
             newStretch = StretchToFill;
-        }
-        else if (stretch == StretchToFill) {
+        } else if (stretch == StretchToFill) {
             newStretch = FourByThreeVertPerfect;
-        }
-        else if (stretch == FourByThreeVertPerfect) {
+        } else if (stretch == FourByThreeVertPerfect) {
             newStretch = FourByThreeStretch;
-        }
-        else if (stretch == FourByThreeStretch) {
+        } else if (stretch == FourByThreeStretch) {
             newStretch = PixelPerfectStretch;
         }
 
@@ -302,50 +279,48 @@ void Host::changeStretch(){
 }
 
 void Host::forceStretch(StretchOption newStretch) {
-	_changeStretch(newStretch);
-	stretch = newStretch;
-	scaleX = _screenWidth / (float)PicoScreenWidth;
-	scaleY = _screenHeight / (float)PicoScreenHeight;
-	mouseOffsetX = DestR.x;
-	mouseOffsetY = DestR.y;
+    _changeStretch(newStretch);
+    stretch = newStretch;
+    scaleX = _screenWidth / (float)PicoScreenWidth;
+    scaleY = _screenHeight / (float)PicoScreenHeight;
+    mouseOffsetX = DestR.x;
+    mouseOffsetY = DestR.y;
 }
 
 bool Host::shouldQuit() {
     return quit == 1;
 }
 
-void Host::waitForTargetFps(){
+void Host::waitForTargetFps() {
     now_time = SDL_GetTicks();
     frame_time = now_time - last_time;
-	last_time = now_time;
+    last_time = now_time;
 
+    //sleep for remainder of time
+    if (frame_time < targetFrameTimeMs) {
+        uint32_t msToSleep = targetFrameTimeMs - frame_time;
 
-	//sleep for remainder of time
-	if (frame_time < targetFrameTimeMs) {
-		uint32_t msToSleep = targetFrameTimeMs - frame_time;
-        
         SDL_Delay(msToSleep);
 
-		last_time += msToSleep;
-	}
+        last_time += msToSleep;
+    }
 }
 
-
-void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMode){
+void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMode) {
     //clear screen to all black
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
 
     SDL_LockTexture(texture, NULL, &pixels, &pitch);
 
-    for (int y = 0; y < PicoScreenHeight; y ++){
-        for (int x = 0; x < PicoScreenWidth; x ++){
+    for (int y = 0; y < PicoScreenHeight; y++) {
+        for (int x = 0; x < PicoScreenWidth; x++) {
             uint8_t c = getPixelNibble(x, y, picoFb);
             // Apply 0x8F mask per PICO-8 spec: system color indices are masked with 0x8F
             // This maps values like 149 to valid palette indices (149 & 0x8F = 133)
             Color col = _paletteColors[screenPaletteMap[c] & 0x8f];
 
-            base = ((Uint8 *)pixels) + (4 * ( y * PicoScreenHeight + x));
+            base = ((Uint8*)pixels) + (4 * (y * PicoScreenHeight + x));
             base[0] = col.Blue;
             base[1] = col.Green;
             base[2] = col.Red;
@@ -356,92 +331,91 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
     SrcR.x = 0;
     SrcR.y = 0;
 
-    switch(drawMode){
-        case 1:
-            SrcR.w = 64;
-            SrcR.h = PicoScreenHeight;
-            textureAngle = 0;
-            flip = SDL_FLIP_NONE;
-            break;
-        case 2:
-            SrcR.w = PicoScreenWidth;
-            SrcR.h = 64;
-            textureAngle = 0;
-            flip = SDL_FLIP_NONE;
-            break;
-        case 3:
-            SrcR.w = 64;
-            SrcR.h = 64;
-            textureAngle = 0;
-            flip = SDL_FLIP_NONE;
-            break;
-        //todo: mirroring
-        //case 4,6,7
-        case 129:
-            SrcR.w = PicoScreenWidth;
-            SrcR.h = PicoScreenHeight;
-            textureAngle = 0;
-            flip = SDL_FLIP_HORIZONTAL;
-            break;
-        case 130:
-            SrcR.w = PicoScreenWidth;
-            SrcR.h = PicoScreenHeight;
-            textureAngle = 0;
-            flip = SDL_FLIP_VERTICAL;
-            break;
-        case 131:
-            SrcR.w = PicoScreenWidth;
-            SrcR.h = PicoScreenHeight;
-            textureAngle = 0;
-            flip = (SDL_RendererFlip)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL);
-            break;
-        case 133:
-            SrcR.w = PicoScreenWidth;
-            SrcR.h = PicoScreenHeight;
-            textureAngle = 90;
-            flip = SDL_FLIP_NONE;
-            break;
-        case 134:
-            SrcR.w = PicoScreenWidth;
-            SrcR.h = PicoScreenHeight;
-            textureAngle = 180;
-            flip = SDL_FLIP_NONE;
-            break;
-        case 135:
-            SrcR.w = PicoScreenWidth;
-            SrcR.h = PicoScreenHeight;
-            textureAngle = 270;
-            flip = SDL_FLIP_NONE;
-            break;
-        default:
-            SrcR.w = PicoScreenWidth;
-            SrcR.h = PicoScreenHeight;
-            textureAngle = 0;
-            flip = SDL_FLIP_NONE;
-            break;
+    switch (drawMode) {
+    case 1:
+        SrcR.w = 64;
+        SrcR.h = PicoScreenHeight;
+        textureAngle = 0;
+        flip = SDL_FLIP_NONE;
+        break;
+    case 2:
+        SrcR.w = PicoScreenWidth;
+        SrcR.h = 64;
+        textureAngle = 0;
+        flip = SDL_FLIP_NONE;
+        break;
+    case 3:
+        SrcR.w = 64;
+        SrcR.h = 64;
+        textureAngle = 0;
+        flip = SDL_FLIP_NONE;
+        break;
+    //todo: mirroring
+    //case 4,6,7
+    case 129:
+        SrcR.w = PicoScreenWidth;
+        SrcR.h = PicoScreenHeight;
+        textureAngle = 0;
+        flip = SDL_FLIP_HORIZONTAL;
+        break;
+    case 130:
+        SrcR.w = PicoScreenWidth;
+        SrcR.h = PicoScreenHeight;
+        textureAngle = 0;
+        flip = SDL_FLIP_VERTICAL;
+        break;
+    case 131:
+        SrcR.w = PicoScreenWidth;
+        SrcR.h = PicoScreenHeight;
+        textureAngle = 0;
+        flip = (SDL_RendererFlip)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL);
+        break;
+    case 133:
+        SrcR.w = PicoScreenWidth;
+        SrcR.h = PicoScreenHeight;
+        textureAngle = 90;
+        flip = SDL_FLIP_NONE;
+        break;
+    case 134:
+        SrcR.w = PicoScreenWidth;
+        SrcR.h = PicoScreenHeight;
+        textureAngle = 180;
+        flip = SDL_FLIP_NONE;
+        break;
+    case 135:
+        SrcR.w = PicoScreenWidth;
+        SrcR.h = PicoScreenHeight;
+        textureAngle = 270;
+        flip = SDL_FLIP_NONE;
+        break;
+    default:
+        SrcR.w = PicoScreenWidth;
+        SrcR.h = PicoScreenHeight;
+        textureAngle = 0;
+        flip = SDL_FLIP_NONE;
+        break;
     }
-    
 
     postFlipFunction();
 }
 
-bool Host::shouldFillAudioBuff(){
+bool Host::shouldFillAudioBuff() {
     return false;
 }
 
-void* Host::getAudioBufferPointer(){
+void* Host::getAudioBufferPointer() {
     return nullptr;
 }
 
-size_t Host::getAudioBufferSize(){
+size_t Host::getAudioBufferSize() {
     return 0;
 }
 
-void Host::playFilledAudioBuffer(){
+void Host::playFilledAudioBuffer() {
 }
 
-bool Host::shouldRunMainLoop(){
-    if (shouldQuit()){
+bool Host::shouldRunMainLoop() {
+    if (shouldQuit()) {
         return false;
     }
 
@@ -459,4 +433,3 @@ std::string Host::customBiosLua() {
 std::string Host::getCartDirectory() {
     return _cartDirectory;
 }
-

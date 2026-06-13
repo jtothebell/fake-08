@@ -24,43 +24,36 @@
 
 #include "FakoSettings.h"
 
-
-static char const *legacyCompressionLut = "\n 0123456789abcdefghijklmnopqrstuvwxyz!#%(){}[]<>+=/*:;.,~_";
+static char const* legacyCompressionLut = "\n 0123456789abcdefghijklmnopqrstuvwxyz!#%(){}[]<>+=/*:;.,~_";
 static std::regex _includeRegex = std::regex("\\s*#include\\s+([\\\\/A-Za-z0-9_\\-\\.]+)");
 
 //https://github.com/samhocevar/zepto8/blob/b1a13516945c49e47495c739e6a43a241ad99291/src/pico8/code.cpp
 // Move to front structure
-struct move_to_front
-{
-    move_to_front()
-    {
+struct move_to_front {
+    move_to_front() {
         reset();
     }
 
-    void reset()
-    {
+    void reset() {
         for (int n = 0; n < 256; ++n)
             state[n] = uint8_t(n);
     }
 
     // Get the nth byte and move it to front
-    uint8_t get(int n)
-    {
+    uint8_t get(int n) {
         std::rotate(state.begin(), state.begin() + n, state.begin() + n + 1);
         return state.front();
     }
 
     // Find index of a given byte in the structure
-    int find(uint8_t ch)
-    {
+    int find(uint8_t ch) {
         auto val = std::find(state.begin(), state.end(), ch);
         return int(std::distance(state.begin(), val));
     }
 
     // Push a character and return its previous index, allowing the caller to compute the cost
     // of the operation. This operation can be undone by pop_op().
-    int push_op(uint8_t ch)
-    {
+    int push_op(uint8_t ch) {
         int n = find(ch);
         get(n);
         ops.push(uint8_t(n));
@@ -68,27 +61,24 @@ struct move_to_front
     }
 
     // Undo an push_op() operation
-    void pop_op()
-    {
+    void pop_op() {
         std::rotate(state.begin(), state.begin() + 1, state.begin() + ops.top() + 1);
         ops.pop();
     }
 
-private:
+  private:
     std::array<uint8_t, 256> state;
     std::stack<uint8_t> ops;
 };
 
 //implementation from zepto8 code.cpp, pxa_decompress
-//https://github.com/samhocevar/zepto8/blob/b1a13516945c49e47495c739e6a43a241ad99291/src/pico8/code.cpp        
-static std::string pxa_decompress(uint8_t const *input)
-{
+//https://github.com/samhocevar/zepto8/blob/b1a13516945c49e47495c739e6a43a241ad99291/src/pico8/code.cpp
+static std::string pxa_decompress(uint8_t const* input) {
     size_t length = input[4] * 256 + input[5];
     size_t compressed = input[6] * 256 + input[7];
 
     size_t pos = size_t(8) * 8; // stream position in bits
-    auto get_bits = [&](size_t count) -> uint32_t
-    {
+    auto get_bits = [&](size_t count) -> uint32_t {
         uint32_t n = 0;
         for (size_t i = 0; i < count && pos < compressed * 8; ++i, ++pos)
             n |= ((input[pos >> 3] >> (pos & 0x7)) & 0x1) << i;
@@ -100,12 +90,11 @@ static std::string pxa_decompress(uint8_t const *input)
 
     //TRACE("# Size: %d (%04x)\n", int(compressed), int(compressed));
 
-    while (ret.size() < length && pos < compressed * 8)
-    {
-        auto oldpos = pos; (void)oldpos;
+    while (ret.size() < length && pos < compressed * 8) {
+        auto oldpos = pos;
+        (void)oldpos;
 
-        if (get_bits(1))
-        {
+        if (get_bits(1)) {
             int nbits = 4;
             while (get_bits(1))
                 ++nbits;
@@ -115,24 +104,18 @@ static std::string pxa_decompress(uint8_t const *input)
                 break;
             //TRACE("%04x [%d] %s\n", int(ret.size()), int(pos-oldpos), printable(ch).c_str());
             ret.push_back(char(ch));
-        }
-        else
-        {
+        } else {
             int nbits = get_bits(1) ? get_bits(1) ? 5 : 10 : 15;
             int offset = get_bits(nbits) + 1;
 
-            if (nbits == 10 && offset == 1)
-            {
+            if (nbits == 10 && offset == 1) {
                 uint8_t ch = get_bits(8);
-                while (ch)
-                {
+                while (ch) {
                     ret.push_back(char(ch));
                     ch = get_bits(8);
                 }
                 //TRACE("%04x [%d] #%d\n", int(ret.size()), int(pos-oldpos), int(pos-oldpos-21) / 8);
-            }
-            else
-            {
+            } else {
                 int n, len = 3;
                 do
                     len += (n = get_bits(3));
@@ -141,7 +124,7 @@ static std::string pxa_decompress(uint8_t const *input)
                 //TRACE("%04x [%d] %d@-%d\n", int(ret.size()), int(pos-oldpos), len, offset);
                 for (int i = 0; i < len; ++i)
                     ret.push_back(ret[ret.size() - offset]);
-                }
+            }
         }
     }
 
@@ -151,13 +134,13 @@ static std::string pxa_decompress(uint8_t const *input)
 #define HEADERLEN 8
 
 bool Cart::loadCartFromPng(std::vector<unsigned char> image) {
-        //160x205 == 32800 == 0x8020
+    //160x205 == 32800 == 0x8020
     //0x8000 is actual used data size
     size_t imageBytes = image.size();
 
     uint8_t version = 0;
 
-    for(size_t i = 0; i < imageBytes; i += 4) {
+    for (size_t i = 0; i < imageBytes; i += 4) {
         if (i + 3 >= imageBytes) {
             break;
         }
@@ -170,8 +153,8 @@ bool Cart::loadCartFromPng(std::vector<unsigned char> image) {
         //get lower bits where pico data is encoded
         a = a & 0x0003;
         r = r & 0x0003;
-		g = g & 0x0003;
-		b = b & 0x0003;
+        g = g & 0x0003;
+        b = b & 0x0003;
 
         uint8_t extractedByte = (a << 6) + (r << 4) + (g << 2) + b;
 
@@ -180,40 +163,34 @@ bool Cart::loadCartFromPng(std::vector<unsigned char> image) {
         size_t picoDataIdx = i / 4;
         if (picoDataIdx < 0x2000) {
             CartRom.SpriteSheetData[picoDataIdx] = extractedByte;
-        }
-        else if (picoDataIdx < 0x3000) {
+        } else if (picoDataIdx < 0x3000) {
             CartRom.MapData[picoDataIdx - 0x2000] = extractedByte;
-        }
-        else if (picoDataIdx < 0x3100) {
+        } else if (picoDataIdx < 0x3100) {
             CartRom.SpriteFlagsData[picoDataIdx - 0x3000] = extractedByte;
-        }
-        else if (picoDataIdx < 0x3200) {
+        } else if (picoDataIdx < 0x3200) {
             size_t offset = picoDataIdx - 0x3100;
             size_t songIdx = offset / sizeof(song);
             size_t channelIdx = offset % sizeof(song);
             CartRom.SongData[songIdx].data[channelIdx] = extractedByte;
-        }
-        else if (picoDataIdx < 0x4300) {
+        } else if (picoDataIdx < 0x4300) {
             size_t offset = picoDataIdx - 0x3200;
             size_t sfxIdx = offset / sizeof(sfx);
             size_t byteIdx = offset % sizeof(sfx);
             CartRom.SfxData[sfxIdx].data[byteIdx] = extractedByte;
-        }
-        else if (picoDataIdx < 0x8000) {
+        } else if (picoDataIdx < 0x8000) {
             CartLuaData[picoDataIdx - 0x4300] = extractedByte;
-        }
-        else if (picoDataIdx == 0x8000) {
+        } else if (picoDataIdx == 0x8000) {
             version = extractedByte;
         }
     }
 
     uint8_t compression = 0;
 
-    if (CartLuaData[0] == '\0' && CartLuaData[1] == 'p' && CartLuaData[2] == 'x' && CartLuaData[3] == 'a'){
+    if (CartLuaData[0] == '\0' && CartLuaData[1] == 'p' && CartLuaData[2] == 'x' && CartLuaData[3] == 'a') {
         compression = 2;
     }
 
-    if (CartLuaData[0] == ':' && CartLuaData[1] == 'c' && CartLuaData[2] == ':' && CartLuaData[3] == '\0'){
+    if (CartLuaData[0] == ':' && CartLuaData[1] == 'c' && CartLuaData[2] == ':' && CartLuaData[3] == '\0') {
         compression = 1;
     }
 
@@ -223,36 +200,35 @@ bool Cart::loadCartFromPng(std::vector<unsigned char> image) {
         auto codeBlockLength = 0x8000 - 0x4300;
         auto length = codeBlockLength;
 
-        auto endOfCodePtr = (uint8_t const *)std::memchr(CartLuaData, '\0', codeBlockLength);
+        auto endOfCodePtr = (uint8_t const*)std::memchr(CartLuaData, '\0', codeBlockLength);
         if (endOfCodePtr) {
             length = endOfCodePtr - CartLuaData;
         }
 
-        LuaString = std::string((char const *)CartLuaData, length);
-    }
-    else if (compression == 1){
+        LuaString = std::string((char const*)CartLuaData, length);
+    } else if (compression == 1) {
         //from pico 8 wiki: https://pico-8.fandom.com/wiki/P8PNGFileFormat
         //The first four bytes (0x4300-0x4303) are :c:\x00.
         //The next two bytes (0x4304-0x4305) are the length of the decompressed code, stored MSB first.
-        //The next two bytes (0x4306-0x4307) are always zero. 
+        //The next two bytes (0x4306-0x4307) are always zero.
         size_t length = CartLuaData[4] * 256 + CartLuaData[5];
 
         LuaString.resize(0);
 
-        for (size_t i = 8; i < sizeof(CartLuaData) && LuaString.length() < length; ++i){
-            //0x00: Copy the next byte directly to the output stream. 
-            if(CartLuaData[i] == 0x00){
+        for (size_t i = 8; i < sizeof(CartLuaData) && LuaString.length() < length; ++i) {
+            //0x00: Copy the next byte directly to the output stream.
+            if (CartLuaData[i] == 0x00) {
                 LuaString += CartLuaData[++i];
             }
             //0x01-0x3b: Emit a character from a lookup table
-            else if (CartLuaData[i] < 0x3c){
+            else if (CartLuaData[i] < 0x3c) {
                 LuaString += legacyCompressionLut[CartLuaData[i] - 1];
             }
-            //0x3c-0xff: Calculate an offset and length from this byte and the next byte, 
-            //then copy those bytes from what has already been emitted. In other words, 
-            //go back "offset" characters in the output stream, copy "length" characters, 
-            //then paste them to the end of the output stream. Offset and length are 
-            //calculated as: 
+            //0x3c-0xff: Calculate an offset and length from this byte and the next byte,
+            //then copy those bytes from what has already been emitted. In other words,
+            //go back "offset" characters in the output stream, copy "length" characters,
+            //then paste them to the end of the output stream. Offset and length are
+            //calculated as:
             //   offset = (current_byte - 0x3c) * 16 + (next_byte & 0xf)
             //   length = (next_byte >> 4) + 2
             else {
@@ -261,7 +237,7 @@ bool Cart::loadCartFromPng(std::vector<unsigned char> image) {
 
                 int startIndex = LuaString.length() - offset;
                 if (startIndex > -1) {
-                    for(size_t j = 0; j < length; ++j) {
+                    for (size_t j = 0; j < length; ++j) {
                         LuaString += LuaString[startIndex + j];
                     }
                 }
@@ -270,15 +246,14 @@ bool Cart::loadCartFromPng(std::vector<unsigned char> image) {
             }
         }
 
-    }
-    else if (compression == 2){
+    } else if (compression == 2) {
         LuaString = pxa_decompress(CartLuaData);
-    }    
+    }
 
     return true;
 }
 
-bool Cart::loadCartFromPng(const unsigned char* cartData, size_t size){
+bool Cart::loadCartFromPng(const unsigned char* cartData, size_t size) {
     std::vector<unsigned char> image; //the raw pixels
     unsigned width, height;
 
@@ -286,7 +261,7 @@ bool Cart::loadCartFromPng(const unsigned char* cartData, size_t size){
     unsigned error = lodepng::decode(image, width, height, cartData, size);
 
     //if there's an error, display it
-    if(error) {
+    if (error) {
         LoadError = "png decoder error " + std::string(lodepng_error_text(error));
         Logger_Write("%s%s", LoadError.c_str(), "\n");
         return false;
@@ -301,8 +276,7 @@ bool Cart::loadCartFromPng(const unsigned char* cartData, size_t size){
     return loadCartFromPng(image);
 }
 
-
-bool Cart::loadCartFromPng(std::string filename){
+bool Cart::loadCartFromPng(std::string filename) {
     std::vector<unsigned char> image; //the raw pixels
     unsigned width, height;
 
@@ -311,7 +285,7 @@ bool Cart::loadCartFromPng(std::string filename){
     //the pixels are now in the vector "image", 4 bytes per pixel, ordered RGBARGBA..., use it as texture, draw it,
 
     //if there's an error, display it
-    if(error) {
+    if (error) {
         LoadError = "png decoder error " + std::string(lodepng_error_text(error));
         Logger_Write("%s%s", LoadError.c_str(), "\n");
         return false;
@@ -333,7 +307,7 @@ bool Cart::loadCartFromString(std::string cartStr) {
     std::string line;
     std::string currSec = "";
     std::smatch sm;
-    
+
     while (std::getline(s, line)) {
         line = utils::trimright(line, " \n\r");
         line = charset::utf8_to_pico8(line);
@@ -341,44 +315,35 @@ bool Cart::loadCartFromString(std::string cartStr) {
 
         if (line.length() > 2 && line[0] == '_' && line[1] == '_') {
             currSec = line;
-        }
-        else if (currSec == "__lua__"){
+        } else if (currSec == "__lua__") {
             if (std::regex_match(line, sm, _includeRegex)) {
                 auto dir = getDirectory(FullCartPath);
                 auto fullPath = dir + "/" + sm[1].str();
 
                 auto includeContents = get_file_contents(fullPath);
-                if (includeContents.length() > 0){
+                if (includeContents.length() > 0) {
                     includeContents = charset::utf8_to_pico8(includeContents);
                     LuaString += includeContents + "\n";
-                }
-                else{
+                } else {
                     //todo: report error
                     //error: can't find included file
                     LoadError = "Can't find included file";
                     return false;
                 }
-            }
-            else {
+            } else {
                 LuaString += line + "\n";
             }
-        }
-        else if (currSec == "__gfx__"){
+        } else if (currSec == "__gfx__") {
             SpriteSheetString += line + "\n";
-        }
-        else if (currSec == "__gff__"){
+        } else if (currSec == "__gff__") {
             SpriteFlagsString += line + "\n";
-        }
-        else if (currSec == "__map__"){
+        } else if (currSec == "__map__") {
             MapString += line + "\n";
-        }
-        else if (currSec == "__sfx__"){
+        } else if (currSec == "__sfx__") {
             SfxString += line + "\n";
-        }
-        else if (currSec == "__music__"){
+        } else if (currSec == "__music__") {
             MusicString += line + "\n";
-        }
-        else if (currSec == "__label__"){
+        } else if (currSec == "__label__") {
             LabelString += line + "\n";
         }
     }
@@ -395,47 +360,44 @@ bool Cart::loadCartFromString(std::string cartStr) {
     return true;
 }
 
-Cart::Cart (const unsigned char* cartData, size_t size){
+Cart::Cart(const unsigned char* cartData, size_t size) {
     if (size < 5) {
         LoadError = "Invalid cart. Less than 5 bytes";
         return;
     }
 
     //TODO: check if it is a text cart, decode string, then parse
-    if ((char)cartData[0] == '\x89' && 
-        (char)cartData[1] == 'P' && 
-        (char)cartData[2] == 'N' && 
+    if ((char)cartData[0] == '\x89' &&
+        (char)cartData[1] == 'P' &&
+        (char)cartData[2] == 'N' &&
         (char)cartData[3] == 'G') {
         bool success = loadCartFromPng(cartData, size);
 
-        if (!success){
+        if (!success) {
             return;
         }
         LoadError = "";
         Logger_Write("got valid png cart\n");
-    }
-    else if((char)cartData[0] == 'p' &&
-         (char)cartData[1] == 'i' && 
-         (char)cartData[2] == 'c' && 
-         (char)cartData[3] == 'o') {
+    } else if ((char)cartData[0] == 'p' &&
+               (char)cartData[1] == 'i' &&
+               (char)cartData[2] == 'c' &&
+               (char)cartData[3] == 'o') {
         std::string strContents(reinterpret_cast<const char*>(cartData), size);
 
         bool success = loadCartFromString(strContents);
 
-        if (!success){
+        if (!success) {
             return;
         }
         LoadError = "";
         Logger_Write("got valid p8 cart\n");
-    }
-    else {
+    } else {
         LoadError = "unknown cart file format";
     }
-
 }
 
 //tac08 based cart parsing and stripping of emoji
-Cart::Cart(std::string filename, std::string cartDirectory){
+Cart::Cart(std::string filename, std::string cartDirectory) {
     //the leading # indicates it is the BBS key. In the future, it would be nice to fetch them,
     //but for now expect the user to supply the carts
     if (filename.length() > 0 && filename[0] == '#') {
@@ -455,11 +417,9 @@ Cart::Cart(std::string filename, std::string cartDirectory){
     if (isDefaultCart || isSettingsCart) {
         // Built-in carts don't need a directory path
         FullCartPath = filename;
-    }
-    else if (cartDirectory.length() > 0 && ! isAbsolutePath(filename)) {
+    } else if (cartDirectory.length() > 0 && !isAbsolutePath(filename)) {
         FullCartPath = cartDirectory + "/" + filename;
-    }
-    else {
+    } else {
         FullCartPath = filename;
     }
     //zero out cart rom so no garbage is left over
@@ -469,8 +429,7 @@ Cart::Cart(std::string filename, std::string cartDirectory){
 
     std::string firstFourChars = get_first_four_chars(FullCartPath);
 
-    if ((fileExtension == "" || fileExtension == ".p8") && firstFourChars.length() == 0 
-        && !isDefaultCart && !isSettingsCart) {
+    if ((fileExtension == "" || fileExtension == ".p8") && firstFourChars.length() == 0 && !isDefaultCart && !isSettingsCart) {
         //fallback for cart loading by key - support .p8 and .p8.png
         filename = filename + ".png";
         // Rebuild full path with cart directory (same logic as initial path build)
@@ -490,19 +449,17 @@ Cart::Cart(std::string filename, std::string cartDirectory){
             return;
         }
     }
-    
-    if (isDefaultCart || isSettingsCart || firstFourChars == "pico"){
-        std::string cartStr; 
+
+    if (isDefaultCart || isSettingsCart || firstFourChars == "pico") {
+        std::string cartStr;
 
         if (isDefaultCart) {
             Logger_Write("Loading built-in default cart\n");
             cartStr = fake08DefaultCart;
-        }
-        else if (isSettingsCart) {
+        } else if (isSettingsCart) {
             Logger_Write("Loading built-in settings cart\n");
             cartStr = fake08SettingsP8;
-        }
-        else {
+        } else {
             cartStr = get_file_contents(FullCartPath.c_str());
             // File existence already checked above, but double-check just in case
             if (cartStr.length() == 0) {
@@ -515,21 +472,19 @@ Cart::Cart(std::string filename, std::string cartDirectory){
 
         bool success = loadCartFromString(cartStr);
 
-        if (!success){
+        if (!success) {
             return;
         }
-    }
-    else if (firstFourChars == "\x89PNG") {
+    } else if (firstFourChars == "\x89PNG") {
         bool success = loadCartFromPng(FullCartPath);
 
-        if (!success){
+        if (!success) {
             return;
         }
 
         LoadError = "";
         Logger_Write("got valid png cart\n");
-    }
-    else {
+    } else {
         // File exists but format is unknown
         LoadError = "unknown cart file format: " + FullCartPath;
         Logger_Write("%s\n", LoadError.c_str());
@@ -537,52 +492,51 @@ Cart::Cart(std::string filename, std::string cartDirectory){
     }
 }
 
-Cart::~Cart(){
-    
+Cart::~Cart() {
 }
 
-void Cart::initCartRom(){
+void Cart::initCartRom() {
     //zero out cart rom so no garbage is left over
-    for(size_t i = 0; i < sizeof(CartRom.SpriteSheetData); i++) {
+    for (size_t i = 0; i < sizeof(CartRom.SpriteSheetData); i++) {
         CartRom.SpriteSheetData[i] = 0;
     }
-    for(size_t i = 0; i < sizeof(CartRom.SpriteFlagsData); i++) {
+    for (size_t i = 0; i < sizeof(CartRom.SpriteFlagsData); i++) {
         CartRom.SpriteFlagsData[i] = 0;
     }
-    for(size_t i = 0; i < sizeof(CartRom.MapData); i++) {
+    for (size_t i = 0; i < sizeof(CartRom.MapData); i++) {
         CartRom.MapData[i] = 0;
     }
-    for(size_t i = 0; i < 64; i++) {
+    for (size_t i = 0; i < 64; i++) {
         CartRom.SfxData[i] = {0};
     }
-    for(size_t i = 0; i < 64; i++) {
+    for (size_t i = 0; i < 64; i++) {
         CartRom.SongData[i] = {0};
     }
 }
 
-void Cart::setSpriteSheet(std::string spritesheetstring){
-	Logger_Write("Copying data to spritesheet\n");
-	copy_string_to_sprite_memory(CartRom.SpriteSheetData, spritesheetstring);
+void Cart::setSpriteSheet(std::string spritesheetstring) {
+    Logger_Write("Copying data to spritesheet\n");
+    copy_string_to_sprite_memory(CartRom.SpriteSheetData, spritesheetstring);
 }
 
-void Cart::setSpriteFlags(std::string spriteFlagsstring){
-	Logger_Write("Copying data to sprite flags\n");
-	copy_string_to_memory(CartRom.SpriteFlagsData, spriteFlagsstring);
+void Cart::setSpriteFlags(std::string spriteFlagsstring) {
+    Logger_Write("Copying data to sprite flags\n");
+    copy_string_to_memory(CartRom.SpriteFlagsData, spriteFlagsstring);
 }
 
-void Cart::setMapData(std::string mapDataString){
-	Logger_Write("Copying data to map data\n");
-	copy_string_to_memory(CartRom.MapData, mapDataString);
+void Cart::setMapData(std::string mapDataString) {
+    Logger_Write("Copying data to map data\n");
+    copy_string_to_memory(CartRom.MapData, mapDataString);
 }
 
-void Cart::setMusic(std::string musicString){
+void Cart::setMusic(std::string musicString) {
     std::istringstream s(musicString);
     std::string line;
     char buf[3] = {0};
     int musicIdx = 0;
-    
+
     while (std::getline(s, line)) {
-        if (line.length() < 11){
+        if (line.length() < 11) {
             continue;
         }
 
@@ -621,7 +575,6 @@ void Cart::setMusic(std::string musicString){
             break;
         }
     }
-
 }
 
 void Cart::setSfx(std::string sfxString) {
@@ -634,7 +587,7 @@ void Cart::setSfx(std::string sfxString) {
     for (int i = 0; i < 64; i++) {
         CartRom.SfxData[i].speed = 16;
     }
-    
+
     while (std::getline(s, line)) {
         buf[0] = line[0];
         buf[1] = line[1];
@@ -659,11 +612,10 @@ void Cart::setSfx(std::string sfxString) {
 
         //32 notes, 5 chars each
         int noteIdx = 0;
-        for (int i = 8; i < 168; i+=5) {
+        for (int i = 8; i < 168; i += 5) {
             buf[0] = line[i];
             buf[1] = line[i + 1];
             uint8_t key = (uint8_t)strtol(buf, NULL, 16);
-            
 
             buf[0] = '0';
             buf[1] = line[i + 2];
@@ -688,7 +640,5 @@ void Cart::setSfx(std::string sfxString) {
         }
 
         sfxIdx++;
-    } 
+    }
 }
-
-

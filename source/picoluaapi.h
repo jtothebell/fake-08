@@ -3,9 +3,9 @@
 #include <string>
 
 //extern "C" {
-  #include <lua.h>
-  #include <lualib.h>
-  #include <lauxlib.h>
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
 //}
 
 #include "graphics.h"
@@ -20,41 +20,41 @@ constexpr int PICO8_MAX_PEEK_POKE_COUNT = 32767;
 void initPicoApi(PicoRam* memory, Graphics* graphics, Input* input, Vm* vm, Audio* audio);
 
 //graphics api
-int cls(lua_State *L);
-int pset(lua_State *L);
-int pget(lua_State *L);
-int color(lua_State *L);
-int line (lua_State *L);
-int tline (lua_State *L);
-int circ(lua_State *L);
-int circfill(lua_State *L);
-int oval(lua_State *L);
-int ovalfill(lua_State *L);
-int rect(lua_State *L);
-int rectfill(lua_State *L);
-int rrect(lua_State *L);
-int rrectfill(lua_State *L);
-int print(lua_State *L);
-int spr(lua_State *L);
-int sspr(lua_State *L);
-int fget(lua_State *L);
-int fset(lua_State *L);
-int sget(lua_State *L);
-int sset(lua_State *L);
-int camera(lua_State *L);
-int clip(lua_State *L);
-int mget(lua_State *L);
-int mset(lua_State *L);
-int gfx_map(lua_State *L);
-int pal(lua_State *L);
-int palt(lua_State *L);
-int cursor(lua_State *L);
+int cls(lua_State* L);
+int pset(lua_State* L);
+int pget(lua_State* L);
+int color(lua_State* L);
+int line(lua_State* L);
+int tline(lua_State* L);
+int circ(lua_State* L);
+int circfill(lua_State* L);
+int oval(lua_State* L);
+int ovalfill(lua_State* L);
+int rect(lua_State* L);
+int rectfill(lua_State* L);
+int rrect(lua_State* L);
+int rrectfill(lua_State* L);
+int print(lua_State* L);
+int spr(lua_State* L);
+int sspr(lua_State* L);
+int fget(lua_State* L);
+int fset(lua_State* L);
+int sget(lua_State* L);
+int sset(lua_State* L);
+int camera(lua_State* L);
+int clip(lua_State* L);
+int mget(lua_State* L);
+int mset(lua_State* L);
+int gfx_map(lua_State* L);
+int pal(lua_State* L);
+int palt(lua_State* L);
+int cursor(lua_State* L);
 //todo:
-int fillp(lua_State *L); 
-int flip(lua_State *L);
+int fillp(lua_State* L);
+int flip(lua_State* L);
 //end todo
 
-//tables functions, maybe implemented in lua? 
+//tables functions, maybe implemented in lua?
 //list from: https://pico-8.fandom.com/wiki/APIReference
 /*
      add(t, v)
@@ -65,73 +65,73 @@ int flip(lua_State *L);
 */
 
 //input api
-int btn(lua_State *L);
-int btnp(lua_State *L);
+int btn(lua_State* L);
+int btnp(lua_State* L);
 
 //audio api
-int music(lua_State *L);
-int sfx(lua_State *L);
+int music(lua_State* L);
+int sfx(lua_State* L);
 
 //system
-int time(lua_State *L);
-int stat(lua_State *L);
+int time(lua_State* L);
+int stat(lua_State* L);
 
 //memory api
-int cstore(lua_State *L);
-int api_memcpy(lua_State *L);
-int api_memset(lua_State *L);
-int peek(lua_State *L);
-int poke(lua_State *L);
-int peek2(lua_State *L);
-int poke2(lua_State *L);
-int peek4(lua_State *L);
-int poke4(lua_State *L);
-int reload(lua_State *L);
+int cstore(lua_State* L);
+int api_memcpy(lua_State* L);
+int api_memset(lua_State* L);
+int peek(lua_State* L);
+int poke(lua_State* L);
+int peek2(lua_State* L);
+int poke2(lua_State* L);
+int peek4(lua_State* L);
+int poke4(lua_State* L);
+int reload(lua_State* L);
 
 //cart data
-int cartdata(lua_State *L);
-int dget(lua_State *L);
-int dset(lua_State *L);
+int cartdata(lua_State* L);
+int dget(lua_State* L);
+int dset(lua_State* L);
 
 //
-int printh(lua_State *L);
+int printh(lua_State* L);
 
 //file system/vm functions
-int listcarts(lua_State *L);
-int listdirs(lua_State *L);
-int cd(lua_State *L);
-int pwd(lua_State *L);
+int listcarts(lua_State* L);
+int listdirs(lua_State* L);
+int cd(lua_State* L);
+int pwd(lua_State* L);
 
-int getbioserror(lua_State *L);
-int loaddefaultcart(lua_State *L);
-int loadsettingscart(lua_State *L);
-int togglepausemenu(lua_State *L);
-int ispaused(lua_State *L);
-int resetcart(lua_State *L);
+int getbioserror(lua_State* L);
+int loaddefaultcart(lua_State* L);
+int loadsettingscart(lua_State* L);
+int togglepausemenu(lua_State* L);
+int ispaused(lua_State* L);
+int resetcart(lua_State* L);
 
 //settings functions
 
-int getsetting(lua_State *L);
-int setsetting(lua_State *L);
+int getsetting(lua_State* L);
+int setsetting(lua_State* L);
 
-int installpackins(lua_State *L);
+int installpackins(lua_State* L);
 
 //label
 
-int loadlabel(lua_State *L);
+int loadlabel(lua_State* L);
 
-int getlualine(lua_State *L);
+int getlualine(lua_State* L);
 
 //system functions
 
-int rnd(lua_State *L);
-int srand(lua_State *L);
-int _update_buttons(lua_State *L);
-int run(lua_State *L);
-int extcmd(lua_State *L);
-int load(lua_State *L);
-int reset(lua_State *L);
-int setFps(lua_State *L);
+int rnd(lua_State* L);
+int srand(lua_State* L);
+int _update_buttons(lua_State* L);
+int run(lua_State* L);
+int extcmd(lua_State* L);
+int load(lua_State* L);
+int reset(lua_State* L);
+int setFps(lua_State* L);
 
 //api.tonum(val)
 
@@ -185,7 +185,6 @@ int setFps(lua_State *L);
 //api.music(n, fade_len, channel_mask)
 
 //api.sfx(n, channel, offset)
-
 
 //not to do any time soon, but don't crash?
 //directory stuff

@@ -2,11 +2,10 @@
 
 #include <string>
 
-
 //from zepto 8 bios.p8
 //this is the bios-- needs to get loaded first, and then will run every cart
 
-const char * p8Bios = R"#(
+const char* p8Bios = R"#(
 -- The functions below are normally attached to the program code, but are here for simplicity
 ---------------------------------
 --Table Helpers
@@ -763,5 +762,3 @@ end
 __z8_loop = cocreate(__z8_shell)
 
 )#";
-
-

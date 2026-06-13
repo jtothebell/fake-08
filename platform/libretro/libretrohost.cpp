@@ -14,8 +14,6 @@ using namespace std;
 #include "../../source/hostVmShared.h"
 #include "../../source/nibblehelpers.h"
 
-
-
 static uint8_t stubCurrKDown;
 static uint8_t stubCurrKHeld;
 static bool stubCurrKBdown = false;
@@ -38,75 +36,61 @@ void setCartDirectory(std::string dir) {
     _currentCartDirectory = dir;
 }
 
+Host::Host(int windowWidth, int windowHeight) {}
 
-
-Host::Host(int windowWidth, int windowHeight)  { }
-
-
-void Host::oneTimeSetup(Audio* audio){
-
+void Host::oneTimeSetup(Audio* audio) {
 }
 
-void Host::oneTimeCleanup(){
-
+void Host::oneTimeCleanup() {
 }
 
-void Host::setTargetFps(int targetFps){
-
+void Host::setTargetFps(int targetFps) {
 }
 
-void Host::changeStretch(){
-
+void Host::changeStretch() {
 }
 
 void Host::forceStretch(StretchOption newStretch) {
-    
 }
 
-
-
-InputState_t Host::scanInput(){
-    return InputState_t {stubCurrKDown, stubCurrKHeld, stubMouseX, stubMouseY, stubMouseBtns, stubCurrKBdown, stubCurrKBkey};
+InputState_t Host::scanInput() {
+    return InputState_t{stubCurrKDown, stubCurrKHeld, stubMouseX, stubMouseY, stubMouseBtns, stubCurrKBdown, stubCurrKBkey};
 }
 
 bool Host::shouldQuit() {
     return false;
 }
 
-void Host::waitForTargetFps(){
-    
+void Host::waitForTargetFps() {
 }
 
-
-void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t screenMode){
-    
+void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t screenMode) {
 }
 
-bool Host::shouldFillAudioBuff(){
+bool Host::shouldFillAudioBuff() {
     return false;
 }
 
-void* Host::getAudioBufferPointer(){
+void* Host::getAudioBufferPointer() {
     return nullptr;
 }
 
-size_t Host::getAudioBufferSize(){
+size_t Host::getAudioBufferSize() {
     return 0;
 }
 
-void Host::playFilledAudioBuffer(){
-
+void Host::playFilledAudioBuffer() {
 }
 
-bool Host::shouldRunMainLoop(){
-    if (shouldQuit()){
+bool Host::shouldRunMainLoop() {
+    if (shouldQuit()) {
         return false;
     }
 
     return true;
 }
 
-vector<string> Host::listcarts(){
+vector<string> Host::listcarts() {
     vector<string> carts;
 
     return carts;
@@ -127,7 +111,7 @@ std::vector<std::string> Host::listdirs() {
 
 void Host::overrideLogFilePrefix(const char* newPrefix) {
     _logFilePrefix = newPrefix;
-    
+
     struct stat st = {0};
 
     string cartdatadir = _logFilePrefix + "cdata";

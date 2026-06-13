@@ -73,18 +73,16 @@ note is encoded in 16 bits, LSB first, like so:
 
 //this is also defined in audio? should probably consolidate
 
-enum
-{
+enum {
     FX_NO_EFFECT = 0,
-    FX_SLIDE =     1,
-    FX_VIBRATO =   2,
-    FX_DROP =      3,
-    FX_FADE_IN =   4,
-    FX_FADE_OUT =  5,
-    FX_ARP_FAST =  6,
-    FX_ARP_SLOW =  7,
+    FX_SLIDE = 1,
+    FX_VIBRATO = 2,
+    FX_DROP = 3,
+    FX_FADE_IN = 4,
+    FX_FADE_OUT = 5,
+    FX_ARP_FAST = 6,
+    FX_ARP_SLOW = 7,
 };
-
 
 class Audio {
     PicoRam* _memory;
@@ -92,13 +90,13 @@ class Audio {
     bool _paused;
 
     void set_music_pattern(int pattern);
-    
-    public:
-    float getSampleForSfx(rawSfxChannel &channel, float freqShift = 1.0f);
-    int16_t getSampleForChannel(int channel);
-    float getSampleForNote(noteChannel &note_channel, rawSfxChannel &parentChannel, rawSfxChannel *childChannel, note prev_note, float freqShift, bool forceRemainder);
 
-    public:
+  public:
+    float getSampleForSfx(rawSfxChannel& channel, float freqShift = 1.0f);
+    int16_t getSampleForChannel(int channel);
+    float getSampleForNote(noteChannel& note_channel, rawSfxChannel& parentChannel, rawSfxChannel* childChannel, note prev_note, float freqShift, bool forceRemainder);
+
+  public:
     Audio(PicoRam* memory);
 
     void resetAudioState();
@@ -113,9 +111,8 @@ class Audio {
     int16_t getMusicPatternCount();
     int16_t getMusicTickCount();
 
-    void FillAudioBuffer(void *audioBuffer,size_t offset, size_t size);
-    void FillMonoAudioBuffer(void *audioBuffer,size_t offset, size_t size);
+    void FillAudioBuffer(void* audioBuffer, size_t offset, size_t size);
+    void FillMonoAudioBuffer(void* audioBuffer, size_t offset, size_t size);
 
     void setPaused(bool paused);
 };
-

@@ -22,7 +22,6 @@ using namespace std;
 const int PicoScreenWidth = 128;
 const int PicoScreenHeight = 128;
 
-
 StretchOption stretch;
 uint32_t last_time;
 uint32_t now_time;
@@ -36,20 +35,19 @@ Color* _paletteColors;
 Audio* _audio;
 
 SDL_Event event;
-SDL_Surface *window;
-SDL_Surface *texture;
+SDL_Surface* window;
+SDL_Surface* texture;
 SDL_bool done = SDL_FALSE;
 SDL_AudioSpec want, have;
-void *pixels;
-uint16_t *base;
+void* pixels;
+uint16_t* base;
 int pitch;
 
 bool audioInitialized = false;
 
 uint16_t _mapped16BitColors[144];
 
-
-void postFlipFunction(){
+void postFlipFunction() {
     // We're done rendering, so we end the frame here.
 
     SDL_SoftStretch(texture, nullptr, window, nullptr);
@@ -57,19 +55,17 @@ void postFlipFunction(){
     SDL_Flip(window);
 }
 
-void audioCleanup(){
+void audioCleanup() {
     audioInitialized = false;
 
     SDL_CloseAudio();
 }
 
-
-void FillAudioDeviceBuffer(void* UserData, Uint8* DeviceBuffer, int Length)
-{
+void FillAudioDeviceBuffer(void* UserData, Uint8* DeviceBuffer, int Length) {
     _audio->FillMonoAudioBuffer(DeviceBuffer, 0, Length / 2);
 }
 
-void audioSetup(){
+void audioSetup() {
     //modifed from SDL docs: https://wiki.libsdl.org/SDL_OpenAudioDevice
 
     SDL_memset(&want, 0, sizeof(want));
@@ -78,34 +74,31 @@ void audioSetup(){
     want.channels = 1;
     want.samples = 1024;
     want.callback = FillAudioDeviceBuffer;
-    
 
     int audioOpenRes = SDL_OpenAudio(&want, &have);
     if (audioOpenRes < 0) {
         Logger_Write("Failed to open audio: %s", SDL_GetError());
     } else {
-        if (have.format != want.format) { 
+        if (have.format != want.format) {
             Logger_Write("We didn't get requested audio format.");
         }
-        SDL_PauseAudio(0); 
+        SDL_PauseAudio(0);
         audioInitialized = true;
     }
 }
 
-
-Host::Host(int windowWidth, int windowHeight)  {
-    #ifdef _BITTBOY
+Host::Host(int windowWidth, int windowHeight) {
+#ifdef _BITTBOY
     _cartDirectory = "/mnt/roms/PICO-8";
-    #else
+#else
     std::string home = getenv("HOME");
-    
-    _cartDirectory = home + "/p8carts";
-    #endif
- }
 
-void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
-    if (SDL_Init(SDL_INIT_VIDEO) != 0)
-    {
+    _cartDirectory = home + "/p8carts";
+#endif
+}
+
+void Host::oneTimeSetup(Color* paletteColors, Audio* audio) {
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stderr, "SDL could not initialize\n");
         return;
     }
@@ -121,7 +114,7 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 
     _audio = audio;
     audioSetup();
-    
+
     last_time = 0;
     now_time = 0;
     frame_time = 0;
@@ -129,14 +122,14 @@ void Host::oneTimeSetup(Color* paletteColors, Audio* audio){
 
     _paletteColors = paletteColors;
 
-    SDL_PixelFormat *f = window->format;
+    SDL_PixelFormat* f = window->format;
 
-    for(int i = 0; i < 144; i++){
+    for (int i = 0; i < 144; i++) {
         _mapped16BitColors[i] = SDL_MapRGB(f, _paletteColors[i].Red, _paletteColors[i].Green, _paletteColors[i].Blue);
     }
 }
 
-void Host::oneTimeCleanup(){
+void Host::oneTimeCleanup() {
     audioCleanup();
 
     //SDL_DestroyRenderer(renderer);
@@ -148,107 +141,126 @@ void Host::oneTimeCleanup(){
     SDL_Quit();
 }
 
-void Host::setTargetFps(int targetFps){
+void Host::setTargetFps(int targetFps) {
     targetFrameTimeMs = 1000 / targetFps;
 }
 
-void Host::changeStretch(){
+void Host::changeStretch() {
 }
 
-InputState_t Host::scanInput(){
+InputState_t Host::scanInput() {
     currKDown = 0;
     currKHeld = 0;
 
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
-            case SDL_KEYDOWN:
-                switch (event.key.keysym.sym)
-                {
-                    case SDLK_RETURN:currKDown |= P8_KEY_PAUSE; break;
-                    case SDLK_l:  currKDown |= P8_KEY_LEFT; break;
-                    case SDLK_r: currKDown |= P8_KEY_RIGHT; break;
-                    case SDLK_u:    currKDown |= P8_KEY_UP; break;
-                    case SDLK_d:  currKDown |= P8_KEY_DOWN; break;
-                    case SDLK_b: currKDown |= P8_KEY_X; break;
-                    case SDLK_a:currKDown |= P8_KEY_O; break;
-                    case SDLK_x:  currKDown |= P8_KEY_X; break;
-                    case SDLK_y: currKDown |= P8_KEY_O; break;
-                    case SDLK_q: case SDLK_HOME: done = SDL_TRUE; break;
-                    default: break;
-                }
+        case SDL_KEYDOWN:
+            switch (event.key.keysym.sym) {
+            case SDLK_RETURN:
+                currKDown |= P8_KEY_PAUSE;
                 break;
-            case SDL_KEYUP:
-                switch (event.key.keysym.sym)
-                {
-                    case SDLK_q:
-						done = SDL_TRUE;
-                    break;
-                    default: break;
-                }
+            case SDLK_l:
+                currKDown |= P8_KEY_LEFT;
                 break;
-            break;
-            case SDL_QUIT:
+            case SDLK_r:
+                currKDown |= P8_KEY_RIGHT;
+                break;
+            case SDLK_u:
+                currKDown |= P8_KEY_UP;
+                break;
+            case SDLK_d:
+                currKDown |= P8_KEY_DOWN;
+                break;
+            case SDLK_b:
+                currKDown |= P8_KEY_X;
+                break;
+            case SDLK_a:
+                currKDown |= P8_KEY_O;
+                break;
+            case SDLK_x:
+                currKDown |= P8_KEY_X;
+                break;
+            case SDLK_y:
+                currKDown |= P8_KEY_O;
+                break;
+            case SDLK_q:
+            case SDLK_HOME:
                 done = SDL_TRUE;
                 break;
+            default:
+                break;
+            }
+            break;
+        case SDL_KEYUP:
+            switch (event.key.keysym.sym) {
+            case SDLK_q:
+                done = SDL_TRUE;
+                break;
+            default:
+                break;
+            }
+            break;
+            break;
+        case SDL_QUIT:
+            done = SDL_TRUE;
+            break;
         }
     }
 
     const Uint8* keystate = SDL_GetKeyState(NULL);
 
     //continuous-response keys
-    if(keystate[SDLK_l]){
+    if (keystate[SDLK_l]) {
         currKHeld |= P8_KEY_LEFT;
     }
-    if(keystate[SDLK_r]){
-        currKHeld |= P8_KEY_RIGHT;;
+    if (keystate[SDLK_r]) {
+        currKHeld |= P8_KEY_RIGHT;
+        ;
     }
-    if(keystate[SDLK_u]){
+    if (keystate[SDLK_u]) {
         currKHeld |= P8_KEY_UP;
     }
-    if(keystate[SDLK_d]){
+    if (keystate[SDLK_d]) {
         currKHeld |= P8_KEY_DOWN;
     }
-    if(keystate[SDLK_b]){
+    if (keystate[SDLK_b]) {
         currKHeld |= P8_KEY_X;
     }
-    if(keystate[SDLK_a]){
+    if (keystate[SDLK_a]) {
         currKHeld |= P8_KEY_O;
     }
-    if(keystate[SDLK_x]){
+    if (keystate[SDLK_x]) {
         currKHeld |= P8_KEY_X;
     }
-    if(keystate[SDLK_y]){
+    if (keystate[SDLK_y]) {
         currKHeld |= P8_KEY_O;
     }
-    if(keystate[SDLK_s]){
+    if (keystate[SDLK_s]) {
         currKHeld |= P8_KEY_PAUSE;
     }
 
-    
-    return InputState_t {
+    return InputState_t{
         currKDown,
-        currKHeld
-    };
+        currKHeld};
 }
 
 bool Host::shouldQuit() {
     return done == SDL_TRUE;
 }
 
-void Host::waitForTargetFps(){
+void Host::waitForTargetFps() {
     now_time = SDL_GetTicks();
     frame_time = now_time - last_time;
-	last_time = now_time;
+    last_time = now_time;
 
+    //sleep for remainder of time
+    if (frame_time < targetFrameTimeMs) {
+        uint32_t msToSleep = targetFrameTimeMs - frame_time;
 
-	//sleep for remainder of time
-	if (frame_time < targetFrameTimeMs) {
-		uint32_t msToSleep = targetFrameTimeMs - frame_time;
-        
         SDL_Delay(msToSleep);
 
-		last_time += msToSleep;
-	}
+        last_time += msToSleep;
+    }
 }
 
 /*
@@ -261,16 +273,16 @@ void set_pixel(SDL_Surface *surface, int x, int y, uint16_t pixel)
 }
 */
 
-void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMode){
-    
+void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMode) {
+
     pixels = texture->pixels;
 
-    for (int y = 0; y < (PicoScreenHeight); y ++){
-        for (int x = 0; x < PicoScreenWidth; x ++){
+    for (int y = 0; y < (PicoScreenHeight); y++) {
+        for (int x = 0; x < PicoScreenWidth; x++) {
             uint8_t c = getPixelNibble(x, y, picoFb);
             uint16_t col = _mapped16BitColors[screenPaletteMap[c] & 0x8f];
 
-            base = ((uint16_t *)pixels) + ( y * PicoScreenHeight + x);
+            base = ((uint16_t*)pixels) + (y * PicoScreenHeight + x);
             base[0] = col;
         }
     }
@@ -278,46 +290,45 @@ void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMod
     postFlipFunction();
 }
 
-bool Host::shouldFillAudioBuff(){
+bool Host::shouldFillAudioBuff() {
     return false;
 }
 
-void* Host::getAudioBufferPointer(){
+void* Host::getAudioBufferPointer() {
     return nullptr;
 }
 
-size_t Host::getAudioBufferSize(){
+size_t Host::getAudioBufferSize() {
     return 0;
 }
 
-void Host::playFilledAudioBuffer(){
+void Host::playFilledAudioBuffer() {
 }
 
-bool Host::shouldRunMainLoop(){
-    if (shouldQuit()){
+bool Host::shouldRunMainLoop() {
+    if (shouldQuit()) {
         return false;
     }
 
     return true;
 }
 
-vector<string> Host::listcarts(){
+vector<string> Host::listcarts() {
     vector<string> carts;
 
-    DIR *dir;
-    struct dirent *ent;
-    if ((dir = opendir (_cartDirectory.c_str())) != NULL) {
+    DIR* dir;
+    struct dirent* ent;
+    if ((dir = opendir(_cartDirectory.c_str())) != NULL) {
         /* print all the files and directories within directory */
-        while ((ent = readdir (dir)) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
             carts.push_back(_cartDirectory + "/" + ent->d_name);
         }
-        closedir (dir);
+        closedir(dir);
     } else {
         /* could not open directory */
-        perror ("");
+        perror("");
     }
 
-    
     return carts;
 }
 
@@ -327,10 +338,10 @@ const char* Host::logFilePrefix() {
 
 std::string Host::customBiosLua() {
     return "cartpath = \"roms/pico-8/\"\n"
-        "selectbtn = \"z\"\n"
-        "pausebtn = \"esc\""
-        "exitbtn = \"close window\""
-        "sizebtn = \"\"";
+           "selectbtn = \"z\"\n"
+           "pausebtn = \"esc\""
+           "exitbtn = \"close window\""
+           "sizebtn = \"\"";
 }
 
 std::string Host::getCartDirectory() {
@@ -340,10 +351,10 @@ std::string Host::getCartDirectory() {
 std::vector<std::string> Host::listdirs() {
     std::vector<std::string> dirs;
 
-    DIR *dir;
-    struct dirent *ent;
-    if ((dir = opendir (_cartDirectory.c_str())) != NULL) {
-        while ((ent = readdir (dir)) != NULL) {
+    DIR* dir;
+    struct dirent* ent;
+    if ((dir = opendir(_cartDirectory.c_str())) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
             if (ent->d_name[0] == '.') {
                 continue;
             }
@@ -354,8 +365,8 @@ std::vector<std::string> Host::listdirs() {
                 dirs.push_back(ent->d_name);
             }
         }
-        closedir (dir);
+        closedir(dir);
     }
-    
+
     return dirs;
 }

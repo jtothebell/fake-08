@@ -8,22 +8,20 @@
 
 #define PRINT_TO_CONSOLE true
 
-FILE * m_file = nullptr;
+FILE* m_file = nullptr;
 bool m_enabled = false;
 
-void Logger_Initialize(const char* pathPrefix)
-{
-    #if LOGGER_ENABLED
+void Logger_Initialize(const char* pathPrefix) {
+#if LOGGER_ENABLED
     std::string buf(pathPrefix);
     buf.append("pico.log");
     m_file = freopen(buf.c_str(), "w", stderr);
     m_enabled = true;
-    #endif
+#endif
 }
 
-void Logger_LogOutput(const char * func, size_t line, const char * format, ...)
-{
-    #if LOGGER_ENABLED
+void Logger_LogOutput(const char* func, size_t line, const char* format, ...) {
+#if LOGGER_ENABLED
     if (!m_enabled || !m_file)
         return;
 
@@ -36,19 +34,18 @@ void Logger_LogOutput(const char * func, size_t line, const char * format, ...)
 
     fflush(m_file);
 
-    #if PRINT_TO_CONSOLE
-	vfprintf(stdout, format, args);
-	#endif
+#if PRINT_TO_CONSOLE
+    vfprintf(stdout, format, args);
+#endif
 
-    #endif
+#endif
 }
 
-void Logger_Write(const char * format, ...)
-{
-    #if LOGGER_ENABLED
+void Logger_Write(const char* format, ...) {
+#if LOGGER_ENABLED
     if (!m_enabled || !m_file)
         return;
-        
+
     va_list args;
     va_start(args, format);
 
@@ -56,42 +53,40 @@ void Logger_Write(const char * format, ...)
 
     fflush(m_file);
 
-    #if PRINT_TO_CONSOLE
-	va_list args2;
-	va_start(args2, format);
-	vfprintf(stdout, format, args2);
-	fflush(stdout);
-	va_end(args2);
-	#endif
-	va_end(args);
-    #endif
+#if PRINT_TO_CONSOLE
+    va_list args2;
+    va_start(args2, format);
+    vfprintf(stdout, format, args2);
+    fflush(stdout);
+    va_end(args2);
+#endif
+    va_end(args);
+#endif
 }
 
-void Logger_WriteUnformatted(const char * message)
-{
-    #if LOGGER_ENABLED
+void Logger_WriteUnformatted(const char* message) {
+#if LOGGER_ENABLED
     if (!m_enabled || !m_file)
         return;
-        
+
     fprintf(m_file, "%s", message);
 
     fflush(m_file);
 
-    #if PRINT_TO_CONSOLE
-	fprintf(stdout, "%s", message);
-	#endif
-    #endif
-	#if PRINT_TO_CONSOLE
-	fprintf(stdout, "%s", message);
-	#endif
+#if PRINT_TO_CONSOLE
+    fprintf(stdout, "%s", message);
+#endif
+#endif
+#if PRINT_TO_CONSOLE
+    fprintf(stdout, "%s", message);
+#endif
 }
 
-void Logger_Exit()
-{
-    #if LOGGER_ENABLED
+void Logger_Exit() {
+#if LOGGER_ENABLED
     if (!m_enabled || !m_file)
         return;
 
     fclose(m_file);
-    #endif
+#endif
 }

@@ -24,1045 +24,1023 @@ using namespace z8;
 
 //call initialize to make sure defaults are correct
 Graphics::Graphics(std::string fontdata, PicoRam* memory) {
-	_memory = memory;
-	
-	copy_string_to_sprite_memory(fontSpriteData, fontdata);
+    _memory = memory;
 
-	//set default clip
-	clip();
-	pal();
-	color();
+    copy_string_to_sprite_memory(fontSpriteData, fontdata);
+
+    //set default clip
+    clip();
+    pal();
+    color();
 }
 
 // Upper memory mapping: 0x80->0x8000, 0xA0->0xA000, 0xC0->0xC000, 0xE0->0xE000
 // Mapping values are in 256-byte increments, userData starts at 0x8000
 // offset = (mapping << 8) - 0x8000 = (mapping - 0x80) << 8
-uint8_t* Graphics::GetP8FrameBuffer(){
-	uint8_t mapping = _memory->hwState.screenDataMemMapping;
-	if (mapping == 0) {
-		return _memory->spriteSheetData;
-	} else if (mapping == 0x60) {
-		return _memory->screenBuffer;
-	} else if (mapping >= 0x80) {
-		
-		int offset = (mapping - 0x80) << 8;
-		return _memory->userData + offset;
-	}
-	return _memory->screenBuffer;
+uint8_t* Graphics::GetP8FrameBuffer() {
+    uint8_t mapping = _memory->hwState.screenDataMemMapping;
+    if (mapping == 0) {
+        return _memory->spriteSheetData;
+    } else if (mapping == 0x60) {
+        return _memory->screenBuffer;
+    } else if (mapping >= 0x80) {
+
+        int offset = (mapping - 0x80) << 8;
+        return _memory->userData + offset;
+    }
+    return _memory->screenBuffer;
 }
 
-uint8_t* Graphics::GetP8SpriteSheetBuffer(){
-	uint8_t mapping = _memory->hwState.spriteSheetMemMapping;
-	if (mapping == 0) {
-		return _memory->spriteSheetData;
-	} else if (mapping == 0x60) {
-		return _memory->screenBuffer;
-	} else if (mapping >= 0x80) {
-		int offset = (mapping - 0x80) << 8;
-		return _memory->userData + offset;
-	}
-	return _memory->spriteSheetData;
+uint8_t* Graphics::GetP8SpriteSheetBuffer() {
+    uint8_t mapping = _memory->hwState.spriteSheetMemMapping;
+    if (mapping == 0) {
+        return _memory->spriteSheetData;
+    } else if (mapping == 0x60) {
+        return _memory->screenBuffer;
+    } else if (mapping >= 0x80) {
+        int offset = (mapping - 0x80) << 8;
+        return _memory->userData + offset;
+    }
+    return _memory->spriteSheetData;
 }
 
-uint8_t* Graphics::GetScreenPaletteMap(){
-	return _memory->drawState.screenPaletteMap;
+uint8_t* Graphics::GetScreenPaletteMap() {
+    return _memory->drawState.screenPaletteMap;
 }
 
 //start helper methods
 //based on tac08 implementation of blitter()
 void Graphics::copySpriteToScreen(
-	uint8_t* spritebuffer,
-	int scr_x,
-	int scr_y,
-	int spr_x,
-	int spr_y,
-	int spr_w,
-	int spr_h,
-	bool flip_x,
-	bool flip_y) 
-{
+    uint8_t* spritebuffer,
+    int scr_x,
+    int scr_y,
+    int spr_x,
+    int spr_y,
+    int spr_w,
+    int spr_h,
+    bool flip_x,
+    bool flip_y) {
 
-	//note: no clipping yet
-	int scr_w = spr_w;
-	int scr_h = spr_h;
+    //note: no clipping yet
+    int scr_w = spr_w;
+    int scr_h = spr_h;
 
-	auto &drawState = _memory->drawState;
-	auto &hwState = _memory->hwState;
-	uint8_t *screenBuffer = GetP8FrameBuffer();
-	
-	const uint8_t writeMask = hwState.colorBitmask & 15;
-	const uint8_t readMask = hwState.colorBitmask >> 4;
+    auto& drawState = _memory->drawState;
+    auto& hwState = _memory->hwState;
+    uint8_t* screenBuffer = GetP8FrameBuffer();
 
-	scr_x -= drawState.camera_x;
-	scr_y -= drawState.camera_y;
+    const uint8_t writeMask = hwState.colorBitmask & 15;
+    const uint8_t readMask = hwState.colorBitmask >> 4;
 
-	// left clip
-	if (scr_x < drawState.clip_xb) {
-		int nclip = drawState.clip_xb - scr_x;
-		scr_x = drawState.clip_xb;
-		scr_w -= nclip;
-		if (!flip_x) {
-			spr_x += nclip;
-		} else {
-			spr_w -= nclip;
-		}
-	}
+    scr_x -= drawState.camera_x;
+    scr_y -= drawState.camera_y;
 
-	// right clip
-	if (scr_x + scr_w > drawState.clip_xe) {
-		int nclip = (scr_x + scr_w) - drawState.clip_xe;
-		scr_w -= nclip;
-	}
+    // left clip
+    if (scr_x < drawState.clip_xb) {
+        int nclip = drawState.clip_xb - scr_x;
+        scr_x = drawState.clip_xb;
+        scr_w -= nclip;
+        if (!flip_x) {
+            spr_x += nclip;
+        } else {
+            spr_w -= nclip;
+        }
+    }
 
-	// top clip
-	if (scr_y < drawState.clip_yb) {
-		int nclip = drawState.clip_yb - scr_y;
-		scr_y = drawState.clip_yb;
-		scr_h -= nclip;
-		if (!flip_y) {
-			spr_y += nclip;
-		} else {
-			spr_h -= nclip;
-		}
-	}
+    // right clip
+    if (scr_x + scr_w > drawState.clip_xe) {
+        int nclip = (scr_x + scr_w) - drawState.clip_xe;
+        scr_w -= nclip;
+    }
 
-	// bottom clip
-	if (scr_y + scr_h > drawState.clip_ye) {
-		int nclip = (scr_y + scr_h) - drawState.clip_ye;
-		scr_h -= nclip;
-	}
-	uint8_t lastScreenBuffByte = 0;
-	int lastScreenBuffIdx = -1;
+    // top clip
+    if (scr_y < drawState.clip_yb) {
+        int nclip = drawState.clip_yb - scr_y;
+        scr_y = drawState.clip_yb;
+        scr_h -= nclip;
+        if (!flip_y) {
+            spr_y += nclip;
+        } else {
+            spr_h -= nclip;
+        }
+    }
 
-	bool startWithHalf = false;
-	//starting with odd pixel
-	if (BITMASK(0) & spr_x) {
-		startWithHalf = true;
-	}
+    // bottom clip
+    if (scr_y + scr_h > drawState.clip_ye) {
+        int nclip = (scr_y + scr_h) - drawState.clip_ye;
+        scr_h -= nclip;
+    }
+    uint8_t lastScreenBuffByte = 0;
+    int lastScreenBuffIdx = -1;
 
-	//since we get 2 pixels at a time, don't go through this whole loop every pixel
-	for (int y = 0; y < scr_h; y++) {
-		int x = 0;
-		while (x < scr_w) {
-			int abs_spr_x = spr_x + (flip_x ? spr_w - (x + 1) : x);
-			int abs_spr_y = spr_y + (flip_y ? spr_h - (y + 1) : y);
-			if (!IS_VALID_SPR_IDX(abs_spr_x, abs_spr_y)){
-				++x;
-				continue;
-			}
-			uint8_t bothPix = spritebuffer[COMBINED_IDX(abs_spr_x, abs_spr_y)];
+    bool startWithHalf = false;
+    //starting with odd pixel
+    if (BITMASK(0) & spr_x) {
+        startWithHalf = true;
+    }
 
-			//uint8_t c = (BITMASK(0) & abs_spr_x)== 0 
-			//			? bothPix & 0x0f //just first 4 bits
-			//			: bothPix >> 4;  //just last 4 bits
-			uint8_t lc = bothPix & 0x0f;
-			uint8_t rc = (bothPix >> 4) & 0x0f;
-			
-			const int finaly = scr_y + y;
-			int finalx = scr_x + (flip_x ? x + 1 : x);
-			
-			if (x > 0 || !startWithHalf){
-				uint8_t mapped;
-				if (getSpritePixelColor(lc, finalx, finaly, mapped)) {
-					lc = mapped;
+    //since we get 2 pixels at a time, don't go through this whole loop every pixel
+    for (int y = 0; y < scr_h; y++) {
+        int x = 0;
+        while (x < scr_w) {
+            int abs_spr_x = spr_x + (flip_x ? spr_w - (x + 1) : x);
+            int abs_spr_y = spr_y + (flip_y ? spr_h - (y + 1) : y);
+            if (!IS_VALID_SPR_IDX(abs_spr_x, abs_spr_y)) {
+                ++x;
+                continue;
+            }
+            uint8_t bothPix = spritebuffer[COMBINED_IDX(abs_spr_x, abs_spr_y)];
 
-					int screenPixelIdx = COMBINED_IDX(finalx, finaly);
-					if (lastScreenBuffIdx != screenPixelIdx) {
-						lastScreenBuffByte = screenBuffer[screenPixelIdx];
-						lastScreenBuffIdx = screenPixelIdx;
-					}
+            //uint8_t c = (BITMASK(0) & abs_spr_x)== 0
+            //			? bothPix & 0x0f //just first 4 bits
+            //			: bothPix >> 4;  //just last 4 bits
+            uint8_t lc = bothPix & 0x0f;
+            uint8_t rc = (bothPix >> 4) & 0x0f;
 
-					uint8_t source = (BITMASK(0) & finalx) == 0 
-						? lastScreenBuffByte & 0x0f //just first 4 bits
-						: lastScreenBuffByte >> 4;
+            const int finaly = scr_y + y;
+            int finalx = scr_x + (flip_x ? x + 1 : x);
 
-					lc = (source & ~writeMask) | (lc & writeMask & readMask);
+            if (x > 0 || !startWithHalf) {
+                uint8_t mapped;
+                if (getSpritePixelColor(lc, finalx, finaly, mapped)) {
+                    lc = mapped;
 
-					setPixelNibble(finalx, finaly, lc, screenBuffer);
-				}
-				++x;
-				if (flip_x){
-					--finalx;
-				}
-				else {
-					++finalx;
-				}
-			}
+                    int screenPixelIdx = COMBINED_IDX(finalx, finaly);
+                    if (lastScreenBuffIdx != screenPixelIdx) {
+                        lastScreenBuffByte = screenBuffer[screenPixelIdx];
+                        lastScreenBuffIdx = screenPixelIdx;
+                    }
 
-			if (x < scr_w) {
-				uint8_t mapped;
-				if (getSpritePixelColor(rc, finalx, finaly, mapped)) {
-					rc = mapped;
+                    uint8_t source = (BITMASK(0) & finalx) == 0
+                                         ? lastScreenBuffByte & 0x0f //just first 4 bits
+                                         : lastScreenBuffByte >> 4;
 
-					int screenPixelIdx = COMBINED_IDX(finalx, finaly);
-					if (lastScreenBuffIdx != screenPixelIdx) {
-						lastScreenBuffByte = screenBuffer[screenPixelIdx];
-						lastScreenBuffIdx = screenPixelIdx;
-					}
+                    lc = (source & ~writeMask) | (lc & writeMask & readMask);
 
-					uint8_t source = (BITMASK(0) & finalx) == 0 
-						? lastScreenBuffByte & 0x0f //just first 4 bits
-						: lastScreenBuffByte >> 4;
+                    setPixelNibble(finalx, finaly, lc, screenBuffer);
+                }
+                ++x;
+                if (flip_x) {
+                    --finalx;
+                } else {
+                    ++finalx;
+                }
+            }
 
-					rc = (source & ~writeMask) | (rc & writeMask & readMask);
+            if (x < scr_w) {
+                uint8_t mapped;
+                if (getSpritePixelColor(rc, finalx, finaly, mapped)) {
+                    rc = mapped;
 
-					setPixelNibble(finalx, finaly, rc, screenBuffer);
-				}
+                    int screenPixelIdx = COMBINED_IDX(finalx, finaly);
+                    if (lastScreenBuffIdx != screenPixelIdx) {
+                        lastScreenBuffByte = screenBuffer[screenPixelIdx];
+                        lastScreenBuffIdx = screenPixelIdx;
+                    }
 
-				//we did two pixels so do an extra increment
-				++x;
-			}
-			
-		}
+                    uint8_t source = (BITMASK(0) & finalx) == 0
+                                         ? lastScreenBuffByte & 0x0f //just first 4 bits
+                                         : lastScreenBuffByte >> 4;
 
-	}
+                    rc = (source & ~writeMask) | (rc & writeMask & readMask);
+
+                    setPixelNibble(finalx, finaly, rc, screenBuffer);
+                }
+
+                //we did two pixels so do an extra increment
+                ++x;
+            }
+        }
+    }
 }
 
 //based on tac08 implementation of stretch_blitter()
 //uses ints so we can shift bits and do integer division instead of floating point
 void Graphics::copyStretchSpriteToScreen(
-	uint8_t* spritebuffer,
-	int spr_x,
-	int spr_y,
-	int spr_w,
-	int spr_h,
-	int scr_x,
-	int scr_y,
-	int scr_w,
-	int scr_h,
-	bool flip_x,
-	bool flip_y,
-	//skipStretchPx is currently only used for drawing stripey mode text,
-	//so it is only used when drawing in non-flipped mode
-	bool skipStretchPx)
-{
-	if (scr_w == 0 || scr_h == 0)
-		return;
+    uint8_t* spritebuffer,
+    int spr_x,
+    int spr_y,
+    int spr_w,
+    int spr_h,
+    int scr_x,
+    int scr_y,
+    int scr_w,
+    int scr_h,
+    bool flip_x,
+    bool flip_y,
+    //skipStretchPx is currently only used for drawing stripey mode text,
+    //so it is only used when drawing in non-flipped mode
+    bool skipStretchPx) {
+    if (scr_w == 0 || scr_h == 0)
+        return;
 
-	if (spr_h == scr_h && spr_w == scr_w && !flip_x) {
-		// use faster non stretch blitter if sprite is not stretched 
-		//(or flipped horizontally - but skipping for that is just a hacky fix)
-		copySpriteToScreen(spritebuffer, scr_x, scr_y, spr_x, spr_y, scr_w, scr_h, flip_x, flip_y);
-		return;
-	}
+    if (spr_h == scr_h && spr_w == scr_w && !flip_x) {
+        // use faster non stretch blitter if sprite is not stretched
+        //(or flipped horizontally - but skipping for that is just a hacky fix)
+        copySpriteToScreen(spritebuffer, scr_x, scr_y, spr_x, spr_y, scr_w, scr_h, flip_x, flip_y);
+        return;
+    }
 
-	auto &drawState = _memory->drawState;
-	auto &hwState = _memory->hwState;
-	uint8_t *screenBuffer = GetP8FrameBuffer();
+    auto& drawState = _memory->drawState;
+    auto& hwState = _memory->hwState;
+    uint8_t* screenBuffer = GetP8FrameBuffer();
 
-	const uint8_t writeMask = hwState.colorBitmask & 15;
-	const uint8_t readMask = hwState.colorBitmask >> 4;
+    const uint8_t writeMask = hwState.colorBitmask & 15;
+    const uint8_t readMask = hwState.colorBitmask >> 4;
 
-	scr_x -= drawState.camera_x;
-	scr_y -= drawState.camera_y;
+    scr_x -= drawState.camera_x;
+    scr_y -= drawState.camera_y;
 
-	if (scr_w < 0){
-		flip_x = !flip_x;
-		scr_w = -scr_w;
-		scr_x -= scr_w;
-	}
-	if (scr_h < 0) {
-		flip_y = !flip_y;
-		scr_h = -scr_h;
-		scr_y -= scr_h;
-	}
+    if (scr_w < 0) {
+        flip_x = !flip_x;
+        scr_w = -scr_w;
+        scr_x -= scr_w;
+    }
+    if (scr_h < 0) {
+        flip_y = !flip_y;
+        scr_h = -scr_h;
+        scr_y -= scr_h;
+    }
 
-	//shift bits to avoid floating point math
-	spr_x = spr_x << 16;
-	spr_y = spr_y << 16;
-	spr_w = spr_w << 16;
-	spr_h = spr_h << 16;
+    //shift bits to avoid floating point math
+    spr_x = spr_x << 16;
+    spr_y = spr_y << 16;
+    spr_w = spr_w << 16;
+    spr_h = spr_h << 16;
 
-	int dx = spr_w / scr_w;
-	int dy = spr_h / scr_h;
+    int dx = spr_w / scr_w;
+    int dy = spr_h / scr_h;
 
-	// left clip
-	if (scr_x < drawState.clip_xb) {
-		int nclip = drawState.clip_xb - scr_x;
-		scr_x = drawState.clip_xb;
-		scr_w -= nclip;
-		if (!flip_x) {
-			spr_x += nclip * dx;
-		} else {
-			spr_w -= nclip * dx;
-		}
-	}
+    // left clip
+    if (scr_x < drawState.clip_xb) {
+        int nclip = drawState.clip_xb - scr_x;
+        scr_x = drawState.clip_xb;
+        scr_w -= nclip;
+        if (!flip_x) {
+            spr_x += nclip * dx;
+        } else {
+            spr_w -= nclip * dx;
+        }
+    }
 
-	// right clip
-	if (scr_x + scr_w > drawState.clip_xe) {
-		int nclip = (scr_x + scr_w) - drawState.clip_xe;
-		scr_w -= nclip;
-	}
+    // right clip
+    if (scr_x + scr_w > drawState.clip_xe) {
+        int nclip = (scr_x + scr_w) - drawState.clip_xe;
+        scr_w -= nclip;
+    }
 
-	// top clip
-	if (scr_y < drawState.clip_yb) {
-		int nclip = drawState.clip_yb - scr_y;
-		scr_y = drawState.clip_yb;
-		scr_h -= nclip;
-		if (!flip_y) {
-			spr_y += nclip * dy;
-		} else {
-			spr_h -= nclip * dy;
-		}
-	}
+    // top clip
+    if (scr_y < drawState.clip_yb) {
+        int nclip = drawState.clip_yb - scr_y;
+        scr_y = drawState.clip_yb;
+        scr_h -= nclip;
+        if (!flip_y) {
+            spr_y += nclip * dy;
+        } else {
+            spr_h -= nclip * dy;
+        }
+    }
 
-	// bottom clip
-	if (scr_y + scr_h > drawState.clip_ye) {
-		int nclip = (scr_y + scr_h) - drawState.clip_ye;
-		scr_h -= nclip;
-	}
+    // bottom clip
+    if (scr_y + scr_h > drawState.clip_ye) {
+        int nclip = (scr_y + scr_h) - drawState.clip_ye;
+        scr_h -= nclip;
+    }
 
-	if (flip_y) {
-		spr_y += spr_h - 1 * dy;
-		dy = -dy;
-	}
+    if (flip_y) {
+        spr_y += spr_h - 1 * dy;
+        dy = -dy;
+    }
 
-	int prevSprX = -1;
-	int prevSprY = -1;
+    int prevSprX = -1;
+    int prevSprY = -1;
 
-	//ugly duplication but see if inlining helps
-	if (hwState.colorBitmask == 0xff){
-		for (int y = 0; y < scr_h; y++) {
-			int sprY = ((spr_y + y * dy) >> 16);
-			if (sprY > 127) {
-				continue;
-			}
-			uint8_t* spr = spritebuffer + (sprY * 64);
+    //ugly duplication but see if inlining helps
+    if (hwState.colorBitmask == 0xff) {
+        for (int y = 0; y < scr_h; y++) {
+            int sprY = ((spr_y + y * dy) >> 16);
+            if (sprY > 127) {
+                continue;
+            }
+            uint8_t* spr = spritebuffer + (sprY * 64);
 
-			if (skipStretchPx && prevSprY == sprY){
-				continue;
-			}
-			
-			prevSprY = sprY;
+            if (skipStretchPx && prevSprY == sprY) {
+                continue;
+            }
 
-			if (!flip_x) {
-				for (int x = 0; x < scr_w; x++) {
-					int shiftedPixIndex = (spr_x + x * dx) >> 16;
-					if (shiftedPixIndex > 127) {
-						continue;
-					}
-					if (skipStretchPx && prevSprX == shiftedPixIndex){
-						continue;
-					}
-					prevSprX = shiftedPixIndex;
-					int preShiftedCombinedPixIndex = (shiftedPixIndex / 2);
-					uint8_t bothPix = spr[preShiftedCombinedPixIndex];
+            prevSprY = sprY;
 
-					uint8_t c = shiftedPixIndex % 2 == 0 
-						? bothPix & 0x0f //just first 4 bits
-						: (bothPix >> 4) & 0x0f;  //just last 4 bits
+            if (!flip_x) {
+                for (int x = 0; x < scr_w; x++) {
+                    int shiftedPixIndex = (spr_x + x * dx) >> 16;
+                    if (shiftedPixIndex > 127) {
+                        continue;
+                    }
+                    if (skipStretchPx && prevSprX == shiftedPixIndex) {
+                        continue;
+                    }
+                    prevSprX = shiftedPixIndex;
+                    int preShiftedCombinedPixIndex = (shiftedPixIndex / 2);
+                    uint8_t bothPix = spr[preShiftedCombinedPixIndex];
 
-					const int finalx = scr_x + x;
-					const int finaly = scr_y + y;
-					uint8_t mapped;
-					if (!getSpritePixelColor(c, finalx, finaly, mapped)) {
-						continue;
-					}
-					setPixelNibble(finalx, finaly, mapped, screenBuffer);
-				}
-			} else {
-				for (int x = 0; x < scr_w; x++) {
-					int pixIndex = (spr_x + spr_w - (x + 1) * dx);
-					int shiftedPixIndex = pixIndex >> 16;
-					if (shiftedPixIndex > 127) {
-						continue;
-					}
-					int combinedPixIdx = shiftedPixIndex / 2;
-					uint8_t bothPix = spr[combinedPixIdx];
+                    uint8_t c = shiftedPixIndex % 2 == 0
+                                    ? bothPix & 0x0f         //just first 4 bits
+                                    : (bothPix >> 4) & 0x0f; //just last 4 bits
 
-					uint8_t c = (pixIndex >> 16) % 2 == 0 
-						? bothPix & 0x0f //just first 4 bits
-						: bothPix >> 4;  //just last 4 bits
-					
-					const int finalx = scr_x + x;
-					const int finaly = scr_y + y;
-					uint8_t mapped;
-					if (!getSpritePixelColor(c, finalx, finaly, mapped)) {
-						continue;
-					}
-					setPixelNibble(finalx, finaly, mapped, screenBuffer);
-				}
-			}
-		}
-	}
-	else {
-		for (int y = 0; y < scr_h; y++) {
-			int sprY = ((spr_y + y * dy) >> 16);
-			if (sprY > 127) {
-				continue;
-			}
-			uint8_t* spr = spritebuffer + (sprY) * 64;
+                    const int finalx = scr_x + x;
+                    const int finaly = scr_y + y;
+                    uint8_t mapped;
+                    if (!getSpritePixelColor(c, finalx, finaly, mapped)) {
+                        continue;
+                    }
+                    setPixelNibble(finalx, finaly, mapped, screenBuffer);
+                }
+            } else {
+                for (int x = 0; x < scr_w; x++) {
+                    int pixIndex = (spr_x + spr_w - (x + 1) * dx);
+                    int shiftedPixIndex = pixIndex >> 16;
+                    if (shiftedPixIndex > 127) {
+                        continue;
+                    }
+                    int combinedPixIdx = shiftedPixIndex / 2;
+                    uint8_t bothPix = spr[combinedPixIdx];
 
-			if (!flip_x) {
-				for (int x = 0; x < scr_w; x++) {
-					int shiftedPixIndex = (spr_x + x * dx) >> 16;
-					if (shiftedPixIndex > 127) {
-						continue;
-					}
-					int combinedPixIdx = (shiftedPixIndex / 2);
-					uint8_t bothPix = spr[combinedPixIdx];
+                    uint8_t c = (pixIndex >> 16) % 2 == 0
+                                    ? bothPix & 0x0f //just first 4 bits
+                                    : bothPix >> 4;  //just last 4 bits
 
-					uint8_t c = shiftedPixIndex % 2 == 0 
-						? bothPix & 0x0f //just first 4 bits
-						: (bothPix >> 4) & 0x0f;  //just last 4 bits
+                    const int finalx = scr_x + x;
+                    const int finaly = scr_y + y;
+                    uint8_t mapped;
+                    if (!getSpritePixelColor(c, finalx, finaly, mapped)) {
+                        continue;
+                    }
+                    setPixelNibble(finalx, finaly, mapped, screenBuffer);
+                }
+            }
+        }
+    } else {
+        for (int y = 0; y < scr_h; y++) {
+            int sprY = ((spr_y + y * dy) >> 16);
+            if (sprY > 127) {
+                continue;
+            }
+            uint8_t* spr = spritebuffer + (sprY) * 64;
 
-					const int finalx = scr_x + x;
-					const int finaly = scr_y + y;
-					uint8_t mapped;
-					if (!getSpritePixelColor(c, finalx, finaly, mapped)) {
-						continue;
-					}
+            if (!flip_x) {
+                for (int x = 0; x < scr_w; x++) {
+                    int shiftedPixIndex = (spr_x + x * dx) >> 16;
+                    if (shiftedPixIndex > 127) {
+                        continue;
+                    }
+                    int combinedPixIdx = (shiftedPixIndex / 2);
+                    uint8_t bothPix = spr[combinedPixIdx];
 
-					uint8_t source = (BITMASK(0) & finalx) == 0 
-							? screenBuffer[COMBINED_IDX(finalx, finaly)] & 0x0f //just first 4 bits
-							: screenBuffer[COMBINED_IDX(finalx, finaly)] >> 4;
+                    uint8_t c = shiftedPixIndex % 2 == 0
+                                    ? bothPix & 0x0f         //just first 4 bits
+                                    : (bothPix >> 4) & 0x0f; //just last 4 bits
 
-					mapped = (source & ~writeMask) | (mapped & writeMask & readMask);
+                    const int finalx = scr_x + x;
+                    const int finaly = scr_y + y;
+                    uint8_t mapped;
+                    if (!getSpritePixelColor(c, finalx, finaly, mapped)) {
+                        continue;
+                    }
 
-					setPixelNibble(finalx, finaly, mapped, screenBuffer);
-				}
-			} else {
-				for (int x = 0; x < scr_w; x++) {
-					int pixIndex = (spr_x + spr_w - (x + 1) * dx);
-					int shiftedPixIndex = pixIndex >> 16;
-					if (shiftedPixIndex > 127) {
-						continue;
-					}
-					int combinedPixIdx = (shiftedPixIndex / 2);
-					uint8_t bothPix = spr[combinedPixIdx];
+                    uint8_t source = (BITMASK(0) & finalx) == 0
+                                         ? screenBuffer[COMBINED_IDX(finalx, finaly)] & 0x0f //just first 4 bits
+                                         : screenBuffer[COMBINED_IDX(finalx, finaly)] >> 4;
 
-					uint8_t c = (pixIndex >> 16) % 2 == 0 
-						? bothPix & 0x0f //just first 4 bits
-						: bothPix >> 4;  //just last 4 bits
-					
-					const int finalx = scr_x + x;
-					const int finaly = scr_y + y;
-					uint8_t mapped;
-					if (!getSpritePixelColor(c, finalx, finaly, mapped)) {
-						continue;
-					}
-					
-					uint8_t source = (BITMASK(0) & finalx) == 0 
-							? screenBuffer[COMBINED_IDX(finalx, finaly)] & 0x0f //just first 4 bits
-							: screenBuffer[COMBINED_IDX(finalx, finaly)] >> 4;
+                    mapped = (source & ~writeMask) | (mapped & writeMask & readMask);
 
-					mapped = (source & ~writeMask) | (mapped & writeMask & readMask);
+                    setPixelNibble(finalx, finaly, mapped, screenBuffer);
+                }
+            } else {
+                for (int x = 0; x < scr_w; x++) {
+                    int pixIndex = (spr_x + spr_w - (x + 1) * dx);
+                    int shiftedPixIndex = pixIndex >> 16;
+                    if (shiftedPixIndex > 127) {
+                        continue;
+                    }
+                    int combinedPixIdx = (shiftedPixIndex / 2);
+                    uint8_t bothPix = spr[combinedPixIdx];
 
-					setPixelNibble(finalx, finaly, mapped, screenBuffer);
-				}
-			}
-		}
-	}
+                    uint8_t c = (pixIndex >> 16) % 2 == 0
+                                    ? bothPix & 0x0f //just first 4 bits
+                                    : bothPix >> 4;  //just last 4 bits
+
+                    const int finalx = scr_x + x;
+                    const int finaly = scr_y + y;
+                    uint8_t mapped;
+                    if (!getSpritePixelColor(c, finalx, finaly, mapped)) {
+                        continue;
+                    }
+
+                    uint8_t source = (BITMASK(0) & finalx) == 0
+                                         ? screenBuffer[COMBINED_IDX(finalx, finaly)] & 0x0f //just first 4 bits
+                                         : screenBuffer[COMBINED_IDX(finalx, finaly)] >> 4;
+
+                    mapped = (source & ~writeMask) | (mapped & writeMask & readMask);
+
+                    setPixelNibble(finalx, finaly, mapped, screenBuffer);
+                }
+            }
+        }
+    }
 }
 
-void Graphics::swap(int *x, int *y) {
-	int temp;
-	temp = *x;
-	*x = *y;
-	*y = temp;
+void Graphics::swap(int* x, int* y) {
+    int temp;
+    temp = *x;
+    *x = *y;
+    *y = temp;
 }
 
-void Graphics::applyCameraToPoint(int *x, int *y) {
-	*x -= _memory->drawState.camera_x;
-	*y -= _memory->drawState.camera_y;
+void Graphics::applyCameraToPoint(int* x, int* y) {
+    *x -= _memory->drawState.camera_x;
+    *y -= _memory->drawState.camera_y;
 }
 
-void Graphics::sortPointsLtoR(int *x1, int *y1, int *x2, int *y2){
-	if (*x1 > *x2) {
-		swap(x1, x2);
-		swap(y1, y2);
-	}
+void Graphics::sortPointsLtoR(int* x1, int* y1, int* x2, int* y2) {
+    if (*x1 > *x2) {
+        swap(x1, x2);
+        swap(y1, y2);
+    }
 }
 
-void Graphics::sortCoordsForRect(int *x1, int *y1, int *x2, int *y2){
-	if (*x1 > *x2) {
-		swap(x1, x2);
-	}
+void Graphics::sortCoordsForRect(int* x1, int* y1, int* x2, int* y2) {
+    if (*x1 > *x2) {
+        swap(x1, x2);
+    }
 
-	if (*y1 > *y2) {
-		swap(y1, y2);
-	}
+    if (*y1 > *y2) {
+        swap(y1, y2);
+    }
 }
 
 bool Graphics::isOnScreen(int x, int y) {
-	return 
-		x >= 0 && 
-		x <= 127 && 
-		y >= 0 && 
-		y <= 127;
+    return x >= 0 &&
+           x <= 127 &&
+           y >= 0 &&
+           y <= 127;
 }
 
 bool Graphics::isColorTransparent(uint8_t color) {
-	color = color & 0x0f;
-	return (_memory->drawState.drawPaletteMap[color] >> 4) > 0; //upper bits indicate transparency
+    color = color & 0x0f;
+    return (_memory->drawState.drawPaletteMap[color] >> 4) > 0; //upper bits indicate transparency
 }
 
 void Graphics::resetAlternatePalette() {
-	for (uint8_t c = 0; c < 16; c++) {
-		_memory->hwState.alternatePaletteMap[c] = c | (c << 4);
-	}
+    for (uint8_t c = 0; c < 16; c++) {
+        _memory->hwState.alternatePaletteMap[c] = c | (c << 4);
+    }
 }
 
 bool Graphics::fillpAppliesToSprites() const {
-	// 0x5f33 bit 1: apply fill pattern to sprites (see PICO-8 fillp() manual)
-	return (_memory->drawState.fillPatternTransparencyBit & 0x02) != 0;
+    // 0x5f33 bit 1: apply fill pattern to sprites (see PICO-8 fillp() manual)
+    return (_memory->drawState.fillPatternTransparencyBit & 0x02) != 0;
 }
 
-bool Graphics::getSpritePixelColor(uint8_t rawColor, int screenX, int screenY, uint8_t &outCol) const {
-	auto &drawState = _memory->drawState;
-	rawColor &= 0x0f;
+bool Graphics::getSpritePixelColor(uint8_t rawColor, int screenX, int screenY, uint8_t& outCol) const {
+    auto& drawState = _memory->drawState;
+    rawColor &= 0x0f;
 
-	if (drawState.drawPaletteMap[rawColor] >> 4) {
-		return false;
-	}
+    if (drawState.drawPaletteMap[rawColor] >> 4) {
+        return false;
+    }
 
-	uint8_t c = drawState.drawPaletteMap[rawColor] & 0x0f;
+    uint8_t c = drawState.drawPaletteMap[rawColor] & 0x0f;
 
-	if (fillpAppliesToSprites()) {
-		uint8_t entry = _memory->hwState.alternatePaletteMap[c];
-		uint8_t bitPlace = 15 - ((screenX & 3) + 4 * (screenY & 3));
-		uint16_t fillp = ((uint16_t)drawState.fillPattern[1] << 8) + drawState.fillPattern[0];
-		bool altColor = (fillp >> bitPlace) & 0x1;
+    if (fillpAppliesToSprites()) {
+        uint8_t entry = _memory->hwState.alternatePaletteMap[c];
+        uint8_t bitPlace = 15 - ((screenX & 3) + 4 * (screenY & 3));
+        uint16_t fillp = ((uint16_t)drawState.fillPattern[1] << 8) + drawState.fillPattern[0];
+        bool altColor = (fillp >> bitPlace) & 0x1;
 
-		if (altColor && (drawState.fillPatternTransparencyBit & 1)) {
-			return false;
-		}
+        if (altColor && (drawState.fillPatternTransparencyBit & 1)) {
+            return false;
+        }
 
-		c = altColor ? ((entry >> 4) & 0x0f) : (entry & 0x0f);
-	}
+        c = altColor ? ((entry >> 4) & 0x0f) : (entry & 0x0f);
+    }
 
-	if (drawState.drawPaletteMap[c] >> 4) {
-		return false;
-	}
+    if (drawState.drawPaletteMap[c] >> 4) {
+        return false;
+    }
 
-	outCol = drawState.drawPaletteMap[c] & 0x0f;
-	return true;
+    outCol = drawState.drawPaletteMap[c] & 0x0f;
+    return true;
 }
 
 uint8_t Graphics::getDrawPalMappedColor(uint8_t color) {
-	color = color & 0x0f;
-	return _memory->drawState.drawPaletteMap[color] & 0x0f; //bits 0-3 are color
+    color = color & 0x0f;
+    return _memory->drawState.drawPaletteMap[color] & 0x0f; //bits 0-3 are color
 }
 
 uint8_t Graphics::getScreenPalMappedColor(uint8_t color) {
-	color = color & 0x0f;
-	return _memory->drawState.screenPaletteMap[color] & 0x8f;
+    color = color & 0x0f;
+    return _memory->drawState.screenPaletteMap[color] & 0x8f;
 }
 
 bool Graphics::isWithinClip(int x, int y) {
-	return 
-		x >= _memory->drawState.clip_xb && 
-		x < _memory->drawState.clip_xe && 
-		y >= _memory->drawState.clip_yb && 
-		y < _memory->drawState.clip_ye;
+    return x >= _memory->drawState.clip_xb &&
+           x < _memory->drawState.clip_xe &&
+           y >= _memory->drawState.clip_yb &&
+           y < _memory->drawState.clip_ye;
 }
 
 bool Graphics::isXWithinClip(int x) {
-	return 
-		x >= _memory->drawState.clip_xb && 
-		x < _memory->drawState.clip_xe;
+    return x >= _memory->drawState.clip_xb &&
+           x < _memory->drawState.clip_xe;
 }
 
 bool Graphics::isYWithinClip(int y) {
-	return 
-		y >= _memory->drawState.clip_yb && 
-		y < _memory->drawState.clip_ye;
+    return y >= _memory->drawState.clip_yb &&
+           y < _memory->drawState.clip_ye;
 }
 
 int clampCoordToScreenDims(int val) {
-	return clamp(val, 0, 128);
+    return clamp(val, 0, 128);
 }
 
 int Graphics::clampXCoordToClip(int x) {
-	return clamp(
-		x,
-		(int)_memory->drawState.clip_xb,
-		(int)_memory->drawState.clip_xe - 1);
+    return clamp(
+        x,
+        (int)_memory->drawState.clip_xb,
+        (int)_memory->drawState.clip_xe - 1);
 }
 
 int Graphics::clampYCoordToClip(int y) {
-	return clamp(
-		y,
-		(int)_memory->drawState.clip_yb,
-		(int)_memory->drawState.clip_ye - 1);
+    return clamp(
+        y,
+        (int)_memory->drawState.clip_yb,
+        (int)_memory->drawState.clip_ye - 1);
 }
 
-
 void Graphics::_safeSetPixelFromPen(int x, int y) {
-	if (isWithinClip(x, y)){
-		_setPixelFromPen(x, y);
-	}
+    if (isWithinClip(x, y)) {
+        _setPixelFromPen(x, y);
+    }
 }
 
 void Graphics::_setPixelFromSprite(int x, int y, uint8_t col) {
-	x = x & 127;
-	y = y & 127;
+    x = x & 127;
+    y = y & 127;
 
-	auto &drawState = _memory->drawState;
-	auto &hwState = _memory->hwState;
-	uint8_t *screenBuffer = GetP8FrameBuffer();
+    auto& drawState = _memory->drawState;
+    auto& hwState = _memory->hwState;
+    uint8_t* screenBuffer = GetP8FrameBuffer();
 
-	//col = getDrawPalMappedColor(col);
-	col = drawState.drawPaletteMap[col & 0x0f] & 0x0f; 
+    //col = getDrawPalMappedColor(col);
+    col = drawState.drawPaletteMap[col & 0x0f] & 0x0f;
 
-	if (hwState.colorBitmask != 0xff) {
-		//from pico 8 wiki:
-		//dst_color = (dst_color & ~write_mask) | (src_color & write_mask & read_mask)
-		uint8_t writeMask = hwState.colorBitmask & 15;
-		uint8_t readMask = hwState.colorBitmask >> 4;
-		//uint8_t source = pget(x, y);
-		uint8_t source = (BITMASK(0) & x) == 0 
-				? screenBuffer[COMBINED_IDX(x, y)] & 0x0f //just first 4 bits
-				: screenBuffer[COMBINED_IDX(x, y)] >> 4;
-		col = (source & ~writeMask) | (col & writeMask & readMask);
-	}
+    if (hwState.colorBitmask != 0xff) {
+        //from pico 8 wiki:
+        //dst_color = (dst_color & ~write_mask) | (src_color & write_mask & read_mask)
+        uint8_t writeMask = hwState.colorBitmask & 15;
+        uint8_t readMask = hwState.colorBitmask >> 4;
+        //uint8_t source = pget(x, y);
+        uint8_t source = (BITMASK(0) & x) == 0
+                             ? screenBuffer[COMBINED_IDX(x, y)] & 0x0f //just first 4 bits
+                             : screenBuffer[COMBINED_IDX(x, y)] >> 4;
+        col = (source & ~writeMask) | (col & writeMask & readMask);
+    }
 
-	setPixelNibble(x, y, col, screenBuffer);
+    setPixelNibble(x, y, col, screenBuffer);
 }
 
 void Graphics::_setPixelFromPen(int x, int y) {
-	x = x & 127;
-	y = y & 127;
+    x = x & 127;
+    y = y & 127;
 
-	auto &drawState = _memory->drawState;
-	auto &hwState = _memory->hwState;
-	uint8_t *screenBuffer = GetP8FrameBuffer();
+    auto& drawState = _memory->drawState;
+    auto& hwState = _memory->hwState;
+    uint8_t* screenBuffer = GetP8FrameBuffer();
 
-	uint8_t col = drawState.color;
+    uint8_t col = drawState.color;
 
-	uint8_t col0 = col & 0x0f;
-	uint8_t col1 = (col & 0xf0) >> 4;
+    uint8_t col0 = col & 0x0f;
+    uint8_t col1 = (col & 0xf0) >> 4;
 
-	uint8_t finalC = col0;
+    uint8_t finalC = col0;
 
+    //uint8_t gridX = x % 4;
+    //uint8_t gridY = y % 4;
+    //uint8_t bitPlace = gridY * 4 + gridX;
+    uint8_t bitPlace = 15 - ((x & 3) + 4 * (y & 3));
 
-	//uint8_t gridX = x % 4;
-	//uint8_t gridY = y % 4;
-	//uint8_t bitPlace = gridY * 4 + gridX;
-	uint8_t bitPlace = 15 - ((x & 3) + 4 * (y & 3));
+    uint16_t fillp = ((uint16_t)drawState.fillPattern[1] << 8) + drawState.fillPattern[0];
+    bool altColor = (fillp >> bitPlace) & 0x1;
+    if (altColor) {
+        if (drawState.fillPatternTransparencyBit & 1) {
+            return;
+        }
 
-	uint16_t fillp = ((uint16_t)drawState.fillPattern[1] << 8) + drawState.fillPattern[0];
-	bool altColor = (fillp >> bitPlace) & 0x1;
-	if (altColor) {
-		if (drawState.fillPatternTransparencyBit & 1){
-			return;
-		}
+        finalC = col1;
+    }
 
-		finalC = col1;
-	}
+    //finalC = getDrawPalMappedColor(finalC);
+    finalC = drawState.drawPaletteMap[finalC & 0x0f] & 0x0f;
 
-	//finalC = getDrawPalMappedColor(finalC);
-	finalC = drawState.drawPaletteMap[finalC & 0x0f] & 0x0f;
+    //from pico 8 wiki:
+    //dst_color = (dst_color & ~write_mask) | (src_color & write_mask & read_mask)
+    if (hwState.colorBitmask != 0xff) {
+        uint8_t writeMask = hwState.colorBitmask & 15;
+        uint8_t readMask = hwState.colorBitmask >> 4;
 
-	//from pico 8 wiki:
-	//dst_color = (dst_color & ~write_mask) | (src_color & write_mask & read_mask)
-	if (hwState.colorBitmask != 0xff){
-		uint8_t writeMask = hwState.colorBitmask & 15;
-		uint8_t readMask = hwState.colorBitmask >> 4;
+        //camera should already be applied, and x and y should be safe coords by now, so don't use pget
+        //uint8_t source = pget(x, y);
+        uint8_t source = (BITMASK(0) & x) == 0
+                             ? screenBuffer[COMBINED_IDX(x, y)] & 0x0f //just first 4 bits
+                             : screenBuffer[COMBINED_IDX(x, y)] >> 4;
 
-		//camera should already be applied, and x and y should be safe coords by now, so don't use pget
-		//uint8_t source = pget(x, y);
-		uint8_t source = (BITMASK(0) & x) == 0 
-			? screenBuffer[COMBINED_IDX(x, y)] & 0x0f //just first 4 bits
-			: screenBuffer[COMBINED_IDX(x, y)] >> 4;
+        finalC = (source & ~writeMask) | (finalC & writeMask & readMask);
+    }
 
-		finalC = (source & ~writeMask) | (finalC & writeMask & readMask);
-	}
-
-	setPixelNibble(x, y, finalC, screenBuffer);
+    setPixelNibble(x, y, finalC, screenBuffer);
 }
 
 void Graphics::cls() {
-	this->cls(0);
+    this->cls(0);
 }
 
 void Graphics::cls(uint8_t color) {
-	color = color & 15;
-	uint8_t val = color << 4 | color;
-	memset(GetP8FrameBuffer(), val, sizeof(_memory->screenBuffer));
+    color = color & 15;
+    uint8_t val = color << 4 | color;
+    memset(GetP8FrameBuffer(), val, sizeof(_memory->screenBuffer));
 
-	_memory->drawState.text_x = 0;
-	_memory->drawState.text_y = 0;
+    _memory->drawState.text_x = 0;
+    _memory->drawState.text_y = 0;
 
-	_memory->drawState.clip_xb = 0;
-	_memory->drawState.clip_yb = 0;
-	_memory->drawState.clip_xe = 128;
-	_memory->drawState.clip_ye = 128;
+    _memory->drawState.clip_xb = 0;
+    _memory->drawState.clip_yb = 0;
+    _memory->drawState.clip_xe = 128;
+    _memory->drawState.clip_ye = 128;
 }
 
-void Graphics::pset(int x, int y){
-	this->pset(x, y, _memory->drawState.color);
+void Graphics::pset(int x, int y) {
+    this->pset(x, y, _memory->drawState.color);
 }
 
-void Graphics::pset(int x, int y, int32_t col){
-	color(col);
+void Graphics::pset(int x, int y, int32_t col) {
+    color(col);
 
-	applyCameraToPoint(&x, &y);
+    applyCameraToPoint(&x, &y);
 
-	if (isWithinClip(x, y)){
-		_setPixelFromPen(x, y);
-	}
+    if (isWithinClip(x, y)) {
+        _setPixelFromPen(x, y);
+    }
 }
 
-uint8_t Graphics::pget(int x, int y){
-	applyCameraToPoint(&x, &y);
+uint8_t Graphics::pget(int x, int y) {
+    applyCameraToPoint(&x, &y);
 
-	if (isOnScreen(x, y)){
-		return getPixelNibble(x, y, GetP8FrameBuffer());
-	}
+    if (isOnScreen(x, y)) {
+        return getPixelNibble(x, y, GetP8FrameBuffer());
+    }
 
-	return 0;
+    return 0;
 }
 
-uint8_t Graphics::color(){
-	return color(6);
+uint8_t Graphics::color() {
+    return color(6);
 }
 
-uint8_t Graphics::color(int32_t col){
-	uint8_t prev = _memory->drawState.color;
+uint8_t Graphics::color(int32_t col) {
+    uint8_t prev = _memory->drawState.color;
 
-	_memory->drawState.color = _penColorFromDrawColor(col);
+    _memory->drawState.color = _penColorFromDrawColor(col);
 
-	return prev;
+    return prev;
 }
 
 bool Graphics::_isInvertedFill(int32_t col) const {
-	return (_memory->drawState.colorSettingFlag & 0x02) != 0
-		&& (col & 0x1800) != 0;
+    return (_memory->drawState.colorSettingFlag & 0x02) != 0 && (col & 0x1800) != 0;
 }
 
 uint8_t Graphics::_penColorFromDrawColor(int32_t col) const {
-	if ((col & 0x1800) != 0) {
-		if ((col & 0xff) != 0) {
-			return col & 0xff;
-		}
-		return (col >> 8) & 0x0f;
-	}
-	if ((col & 0x1000) != 0 && (col & 0xff) == 0) {
-		return (col >> 8) & 0x0f;
-	}
-	if (col >= 0 && col <= 0xff) {
-		return (uint8_t)col;
-	}
-	return col & 0x0f;
+    if ((col & 0x1800) != 0) {
+        if ((col & 0xff) != 0) {
+            return col & 0xff;
+        }
+        return (col >> 8) & 0x0f;
+    }
+    if ((col & 0x1000) != 0 && (col & 0xff) == 0) {
+        return (col >> 8) & 0x0f;
+    }
+    if (col >= 0 && col <= 0xff) {
+        return (uint8_t)col;
+    }
+    return col & 0x0f;
 }
 
 static int isqrtInt(int n) {
-	if (n <= 0) {
-		return 0;
-	}
-	int x = n;
-	int y = (x + 1) / 2;
-	while (y < x) {
-		x = y;
-		y = (x + n / x) / 2;
-	}
-	return x;
+    if (n <= 0) {
+        return 0;
+    }
+    int x = n;
+    int y = (x + 1) / 2;
+    while (y < x) {
+        x = y;
+        y = (x + n / x) / 2;
+    }
+    return x;
 }
 
 int Graphics::_ellipseHalfWidthAtRow(int xc, int yc, int xr, int yr, int y) const {
-	int dy = y - yc;
-	int bsq = yr * yr;
-	int asq = xr * xr;
+    int dy = y - yc;
+    int bsq = yr * yr;
+    int asq = xr * xr;
 
-	if (bsq == 0) {
-		return dy == 0 ? xr : -1;
-	}
+    if (bsq == 0) {
+        return dy == 0 ? xr : -1;
+    }
 
-	int dy2 = dy * dy;
-	if (dy2 > bsq) {
-		return -1;
-	}
+    int dy2 = dy * dy;
+    if (dy2 > bsq) {
+        return -1;
+    }
 
-	int inner = asq * (bsq - dy2);
-	if (inner <= 0) {
-		return 0;
-	}
+    int inner = asq * (bsq - dy2);
+    if (inner <= 0) {
+        return 0;
+    }
 
-	return isqrtInt(inner) / yr;
+    return isqrtInt(inner) / yr;
 }
 
-void Graphics::line () {
-	//just invalidate line state
-	_memory->drawState.line_x = 0;
-	_memory->drawState.line_y = 0;
-	_memory->drawState.lineInvalid = 1;
+void Graphics::line() {
+    //just invalidate line state
+    _memory->drawState.line_x = 0;
+    _memory->drawState.line_y = 0;
+    _memory->drawState.lineInvalid = 1;
 }
 
-void Graphics::line (int32_t col){
-	color(col);
+void Graphics::line(int32_t col) {
+    color(col);
 
-	this->line();
+    this->line();
 }
 
-void Graphics::line (int x1, int y1){
-	if (this->_memory->drawState.lineInvalid) {
-		_memory->drawState.line_x = x1;
-		_memory->drawState.line_y = y1;
-		_memory->drawState.lineInvalid = 0;
-		return;
-	}
-	this->line(_memory->drawState.line_x, _memory->drawState.line_y, x1, y1, _memory->drawState.color);
+void Graphics::line(int x1, int y1) {
+    if (this->_memory->drawState.lineInvalid) {
+        _memory->drawState.line_x = x1;
+        _memory->drawState.line_y = y1;
+        _memory->drawState.lineInvalid = 0;
+        return;
+    }
+    this->line(_memory->drawState.line_x, _memory->drawState.line_y, x1, y1, _memory->drawState.color);
 }
 
-void Graphics::line (int x1, int y1, int32_t col){
-	if (_memory->drawState.lineInvalid) {
-		_memory->drawState.line_x = x1;
-		_memory->drawState.line_y = y1;
-		_memory->drawState.lineInvalid = 0;
-		color(col);
-		return;
-	}
-	this->line(_memory->drawState.line_x, _memory->drawState.line_y, x1, y1, col);
+void Graphics::line(int x1, int y1, int32_t col) {
+    if (_memory->drawState.lineInvalid) {
+        _memory->drawState.line_x = x1;
+        _memory->drawState.line_y = y1;
+        _memory->drawState.lineInvalid = 0;
+        color(col);
+        return;
+    }
+    this->line(_memory->drawState.line_x, _memory->drawState.line_y, x1, y1, col);
 }
 
-void Graphics::line (int x1, int y1, int x2, int y2){
-	this->line(x1, y1, x2, y2, _memory->drawState.color);
+void Graphics::line(int x1, int y1, int x2, int y2) {
+    this->line(x1, y1, x2, y2, _memory->drawState.color);
 }
 
-void Graphics::_private_h_line(int x1, int x2, int y){
-	auto &drawState = _memory->drawState;
-	auto &hwState = _memory->hwState;
-	uint8_t * screenBuffer = GetP8FrameBuffer();
+void Graphics::_private_h_line(int x1, int x2, int y) {
+    auto& drawState = _memory->drawState;
+    auto& hwState = _memory->hwState;
+    uint8_t* screenBuffer = GetP8FrameBuffer();
 
-	if (!(y >= drawState.clip_yb && y < drawState.clip_ye)) {
-		return;
-	}
+    if (!(y >= drawState.clip_yb && y < drawState.clip_ye)) {
+        return;
+    }
 
-	if ((x1 < drawState.clip_xb && x2 < drawState.clip_xb) ||
-		(x1 >= drawState.clip_xe && x2 >= drawState.clip_xe)) {
-			return;
-	}
+    if ((x1 < drawState.clip_xb && x2 < drawState.clip_xb) ||
+        (x1 >= drawState.clip_xe && x2 >= drawState.clip_xe)) {
+        return;
+    }
 
-	int maxx = clamp(
-		std::max(x1, x2),
-		(int)drawState.clip_xb,
-		(int)drawState.clip_xe - 1);
+    int maxx = clamp(
+        std::max(x1, x2),
+        (int)drawState.clip_xb,
+        (int)drawState.clip_xe - 1);
 
-	int minx = clamp(
-		std::min(x1, x2),
-		(int)drawState.clip_xb,
-		(int)drawState.clip_xe - 1);
+    int minx = clamp(
+        std::min(x1, x2),
+        (int)drawState.clip_xb,
+        (int)drawState.clip_xe - 1);
 
-	bool canmemset = hwState.colorBitmask == 0xff && 
-		drawState.fillPattern[0] == 0 && 
-		drawState.fillPattern[1] == 0 &&
-		maxx - minx > 1;
+    bool canmemset = hwState.colorBitmask == 0xff &&
+                     drawState.fillPattern[0] == 0 &&
+                     drawState.fillPattern[1] == 0 &&
+                     maxx - minx > 1;
 
-	if (canmemset) {
-		//zepto 8 adapted otimized line draw with memset
-		uint8_t *p = screenBuffer + (y*64);
+    if (canmemset) {
+        //zepto 8 adapted otimized line draw with memset
+        uint8_t* p = screenBuffer + (y * 64);
         uint8_t color = getDrawPalMappedColor(drawState.color);
 
-        if (minx & 1)
-        {
-			
+        if (minx & 1) {
+
             p[minx / 2] = (p[minx / 2] & 0x0f) | (color << 4);
             ++minx;
         }
 
-        if ((maxx & 1) == 0)
-        {
-			
+        if ((maxx & 1) == 0) {
+
             p[maxx / 2] = (p[maxx / 2] & 0xf0) | color;
             --maxx;
         }
 
         memset(p + minx / 2, color * 0x11, (maxx - minx + 1) / 2);
-	}
-	else {
-		for (int x = minx; x <= maxx; x++){
-			_setPixelFromPen(x, y);
-		}
-	}
+    } else {
+        for (int x = minx; x <= maxx; x++) {
+            _setPixelFromPen(x, y);
+        }
+    }
 }
 
-void Graphics::_private_v_line (int y1, int y2, int x){
-	auto &drawState = _memory->drawState;
-	auto &hwState = _memory->hwState;
-	uint8_t * screenBuffer = GetP8FrameBuffer();
+void Graphics::_private_v_line(int y1, int y2, int x) {
+    auto& drawState = _memory->drawState;
+    auto& hwState = _memory->hwState;
+    uint8_t* screenBuffer = GetP8FrameBuffer();
 
-	if (!(x >= drawState.clip_xb && x < drawState.clip_xe)) {
-		return;
-	}
+    if (!(x >= drawState.clip_xb && x < drawState.clip_xe)) {
+        return;
+    }
 
-	if ((y1 < drawState.clip_yb && y2 < drawState.clip_yb) ||
-		(y1 >= drawState.clip_ye && y2 >= drawState.clip_ye)) {
-			return;
-	}
+    if ((y1 < drawState.clip_yb && y2 < drawState.clip_yb) ||
+        (y1 >= drawState.clip_ye && y2 >= drawState.clip_ye)) {
+        return;
+    }
 
-	int maxy = clamp(
-		std::max(y1, y2),
-		(int)drawState.clip_yb,
-		(int)drawState.clip_ye - 1);
+    int maxy = clamp(
+        std::max(y1, y2),
+        (int)drawState.clip_yb,
+        (int)drawState.clip_ye - 1);
 
-	int miny = clamp(
-		std::min(y1, y2),
-		(int)drawState.clip_yb,
-		(int)drawState.clip_ye - 1);
+    int miny = clamp(
+        std::min(y1, y2),
+        (int)drawState.clip_yb,
+        (int)drawState.clip_ye - 1);
 
-	bool skipPen = hwState.colorBitmask == 0xff && 
-		drawState.fillPattern[0] == 0 && 
-		drawState.fillPattern[1] == 0;
+    bool skipPen = hwState.colorBitmask == 0xff &&
+                   drawState.fillPattern[0] == 0 &&
+                   drawState.fillPattern[1] == 0;
 
-	if (skipPen) {
-		uint8_t color = getDrawPalMappedColor(drawState.color);
-		uint8_t mask = (x & 1) ? 0x0f : 0xf0;
-		uint8_t nibble = (x & 1) ? color << 4 : color;
+    if (skipPen) {
+        uint8_t color = getDrawPalMappedColor(drawState.color);
+        uint8_t mask = (x & 1) ? 0x0f : 0xf0;
+        uint8_t nibble = (x & 1) ? color << 4 : color;
 
-		for (int16_t y = miny; y <= maxy; ++y)
-        {
-			int pixIdx = COMBINED_IDX(x, y);
-            auto &data = screenBuffer[pixIdx];
+        for (int16_t y = miny; y <= maxy; ++y) {
+            int pixIdx = COMBINED_IDX(x, y);
+            auto& data = screenBuffer[pixIdx];
             data = (data & mask) | nibble;
         }
-	}
-	else {
-		for (int y = miny; y <= maxy; y++){
-			_setPixelFromPen(x, y);
-		}
-	}
+    } else {
+        for (int y = miny; y <= maxy; y++) {
+            _setPixelFromPen(x, y);
+        }
+    }
 }
 
 void Graphics::line(int x0, int y0, int x1, int y1, int32_t col) {
-	_memory->drawState.line_x = x1;
-	_memory->drawState.line_y = y1;
-	_memory->drawState.lineInvalid = 0;
+    _memory->drawState.line_x = x1;
+    _memory->drawState.line_y = y1;
+    _memory->drawState.lineInvalid = 0;
 
-	applyCameraToPoint(&x0, &y0);
-	applyCameraToPoint(&x1, &y1);
+    applyCameraToPoint(&x0, &y0);
+    applyCameraToPoint(&x1, &y1);
 
-	color(col);
+    color(col);
 
-	//vertical line
-	if (x0 == x1) {
-		_private_v_line(y0, y1, x0);
-	} 
-	else if (y0 == y1) {
-		_private_h_line(x0, x1, y0);
-	}
-	else if (y0 > y1) {
-		// PICO-8 uses classic axis-dominant Bresenham for upward diagonals.
-		int dx = abs(x1 - x0);
-		int dy = abs(y1 - y0);
-		int sx = x0 < x1 ? 1 : -1;
-		int sy = -1;
-		int x = x0;
-		int y = y0;
+    //vertical line
+    if (x0 == x1) {
+        _private_v_line(y0, y1, x0);
+    } else if (y0 == y1) {
+        _private_h_line(x0, x1, y0);
+    } else if (y0 > y1) {
+        // PICO-8 uses classic axis-dominant Bresenham for upward diagonals.
+        int dx = abs(x1 - x0);
+        int dy = abs(y1 - y0);
+        int sx = x0 < x1 ? 1 : -1;
+        int sy = -1;
+        int x = x0;
+        int y = y0;
 
-		if (dx > dy) {
-			int err = dx / 2;
-			while (x != x1) {
-				_safeSetPixelFromPen(x, y);
-				err -= dy;
-				if (err < 0) {
-					y += sy;
-					err += dx;
-				}
-				x += sx;
-			}
-			_safeSetPixelFromPen(x1, y1);
-		} else {
-			int err = dy / 2;
-			while (y != y1) {
-				_safeSetPixelFromPen(x, y);
-				err -= dx;
-				if (err < 0) {
-					x += sx;
-					err += dy;
-				}
-				y += sy;
-			}
-			_safeSetPixelFromPen(x1, y1);
-		}
-	}
-	else {
-		// tac08 line impl for downward diagonals
-		int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
-		int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
-		int err = dx + dy, e2; /* error value e_xy */
+        if (dx > dy) {
+            int err = dx / 2;
+            while (x != x1) {
+                _safeSetPixelFromPen(x, y);
+                err -= dy;
+                if (err < 0) {
+                    y += sy;
+                    err += dx;
+                }
+                x += sx;
+            }
+            _safeSetPixelFromPen(x1, y1);
+        } else {
+            int err = dy / 2;
+            while (y != y1) {
+                _safeSetPixelFromPen(x, y);
+                err -= dx;
+                if (err < 0) {
+                    x += sx;
+                    err += dy;
+                }
+                y += sy;
+            }
+            _safeSetPixelFromPen(x1, y1);
+        }
+    } else {
+        // tac08 line impl for downward diagonals
+        int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+        int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+        int err = dx + dy, e2; /* error value e_xy */
 
-		for (;;) { /* loop */
-			_safeSetPixelFromPen(x0, y0);
-			if (x0 == x1 && y0 == y1)
-				break;
-			e2 = 2 * err;
-			if (e2 >= dy) {
-				err += dy;
-				x0 += sx;
-			} /* e_xy+e_x > 0 */
-			if (e2 <= dx) {
-				err += dx;
-				y0 += sy;
-			} /* e_xy+e_y < 0 */
-		}
-	}
+        for (;;) { /* loop */
+            _safeSetPixelFromPen(x0, y0);
+            if (x0 == x1 && y0 == y1)
+                break;
+            e2 = 2 * err;
+            if (e2 >= dy) {
+                err += dy;
+                x0 += sx;
+            } /* e_xy+e_x > 0 */
+            if (e2 <= dx) {
+                err += dx;
+                y0 += sy;
+            } /* e_xy+e_y < 0 */
+        }
+    }
 }
 
-
-void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my){
-	tline(
-		x0,
-		y0,
-		x1,
-		y1,
-		mx,
-		my,
-		fix32::frombits(0x2000), // 1/8
-		fix32(0)
-	);
+void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my) {
+    tline(
+        x0,
+        y0,
+        x1,
+        y1,
+        mx,
+        my,
+        fix32::frombits(0x2000), // 1/8
+        fix32(0));
 }
 
-fix32 getTlineMask(uint8_t dim){
-	if (dim == 0) {
-		return fix32::frombits(0xffffff);
-	}
+fix32 getTlineMask(uint8_t dim) {
+    if (dim == 0) {
+        return fix32::frombits(0xffffff);
+    }
 
-	return fix32(dim) - fix32::frombits(1);
+    return fix32(dim) - fix32::frombits(1);
 }
 
-static fix32 getTlineCoordMask(uint8_t dim, uint8_t fracBits){
-	if (dim == 0) {
-		return fix32::frombits(0xffffff);
-	}
+static fix32 getTlineCoordMask(uint8_t dim, uint8_t fracBits) {
+    if (dim == 0) {
+        return fix32::frombits(0xffffff);
+    }
 
-	int scaledDim = (int)dim << (fracBits - 13);
-	if (scaledDim >= 256) {
-		return fix32::frombits(0xffffff);
-	}
+    int scaledDim = (int)dim << (fracBits - 13);
+    if (scaledDim >= 256) {
+        return fix32::frombits(0xffffff);
+    }
 
-	return getTlineMask((uint8_t)scaledDim);
+    return getTlineMask((uint8_t)scaledDim);
 }
 
-void Graphics::setTlineFracBits(uint8_t bits){
-	_tlineFracBits = bits == 0 ? 13 : bits;
+void Graphics::setTlineFracBits(uint8_t bits) {
+    _tlineFracBits = bits == 0 ? 13 : bits;
 }
 
 //ported from zepto 8 impl
-void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 mdx, fix32 mdy){
-	applyCameraToPoint(&x0, &y0);
-	applyCameraToPoint(&x1, &y1);
+void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 mdx, fix32 mdy) {
+    applyCameraToPoint(&x0, &y0);
+    applyCameraToPoint(&x1, &y1);
 
-	//determine whether x or y coordinates need to get incremented
-	bool xDifGreater = std::abs(x1 - x0) >= std::abs(y1 - y0);
-	int dx = xDifGreater ? x0 <= x1 ? 1 : -1 : 0;
-    int dy = xDifGreater ? 0 : y0 <= y1 ? 1 : -1;
+    //determine whether x or y coordinates need to get incremented
+    bool xDifGreater = std::abs(x1 - x0) >= std::abs(y1 - y0);
+    int dx = xDifGreater ? x0 <= x1 ? 1 : -1 : 0;
+    int dy = xDifGreater ? 0 : y0 <= y1 ? 1
+                                        : -1;
 
-	bool vertical = x0 == x1;
+    bool vertical = x0 == x1;
 
-	int x = clampXCoordToClip(x0);
-	int xend = clampXCoordToClip(x1);
-	int y = clampYCoordToClip(y0);
-	int yend = clampYCoordToClip(y1);
+    int x = clampXCoordToClip(x0);
+    int xend = clampXCoordToClip(x1);
+    int y = clampYCoordToClip(y0);
+    int yend = clampYCoordToClip(y1);
 
-	auto &ds = _memory->drawState;
-	const uint8_t fracBits = _tlineFracBits;
+    auto& ds = _memory->drawState;
+    const uint8_t fracBits = _tlineFracBits;
 
-	// Retrieve masks for wrap-around and subtract 0x0.0001
-	fix32 xmask = getTlineCoordMask(ds.tlineMapWidth, fracBits);
-	fix32 ymask = getTlineCoordMask(ds.tlineMapHeight, fracBits);
+    // Retrieve masks for wrap-around and subtract 0x0.0001
+    fix32 xmask = getTlineCoordMask(ds.tlineMapWidth, fracBits);
+    fix32 ymask = getTlineCoordMask(ds.tlineMapHeight, fracBits);
 
-	// Advance texture coordinates; do it in steps to avoid overflows
+    // Advance texture coordinates; do it in steps to avoid overflows
     int delta = abs(xDifGreater ? x - x0 : y - y0);
     while (delta) {
         int step = std::min(8192, delta);
@@ -1071,25 +1049,25 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 m
         delta -= step;
     }
 
-	for (;;) {
+    for (;;) {
         // Find sprite in map memory
-		const int mapPx = (mx & xmask).bits() >> fracBits;
-		const int mapPy = (my & ymask).bits() >> fracBits;
+        const int mapPx = (mx & xmask).bits() >> fracBits;
+        const int mapPy = (my & ymask).bits() >> fracBits;
         int sx = ds.tlineMapXOffset + (mapPx >> 3);
         int sy = ds.tlineMapYOffset + (mapPy >> 3);
-		uint8_t sprite = mget(sx, sy);
+        uint8_t sprite = mget(sx, sy);
         //uint8_t bits = fget(sprite);
 
-		int spr_x = (sprite % 16) * 8;
-		int spr_y = (sprite / 16) * 8;
+        int spr_x = (sprite % 16) * 8;
+        int spr_y = (sprite / 16) * 8;
 
         // If found, draw pixel //todo layer param
-		//if (cell && ((layer == 0) || (fget(cell) & layer))) {
+        //if (cell && ((layer == 0) || (fget(cell) & layer))) {
         if (sprite) {
-			uint8_t col = getPixelNibble(
-				spr_x + (mapPx & 0x7),
-				spr_y + (mapPy & 0x7),
-				_memory->spriteSheetData);
+            uint8_t col = getPixelNibble(
+                spr_x + (mapPx & 0x7),
+                spr_y + (mapPy & 0x7),
+                _memory->spriteSheetData);
 
             if (!isColorTransparent(col) && isWithinClip(x, y)) {
                 _setPixelFromSprite(x, y, col);
@@ -1106,248 +1084,243 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 m
                 break;
             x += dx;
             y = y0 + ((float)(x - x0) / (x1 - x0)) * (y1 - y0);
-        }
-        else {
+        } else {
             if (y == yend)
                 break;
             y += dy;
-			if (! vertical) {
-            	x = x0 + ((float)(y - y0) / (y1 - y0)) * (x1 - x0);
-			}
-		}
-	}
+            if (!vertical) {
+                x = x0 + ((float)(y - y0) / (y1 - y0)) * (x1 - x0);
+            }
+        }
+    }
 }
 
-void Graphics::circ(int ox, int oy){
-	this->circ(ox, oy, 4);
+void Graphics::circ(int ox, int oy) {
+    this->circ(ox, oy, 4);
 }
 
-void Graphics::circ(int ox, int oy, int r){
-	this->circ(ox, oy, r, _memory->drawState.color);
+void Graphics::circ(int ox, int oy, int r) {
+    this->circ(ox, oy, r, _memory->drawState.color);
 }
 
-void Graphics::circ(int ox, int oy, int r, int32_t col){
-	color(col);
+void Graphics::circ(int ox, int oy, int r, int32_t col) {
+    color(col);
 
-	applyCameraToPoint(&ox, &oy);
+    applyCameraToPoint(&ox, &oy);
 
-	int x = r;
-	int y = 0;
-	int decisionOver2 = 1-x;
+    int x = r;
+    int y = 0;
+    int decisionOver2 = 1 - x;
 
-	while (y <= x) {
-		_safeSetPixelFromPen(ox + x, oy + y);
-		_safeSetPixelFromPen(ox + y, oy + x);
-		_safeSetPixelFromPen(ox - x, oy + y);
-		_safeSetPixelFromPen(ox - y, oy + x);
+    while (y <= x) {
+        _safeSetPixelFromPen(ox + x, oy + y);
+        _safeSetPixelFromPen(ox + y, oy + x);
+        _safeSetPixelFromPen(ox - x, oy + y);
+        _safeSetPixelFromPen(ox - y, oy + x);
 
-		_safeSetPixelFromPen(ox - x, oy - y);
-		_safeSetPixelFromPen(ox - y, oy - x);
-		_safeSetPixelFromPen(ox + x, oy - y);
-		_safeSetPixelFromPen(ox + y, oy - x);
+        _safeSetPixelFromPen(ox - x, oy - y);
+        _safeSetPixelFromPen(ox - y, oy - x);
+        _safeSetPixelFromPen(ox + x, oy - y);
+        _safeSetPixelFromPen(ox + y, oy - x);
 
-		y += 1;
-		if (decisionOver2 < 0) {
-			decisionOver2=decisionOver2+2*y+1;
-		}
-		else {
-			x = x-1;
-			decisionOver2 = decisionOver2 + 2 * (y - x) + 1;
-		}
-	}
-
+        y += 1;
+        if (decisionOver2 < 0) {
+            decisionOver2 = decisionOver2 + 2 * y + 1;
+        } else {
+            x = x - 1;
+            decisionOver2 = decisionOver2 + 2 * (y - x) + 1;
+        }
+    }
 }
 
-void Graphics::circfill(int ox, int oy){
-	this->circfill(ox, oy, 4);
+void Graphics::circfill(int ox, int oy) {
+    this->circfill(ox, oy, 4);
 }
 
-void Graphics::circfill(int ox, int oy, int r){
-	this->circfill(ox, oy, r, _memory->drawState.color);
+void Graphics::circfill(int ox, int oy, int r) {
+    this->circfill(ox, oy, r, _memory->drawState.color);
 }
 
-void Graphics::_invertedCircfill(int ox, int oy, int r, uint8_t col){
-	color(col);
+void Graphics::_invertedCircfill(int ox, int oy, int r, uint8_t col) {
+    color(col);
 
-	applyCameraToPoint(&ox, &oy);
+    applyCameraToPoint(&ox, &oy);
 
-	int clipLeft = _memory->drawState.clip_xb;
-	int clipRight = _memory->drawState.clip_xe;
-	int clipTop = _memory->drawState.clip_yb;
-	int clipBottom = _memory->drawState.clip_ye;
+    int clipLeft = _memory->drawState.clip_xb;
+    int clipRight = _memory->drawState.clip_xe;
+    int clipTop = _memory->drawState.clip_yb;
+    int clipBottom = _memory->drawState.clip_ye;
 
-	int circleTop = oy - r;
-	int circleBottom = oy + r;
+    int circleTop = oy - r;
+    int circleBottom = oy + r;
 
-	// Fill rows above the circle
-	for (int row = clipTop; row < circleTop && row < clipBottom; row++) {
-		_private_h_line(clipLeft, clipRight - 1, row);
-	}
+    // Fill rows above the circle
+    for (int row = clipTop; row < circleTop && row < clipBottom; row++) {
+        _private_h_line(clipLeft, clipRight - 1, row);
+    }
 
-	// Fill rows that intersect the circle (left and right of circle)
-	if (r >= 0) {
-		int x = -r, y = 0, err = 2 - 2 * r;
-		int lastY = -1;
-		do {
-			// For each y offset, draw lines outside the circle
-			if (oy + y != lastY) {
-				// Right side of screen (to the right of circle)
-				if (ox + x + 1 < clipRight) {
-					_private_h_line(ox - x + 1, clipRight - 1, oy + y);
-				}
-				// Left side of screen (to the left of circle)
-				if (ox + x - 1 >= clipLeft) {
-					_private_h_line(clipLeft, ox + x - 1, oy + y);
-				}
-			}
-			if (y > 0 && oy - y != lastY) {
-				// Right side of screen (to the right of circle)
-				if (ox + x + 1 < clipRight) {
-					_private_h_line(ox - x + 1, clipRight - 1, oy - y);
-				}
-				// Left side of screen (to the left of circle)
-				if (ox + x - 1 >= clipLeft) {
-					_private_h_line(clipLeft, ox + x - 1, oy - y);
-				}
-			}
-			lastY = oy + y;
-			int savedR = r;
-			r = err;
-			if (r > x)
-				err += ++x * 2 + 1;
-			if (r <= y)
-				err += ++y * 2 + 1;
-			r = savedR;
-		} while (x < 0);
-	}
+    // Fill rows that intersect the circle (left and right of circle)
+    if (r >= 0) {
+        int x = -r, y = 0, err = 2 - 2 * r;
+        int lastY = -1;
+        do {
+            // For each y offset, draw lines outside the circle
+            if (oy + y != lastY) {
+                // Right side of screen (to the right of circle)
+                if (ox + x + 1 < clipRight) {
+                    _private_h_line(ox - x + 1, clipRight - 1, oy + y);
+                }
+                // Left side of screen (to the left of circle)
+                if (ox + x - 1 >= clipLeft) {
+                    _private_h_line(clipLeft, ox + x - 1, oy + y);
+                }
+            }
+            if (y > 0 && oy - y != lastY) {
+                // Right side of screen (to the right of circle)
+                if (ox + x + 1 < clipRight) {
+                    _private_h_line(ox - x + 1, clipRight - 1, oy - y);
+                }
+                // Left side of screen (to the left of circle)
+                if (ox + x - 1 >= clipLeft) {
+                    _private_h_line(clipLeft, ox + x - 1, oy - y);
+                }
+            }
+            lastY = oy + y;
+            int savedR = r;
+            r = err;
+            if (r > x)
+                err += ++x * 2 + 1;
+            if (r <= y)
+                err += ++y * 2 + 1;
+            r = savedR;
+        } while (x < 0);
+    }
 
-	// Fill rows below the circle
-	for (int row = circleBottom + 1; row < clipBottom; row++) {
-		_private_h_line(clipLeft, clipRight - 1, row);
-	}
+    // Fill rows below the circle
+    for (int row = circleBottom + 1; row < clipBottom; row++) {
+        _private_h_line(clipLeft, clipRight - 1, row);
+    }
 }
 
 void Graphics::_invertedRectfill(int x1, int y1, int x2, int y2, uint8_t col) {
-	color(col);
+    color(col);
 
-	x1 -= _memory->drawState.camera_x;
-	y1 -= _memory->drawState.camera_y;
-	x2 -= _memory->drawState.camera_x;
-	y2 -= _memory->drawState.camera_y;
+    x1 -= _memory->drawState.camera_x;
+    y1 -= _memory->drawState.camera_y;
+    x2 -= _memory->drawState.camera_x;
+    y2 -= _memory->drawState.camera_y;
 
-	sortCoordsForRect(&x1, &y1, &x2, &y2);
+    sortCoordsForRect(&x1, &y1, &x2, &y2);
 
-	int clipLeft = _memory->drawState.clip_xb;
-	int clipRight = _memory->drawState.clip_xe;
-	int clipTop = _memory->drawState.clip_yb;
-	int clipBottom = _memory->drawState.clip_ye;
+    int clipLeft = _memory->drawState.clip_xb;
+    int clipRight = _memory->drawState.clip_xe;
+    int clipTop = _memory->drawState.clip_yb;
+    int clipBottom = _memory->drawState.clip_ye;
 
-	for (int y = clipTop; y < clipBottom; y++) {
-		if (y < y1 || y > y2) {
-			_private_h_line(clipLeft, clipRight - 1, y);
-		} else {
-			if (x1 > clipLeft) {
-				_private_h_line(clipLeft, x1 - 1, y);
-			}
-			if (x2 < clipRight - 1) {
-				_private_h_line(x2 + 1, clipRight - 1, y);
-			}
-		}
-	}
+    for (int y = clipTop; y < clipBottom; y++) {
+        if (y < y1 || y > y2) {
+            _private_h_line(clipLeft, clipRight - 1, y);
+        } else {
+            if (x1 > clipLeft) {
+                _private_h_line(clipLeft, x1 - 1, y);
+            }
+            if (x2 < clipRight - 1) {
+                _private_h_line(x2 + 1, clipRight - 1, y);
+            }
+        }
+    }
 }
 
 void Graphics::_invertedOvalfill(int x0, int y0, int x1, int y1, uint8_t col) {
-	color(col);
+    color(col);
 
-	applyCameraToPoint(&x0, &y0);
-	applyCameraToPoint(&x1, &y1);
-	sortCoordsForRect(&x0, &y0, &x1, &y1);
+    applyCameraToPoint(&x0, &y0);
+    applyCameraToPoint(&x1, &y1);
+    sortCoordsForRect(&x0, &y0, &x1, &y1);
 
-	int xr = (x1 - x0) / 2;
-	int yr = (y1 - y0) / 2;
-	int xc = x0 + xr;
-	int yc = y0 + yr;
+    int xr = (x1 - x0) / 2;
+    int yr = (y1 - y0) / 2;
+    int xc = x0 + xr;
+    int yc = y0 + yr;
 
-	int clipLeft = _memory->drawState.clip_xb;
-	int clipRight = _memory->drawState.clip_xe;
-	int clipTop = _memory->drawState.clip_yb;
-	int clipBottom = _memory->drawState.clip_ye;
+    int clipLeft = _memory->drawState.clip_xb;
+    int clipRight = _memory->drawState.clip_xe;
+    int clipTop = _memory->drawState.clip_yb;
+    int clipBottom = _memory->drawState.clip_ye;
 
-	for (int y = clipTop; y < clipBottom; y++) {
-		int wx = _ellipseHalfWidthAtRow(xc, yc, xr, yr, y);
-		if (wx < 0) {
-			_private_h_line(clipLeft, clipRight - 1, y);
-		} else {
-			if (xc - wx - 1 >= clipLeft) {
-				_private_h_line(clipLeft, xc - wx - 1, y);
-			}
-			if (xc + wx + 1 < clipRight) {
-				_private_h_line(xc + wx + 1, clipRight - 1, y);
-			}
-		}
-	}
+    for (int y = clipTop; y < clipBottom; y++) {
+        int wx = _ellipseHalfWidthAtRow(xc, yc, xr, yr, y);
+        if (wx < 0) {
+            _private_h_line(clipLeft, clipRight - 1, y);
+        } else {
+            if (xc - wx - 1 >= clipLeft) {
+                _private_h_line(clipLeft, xc - wx - 1, y);
+            }
+            if (xc + wx + 1 < clipRight) {
+                _private_h_line(xc + wx + 1, clipRight - 1, y);
+            }
+        }
+    }
 }
 
-void Graphics::circfill(int ox, int oy, int r, int32_t col){
-	if (_isInvertedFill(col)) {
-		return _invertedCircfill(ox, oy, r, _penColorFromDrawColor(col));
-	}
+void Graphics::circfill(int ox, int oy, int r, int32_t col) {
+    if (_isInvertedFill(col)) {
+        return _invertedCircfill(ox, oy, r, _penColorFromDrawColor(col));
+    }
 
-	color(col);
+    color(col);
 
-	applyCameraToPoint(&ox, &oy);
+    applyCameraToPoint(&ox, &oy);
 
-	if (r == 0) {
-		_safeSetPixelFromPen(ox, oy);
-	}
-	else if (r == 1) {
-		_safeSetPixelFromPen(ox, oy - 1);
-		_private_h_line(ox-1, ox+1, oy);
-		_safeSetPixelFromPen(ox, oy + 1);
-	}
-	else if (r > 0) {
-		int x = -r, y = 0, err = 2 - 2 * r;
-		do {
-			_private_h_line(ox - x, ox + x, oy + y);
-			_private_h_line(ox - x, ox + x, oy - y);
-			r = err;
-			if (r > x)
-				err += ++x * 2 + 1;
-			if (r <= y)
-				err += ++y * 2 + 1;
-		} while (x < 0);
-	}
+    if (r == 0) {
+        _safeSetPixelFromPen(ox, oy);
+    } else if (r == 1) {
+        _safeSetPixelFromPen(ox, oy - 1);
+        _private_h_line(ox - 1, ox + 1, oy);
+        _safeSetPixelFromPen(ox, oy + 1);
+    } else if (r > 0) {
+        int x = -r, y = 0, err = 2 - 2 * r;
+        do {
+            _private_h_line(ox - x, ox + x, oy + y);
+            _private_h_line(ox - x, ox + x, oy - y);
+            r = err;
+            if (r > x)
+                err += ++x * 2 + 1;
+            if (r <= y)
+                err += ++y * 2 + 1;
+        } while (x < 0);
+    }
 }
 
 void Graphics::oval(int x0, int y0, int x1, int y1) {
-	this->oval(x0, y0, x1, y1, _memory->drawState.color);
+    this->oval(x0, y0, x1, y1, _memory->drawState.color);
 }
 
 //https://stackoverflow.com/a/8448181
 void Graphics::oval(int x0, int y0, int x1, int y1, int32_t col) {
-	color(col);
+    color(col);
 
-	applyCameraToPoint(&x0, &y0);
-	applyCameraToPoint(&x1, &y1);
+    applyCameraToPoint(&x0, &y0);
+    applyCameraToPoint(&x1, &y1);
 
-	sortCoordsForRect(&x0, &y0, &x1, &y1);
+    sortCoordsForRect(&x0, &y0, &x1, &y1);
 
-	//x radius and y radius
-	int xr = (x1 - x0) / 2;
-	int yr = (y1 - y0) / 2;
+    //x radius and y radius
+    int xr = (x1 - x0) / 2;
+    int yr = (y1 - y0) / 2;
 
-	//center location
-	int xc = x0 + xr;
-	int yc = y0 + yr;
+    //center location
+    int xc = x0 + xr;
+    int yc = y0 + yr;
 
-	int wx, wy;
+    int wx, wy;
     int thresh;
     int asq = xr * xr;
     int bsq = yr * yr;
     int xa, ya;
 
-	_safeSetPixelFromPen(xc, yc+yr);
-    _safeSetPixelFromPen(xc, yc-yr);
+    _safeSetPixelFromPen(xc, yc + yr);
+    _safeSetPixelFromPen(xc, yc - yr);
 
     wx = 0;
     wy = yr;
@@ -1368,18 +1341,17 @@ void Graphics::oval(int x0, int y0, int x1, int y1, int32_t col) {
         wx++;
 
         if (xa >= ya) {
-        	break;
-		}
+            break;
+        }
 
-
-        _safeSetPixelFromPen(xc+wx, yc-wy);
-        _safeSetPixelFromPen(xc-wx, yc-wy);
-        _safeSetPixelFromPen(xc+wx, yc+wy);
-        _safeSetPixelFromPen(xc-wx, yc+wy);
+        _safeSetPixelFromPen(xc + wx, yc - wy);
+        _safeSetPixelFromPen(xc - wx, yc - wy);
+        _safeSetPixelFromPen(xc + wx, yc + wy);
+        _safeSetPixelFromPen(xc - wx, yc + wy);
     }
 
-    _safeSetPixelFromPen(xc+xr, yc);
-    _safeSetPixelFromPen(xc-xr, yc);
+    _safeSetPixelFromPen(xc + xr, yc);
+    _safeSetPixelFromPen(xc - xr, yc);
 
     wx = xr;
     wy = 0;
@@ -1401,51 +1373,51 @@ void Graphics::oval(int x0, int y0, int x1, int y1, int32_t col) {
         wy++;
 
         if (ya > xa) {
-        	break;
-		}
-		if (ya == 0 && xa == 0) {
-			break;
-		}
+            break;
+        }
+        if (ya == 0 && xa == 0) {
+            break;
+        }
 
-        _safeSetPixelFromPen(xc+wx, yc-wy);
-        _safeSetPixelFromPen(xc-wx, yc-wy);
-        _safeSetPixelFromPen(xc+wx, yc+wy);
-        _safeSetPixelFromPen(xc-wx, yc+wy);
+        _safeSetPixelFromPen(xc + wx, yc - wy);
+        _safeSetPixelFromPen(xc - wx, yc - wy);
+        _safeSetPixelFromPen(xc + wx, yc + wy);
+        _safeSetPixelFromPen(xc - wx, yc + wy);
     }
 }
 
 void Graphics::ovalfill(int x0, int y0, int x1, int y1) {
-	this->ovalfill(x0, y0, x1, y1, _memory->drawState.color);
+    this->ovalfill(x0, y0, x1, y1, _memory->drawState.color);
 }
 
 //https://stackoverflow.com/a/8448181
-void Graphics::ovalfill(int x0, int y0, int x1, int y1, int32_t col){
-	if (_isInvertedFill(col)) {
-		return _invertedOvalfill(x0, y0, x1, y1, _penColorFromDrawColor(col));
-	}
+void Graphics::ovalfill(int x0, int y0, int x1, int y1, int32_t col) {
+    if (_isInvertedFill(col)) {
+        return _invertedOvalfill(x0, y0, x1, y1, _penColorFromDrawColor(col));
+    }
 
-	color(col);
+    color(col);
 
-	applyCameraToPoint(&x0, &y0);
-	applyCameraToPoint(&x1, &y1);
+    applyCameraToPoint(&x0, &y0);
+    applyCameraToPoint(&x1, &y1);
 
-	sortCoordsForRect(&x0, &y0, &x1, &y1);
+    sortCoordsForRect(&x0, &y0, &x1, &y1);
 
-	//x radius and y radius
-	int xr = (x1 - x0) / 2;
-	int yr = (y1 - y0) / 2;
+    //x radius and y radius
+    int xr = (x1 - x0) / 2;
+    int yr = (y1 - y0) / 2;
 
-	//center location
-	int xc = x0 + xr;
-	int yc = y0 + yr;
+    //center location
+    int xc = x0 + xr;
+    int yc = y0 + yr;
 
-	int wx, wy;
+    int wx, wy;
     int thresh;
     int asq = xr * xr;
     int bsq = yr * yr;
     int xa, ya;
 
-	_private_v_line(yc+yr, yc-yr, xc);
+    _private_v_line(yc + yr, yc - yr, xc);
 
     wx = 0;
     wy = yr;
@@ -1466,14 +1438,14 @@ void Graphics::ovalfill(int x0, int y0, int x1, int y1, int32_t col){
         wx++;
 
         if (xa >= ya) {
-        	break;
-		}
+            break;
+        }
 
-		_private_h_line(xc+wx, xc-wx, yc-wy);
-		_private_h_line(xc+wx, xc-wx, yc+wy);
+        _private_h_line(xc + wx, xc - wx, yc - wy);
+        _private_h_line(xc + wx, xc - wx, yc + wy);
     }
 
-	_private_h_line(xc+xr, xc-xr, yc);
+    _private_h_line(xc + xr, xc - xr, yc);
 
     wx = xr;
     wy = 0;
@@ -1495,16 +1467,16 @@ void Graphics::ovalfill(int x0, int y0, int x1, int y1, int32_t col){
         wy++;
 
         if (ya > xa) {
-        	break;
-		}
-		if (ya == 0 && xa == 0) {
-			break;
-		}
+            break;
+        }
+        if (ya == 0 && xa == 0) {
+            break;
+        }
 
-		_private_h_line(xc+wx, xc-wx, yc-wy);
-		_private_h_line(xc+wx, xc-wx, yc+wy);
+        _private_h_line(xc + wx, xc - wx, yc - wy);
+        _private_h_line(xc + wx, xc - wx, yc + wy);
     }
-	/*
+    /*
 	//this algo doesn't like up correctly
 	//center line
 	_private_h_line(xc - xr, xc + xr, yc, col);
@@ -1526,728 +1498,712 @@ void Graphics::ovalfill(int x0, int y0, int x1, int y1, int32_t col){
 }
 
 void Graphics::rect(int x1, int y1, int x2, int y2) {
-	this->rect(x1, y1, x2, y2, _memory->drawState.color);
+    this->rect(x1, y1, x2, y2, _memory->drawState.color);
 }
 
 void Graphics::rect(int x1, int y1, int x2, int y2, int32_t col) {
-	_memory->drawState.color = _penColorFromDrawColor(col);
+    _memory->drawState.color = _penColorFromDrawColor(col);
 
-	//applyCameraToPoint(&x1, &y1);
-	x1 -= _memory->drawState.camera_x;
-	y1 -= _memory->drawState.camera_y;
-	//applyCameraToPoint(&x2, &y2);
-	x2 -= _memory->drawState.camera_x;
-	y2 -= _memory->drawState.camera_y;
+    //applyCameraToPoint(&x1, &y1);
+    x1 -= _memory->drawState.camera_x;
+    y1 -= _memory->drawState.camera_y;
+    //applyCameraToPoint(&x2, &y2);
+    x2 -= _memory->drawState.camera_x;
+    y2 -= _memory->drawState.camera_y;
 
-	int temp;
+    int temp;
 
-	if (x1 > x2) {
-		temp = x1;
-		x1 = x2;
-		x2 = temp;
-	}
-	if (y1 > y2) {
-		temp = y1;
-		y1 = y2;
-		y2 = temp;
-	}
+    if (x1 > x2) {
+        temp = x1;
+        x1 = x2;
+        x2 = temp;
+    }
+    if (y1 > y2) {
+        temp = y1;
+        y1 = y2;
+        y2 = temp;
+    }
 
-	_private_h_line(x1, x2, y1);
-	_private_h_line(x1, x2, y2);
+    _private_h_line(x1, x2, y1);
+    _private_h_line(x1, x2, y2);
 
-	_private_v_line(y1, y2, x1);
-	_private_v_line(y1, y2, x2);
+    _private_v_line(y1, y2, x1);
+    _private_v_line(y1, y2, x2);
 }
 
 void Graphics::rectfill(int x1, int y1, int x2, int y2) {
-	this->rectfill(x1, y1, x2, y2, _memory->drawState.color);
+    this->rectfill(x1, y1, x2, y2, _memory->drawState.color);
 }
 
 void Graphics::rectfill(int x1, int y1, int x2, int y2, int32_t col) {
-	if (_isInvertedFill(col)) {
-		return _invertedRectfill(x1, y1, x2, y2, _penColorFromDrawColor(col));
-	}
+    if (_isInvertedFill(col)) {
+        return _invertedRectfill(x1, y1, x2, y2, _penColorFromDrawColor(col));
+    }
 
-	auto &drawState = _memory->drawState;
+    auto& drawState = _memory->drawState;
 
-	drawState.color = _penColorFromDrawColor(col);
+    drawState.color = _penColorFromDrawColor(col);
 
-	//applyCameraToPoint(&x1, &y1);
-	x1 -= drawState.camera_x;
-	y1 -= drawState.camera_y;
-	//applyCameraToPoint(&x2, &y2);
-	x2 -= drawState.camera_x;
-	y2 -= drawState.camera_y;
+    //applyCameraToPoint(&x1, &y1);
+    x1 -= drawState.camera_x;
+    y1 -= drawState.camera_y;
+    //applyCameraToPoint(&x2, &y2);
+    x2 -= drawState.camera_x;
+    y2 -= drawState.camera_y;
 
-	int temp;
+    int temp;
 
-	if (x1 > x2) {
-		temp = x1;
-		x1 = x2;
-		x2 = temp;
-	}
-	if (y1 > y2) {
-		temp = y1;
-		y1 = y2;
-		y2 = temp;
-	}
+    if (x1 > x2) {
+        temp = x1;
+        x1 = x2;
+        x2 = temp;
+    }
+    if (y1 > y2) {
+        temp = y1;
+        y1 = y2;
+        y2 = temp;
+    }
 
-	for (int y = y1; y <= y2; y++) {
-		_private_h_line(x1, x2, y);
-	}
+    for (int y = y1; y <= y2; y++) {
+        _private_h_line(x1, x2, y);
+    }
 }
 
 int Graphics::_rrectCornerCut(int r, int cornerRow, int w, int h) const {
-	if (r <= 0 || cornerRow < 0) {
-		return 0;
-	}
+    if (r <= 0 || cornerRow < 0) {
+        return 0;
+    }
 
-	// PICO-8 shrinks the corner arc when the rect is too narrow to fit full rounding.
-	int rCorner = r;
-	int maxCornerX = (w - 2) / 2;
-	int maxCornerY = (h - 2) / 2;
-	if (rCorner > maxCornerX) {
-		rCorner = maxCornerX;
-	}
-	if (rCorner > maxCornerY) {
-		rCorner = maxCornerY;
-	}
-	if (rCorner <= 0 || cornerRow >= rCorner) {
-		return 0;
-	}
+    // PICO-8 shrinks the corner arc when the rect is too narrow to fit full rounding.
+    int rCorner = r;
+    int maxCornerX = (w - 2) / 2;
+    int maxCornerY = (h - 2) / 2;
+    if (rCorner > maxCornerX) {
+        rCorner = maxCornerX;
+    }
+    if (rCorner > maxCornerY) {
+        rCorner = maxCornerY;
+    }
+    if (rCorner <= 0 || cornerRow >= rCorner) {
+        return 0;
+    }
 
-	return RRECT_CORNER_CUTS[rCorner][cornerRow];
+    return RRECT_CORNER_CUTS[rCorner][cornerRow];
 }
 
 void Graphics::_invertedRRectfill(int x, int y, int w, int h, int r, uint8_t col) {
-	color(col);
+    color(col);
 
-	applyCameraToPoint(&x, &y);
+    applyCameraToPoint(&x, &y);
 
-	int clipLeft = _memory->drawState.clip_xb;
-	int clipRight = _memory->drawState.clip_xe;
-	int clipTop = _memory->drawState.clip_yb;
-	int clipBottom = _memory->drawState.clip_ye;
+    int clipLeft = _memory->drawState.clip_xb;
+    int clipRight = _memory->drawState.clip_xe;
+    int clipTop = _memory->drawState.clip_yb;
+    int clipBottom = _memory->drawState.clip_ye;
 
-	int maxRadius = (w < h ? w : h) / 2;
-	if (r > maxRadius) {
-		r = maxRadius;
-	}
+    int maxRadius = (w < h ? w : h) / 2;
+    if (r > maxRadius) {
+        r = maxRadius;
+    }
 
-	for (int cy = clipTop; cy < clipBottom; cy++) {
-		int row = cy - y;
-		int cut = 0;
+    for (int cy = clipTop; cy < clipBottom; cy++) {
+        int row = cy - y;
+        int cut = 0;
 
-		if (r > 0 && row >= 0 && row < h) {
-			if (row < r) {
-				cut = _rrectCornerCut(r, row, w, h);
-			} else if (row >= h - r) {
-				cut = _rrectCornerCut(r, h - 1 - row, w, h);
-			}
-		}
+        if (r > 0 && row >= 0 && row < h) {
+            if (row < r) {
+                cut = _rrectCornerCut(r, row, w, h);
+            } else if (row >= h - r) {
+                cut = _rrectCornerCut(r, h - 1 - row, w, h);
+            }
+        }
 
-		if (cut < 0) {
-			cut = 0;
-		}
-		if (cut * 2 >= w) {
-			cut = (w - 1) / 2;
-		}
+        if (cut < 0) {
+            cut = 0;
+        }
+        if (cut * 2 >= w) {
+            cut = (w - 1) / 2;
+        }
 
-		int rectLeft = x + cut;
-		int rectRight = x + w - 1 - cut;
+        int rectLeft = x + cut;
+        int rectRight = x + w - 1 - cut;
 
-		if (cy < y || cy >= y + h) {
-			_private_h_line(clipLeft, clipRight - 1, cy);
-		} else {
-			if (rectLeft > clipLeft) {
-				_private_h_line(clipLeft, rectLeft - 1, cy);
-			}
-			if (rectRight < clipRight - 1) {
-				_private_h_line(rectRight + 1, clipRight - 1, cy);
-			}
-		}
-	}
+        if (cy < y || cy >= y + h) {
+            _private_h_line(clipLeft, clipRight - 1, cy);
+        } else {
+            if (rectLeft > clipLeft) {
+                _private_h_line(clipLeft, rectLeft - 1, cy);
+            }
+            if (rectRight < clipRight - 1) {
+                _private_h_line(rectRight + 1, clipRight - 1, cy);
+            }
+        }
+    }
 }
 
 void Graphics::rrect(int x, int y, int w, int h, int r) {
-	this->rrect(x, y, w, h, r, _memory->drawState.color);
+    this->rrect(x, y, w, h, r, _memory->drawState.color);
 }
 
 void Graphics::rrect(int x, int y, int w, int h, int r, int32_t col) {
-	color(col);
+    color(col);
 
-	if (w <= 0 || h <= 0) {
-		return;
-	}
+    if (w <= 0 || h <= 0) {
+        return;
+    }
 
-	int maxRadius = (w < h ? w : h) / 2;
-	if (r > maxRadius) {
-		r = maxRadius;
-	}
+    int maxRadius = (w < h ? w : h) / 2;
+    if (r > maxRadius) {
+        r = maxRadius;
+    }
 
-	if (r <= 0) {
-		this->rect(x, y, x + w - 1, y + h - 1, col);
-		return;
-	}
+    if (r <= 0) {
+        this->rect(x, y, x + w - 1, y + h - 1, col);
+        return;
+    }
 
-	applyCameraToPoint(&x, &y);
+    applyCameraToPoint(&x, &y);
 
-	for (int row = 0; row < h; row++) {
-		int cutAmount = 0;
+    for (int row = 0; row < h; row++) {
+        int cutAmount = 0;
 
-		if (row < r) {
-			cutAmount = _rrectCornerCut(r, row, w, h);
-		} else if (row >= h - r) {
-			cutAmount = _rrectCornerCut(r, h - 1 - row, w, h);
-		}
+        if (row < r) {
+            cutAmount = _rrectCornerCut(r, row, w, h);
+        } else if (row >= h - r) {
+            cutAmount = _rrectCornerCut(r, h - 1 - row, w, h);
+        }
 
-		if (cutAmount < 0) {
-			cutAmount = 0;
-		}
-		if (cutAmount * 2 >= w) {
-			cutAmount = (w - 1) / 2;
-		}
+        if (cutAmount < 0) {
+            cutAmount = 0;
+        }
+        if (cutAmount * 2 >= w) {
+            cutAmount = (w - 1) / 2;
+        }
 
-		int lineStart = x + cutAmount;
-		int lineEnd = x + w - 1 - cutAmount;
+        int lineStart = x + cutAmount;
+        int lineEnd = x + w - 1 - cutAmount;
 
-		if (lineStart <= lineEnd) {
-			if (row == 0 || row == h - 1) {
-				_private_h_line(lineStart, lineEnd, y + row);
-			} else if (row < r) {
-				int prevCut = _rrectCornerCut(r, row - 1, w, h);
-				int span = prevCut - cutAmount - 1;
-				if (span > 0) {
-					_private_h_line(lineStart, lineStart + span, y + row);
-					_private_h_line(lineEnd - span, lineEnd, y + row);
-				} else {
-					_safeSetPixelFromPen(lineStart, y + row);
-					if (lineStart != lineEnd) {
-						_safeSetPixelFromPen(lineEnd, y + row);
-					}
-				}
-			} else if (row >= h - r) {
-				int cornerRow = h - 1 - row;
-				int outerCut = cornerRow > 0
-					? _rrectCornerCut(r, cornerRow - 1, w, h)
-					: cutAmount;
-				int span = outerCut - cutAmount - 1;
-				if (span > 0) {
-					_private_h_line(lineStart, lineStart + span, y + row);
-					_private_h_line(lineEnd - span, lineEnd, y + row);
-				} else {
-					_safeSetPixelFromPen(lineStart, y + row);
-					if (lineStart != lineEnd) {
-						_safeSetPixelFromPen(lineEnd, y + row);
-					}
-				}
-			} else {
-				_safeSetPixelFromPen(x, y + row);
-				_safeSetPixelFromPen(x + w - 1, y + row);
-			}
-		}
-	}
+        if (lineStart <= lineEnd) {
+            if (row == 0 || row == h - 1) {
+                _private_h_line(lineStart, lineEnd, y + row);
+            } else if (row < r) {
+                int prevCut = _rrectCornerCut(r, row - 1, w, h);
+                int span = prevCut - cutAmount - 1;
+                if (span > 0) {
+                    _private_h_line(lineStart, lineStart + span, y + row);
+                    _private_h_line(lineEnd - span, lineEnd, y + row);
+                } else {
+                    _safeSetPixelFromPen(lineStart, y + row);
+                    if (lineStart != lineEnd) {
+                        _safeSetPixelFromPen(lineEnd, y + row);
+                    }
+                }
+            } else if (row >= h - r) {
+                int cornerRow = h - 1 - row;
+                int outerCut = cornerRow > 0
+                                   ? _rrectCornerCut(r, cornerRow - 1, w, h)
+                                   : cutAmount;
+                int span = outerCut - cutAmount - 1;
+                if (span > 0) {
+                    _private_h_line(lineStart, lineStart + span, y + row);
+                    _private_h_line(lineEnd - span, lineEnd, y + row);
+                } else {
+                    _safeSetPixelFromPen(lineStart, y + row);
+                    if (lineStart != lineEnd) {
+                        _safeSetPixelFromPen(lineEnd, y + row);
+                    }
+                }
+            } else {
+                _safeSetPixelFromPen(x, y + row);
+                _safeSetPixelFromPen(x + w - 1, y + row);
+            }
+        }
+    }
 }
 
 void Graphics::rrectfill(int x, int y, int w, int h, int r) {
-	this->rrectfill(x, y, w, h, r, _memory->drawState.color);
+    this->rrectfill(x, y, w, h, r, _memory->drawState.color);
 }
 
 void Graphics::rrectfill(int x, int y, int w, int h, int r, int32_t col) {
-	if (_isInvertedFill(col)) {
-		return _invertedRRectfill(x, y, w, h, r, _penColorFromDrawColor(col));
-	}
+    if (_isInvertedFill(col)) {
+        return _invertedRRectfill(x, y, w, h, r, _penColorFromDrawColor(col));
+    }
 
-	color(col);
+    color(col);
 
-	if (w <= 0 || h <= 0) {
-		return;
-	}
+    if (w <= 0 || h <= 0) {
+        return;
+    }
 
-	int maxRadius = (w < h ? w : h) / 2;
-	if (r > maxRadius) {
-		r = maxRadius;
-	}
+    int maxRadius = (w < h ? w : h) / 2;
+    if (r > maxRadius) {
+        r = maxRadius;
+    }
 
-	if (r <= 0) {
-		this->rectfill(x, y, x + w - 1, y + h - 1, col);
-		return;
-	}
+    if (r <= 0) {
+        this->rectfill(x, y, x + w - 1, y + h - 1, col);
+        return;
+    }
 
-	applyCameraToPoint(&x, &y);
+    applyCameraToPoint(&x, &y);
 
-	for (int row = 0; row < h; row++) {
-		int cutAmount = 0;
+    for (int row = 0; row < h; row++) {
+        int cutAmount = 0;
 
-		if (row < r) {
-			cutAmount = _rrectCornerCut(r, row, w, h);
-		} else if (row >= h - r) {
-			cutAmount = _rrectCornerCut(r, h - 1 - row, w, h);
-		}
+        if (row < r) {
+            cutAmount = _rrectCornerCut(r, row, w, h);
+        } else if (row >= h - r) {
+            cutAmount = _rrectCornerCut(r, h - 1 - row, w, h);
+        }
 
-		if (cutAmount < 0) {
-			cutAmount = 0;
-		}
-		if (cutAmount * 2 >= w) {
-			cutAmount = (w - 1) / 2;
-		}
+        if (cutAmount < 0) {
+            cutAmount = 0;
+        }
+        if (cutAmount * 2 >= w) {
+            cutAmount = (w - 1) / 2;
+        }
 
-		int lineStart = x + cutAmount;
-		int lineEnd = x + w - 1 - cutAmount;
+        int lineStart = x + cutAmount;
+        int lineEnd = x + w - 1 - cutAmount;
 
-		if (lineStart <= lineEnd) {
-			_private_h_line(lineStart, lineEnd, y + row);
-		}
-	}
+        if (lineStart <= lineEnd) {
+            _private_h_line(lineStart, lineEnd, y + row);
+        }
+    }
 }
 
 fix32 Graphics::fillp(fix32 pat) {
-	uint8_t prevFlags = _memory->drawState.fillPatternTransparencyBit;
-	int32_t prev = (_memory->drawState.fillPattern[0] << 16)
-                 | (_memory->drawState.fillPattern[1] << 24)
-                 | ((prevFlags & 0x01) ? 0x8000 : 0)
-                 | ((prevFlags & 0x02) ? 0x4000 : 0)
-                 | ((prevFlags & 0x04) ? 0x2000 : 0);
+    uint8_t prevFlags = _memory->drawState.fillPatternTransparencyBit;
+    int32_t prev = (_memory->drawState.fillPattern[0] << 16) | (_memory->drawState.fillPattern[1] << 24) | ((prevFlags & 0x01) ? 0x8000 : 0) | ((prevFlags & 0x02) ? 0x4000 : 0) | ((prevFlags & 0x04) ? 0x2000 : 0);
 
-	uint8_t patByte0 = pat.bits() >> 16;
-	uint8_t patByte1 = pat.bits() >> 24;
+    uint8_t patByte0 = pat.bits() >> 16;
+    uint8_t patByte1 = pat.bits() >> 24;
 
-	uint16_t frac = pat.bits() & 0xffff;
-	// Fractional fillp flags map to 0x5f33 (not 0x5f5f):
-	// .100 transparency, .010 apply to sprites, .001 secondary palette globally
-	uint8_t fillpFlags = 0;
-	if (frac & 0x8000) fillpFlags |= 0x01;
-	if (frac & 0x4000) fillpFlags |= 0x02;
-	if (frac & 0x2000) fillpFlags |= 0x04;
+    uint16_t frac = pat.bits() & 0xffff;
+    // Fractional fillp flags map to 0x5f33 (not 0x5f5f):
+    // .100 transparency, .010 apply to sprites, .001 secondary palette globally
+    uint8_t fillpFlags = 0;
+    if (frac & 0x8000)
+        fillpFlags |= 0x01;
+    if (frac & 0x4000)
+        fillpFlags |= 0x02;
+    if (frac & 0x2000)
+        fillpFlags |= 0x04;
 
-	_memory->drawState.fillPattern[0] = patByte0;
-	_memory->drawState.fillPattern[1] = patByte1;
-	_memory->drawState.fillPatternTransparencyBit = fillpFlags;
+    _memory->drawState.fillPattern[0] = patByte0;
+    _memory->drawState.fillPattern[1] = patByte1;
+    _memory->drawState.fillPatternTransparencyBit = fillpFlags;
 
-	return z8::fix32::frombits(prev);
+    return z8::fix32::frombits(prev);
 }
 
-
 int Graphics::drawCharacter(
-	uint8_t ch,
-	int x,
-	int y,
-	uint8_t fgColor,
-	uint8_t bgColor,
-	uint8_t printMode,
-	int forceCharWidth,
-	int forceCharHeight) {
-	int extraCharWidth = 0;
+    uint8_t ch,
+    int x,
+    int y,
+    uint8_t fgColor,
+    uint8_t bgColor,
+    uint8_t printMode,
+    int forceCharWidth,
+    int forceCharHeight) {
+    int extraCharWidth = 0;
 
-	bool useCustomFont = (printMode & PRINT_MODE_CUSTOM_FONT) == PRINT_MODE_CUSTOM_FONT;
-	int defaultCharWidth = useCustomFont ? _memory->data[0x5600] : 4;
-	int defaultWideCharWidth = useCustomFont ? _memory->data[0x5601] : 8;
-	int defaultCharHeight = useCustomFont ? _memory->data[0x5602] : 5;
+    bool useCustomFont = (printMode & PRINT_MODE_CUSTOM_FONT) == PRINT_MODE_CUSTOM_FONT;
+    int defaultCharWidth = useCustomFont ? _memory->data[0x5600] : 4;
+    int defaultWideCharWidth = useCustomFont ? _memory->data[0x5601] : 8;
+    int defaultCharHeight = useCustomFont ? _memory->data[0x5602] : 5;
 
-	if (ch > 0x0f) {
-		// Determine render width:
-		// - If forceCharWidth is set (0-3 via \^x), use it to limit rendering
-		// - For custom fonts without forced width, render all 8 columns (charWidth only affects cursor)
-		// - For standard font, use defaultCharWidth (glyph data matches the width)
-		bool widthIsForced = forceCharWidth > -1 && forceCharWidth < 4;
-		uint8_t renderWidth;
-		if (widthIsForced) {
-			renderWidth = ch < 0x80 ? forceCharWidth : (forceCharWidth + 4);
-		} else if (useCustomFont) {
-			renderWidth = 8; // Custom fonts: render all 8 columns
-		} else {
-			renderWidth = ch < 0x80 ? defaultCharWidth : defaultWideCharWidth; // Standard font
-		}
+    if (ch > 0x0f) {
+        // Determine render width:
+        // - If forceCharWidth is set (0-3 via \^x), use it to limit rendering
+        // - For custom fonts without forced width, render all 8 columns (charWidth only affects cursor)
+        // - For standard font, use defaultCharWidth (glyph data matches the width)
+        bool widthIsForced = forceCharWidth > -1 && forceCharWidth < 4;
+        uint8_t renderWidth;
+        if (widthIsForced) {
+            renderWidth = ch < 0x80 ? forceCharWidth : (forceCharWidth + 4);
+        } else if (useCustomFont) {
+            renderWidth = 8; // Custom fonts: render all 8 columns
+        } else {
+            renderWidth = ch < 0x80 ? defaultCharWidth : defaultWideCharWidth; // Standard font
+        }
 
-		if (ch >= 0x80) {
-			extraCharWidth = defaultWideCharWidth - defaultCharWidth;
-		}
+        if (ch >= 0x80) {
+            extraCharWidth = defaultWideCharWidth - defaultCharWidth;
+        }
 
-		// Height: use forced height if set, otherwise use defaultCharHeight from font metadata
-		uint8_t renderHeight = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : defaultCharHeight;
-		
-		auto result = drawCharacterFromBytes(
-			useCustomFont ? &(_memory->data[0x5600 + ch*8]) : &(defaultFontBinaryData[ch*8]),
-			x,
-			y,
-			fgColor,
-			bgColor,
-			printMode,
-			renderWidth,
-			renderHeight
-		);
-		extraCharWidth += get<0>(result);
-	}
+        // Height: use forced height if set, otherwise use defaultCharHeight from font metadata
+        uint8_t renderHeight = forceCharHeight > -1 && forceCharHeight < 5 ? forceCharHeight : defaultCharHeight;
 
-	if ((printMode & PRINT_MODE_ON) == PRINT_MODE_ON){
-		return 0;
-	}
+        auto result = drawCharacterFromBytes(
+            useCustomFont ? &(_memory->data[0x5600 + ch * 8]) : &(defaultFontBinaryData[ch * 8]),
+            x,
+            y,
+            fgColor,
+            bgColor,
+            printMode,
+            renderWidth,
+            renderHeight);
+        extraCharWidth += get<0>(result);
+    }
 
-	return extraCharWidth;
+    if ((printMode & PRINT_MODE_ON) == PRINT_MODE_ON) {
+        return 0;
+    }
+
+    return extraCharWidth;
 }
 
 std::tuple<int, int> Graphics::drawCharacterFromBytes(
-	uint8_t chBytes[],
-	int x,
-	int y,
-	uint8_t fgColor,
-	uint8_t bgColor,
-	uint8_t printMode,
-	uint8_t charWidth,
-	uint8_t charHeight) {
-	
-	applyCameraToPoint(&x, &y);
-	uint8_t *screenBuffer = GetP8FrameBuffer();
-	
-	int extraCharWidth = 0;
-	int extraCharHeight = 0;
-	int wFactor = 1;
-	int hFactor = 1;
-	bool evenPxOnly = false;
-	bool invertColors = false;
-	bool solidBg = false;
+    uint8_t chBytes[],
+    int x,
+    int y,
+    uint8_t fgColor,
+    uint8_t bgColor,
+    uint8_t printMode,
+    uint8_t charWidth,
+    uint8_t charHeight) {
 
-	if ((printMode & PRINT_MODE_ON) == PRINT_MODE_ON){
-		if ((printMode & PRINT_MODE_WIDE) == PRINT_MODE_WIDE) {
-			wFactor = 2;
-			extraCharWidth = charWidth;
-		}
-		if((printMode & PRINT_MODE_TALL) == PRINT_MODE_TALL) {
-			hFactor = 2;
-			extraCharHeight = charHeight;
-		}
-		if((printMode & PRINT_MODE_STRIPEY) == PRINT_MODE_STRIPEY) {
-			//draw every other pixel-- also kinda broken on pico 8 0.2.4 
-			evenPxOnly = true;
-		}
-		if((printMode & PRINT_MODE_INVERTED) == PRINT_MODE_INVERTED) {
-			invertColors = true;
-		}
-		if((printMode & PRINT_MODE_SOLID_BG) == PRINT_MODE_SOLID_BG) {
-			solidBg = true;
-		}
-	}
+    applyCameraToPoint(&x, &y);
+    uint8_t* screenBuffer = GetP8FrameBuffer();
 
-	//possible todo: check perf if this is better than doing it in the other loop (m)
-	// if (bgColor != 0) {
-	// 	uint8_t prevPenColor = _memory->drawState.color;
-	// 	rectfill(x-1, y-1, x + charWidth*wFactor - 1, y + charHeight*hFactor - 1, bgColor);
-	// 	_memory->drawState.color = prevPenColor;
-	// }
-	fgColor &= 0x0f;
-	bgColor &= 0x0f;
+    int extraCharWidth = 0;
+    int extraCharHeight = 0;
+    int wFactor = 1;
+    int hFactor = 1;
+    bool evenPxOnly = false;
+    bool invertColors = false;
+    bool solidBg = false;
 
-	// Font data is always 8 bytes per character (8 rows of 8 pixels), even if charHeight or charWidth > 8
-	// Rows/Cols beyond 8 should be blank (charHeight > 8 affects line spacing, not glyph size)
-	const int maxFontDataRows = 8;
-	
-	for (int relDestY = 0; relDestY < charHeight * hFactor; relDestY++) {
-		for(int relDestX = 0; relDestX < charWidth * wFactor; relDestX++) {
-			// Only read from font data if within the 8x8 limit
-			int fontRow = relDestY / hFactor;
-			int fontCol = relDestX / wFactor;
-			if ((fontRow >= maxFontDataRows || fontCol >= maxFontDataRows)) {
-				continue;
-			}
-			bool on = BITMASK(fontCol) & chBytes[fontRow];
-			on &= hFactor == 1 || !evenPxOnly || (relDestY % 2 == 0);
-			on &= wFactor == 1 || !evenPxOnly || (relDestX % 2 == 0);
+    if ((printMode & PRINT_MODE_ON) == PRINT_MODE_ON) {
+        if ((printMode & PRINT_MODE_WIDE) == PRINT_MODE_WIDE) {
+            wFactor = 2;
+            extraCharWidth = charWidth;
+        }
+        if ((printMode & PRINT_MODE_TALL) == PRINT_MODE_TALL) {
+            hFactor = 2;
+            extraCharHeight = charHeight;
+        }
+        if ((printMode & PRINT_MODE_STRIPEY) == PRINT_MODE_STRIPEY) {
+            //draw every other pixel-- also kinda broken on pico 8 0.2.4
+            evenPxOnly = true;
+        }
+        if ((printMode & PRINT_MODE_INVERTED) == PRINT_MODE_INVERTED) {
+            invertColors = true;
+        }
+        if ((printMode & PRINT_MODE_SOLID_BG) == PRINT_MODE_SOLID_BG) {
+            solidBg = true;
+        }
+    }
 
-			int absDestX = x + relDestX;
-			int absDestY = y + relDestY;
+    //possible todo: check perf if this is better than doing it in the other loop (m)
+    // if (bgColor != 0) {
+    // 	uint8_t prevPenColor = _memory->drawState.color;
+    // 	rectfill(x-1, y-1, x + charWidth*wFactor - 1, y + charHeight*hFactor - 1, bgColor);
+    // 	_memory->drawState.color = prevPenColor;
+    // }
+    fgColor &= 0x0f;
+    bgColor &= 0x0f;
 
-			if (isWithinClip(absDestX, absDestY)) {
-				if (invertColors) {
-					on = !on;
-				}
-				
-			if (on) {
-				setPixelNibble(absDestX, absDestY, fgColor, screenBuffer);			
-			} else if (solidBg) {
-				setPixelNibble(absDestX, absDestY, bgColor, screenBuffer);
-			}
-			}
-		}
-	}
+    // Font data is always 8 bytes per character (8 rows of 8 pixels), even if charHeight or charWidth > 8
+    // Rows/Cols beyond 8 should be blank (charHeight > 8 affects line spacing, not glyph size)
+    const int maxFontDataRows = 8;
 
-	std::tuple<int, int> retVal (extraCharWidth, extraCharHeight);
+    for (int relDestY = 0; relDestY < charHeight * hFactor; relDestY++) {
+        for (int relDestX = 0; relDestX < charWidth * wFactor; relDestX++) {
+            // Only read from font data if within the 8x8 limit
+            int fontRow = relDestY / hFactor;
+            int fontCol = relDestX / wFactor;
+            if ((fontRow >= maxFontDataRows || fontCol >= maxFontDataRows)) {
+                continue;
+            }
+            bool on = BITMASK(fontCol) & chBytes[fontRow];
+            on &= hFactor == 1 || !evenPxOnly || (relDestY % 2 == 0);
+            on &= wFactor == 1 || !evenPxOnly || (relDestX % 2 == 0);
 
-	return retVal;
+            int absDestX = x + relDestX;
+            int absDestY = y + relDestY;
+
+            if (isWithinClip(absDestX, absDestY)) {
+                if (invertColors) {
+                    on = !on;
+                }
+
+                if (on) {
+                    setPixelNibble(absDestX, absDestY, fgColor, screenBuffer);
+                } else if (solidBg) {
+                    setPixelNibble(absDestX, absDestY, bgColor, screenBuffer);
+                }
+            }
+        }
+    }
+
+    std::tuple<int, int> retVal(extraCharWidth, extraCharHeight);
+
+    return retVal;
 }
 
 void Graphics::spr(
-	int n,
-	int x,
-	int y,
-	fix32 w = 1.0,
-	fix32 h = 1.0,
-	bool flip_x = false,
-	bool flip_y = false) 
-{
-	int spr_x = (n % 16) * 8;
-	int spr_y = (n / 16) * 8;
-	int16_t spr_w = (int16_t)(w * (fix32)8);
-	int16_t spr_h = (int16_t)(h * (fix32)8);
-	copySpriteToScreen(GetP8SpriteSheetBuffer(), x, y, spr_x, spr_y, spr_w, spr_h, flip_x, flip_y);
+    int n,
+    int x,
+    int y,
+    fix32 w = 1.0,
+    fix32 h = 1.0,
+    bool flip_x = false,
+    bool flip_y = false) {
+    int spr_x = (n % 16) * 8;
+    int spr_y = (n / 16) * 8;
+    int16_t spr_w = (int16_t)(w * (fix32)8);
+    int16_t spr_h = (int16_t)(h * (fix32)8);
+    copySpriteToScreen(GetP8SpriteSheetBuffer(), x, y, spr_x, spr_y, spr_w, spr_h, flip_x, flip_y);
 }
 
 void Graphics::sspr(
-        int sx,
-        int sy,
-        int sw,
-        int sh,
-        int dx,
-        int dy,
-        int dw,
-        int dh,
-        bool flip_x = false,
-        bool flip_y = false)
-{
-	copyStretchSpriteToScreen(GetP8SpriteSheetBuffer(), sx, sy, sw, sh, dx, dy, dw, dh, flip_x, flip_y, false);
+    int sx,
+    int sy,
+    int sw,
+    int sh,
+    int dx,
+    int dy,
+    int dw,
+    int dh,
+    bool flip_x = false,
+    bool flip_y = false) {
+    copyStretchSpriteToScreen(GetP8SpriteSheetBuffer(), sx, sy, sw, sh, dx, dy, dw, dh, flip_x, flip_y, false);
 }
 
-bool Graphics::fget(uint8_t n, uint8_t f){
-	return (this->fget(n) >> f) & 1;
+bool Graphics::fget(uint8_t n, uint8_t f) {
+    return (this->fget(n) >> f) & 1;
 }
 
-uint8_t Graphics::fget(uint8_t n){
-	return _memory->spriteFlags[n];
+uint8_t Graphics::fget(uint8_t n) {
+    return _memory->spriteFlags[n];
 }
 
-void Graphics::fset(uint8_t n, uint8_t f, bool v){
-	if (v) {
-		fset(n, fget(n) | (1 << f));
-	}
-	else {
-		fset(n, fget(n) & ~(1 << f));
-	}
+void Graphics::fset(uint8_t n, uint8_t f, bool v) {
+    if (v) {
+        fset(n, fget(n) | (1 << f));
+    } else {
+        fset(n, fget(n) & ~(1 << f));
+    }
 }
 
-void Graphics::fset(uint8_t n, uint8_t v){
-	_memory->spriteFlags[n] = v;
+void Graphics::fset(uint8_t n, uint8_t v) {
+    _memory->spriteFlags[n] = v;
 }
 
-uint8_t Graphics::sget(uint8_t x, uint8_t y){
-	if (IS_VALID_SPR_IDX(x, y)) {
-		return getPixelNibble(x, y, GetP8SpriteSheetBuffer());
-	}
-	return 0;
+uint8_t Graphics::sget(uint8_t x, uint8_t y) {
+    if (IS_VALID_SPR_IDX(x, y)) {
+        return getPixelNibble(x, y, GetP8SpriteSheetBuffer());
+    }
+    return 0;
 }
 
-void Graphics::sset(uint8_t x, uint8_t y, uint8_t c){
-	if (IS_VALID_SPR_IDX(x, y)) {
-		setPixelNibble(x, y, c, GetP8SpriteSheetBuffer());
-	}
-	return;
+void Graphics::sset(uint8_t x, uint8_t y, uint8_t c) {
+    if (IS_VALID_SPR_IDX(x, y)) {
+        setPixelNibble(x, y, c, GetP8SpriteSheetBuffer());
+    }
+    return;
 }
 
 std::tuple<int16_t, int16_t> Graphics::camera() {
-	return this->camera(0, 0);
+    return this->camera(0, 0);
 }
 
 std::tuple<int16_t, int16_t> Graphics::camera(int16_t x, int16_t y) {
-	std::tuple<int16_t, int16_t> prev (_memory->drawState.camera_x, _memory->drawState.camera_y);
+    std::tuple<int16_t, int16_t> prev(_memory->drawState.camera_x, _memory->drawState.camera_y);
 
-	_memory->drawState.camera_x = x;
-	_memory->drawState.camera_y = y;
+    _memory->drawState.camera_x = x;
+    _memory->drawState.camera_y = y;
 
-	return prev;
+    return prev;
 }
 
 std::tuple<uint8_t, uint8_t, uint8_t, uint8_t> Graphics::clip() {
-	return this->clip(0, 0, 128, 128);
+    return this->clip(0, 0, 128, 128);
 }
 
 std::tuple<uint8_t, uint8_t, uint8_t, uint8_t> Graphics::clip(int x, int y, int w, int h) {
-	auto prev = std::make_tuple(
-		_memory->drawState.clip_xb,
-		_memory->drawState.clip_xe,
-		_memory->drawState.clip_yb,
-		_memory->drawState.clip_ye 
-	);
+    auto prev = std::make_tuple(
+        _memory->drawState.clip_xb,
+        _memory->drawState.clip_xe,
+        _memory->drawState.clip_yb,
+        _memory->drawState.clip_ye);
 
-	int xe = x + w;
-	int ye = y + h;
-	_memory->drawState.clip_xb = clampCoordToScreenDims(x);
-	_memory->drawState.clip_yb = clampCoordToScreenDims(y);
-	_memory->drawState.clip_xe = clampCoordToScreenDims(xe);
-	_memory->drawState.clip_ye = clampCoordToScreenDims(ye);
+    int xe = x + w;
+    int ye = y + h;
+    _memory->drawState.clip_xb = clampCoordToScreenDims(x);
+    _memory->drawState.clip_yb = clampCoordToScreenDims(y);
+    _memory->drawState.clip_xe = clampCoordToScreenDims(xe);
+    _memory->drawState.clip_ye = clampCoordToScreenDims(ye);
 
-	return prev;
+    return prev;
 }
 
+uint8_t Graphics::mget(int celx, int cely) {
+    const bool bigMap = _memory->hwState.mapMemMapping >= 0x80;
+    const int bigMapLocation = _memory->hwState.mapMemMapping << 8;
+    const int mapSize = bigMap
+                            ? 0x10000 - bigMapLocation
+                            : 8192;
 
-uint8_t Graphics::mget(int celx, int cely){
-	const bool bigMap = _memory->hwState.mapMemMapping >= 0x80;
-	const int bigMapLocation = _memory->hwState.mapMemMapping << 8;
-	const int mapSize = bigMap 
-		? 0x10000 - bigMapLocation
-		: 8192;
+    const int mapW = _memory->hwState.widthOfTheMap == 0 ? 256 : _memory->hwState.widthOfTheMap;
+    const int mapH = mapSize / mapW;
+    const int maxXIdx = mapW - 1;
+    const int maxYIdx = mapH - 1;
 
-	const int mapW = _memory->hwState.widthOfTheMap == 0 ? 256 : _memory->hwState.widthOfTheMap;
-	const int mapH = mapSize / mapW;
-	const int maxXIdx = mapW - 1;
-	const int maxYIdx = mapH - 1;
+    const int idx = cely * mapW + celx;
 
-	const int idx = cely * mapW + celx;
-
-	if (celx < 0 || celx > maxXIdx || cely < 0 || cely > maxYIdx) {
+    if (celx < 0 || celx > maxXIdx || cely < 0 || cely > maxYIdx) {
         return 0;
-	}
-	
-	if (bigMap){
-		const int offset = 0x8000 - mapSize;
-		return _memory->userData[offset + idx];
-	}
-	else {
-		if (idx < 4096) {
-			return _memory->mapData[idx];
-		}
-		else if (idx < 8192){
-			return _memory->spriteSheetData[idx];
-		}
-	}
+    }
 
-	return 0;
+    if (bigMap) {
+        const int offset = 0x8000 - mapSize;
+        return _memory->userData[offset + idx];
+    } else {
+        if (idx < 4096) {
+            return _memory->mapData[idx];
+        } else if (idx < 8192) {
+            return _memory->spriteSheetData[idx];
+        }
+    }
+
+    return 0;
 }
 
-void Graphics::mset(int celx, int cely, uint8_t snum){
-	const bool bigMap = _memory->hwState.mapMemMapping >= 0x80;
-	const int bigMapLocation = _memory->hwState.mapMemMapping << 8;
-	const int mapSize = bigMap 
-		? 0x10000 - bigMapLocation
-		: 8192;
+void Graphics::mset(int celx, int cely, uint8_t snum) {
+    const bool bigMap = _memory->hwState.mapMemMapping >= 0x80;
+    const int bigMapLocation = _memory->hwState.mapMemMapping << 8;
+    const int mapSize = bigMap
+                            ? 0x10000 - bigMapLocation
+                            : 8192;
 
-	const int mapW = _memory->hwState.widthOfTheMap == 0 ? 256 : _memory->hwState.widthOfTheMap;
-	const int mapH = mapSize / mapW;
+    const int mapW = _memory->hwState.widthOfTheMap == 0 ? 256 : _memory->hwState.widthOfTheMap;
+    const int mapH = mapSize / mapW;
 
-	const int maxXIdx = mapW - 1;
-	const int maxYIdx = mapH - 1;
+    const int maxXIdx = mapW - 1;
+    const int maxYIdx = mapH - 1;
 
-	if (celx < 0 || celx > maxXIdx || cely < 0 || cely > maxYIdx) {
+    if (celx < 0 || celx > maxXIdx || cely < 0 || cely > maxYIdx) {
         return;
-	}
+    }
 
-	const int idx = cely * mapW + celx;
+    const int idx = cely * mapW + celx;
 
-	if (bigMap){
-		const int offset = 0x8000 - mapSize;
-		_memory->userData[offset + idx] = snum;
-	}
-	else {
-		if (idx < 4096)  {
-			_memory->mapData[idx] = snum;
-		}
-		else if (idx < 8192) {
-			_memory->spriteSheetData[idx] = snum;
-		}
-	}
+    if (bigMap) {
+        const int offset = 0x8000 - mapSize;
+        _memory->userData[offset + idx] = snum;
+    } else {
+        if (idx < 4096) {
+            _memory->mapData[idx] = snum;
+        } else if (idx < 8192) {
+            _memory->spriteSheetData[idx] = snum;
+        }
+    }
 }
 
 void Graphics::map(int celx, int cely, int sx, int sy, int celw, int celh) {
-	map(celx, cely, sx, sy, celw, celh, 0);
+    map(celx, cely, sx, sy, celw, celh, 0);
 }
 
 void Graphics::map(int celx, int cely, int sx, int sy, int celw, int celh, uint8_t layer) {
-	for (int y = 0; y < celh; y++) {
-		for (int x = 0; x < celw; x++) {
-			uint8_t cell = mget(celx + x, cely + y);
-			if (cell && ((layer == 0) || (fget(cell) & layer))) {
-				spr(cell, sx + x * 8, sy + y * 8);
-			}
-		}
-	}
+    for (int y = 0; y < celh; y++) {
+        for (int x = 0; x < celw; x++) {
+            uint8_t cell = mget(celx + x, cely + y);
+            if (cell && ((layer == 0) || (fget(cell) & layer))) {
+                spr(cell, sx + x * 8, sy + y * 8);
+            }
+        }
+    }
 }
 
 void Graphics::pal() {
-	for (uint8_t c = 0; c < 16; c++) {
-		_memory->drawState.drawPaletteMap[c] = c;
-		_memory->drawState.screenPaletteMap[c] = c;
-	}
+    for (uint8_t c = 0; c < 16; c++) {
+        _memory->drawState.drawPaletteMap[c] = c;
+        _memory->drawState.screenPaletteMap[c] = c;
+    }
 
-	resetAlternatePalette();
-	this->palt();
+    resetAlternatePalette();
+    this->palt();
 }
 
 void Graphics::pal(uint8_t p) {
-	for (uint8_t c = 0; c < 16; c++) {
-		if (p == 0) {
-			// Preserve transparency bit when resetting palette mapping
-			// But ensure color 0 is transparent by default if it wasn't set
-			uint8_t transparencyBit = _memory->drawState.drawPaletteMap[c] & 0x10;
-			if (c == 0 && transparencyBit == 0) {
-				// Color 0 should be transparent by default
-				transparencyBit = 0x10;
-			}
-			_memory->drawState.drawPaletteMap[c] = c | transparencyBit;
-		} else if (p == 1) {
-			_memory->drawState.screenPaletteMap[c] = c;
-		} else if (p == 2) {
-			_memory->hwState.alternatePaletteMap[c] = c | (c << 4);
-		}
-	}
-
+    for (uint8_t c = 0; c < 16; c++) {
+        if (p == 0) {
+            // Preserve transparency bit when resetting palette mapping
+            // But ensure color 0 is transparent by default if it wasn't set
+            uint8_t transparencyBit = _memory->drawState.drawPaletteMap[c] & 0x10;
+            if (c == 0 && transparencyBit == 0) {
+                // Color 0 should be transparent by default
+                transparencyBit = 0x10;
+            }
+            _memory->drawState.drawPaletteMap[c] = c | transparencyBit;
+        } else if (p == 1) {
+            _memory->drawState.screenPaletteMap[c] = c;
+        } else if (p == 2) {
+            _memory->hwState.alternatePaletteMap[c] = c | (c << 4);
+        }
+    }
 }
 
-uint8_t Graphics::pal(uint8_t c0, uint8_t c1, uint8_t p){
-	//0-15 alowed
-	c0 &= 0x0f;
-	uint8_t prev = 0;
-	if (p == 0) {
-		//for draw palette we have to preserve the transparency bit
-		prev = _memory->drawState.drawPaletteMap[c0] & 0xf;
-		_memory->drawState.drawPaletteMap[c0] = (_memory->drawState.drawPaletteMap[c0] & 0x10) | (c1 & 0xf);
-	} else if (p == 1) {
-		//0-15, or 127-143 allowed
-		prev = _memory->drawState.screenPaletteMap[c0] & 0xf;
-		c1 &= 0x8f;
-		_memory->drawState.screenPaletteMap[c0] = c1;
-	} else if (p == 2) {
-		prev = _memory->hwState.alternatePaletteMap[c0] & 0x0f;
-		uint8_t packed = c1 > 15 ? (c1 & 0xff) : ((c1 & 0x0f) | ((c1 & 0x0f) << 4));
-		_memory->hwState.alternatePaletteMap[c0] = packed;
-	}
+uint8_t Graphics::pal(uint8_t c0, uint8_t c1, uint8_t p) {
+    //0-15 alowed
+    c0 &= 0x0f;
+    uint8_t prev = 0;
+    if (p == 0) {
+        //for draw palette we have to preserve the transparency bit
+        prev = _memory->drawState.drawPaletteMap[c0] & 0xf;
+        _memory->drawState.drawPaletteMap[c0] = (_memory->drawState.drawPaletteMap[c0] & 0x10) | (c1 & 0xf);
+    } else if (p == 1) {
+        //0-15, or 127-143 allowed
+        prev = _memory->drawState.screenPaletteMap[c0] & 0xf;
+        c1 &= 0x8f;
+        _memory->drawState.screenPaletteMap[c0] = c1;
+    } else if (p == 2) {
+        prev = _memory->hwState.alternatePaletteMap[c0] & 0x0f;
+        uint8_t packed = c1 > 15 ? (c1 & 0xff) : ((c1 & 0x0f) | ((c1 & 0x0f) << 4));
+        _memory->hwState.alternatePaletteMap[c0] = packed;
+    }
 
-	return prev;
+    return prev;
 }
 
 void Graphics::palt() {
-	_memory->drawState.drawPaletteMap[0] |= 1UL << 4;
-	for (uint8_t c = 1; c < 16; c++) {
-		_memory->drawState.drawPaletteMap[c] &= ~(1UL << 4);
-	}
+    _memory->drawState.drawPaletteMap[0] |= 1UL << 4;
+    for (uint8_t c = 1; c < 16; c++) {
+        _memory->drawState.drawPaletteMap[c] &= ~(1UL << 4);
+    }
 }
 
-bool Graphics::palt(uint8_t c, bool t){
-	c = c & 15;
-	bool prev = _memory->drawState.drawPaletteMap[c] & 0xf0;
-	if (t) {
-		_memory->drawState.drawPaletteMap[c] |= 1UL << 4;
-	}
-	else {
-		_memory->drawState.drawPaletteMap[c] &= ~(1UL << 4);
-	}
+bool Graphics::palt(uint8_t c, bool t) {
+    c = c & 15;
+    bool prev = _memory->drawState.drawPaletteMap[c] & 0xf0;
+    if (t) {
+        _memory->drawState.drawPaletteMap[c] |= 1UL << 4;
+    } else {
+        _memory->drawState.drawPaletteMap[c] &= ~(1UL << 4);
+    }
 
-	return prev;
+    return prev;
 }
-
 
 std::tuple<uint8_t, uint8_t> Graphics::cursor() {
-	return this->cursor(0, 0);
+    return this->cursor(0, 0);
 }
 
 std::tuple<uint8_t, uint8_t> Graphics::cursor(int x, int y) {
-	std::tuple<uint8_t, uint8_t> prev (_memory->drawState.text_x, _memory->drawState.text_y);
+    std::tuple<uint8_t, uint8_t> prev(_memory->drawState.text_x, _memory->drawState.text_y);
 
-	_memory->drawState.text_x = x;
-	_memory->drawState.text_y = y;
+    _memory->drawState.text_x = x;
+    _memory->drawState.text_y = y;
 
-	return prev;
+    return prev;
 }
 
 std::tuple<uint8_t, uint8_t> Graphics::cursor(int x, int y, int32_t col) {
-	color(col);
+    color(col);
 
-	return this->cursor(x, y);
+    return this->cursor(x, y);
 }
-

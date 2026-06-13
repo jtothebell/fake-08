@@ -13,7 +13,6 @@ using namespace std;
 #include "../source/nibblehelpers.h"
 #include "stubhost.h"
 
-
 //ATTN: none of these statics are thread safe
 static uint8_t stubCurrKDown;
 static uint8_t stubCurrKHeld;
@@ -21,31 +20,24 @@ static bool stubCurrKBdown = false;
 static std::string stubCurrKBkey = "";
 static std::map<std::string, std::string> stubCartDataStorage;
 
-
-Host::Host(int windowWidth, int windowHeight) { }
+Host::Host(int windowWidth, int windowHeight) {}
 StubHost::StubHost() {
     stubCartDataStorage.clear();
 }
 
-
-void Host::oneTimeSetup(Audio* audio){
-
+void Host::oneTimeSetup(Audio* audio) {
 }
 
-void Host::oneTimeCleanup(){
-
+void Host::oneTimeCleanup() {
 }
 
-void Host::setTargetFps(int targetFps){
-
+void Host::setTargetFps(int targetFps) {
 }
 
-void Host::changeStretch(){
-
+void Host::changeStretch() {
 }
 
 void Host::forceStretch(StretchOption newStretch) {
-    
 }
 
 void StubHost::stubInput(uint8_t kdown, uint8_t kheld) {
@@ -53,48 +45,44 @@ void StubHost::stubInput(uint8_t kdown, uint8_t kheld) {
     stubCurrKHeld = kheld;
 }
 
-InputState_t Host::scanInput(){
-    return InputState_t {stubCurrKDown, stubCurrKHeld, 0, 0, 0, stubCurrKBdown, stubCurrKBkey};
+InputState_t Host::scanInput() {
+    return InputState_t{stubCurrKDown, stubCurrKHeld, 0, 0, 0, stubCurrKBdown, stubCurrKBkey};
 }
 
 bool Host::shouldQuit() {
     return false;
 }
 
-void Host::waitForTargetFps(){
-    
+void Host::waitForTargetFps() {
 }
 
-
-void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t screenMode){
-    
+void Host::drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t screenMode) {
 }
 
-bool Host::shouldFillAudioBuff(){
+bool Host::shouldFillAudioBuff() {
     return false;
 }
 
-void* Host::getAudioBufferPointer(){
+void* Host::getAudioBufferPointer() {
     return nullptr;
 }
 
-size_t Host::getAudioBufferSize(){
+size_t Host::getAudioBufferSize() {
     return 0;
 }
 
-void Host::playFilledAudioBuffer(){
-
+void Host::playFilledAudioBuffer() {
 }
 
-bool Host::shouldRunMainLoop(){
-    if (shouldQuit()){
+bool Host::shouldRunMainLoop() {
+    if (shouldQuit()) {
         return false;
     }
 
     return true;
 }
 
-vector<string> Host::listcarts(){
+vector<string> Host::listcarts() {
     vector<string> carts;
 
     return carts;
@@ -128,7 +116,6 @@ int Host::getSetting(std::string sname) {
 }
 
 void Host::setSetting(std::string sname, int sval) {
-    
 }
 
 std::string Host::getCartDirectory() {
@@ -144,8 +131,7 @@ std::vector<std::string> Host::listdirs() {
     return dirs;
 }
 
-
-void Host::setUpPaletteColors(){
+void Host::setUpPaletteColors() {
     _paletteColors[0] = COLOR_00;
     _paletteColors[1] = COLOR_01;
     _paletteColors[2] = COLOR_02;
@@ -185,6 +171,6 @@ void Host::setUpPaletteColors(){
     _paletteColors[143] = COLOR_143;
 }
 
-Color* Host::GetPaletteColors(){
+Color* Host::GetPaletteColors() {
     return _paletteColors;
 }

@@ -7,7 +7,7 @@
 #include <string>
 
 TEST_CASE("shortprint (?)") {
-    lua_State *L = luaL_newstate();
+    lua_State* L = luaL_newstate();
     luaL_openlibs(L);
 
     //define a fake print function - returns the args (note this is different
@@ -15,9 +15,9 @@ TEST_CASE("shortprint (?)") {
     luaL_dostring(L, "function print(...) return ... end");
 
     SUBCASE("shortprint as assignment") {
-        const char* code = 
-        "local a= ?'test'\n"
-        "return a";
+        const char* code =
+            "local a= ?'test'\n"
+            "return a";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -31,15 +31,15 @@ TEST_CASE("shortprint (?)") {
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
-             CHECK_EQ(lua_type(L, -1), LUA_TSTRING);
-             CHECK_EQ(std::string(lua_tostring(L, -1)), "ret");
+            CHECK_EQ(lua_type(L, -1), LUA_TSTRING);
+            CHECK_EQ(std::string(lua_tostring(L, -1)), "ret");
         }
     }
 
     SUBCASE("shortprint nested") {
-        const char* code = 
-        "local a = ?('nested')\n"
-        "return a";
+        const char* code =
+            "local a = ?('nested')\n"
+            "return a";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -52,14 +52,14 @@ TEST_CASE("shortprint (?)") {
 
 //IF (NOT B) I=1 J=2
 TEST_CASE("IF and WHILE shorthand") {
-    lua_State *L = luaL_newstate();
+    lua_State* L = luaL_newstate();
     luaL_openlibs(L);
 
     SUBCASE("short if") {
-        const char* code = 
-        "b=false\n"
-        "if (not b) i=1 j=2\n"
-        "return j\n";
+        const char* code =
+            "b=false\n"
+            "if (not b) i=1 j=2\n"
+            "return j\n";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -69,11 +69,11 @@ TEST_CASE("IF and WHILE shorthand") {
     }
 
     SUBCASE("short while") {
-        const char* code = 
-        "x=5\n"
-        "y=4\n"
-        "while (x<7) x=x+1 y=y*2\n"
-        "return y\n";
+        const char* code =
+            "x=5\n"
+            "y=4\n"
+            "while (x<7) x=x+1 y=y*2\n"
+            "return y\n";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -84,12 +84,12 @@ TEST_CASE("IF and WHILE shorthand") {
 
     SUBCASE("nested short while with short if in outer while") {
         const char* code =
-        "local t,e=3,\"abcdefghi\"\n"
-        "local o,n,f=3,1,8\n"
-        "while t<#e do\n"
-        "while(o>0)o-=1n+=1if(n>f)n=1\n"
-        "t+=2 end\n"
-        "return t\n";
+            "local t,e=3,\"abcdefghi\"\n"
+            "local o,n,f=3,1,8\n"
+            "while t<#e do\n"
+            "while(o>0)o-=1n+=1if(n>f)n=1\n"
+            "t+=2 end\n"
+            "return t\n";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -104,14 +104,14 @@ TEST_CASE("IF and WHILE shorthand") {
 //"+=", "-=", "*=", "/=", "%=", "^=", "\\=", "&=", "|=",
 //    "^^=", "<<=", ">>=", ">>>=", "<<>=", ">><=", "..=",
 TEST_CASE("Assignment operators") {
-    lua_State *L = luaL_newstate();
+    lua_State* L = luaL_newstate();
     luaL_openlibs(L);
 
     SUBCASE("addition assignment (+=)") {
-        const char* code = 
-        "x=6\n"
-        "x+=10\n"
-        "return x\n";
+        const char* code =
+            "x=6\n"
+            "x+=10\n"
+            "return x\n";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -120,10 +120,10 @@ TEST_CASE("Assignment operators") {
         }
     }
     SUBCASE("subtraction assignment (-=)") {
-        const char* code = 
-        "x=6\n"
-        "x-=3\n"
-        "return x\n";
+        const char* code =
+            "x=6\n"
+            "x-=3\n"
+            "return x\n";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -132,10 +132,10 @@ TEST_CASE("Assignment operators") {
         }
     }
     SUBCASE("multiplication assignment (*=)") {
-        const char* code = 
-        "x=6\n"
-        "x*=7\n"
-        "return x\n";
+        const char* code =
+            "x=6\n"
+            "x*=7\n"
+            "return x\n";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -144,10 +144,10 @@ TEST_CASE("Assignment operators") {
         }
     }
     SUBCASE("division assignment (*=)") {
-        const char* code = 
-        "x=6\n"
-        "x/=3\n"
-        "return x\n";
+        const char* code =
+            "x=6\n"
+            "x/=3\n"
+            "return x\n";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -156,10 +156,10 @@ TEST_CASE("Assignment operators") {
         }
     }
     SUBCASE("mod assignment (%=)") {
-        const char* code = 
-        "x=6\n"
-        "x%=5\n"
-        "return x\n";
+        const char* code =
+            "x=6\n"
+            "x%=5\n"
+            "return x\n";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -168,10 +168,10 @@ TEST_CASE("Assignment operators") {
         }
     }
     SUBCASE("pow assignment (^=)") {
-        const char* code = 
-        "x=6\n"
-        "x^=3\n"
-        "return x\n";
+        const char* code =
+            "x=6\n"
+            "x^=3\n"
+            "return x\n";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -180,10 +180,10 @@ TEST_CASE("Assignment operators") {
         }
     }
     SUBCASE("int division assignment (\\=)") {
-        const char* code = 
-        "x=33\n"
-        "x\\=8\n"
-        "return x\n";
+        const char* code =
+            "x=33\n"
+            "x\\=8\n"
+            "return x\n";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -192,10 +192,10 @@ TEST_CASE("Assignment operators") {
         }
     }
     SUBCASE("bitwise and assignment (&=)") {
-        const char* code = 
-        "x=10\n"
-        "x&=3\n"
-        "return x\n";
+        const char* code =
+            "x=10\n"
+            "x&=3\n"
+            "return x\n";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -204,10 +204,10 @@ TEST_CASE("Assignment operators") {
         }
     }
     SUBCASE("bitwise or assignment (|=)") {
-        const char* code = 
-        "x=10\n"
-        "x|=3\n"
-        "return x\n";
+        const char* code =
+            "x=10\n"
+            "x|=3\n"
+            "return x\n";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -216,10 +216,10 @@ TEST_CASE("Assignment operators") {
         }
     }
     SUBCASE("bitwise xor assignment (^^=)") {
-        const char* code = 
-        "x=3\n"
-        "x^^=5\n"
-        "return x\n";
+        const char* code =
+            "x=3\n"
+            "x^^=5\n"
+            "return x\n";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -228,10 +228,10 @@ TEST_CASE("Assignment operators") {
         }
     }
     SUBCASE("bitwise shift left assignment (<<=)") {
-        const char* code = 
-        "x=5\n"
-        "x<<=2\n"
-        "return x\n";
+        const char* code =
+            "x=5\n"
+            "x<<=2\n"
+            "return x\n";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -240,10 +240,10 @@ TEST_CASE("Assignment operators") {
         }
     }
     SUBCASE("bitwise shift right assignment (>>=)") {
-        const char* code = 
-        "x=210\n"
-        "x>>=2\n"
-        "return x\n";
+        const char* code =
+            "x=210\n"
+            "x>>=2\n"
+            "return x\n";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -252,10 +252,10 @@ TEST_CASE("Assignment operators") {
         }
     }
     SUBCASE("logical shift right assignment (>>>=)") {
-        const char* code = 
-        "x=12\n"
-        "x>>>=2\n"
-        "return x\n";
+        const char* code =
+            "x=12\n"
+            "x>>>=2\n"
+            "return x\n";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -264,10 +264,10 @@ TEST_CASE("Assignment operators") {
         }
     }
     SUBCASE("rotate left assignment (<<>=)") {
-        const char* code = 
-        "x=11\n"
-        "x<<>=3\n"
-        "return x\n";
+        const char* code =
+            "x=11\n"
+            "x<<>=3\n"
+            "return x\n";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -276,10 +276,10 @@ TEST_CASE("Assignment operators") {
         }
     }
     SUBCASE("rotate right assignment (>><=)") {
-        const char* code = 
-        "x=480\n"
-        "x>><=3\n"
-        "return x\n";
+        const char* code =
+            "x=480\n"
+            "x>><=3\n"
+            "return x\n";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -288,10 +288,10 @@ TEST_CASE("Assignment operators") {
         }
     }
     SUBCASE("concat assignment operator (..=)") {
-        const char* code = 
-        "x='hello'\n"
-        "x..='world'\n"
-        "return x\n";
+        const char* code =
+            "x='hello'\n"
+            "x..='world'\n"
+            "return x\n";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -300,17 +300,16 @@ TEST_CASE("Assignment operators") {
         }
     }
 
-    
     lua_close(L);
 }
 
 TEST_CASE("Alternative xor operator") {
-    lua_State *L = luaL_newstate();
+    lua_State* L = luaL_newstate();
     luaL_openlibs(L);
 
     SUBCASE("alt xor (~)") {
-        const char* code = 
-        "return 10~2";
+        const char* code =
+            "return 10~2";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -323,12 +322,12 @@ TEST_CASE("Alternative xor operator") {
 }
 
 TEST_CASE("Alternative not equal (!=)") {
-    lua_State *L = luaL_newstate();
+    lua_State* L = luaL_newstate();
     luaL_openlibs(L);
 
     SUBCASE("alt not equal (!=)") {
-        const char* code = 
-        "return 10!=2";
+        const char* code =
+            "return 10!=2";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -340,18 +339,18 @@ TEST_CASE("Alternative not equal (!=)") {
     lua_close(L);
 }
 TEST_CASE("Nested Shorthand IF logic") {
-    lua_State *L = luaL_newstate();
+    lua_State* L = luaL_newstate();
     luaL_openlibs(L);
 
     SUBCASE("shorthand if with shortprint swallowing next line") {
-        const char* code = 
-        "res=0 c=2\n"
-        "if c==1 then\n"
-        "  if (1==1) ? 'test'\n"
-        "elseif c==2 then\n"
-        "  res=2\n"
-        "end\n"
-        "return res";
+        const char* code =
+            "res=0 c=2\n"
+            "if c==1 then\n"
+            "  if (1==1) ? 'test'\n"
+            "elseif c==2 then\n"
+            "  res=2\n"
+            "end\n"
+            "return res";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -362,8 +361,8 @@ TEST_CASE("Nested Shorthand IF logic") {
     }
 
     SUBCASE("shorthand if with else on same line") {
-        const char* code = 
-        "if (1==0) return 1 else return 2";
+        const char* code =
+            "if (1==0) return 1 else return 2";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -372,9 +371,9 @@ TEST_CASE("Nested Shorthand IF logic") {
     }
 
     SUBCASE("shorthand if nested with outer else if (same line recursion)") {
-        const char* code = 
-        "res=0 if(1==0) res=1 else if(1==1) res=2\n"
-        "return res";
+        const char* code =
+            "res=0 if(1==0) res=1 else if(1==1) res=2\n"
+            "return res";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -386,7 +385,7 @@ TEST_CASE("Nested Shorthand IF logic") {
 }
 
 TEST_CASE("g collision param d shadows global d with entity tables") {
-    lua_State *L = luaL_newstate();
+    lua_State* L = luaL_newstate();
     luaL_openlibs(L);
 
     const char* code =
@@ -407,7 +406,7 @@ TEST_CASE("g collision param d shadows global d with entity tables") {
 }
 
 TEST_CASE("g collision param d shadows global d when entity lacks dd field") {
-    lua_State *L = luaL_newstate();
+    lua_State* L = luaL_newstate();
     luaL_openlibs(L);
 
     SUBCASE("global env") {
@@ -448,13 +447,13 @@ TEST_CASE("g collision param d shadows global d when entity lacks dd field") {
 }
 
 TEST_CASE("Shorthand IF braces logic") {
-    lua_State *L = luaL_newstate();
+    lua_State* L = luaL_newstate();
     luaL_openlibs(L);
 
     SUBCASE("shorthand if with braces") {
-        const char* code = 
-        "x=0 if (1==1) x=1\n"
-        "return x";
+        const char* code =
+            "x=0 if (1==1) x=1\n"
+            "return x";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -463,9 +462,9 @@ TEST_CASE("Shorthand IF braces logic") {
     }
 
     SUBCASE("shorthand if without braces") {
-        const char* code = 
-        "x=0 if 1==1 x=1\n"
-        "return x";
+        const char* code =
+            "x=0 if 1==1 x=1\n"
+            "return x";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {
@@ -477,14 +476,14 @@ TEST_CASE("Shorthand IF braces logic") {
 }
 
 TEST_CASE("if do keyword") {
-    lua_State *L = luaL_newstate();
+    lua_State* L = luaL_newstate();
     luaL_openlibs(L);
 
     SUBCASE("do can be used instead of then") {
         const char* code =
-        "local x=0\n"
-        "if true do x=1 end\n"
-        "return x";
+            "local x=0\n"
+            "if true do x=1 end\n"
+            "return x";
         int result = luaL_dostring(L, code);
         CHECK_MESSAGE(result == LUA_OK, lua_tostring(L, -1));
         if (result == LUA_OK) {

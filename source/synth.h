@@ -12,26 +12,23 @@
 
 #pragma once
 
-namespace z8
-{
+namespace z8 {
 
 //
 // A waveform generator
 //
 
-class synth
-{
-public:
-    enum
-    {
-        INST_TRIANGLE   = 0, // Triangle signal
+class synth {
+  public:
+    enum {
+        INST_TRIANGLE = 0,   // Triangle signal
         INST_TILTED_SAW = 1, // Slanted triangle
-        INST_SAW        = 2, // Sawtooth
-        INST_SQUARE     = 3, // Square signal
-        INST_PULSE      = 4, // Asymmetric square signal
-        INST_ORGAN      = 5, // Some triangle stuff again
-        INST_NOISE      = 6,
-        INST_PHASER     = 7,
+        INST_SAW = 2,        // Sawtooth
+        INST_SQUARE = 3,     // Square signal
+        INST_PULSE = 4,      // Asymmetric square signal
+        INST_ORGAN = 5,      // Some triangle stuff again
+        INST_NOISE = 6,
+        INST_PHASER = 7,
     };
 
     static float waveform(int instrument, float advance);
@@ -40,12 +37,10 @@ public:
     //c++17 allows this, but if need for c++11 "inline" can be removed and they
     //can be declared in synth.cpp
     //also not threadsafe, but this is all single threaded anyway
-    private:
-        inline static float lastadvance;
-        inline static float sample;
-        inline static float lsample;
-        
+  private:
+    inline static float lastadvance;
+    inline static float sample;
+    inline static float lsample;
 };
 
 } // namespace z8
-

@@ -27,10 +27,10 @@
 #include "NoLabel.h"
 
 //extern "C" {
-  #include <lua.h>
-  #include <lualib.h>
-  #include <lauxlib.h>
-  #include <fix32.h>
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+#include <fix32.h>
 //}
 
 using namespace z8;
@@ -40,7 +40,7 @@ static const char SettingsCartName[] = "__FAKE08-SETTINGS.p8";
 
 bool _initializeLuaState(lua_State* luaState) {
     // initialize Lua interpreter
-    
+
     // load Lua base libraries (print / math / etc)
     luaL_openlibs(luaState);
     lua_pushglobaltable(luaState);
@@ -58,18 +58,18 @@ bool _initializeLuaState(lua_State* luaState) {
     lua_register(luaState, "__ispaused", ispaused);
     lua_register(luaState, "__resetcart", resetcart);
     lua_register(luaState, "__load", load);
-	
+
     //settings
     lua_register(luaState, "__getsetting", getsetting);
     lua_register(luaState, "__setsetting", setsetting);
-    
+
     lua_register(luaState, "__installpackins", installpackins);
-    
+
     //label
     lua_register(luaState, "__loadlabel", loadlabel);
-    
+
     lua_register(luaState, "__getlualine", getlualine);
-    
+
     //register global functions first, they will get local aliases when
     //the rest of the api is registered
     //graphics
@@ -129,7 +129,7 @@ bool _initializeLuaState(lua_State* luaState) {
     lua_register(luaState, "peek2", peek2);
     lua_register(luaState, "poke2", poke2);
     lua_register(luaState, "peek4", peek4);
-    lua_register(luaState, "poke4", poke4); 
+    lua_register(luaState, "poke4", poke4);
     lua_register(luaState, "reload", reload);
     lua_register(luaState, "reset", reset);
 
@@ -154,9 +154,9 @@ bool _initializeLuaState(lua_State* luaState) {
     //load in global lua fuctions for pico 8- part of this is setting a local variable
     //with the same name as all the globals we just registered
     //auto convertedGlobalLuaFunctions = convert_emojis(p8GlobalLuaFunctions);
-    
+
     auto convertedP8Bios = charset::utf8_to_pico8(p8Bios);
-    
+
     int loadedBiosResult = luaL_dostring(luaState, convertedP8Bios.c_str());
 
     if (loadedBiosResult != LUA_OK) {
@@ -172,7 +172,7 @@ bool _initializeLuaState(lua_State* luaState) {
     // needs to be called after globals are loaded but before the cart is run, or _init is called
     //TODO: move these calls to the glue code?
     // lua_getglobal(luaState, "eris");
-	// lua_getfield(luaState, -1, "init_persist_all");
+    // lua_getfield(luaState, -1, "init_persist_all");
 
     // if (lua_pcall(luaState, 0, 0, 0)){
     //     Logger_Write("Error setting up lua persistence: %s\n", lua_tostring(luaState, -1));
@@ -183,12 +183,11 @@ bool _initializeLuaState(lua_State* luaState) {
     // //pop the eris.init_persist_all fuction off the stack now that we're done with it
     // lua_pop(luaState, 1);
 
-
     return true;
 }
 
 int panic_hook(lua_State* l) {
-    char const *message = lua_tostring(l, -1);
+    char const* message = lua_tostring(l, -1);
     printf("Lua panic: %s\n", message);
     Logger_Write("ERROR: Lua panic: %s\n", message);
     return 0;
@@ -198,30 +197,28 @@ void printLuaStack(lua_State* L) {
     int top = lua_gettop(L);
 
     std::string str = "From top to bottom, the lua stack is \n";
-    for (unsigned index = top; index > 0; index--)
-    {
+    for (unsigned index = top; index > 0; index--) {
         int type = lua_type(L, index);
-        switch (type)
-        {
-            // booleans
-            case LUA_TBOOLEAN:
-                str = str + (lua_toboolean(L, index) ? "true" : "false") + "\n";
-                break;
+        switch (type) {
+        // booleans
+        case LUA_TBOOLEAN:
+            str = str + (lua_toboolean(L, index) ? "true" : "false") + "\n";
+            break;
 
-            // numbers
-            case LUA_TNUMBER:
-                str = str + std::to_string(lua_tonumber(L, index)) + "\n";
-                break;
+        // numbers
+        case LUA_TNUMBER:
+            str = str + std::to_string(lua_tonumber(L, index)) + "\n";
+            break;
 
-        // strings
-            case LUA_TSTRING:
-                str = str + lua_tostring(L, index) + "\n";
-                break;
+            // strings
+        case LUA_TSTRING:
+            str = str + lua_tostring(L, index) + "\n";
+            break;
 
-            // other
-            default:
-                str = str + lua_typename(L, type) + "\n";
-                break;
+        // other
+        default:
+            str = str + lua_typename(L, type) + "\n";
+            break;
         }
     }
 
@@ -229,25 +226,22 @@ void printLuaStack(lua_State* L) {
     std::cout << str;
 }
 
-
 Vm::Vm(
     Host* host,
     PicoRam* memory,
     Graphics* graphics,
     Input* input,
-    Audio* audio) :
-        _loadedCart(nullptr),
-        _luaState(nullptr),
-        _cleanupDeps(false),
-        //_targetFps(30),
-        _picoFrameCount(0),
-        _cartChangeQueued(false),
-        _nextCartKey(""),
-        _cartLoadError(""),
-        _cartdataKeyCount(0),
-        _currentCartdataKey(""),
-        _pendingCartTransition(false)
-{
+    Audio* audio) : _loadedCart(nullptr),
+                    _luaState(nullptr),
+                    _cleanupDeps(false),
+                    //_targetFps(30),
+                    _picoFrameCount(0),
+                    _cartChangeQueued(false),
+                    _nextCartKey(""),
+                    _cartLoadError(""),
+                    _cartdataKeyCount(0),
+                    _currentCartdataKey(""),
+                    _pendingCartTransition(false) {
     _host = host;
 
     if (memory == nullptr) {
@@ -259,14 +253,14 @@ Vm::Vm(
     _pauseMenu = false;
     _clearInputOnResume = false;
     memset(_drawStateCopy, 0, sizeof(drawState_t));
-    
+
     if (graphics == nullptr) {
         graphics = new Graphics(get_font_data(), _memory);
         _cleanupDeps = true;
     }
     _graphics = graphics;
 
-    if (input == nullptr){
+    if (input == nullptr) {
         input = new Input(memory);
         _cleanupDeps = true;
     }
@@ -301,26 +295,24 @@ Vm::Vm(
     _luaState = luaL_newstate();
     lua_atpanic(_luaState, panic_hook);
 
-    lua_setpico8memory(_luaState, (uint8_t *)&_memory->data);
+    lua_setpico8memory(_luaState, (uint8_t*)&_memory->data);
     _initializeLuaState(_luaState);
 }
 
-Vm::~Vm(){
+Vm::~Vm() {
     CloseCart();
 
     if (_luaState != nullptr) {
         Logger_Write("closing lua state\n");
-    
+
         lua_close(_luaState);
         _luaState = nullptr;
         Logger_Write("closed lua state\n");
-    }
-    else {
+    } else {
         Logger_Write("lua state was null\n");
     }
 
-
-    if (_cleanupDeps){
+    if (_cleanupDeps) {
         if (_input != nullptr) {
             delete _input;
         }
@@ -336,13 +328,12 @@ Vm::~Vm(){
     }
 }
 
-PicoRam* Vm::getPicoRam(){
+PicoRam* Vm::getPicoRam() {
     return _memory;
 }
 
 jmp_buf place;
 bool abortLua;
-
 
 bool Vm::loadCart(Cart* cart) {
     _picoFrameCount = 0;
@@ -367,7 +358,7 @@ bool Vm::loadCart(Cart* cart) {
             _cartLoadError = "No Lua to load. Aborting cart load";
         }
         Logger_Write("%s\n", _cartLoadError.c_str());
-        
+
         // Clear cart change queue to prevent infinite loop
         _cartChangeQueued = false;
 
@@ -384,7 +375,6 @@ bool Vm::loadCart(Cart* cart) {
     _cartChangeQueued = false;
     abortLua = false;
 
-
     //customize bios per host's requirements
     if (cart->FullCartPath == DefaultCartName || cart->FullCartPath == SettingsCartName) {
         std::string customBiosLua = _host->customBiosLua();
@@ -392,7 +382,7 @@ bool Vm::loadCart(Cart* cart) {
         if (customBiosLua.length() > 0) {
             int doStrRes = luaL_dostring(_luaState, customBiosLua.c_str());
 
-            if (doStrRes != LUA_OK){
+            if (doStrRes != LUA_OK) {
                 //bad lua passed
                 Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
                 lua_pop(_luaState, 1);
@@ -419,9 +409,9 @@ bool Vm::loadCart(Cart* cart) {
     return true;
 }
 
-bool Vm::LoadBiosCart(){
+bool Vm::LoadBiosCart() {
     CloseCart();
-    Cart *cart = new Cart(DefaultCartName, "");
+    Cart* cart = new Cart(DefaultCartName, "");
 
     bool success = loadCart(cart);
 
@@ -431,10 +421,10 @@ bool Vm::LoadBiosCart(){
     return success;
 }
 
-void Vm::LoadSettingsCart(){
+void Vm::LoadSettingsCart() {
     CloseCart();
 
-    Cart *cart = new Cart(SettingsCartName, "");
+    Cart* cart = new Cart(SettingsCartName, "");
 
     bool success = loadCart(cart);
 
@@ -443,7 +433,7 @@ void Vm::LoadSettingsCart(){
     }
 }
 
-bool Vm::LoadCart(std::string filename, bool loadBiosOnFail){
+bool Vm::LoadCart(std::string filename, bool loadBiosOnFail) {
     // if (filename == "__FAKE08-DEFAULT.p8") {
     //     LoadBiosCart();
     //     return;
@@ -468,7 +458,7 @@ bool Vm::LoadCart(std::string filename, bool loadBiosOnFail){
 
     Logger_Write("Calling Cart Constructor\n");
     auto cartDir = _host->getCartDirectory();
-    Cart *cart = new Cart(filename, cartDir);
+    Cart* cart = new Cart(filename, cartDir);
     Logger_Write("Cart Constructor called\n");
 
     _cartLoadError = cart->LoadError;
@@ -498,12 +488,12 @@ bool Vm::LoadCart(std::string filename, bool loadBiosOnFail){
     return success;
 }
 
-bool Vm::LoadCart(const unsigned char* cartData, size_t size, bool loadBiosOnFail){
+bool Vm::LoadCart(const unsigned char* cartData, size_t size, bool loadBiosOnFail) {
     Logger_Write("Loading cart from memory\n");
     CloseCart();
 
     Logger_Write("Calling Cart Constructor\n");
-    Cart *cart = new Cart(cartData, size);
+    Cart* cart = new Cart(cartData, size);
 
     _cartLoadError = cart->LoadError;
 
@@ -518,16 +508,16 @@ bool Vm::LoadCart(const unsigned char* cartData, size_t size, bool loadBiosOnFai
     return success;
 }
 
-void Vm::togglePauseMenu(){
+void Vm::togglePauseMenu() {
     _input->SetState(0, 0);
-    if (_memory->drawState.suppressPause) {    
+    if (_memory->drawState.suppressPause) {
         _memory->drawState.suppressPause = 0;
         return;
     }
 
     _pauseMenu = !_pauseMenu;
 
-    if (_pauseMenu){
+    if (_pauseMenu) {
         //save old draw state
         //0x5f00-0x5f3f - 64 bytes
         memcpy(_drawStateCopy, &_memory->drawState, 64);
@@ -540,8 +530,7 @@ void Vm::togglePauseMenu(){
 
         // Pause audio
         _audio->setPaused(true);
-    }
-    else{
+    } else {
         //restore old draw state
         memcpy(&_memory->drawState, _drawStateCopy, 64);
         // Clear input on next update so the button press that closed the menu
@@ -551,28 +540,26 @@ void Vm::togglePauseMenu(){
         // Resume audio
         _audio->setPaused(false);
     }
-    
 }
 
-bool Vm::IsPaused(){
+bool Vm::IsPaused() {
     return _pauseMenu;
 }
 
-
 //https://stackoverflow.com/a/30606613
 std::vector<uint8_t> HexToBytes(std::string hex) {
-  std::vector<uint8_t> bytes;
+    std::vector<uint8_t> bytes;
 
-  hex.erase(std::remove(hex.begin(), hex.end(), '\n'), hex.end());
-  hex.erase(std::remove(hex.begin(), hex.end(), '\r'), hex.end());
+    hex.erase(std::remove(hex.begin(), hex.end(), '\n'), hex.end());
+    hex.erase(std::remove(hex.begin(), hex.end(), '\r'), hex.end());
 
-  for (unsigned int i = 0; i < hex.length(); i += 2) {
-    std::string byteString = hex.substr(i, 2);
-    uint8_t byte = (uint8_t) strtol(byteString.c_str(), NULL, 16);
-    bytes.push_back(byte);
-  }
+    for (unsigned int i = 0; i < hex.length(); i += 2) {
+        std::string byteString = hex.substr(i, 2);
+        uint8_t byte = (uint8_t)strtol(byteString.c_str(), NULL, 16);
+        bytes.push_back(byte);
+    }
 
-  return bytes;
+    return bytes;
 }
 
 std::string Vm::getSerializedCartData() {
@@ -582,9 +569,9 @@ std::string Vm::getSerializedCartData() {
 
     //ATTN: writing one byte at a time instead of one 32 bit int at a time
     //to ensure same behavior across platforms and cpu architectures
-    for(int i = 0; i < 64; i++){
-        for(int b = 3; b >= 0; b--){
-            uint8_t byte = _memory->data[0x5e00 + (i*4) + b];
+    for (int i = 0; i < 64; i++) {
+        for (int b = 3; b >= 0; b--) {
+            uint8_t byte = _memory->data[0x5e00 + (i * 4) + b];
 
             sprintf(hex_string, "%02x", byte);
 
@@ -605,10 +592,10 @@ void Vm::deserializeCartDataToMemory(std::string cartDataStr) {
 
     //ATTN: writing one byte at a time instead of one 32 bit int at a time
     //to ensure same behavior across platforms and cpu architectures
-    for(size_t i = 0; i < 64; i++){
-        size_t idxStart = (i*4);
+    for (size_t i = 0; i < 64; i++) {
+        size_t idxStart = (i * 4);
         size_t idxEnd = idxStart + 3;
-        if (idxEnd < bytesVector.size()){
+        if (idxEnd < bytesVector.size()) {
             _memory->data[0x5e00 + idxStart + 0] = bytesVector[idxEnd];
             _memory->data[0x5e00 + idxStart + 1] = bytesVector[idxEnd - 1];
             _memory->data[0x5e00 + idxStart + 2] = bytesVector[idxEnd - 2];
@@ -617,23 +604,20 @@ void Vm::deserializeCartDataToMemory(std::string cartDataStr) {
     }
 }
 
-bool Vm::Step(){
+bool Vm::Step() {
     _picoFrameCount++;
     bool ret = false;
     lua_getglobal(_luaState, "__z8_tick");
     int status = lua_pcall(_luaState, 0, 1, 0);
-    if (status != LUA_OK)
-    {
-        char const *message = lua_tostring(_luaState, -1);
+    if (status != LUA_OK) {
+        char const* message = lua_tostring(_luaState, -1);
         Logger_Write("error calling tick function: %s\n", message);
         _cartLoadError = "Error in main loop: " + std::string(message);
         lua_pop(_luaState, 1);
         // Return to menu on error
         QueueCartChange(DefaultCartName);
         return false;
-    }
-    else
-    {
+    } else {
         int tickResult = (int)lua_tonumber(_luaState, -1);
         ret = tickResult >= 0;
         // If __z8_tick returned -1, it means there was an error (already handled in Lua)
@@ -648,10 +632,9 @@ bool Vm::Step(){
     if (_cartChangeQueued) {
         Logger_Write("Processing cart change, _pauseMenu = %s\n", _pauseMenu ? "true" : "false");
         _prevCartKey = CurrentCartFilename();
-        if (_nextCartSize > 0){
+        if (_nextCartSize > 0) {
             LoadCart(_nextCartData, _nextCartSize);
-        }
-        else {
+        } else {
             LoadCart(_nextCartKey);
         }
         // Only run if cart loaded successfully (has Lua code)
@@ -659,8 +642,7 @@ bool Vm::Step(){
             Logger_Write("Before vm_run, _pauseMenu = %s\n", _pauseMenu ? "true" : "false");
             vm_run();
             Logger_Write("After vm_run, _pauseMenu = %s\n", _pauseMenu ? "true" : "false");
-        }
-        else {
+        } else {
             Logger_Write("Cart load failed, not running vm_run()\n");
             // Clear cart change queue to prevent infinite retry loop
             _cartChangeQueued = false;
@@ -740,25 +722,25 @@ bool Vm::Step(){
 
 // }
 
-uint8_t* Vm::GetPicoInteralFb(){
+uint8_t* Vm::GetPicoInteralFb() {
     return _graphics->GetP8FrameBuffer();
 }
 
-uint8_t* Vm::GetScreenPaletteMap(){
+uint8_t* Vm::GetScreenPaletteMap() {
     return _graphics->GetScreenPaletteMap();
 }
 
-void Vm::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
-   _audio->FillAudioBuffer(audioBuffer, offset, size);
+void Vm::FillAudioBuffer(void* audioBuffer, size_t offset, size_t size) {
+    _audio->FillAudioBuffer(audioBuffer, offset, size);
 }
 
 void Vm::CloseCart() {
-    if (_loadedCart){
+    if (_loadedCart) {
         Logger_Write("deleting cart\n");
         delete _loadedCart;
         _loadedCart = nullptr;
     }
-    
+
     // if (_luaState) {
     //     Logger_Write("closing lua state\n");
     //     lua_close(_luaState);
@@ -775,7 +757,7 @@ void Vm::CloseCart() {
     _picoFrameCount = 0;
 }
 
-void Vm::QueueCartChange(std::string filename){
+void Vm::QueueCartChange(std::string filename) {
     _nextCartKey = filename;
     _nextCartData = nullptr;
     _nextCartSize = 0;
@@ -785,7 +767,7 @@ void Vm::QueueCartChange(std::string filename){
     _audio->setPaused(false);
 }
 
-void Vm::QueueCartChange(const unsigned char* cartData, size_t size){
+void Vm::QueueCartChange(const unsigned char* cartData, size_t size) {
     _nextCartKey = "";
     _nextCartData = cartData;
     _nextCartSize = size;
@@ -799,8 +781,8 @@ int Vm::GetTargetFps() {
     return _targetFps;
 }
 
-std::string Vm::CurrentCartFilename(){
-    if (_loadedCart){
+std::string Vm::CurrentCartFilename() {
+    if (_loadedCart) {
         return _loadedCart->FullCartPath;
     }
 
@@ -811,23 +793,23 @@ int Vm::GetFrameCount() {
     return _picoFrameCount;
 }
 
-void Vm::SetCartList(vector<string> cartList){
+void Vm::SetCartList(vector<string> cartList) {
     std::sort(cartList.begin(), cartList.end());
     _cartList = cartList;
 }
 
-vector<string> Vm::GetCartList(){
+vector<string> Vm::GetCartList() {
     return _cartList;
 }
 
-vector<string> Vm::GetDirList(){
+vector<string> Vm::GetDirList() {
     return _host->listdirs();
 }
 
-bool Vm::ChangeDirectory(string dir){
+bool Vm::ChangeDirectory(string dir) {
     std::string currentDir = _host->getCartDirectory();
     std::string newDir;
-    
+
     if (dir == "..") {
         // Go up one directory
         size_t lastSlash = currentDir.find_last_of("/\\");
@@ -843,19 +825,19 @@ bool Vm::ChangeDirectory(string dir){
         // Relative path
         newDir = currentDir + "/" + dir;
     }
-    
+
     // Verify the directory exists by trying to list its contents
     _host->setCartDirectory(newDir);
     vector<string> testList = _host->listcarts();
-    
+
     // Update cart list even if empty (the directory might only contain subdirs)
     SetCartList(testList);
-    
+
     Logger_Write("Changed directory to: %s\n", newDir.c_str());
     return true;
 }
 
-string Vm::GetCurrentDirectory(){
+string Vm::GetCurrentDirectory() {
     return _host->getCartDirectory();
 }
 
@@ -865,15 +847,15 @@ string Vm::GetBiosError() {
 
 void Vm::GameLoop() {
     Logger_Write("Start of GameLoop()\n");
-    while (_host->shouldRunMainLoop())
-    {
+    while (_host->shouldRunMainLoop()) {
         //shouldn't need to set this every frame
         //_host->setTargetFps(_targetFps);
 
         //is this better at the end of the loop?
         _host->waitForTargetFps();
 
-        if (_host->shouldQuit()) break; // break in order to return to hbmenu
+        if (_host->shouldQuit())
+            break; // break in order to return to hbmenu
         //this should probably be handled just in the host class
         _host->changeStretch();
 
@@ -899,75 +881,74 @@ void Vm::GameLoop() {
 bool Vm::ExecuteLua(string luaString, string callbackFunction) {
     // Get the sandbox environment
     lua_getglobal(_luaState, "__cart_sandbox");
-    
+
     if (!lua_istable(_luaState, -1)) {
         fprintf(stderr, "__cart_sandbox is not a table\n");
         lua_pop(_luaState, 1);
         return false;
     }
-    
+
     // Load the Lua code with the sandbox as its environment
     if (luaL_loadstring(_luaState, luaString.c_str()) != LUA_OK) {
         fprintf(stderr, "Error loading Lua code: %s\n", lua_tostring(_luaState, -1));
         lua_pop(_luaState, 2); // Remove the error message and sandbox table
         return false;
     }
-    
+
     // Set the environment of the loaded function to the sandbox
-    lua_pushvalue(_luaState, -2); // Duplicate the sandbox table
+    lua_pushvalue(_luaState, -2);     // Duplicate the sandbox table
     lua_setupvalue(_luaState, -2, 1); // Set it as the first upvalue of the function (environment)
-    
+
     // Execute the loaded Lua code in the sandbox environment
     if (lua_pcall(_luaState, 0, 0, 0) != LUA_OK) {
         fprintf(stderr, "Error executing Lua code: %s\n", lua_tostring(_luaState, -1));
         lua_pop(_luaState, 2); // Remove the error message and sandbox table
         return false;
     }
-    
+
     if (callbackFunction.length() > 0) {
         // Get the callback function from the sandbox
         lua_getfield(_luaState, -1, callbackFunction.c_str());
-        
+
         if (!lua_isfunction(_luaState, -1)) {
             fprintf(stderr, "Callback function '%s' not found in sandbox\n", callbackFunction.c_str());
             lua_pop(_luaState, 2); // Remove the nil value and sandbox table
             return false;
         }
-        
+
         // Call the function
         if (lua_pcall(_luaState, 0, 1, 0) != LUA_OK) {
             fprintf(stderr, "Error calling callback function: %s\n", lua_tostring(_luaState, -1));
             lua_pop(_luaState, 2); // Remove the error message and sandbox table
             return false;
         }
-        
+
         // Get the result
         bool result = lua_toboolean(_luaState, -1);
         lua_pop(_luaState, 2); // Remove the result and sandbox table
-        
+
         return result;
     }
-    
+
     // Clean up the sandbox table
     lua_pop(_luaState, 1);
-    
+
     return true;
 }
 const int MemoryUpperBound = 0x10000;
 
-uint8_t Vm::vm_peek(int addr){
-    if (addr < 0 || addr > MemoryUpperBound){
+uint8_t Vm::vm_peek(int addr) {
+    if (addr < 0 || addr > MemoryUpperBound) {
         return 0;
     }
 
     return _memory->data[addr];
 }
 
-int16_t Vm::vm_peek2(int addr){
+int16_t Vm::vm_peek2(int addr) {
     //zepto8
     int16_t bits = 0;
-    for (int i = 0; i < 2; ++i)
-    {
+    for (int i = 0; i < 2; ++i) {
         /* This code handles partial reads by adding zeroes */
         if (addr + i < MemoryUpperBound)
             bits |= _memory->data[addr + i] << (8 * i);
@@ -979,11 +960,10 @@ int16_t Vm::vm_peek2(int addr){
 }
 
 //note: this should return a 32 bit fixed point number
-fix32 Vm::vm_peek4(int addr){
+fix32 Vm::vm_peek4(int addr) {
     //zepto8
     int32_t bits = 0;
-    for (int i = 0; i < 4; ++i)
-    {
+    for (int i = 0; i < 4; ++i) {
         /* This code handles partial reads by adding zeroes */
         if (addr + i < MemoryUpperBound)
             bits |= _memory->data[addr + i] << (8 * i);
@@ -992,29 +972,28 @@ fix32 Vm::vm_peek4(int addr){
     }
 
     return fix32::frombits(bits);
-} 
+}
 
-void Vm::vm_poke(int addr, uint8_t value){
+void Vm::vm_poke(int addr, uint8_t value) {
     //todo: check how pico 8 handles out of bounds
-    if (addr < 0 || addr > MemoryUpperBound){
+    if (addr < 0 || addr > MemoryUpperBound) {
         return;
     }
-    
+
     _memory->data[addr] = value;
 }
 
-void Vm::vm_poke2(int addr, int16_t value){
-    if (addr < 0 || addr > MemoryUpperBound - 1){
+void Vm::vm_poke2(int addr, int16_t value) {
+    if (addr < 0 || addr > MemoryUpperBound - 1) {
         return;
     }
 
     _memory->data[addr] = (uint8_t)value;
     _memory->data[addr + 1] = (uint8_t)(value >> 8);
-
 }
 
-void Vm::vm_poke4(int addr, fix32 value){
-    if (addr < 0 || addr > MemoryUpperBound - 3){
+void Vm::vm_poke4(int addr, fix32 value) {
+    if (addr < 0 || addr > MemoryUpperBound - 3) {
         return;
     }
 
@@ -1088,20 +1067,20 @@ fix32 Vm::vm_dget(uint8_t n) {
     return 0;
 }
 
-void Vm::vm_dset(uint8_t n, fix32 value){
+void Vm::vm_dset(uint8_t n, fix32 value) {
     if (n < 64) {
         vm_poke4(0x5e00 + 4 * n, value);
     }
 }
 
-void Vm::vm_reload(int destaddr, int sourceaddr, int len, Cart* cart){
+void Vm::vm_reload(int destaddr, int sourceaddr, int len, Cart* cart) {
     if (len <= 0) {
         return;
     }
     memcpy(&_memory->data[destaddr], &cart->CartRom.data[sourceaddr], len);
 }
 
-void Vm::vm_reload(int destaddr, int sourceaddr, int len, string filename){
+void Vm::vm_reload(int destaddr, int sourceaddr, int len, string filename) {
     if (len <= 0) {
         return;
     }
@@ -1141,7 +1120,7 @@ void Vm::vm_reload(int destaddr, int sourceaddr, int len, string filename){
     }
 }
 
-void Vm::vm_memset(int destaddr, uint8_t val, int len){
+void Vm::vm_memset(int destaddr, uint8_t val, int len) {
     if (len <= 0) {
         return;
     }
@@ -1150,9 +1129,8 @@ void Vm::vm_memset(int destaddr, uint8_t val, int len){
     }
 
     memset(&_memory->data[destaddr], val, len);
-
 }
-void Vm::vm_memcpy(int destaddr, int sourceaddr, int len){
+void Vm::vm_memcpy(int destaddr, int sourceaddr, int len) {
     if (len <= 0) {
         return;
     }
@@ -1166,28 +1144,24 @@ void Vm::vm_memcpy(int destaddr, int sourceaddr, int len){
     memcpy(&_memory->data[destaddr], &_memory->data[sourceaddr], len);
 }
 
-void Vm::update_prng()
-{
+void Vm::update_prng() {
     uint32_t* rngState = _memory->hwState.rngState;
     rngState[1] = rngState[0] + ((rngState[1] >> 16) | (rngState[1] << 16));
     rngState[0] += rngState[1];
 }
 
-fix32 Vm::api_rnd()
-{
+fix32 Vm::api_rnd() {
     return api_rnd((fix32)1);
 }
 
-fix32 Vm::api_rnd(fix32 in_range)
-{
+fix32 Vm::api_rnd(fix32 in_range) {
     update_prng();
     uint32_t b = _memory->hwState.rngState[1];
     uint32_t range = in_range.bits();
     return fix32::frombits(range > 0 ? b % range : 0);
 }
 
-void Vm::api_srand(fix32 seed)
-{
+void Vm::api_srand(fix32 seed) {
     uint32_t* rngState = _memory->hwState.rngState;
     rngState[0] = seed ? seed.bits() : 0xdeadbeef;
     rngState[1] = rngState[0] ^ 0xbead29ba;
@@ -1199,7 +1173,7 @@ void Vm::api_srand(fix32 seed)
 void Vm::update_buttons() {
     //get button states from hardware
     auto inputState = _host->scanInput();
-    
+
     // If we just resumed from pause menu, clear input so the button press
     // that closed the menu doesn't get passed to the cart.
     // Keep clearing until the user releases all buttons.
@@ -1213,15 +1187,14 @@ void Vm::update_buttons() {
         _input->SetKeyboard(false, "");
         return;
     }
-    
+
     _input->SetState(inputState.KDown, inputState.KHeld);
     if (_memory->drawState.devkitMode) {
         _input->SetMouse(inputState.mouseX, inputState.mouseY, inputState.mouseBtnState);
-        _input->SetKeyboard(inputState.KBdown,inputState.KBkey);
-    }
-    else {
+        _input->SetKeyboard(inputState.KBdown, inputState.KBkey);
+    } else {
         _input->SetMouse(0, 0, 0);
-        _input->SetKeyboard(false,"");
+        _input->SetKeyboard(false, "");
     }
 
     // Check for pause button (bit 6 / 0x40)
@@ -1306,34 +1279,29 @@ void Vm::vm_run() {
     lua_getglobal(_luaState, "__z8_run_cart");
     lua_pushstring(_luaState, _loadedCart->LuaString.c_str());
     int status = lua_pcall(_luaState, 1, 0, 0);
-    if (status != LUA_OK)
-    {
-        char const *message = lua_tostring(_luaState, -1);
+    if (status != LUA_OK) {
+        char const* message = lua_tostring(_luaState, -1);
         Logger_Write("error in vm_run: %s\n", message);
         _cartLoadError = "Error loading cart: " + std::string(message);
         lua_pop(_luaState, 1);
         // Return to menu on error
         QueueCartChange(DefaultCartName);
     }
-
 }
 
-void Vm::vm_extcmd(std::string cmd){
-    if (cmd == "reset"){
+void Vm::vm_extcmd(std::string cmd) {
+    if (cmd == "reset") {
         QueueCartChange(CurrentCartFilename());
-    }
-    else if (cmd == "pause") {
+    } else if (cmd == "pause") {
         togglePauseMenu();
-    }
-    else if (cmd == "shutdown") {
+    } else if (cmd == "shutdown") {
         QueueCartChange(DefaultCartName);
-    }
-    else if (cmd == "go_back" || cmd == "breadcrumb") {
+    } else if (cmd == "go_back" || cmd == "breadcrumb") {
         vm_go_back();
     }
 }
 
-bool Vm::vm_go_back(){
+bool Vm::vm_go_back() {
     if (_prevCartKey.length() == 0) {
         return false;
     }
@@ -1344,9 +1312,9 @@ bool Vm::vm_go_back(){
     return true;
 }
 
-bool Vm::vm_load(std::string filename, std::string breadcrumb, std::string param){
+bool Vm::vm_load(std::string filename, std::string breadcrumb, std::string param) {
     Logger_Write("vm_load: loading %s\n", filename.c_str());
-    
+
     _cartBreadcrumb = breadcrumb;
     if (param.length() > 0) {
         _cartParam = param;
@@ -1355,14 +1323,14 @@ bool Vm::vm_load(std::string filename, std::string breadcrumb, std::string param
     if (_currentCartdataKey.length() > 0) {
         _host->saveCartData(_currentCartdataKey, getSerializedCartData());
     }
-    
+
     _prevCartKey = CurrentCartFilename();
     QueueCartChange(filename);
     _pendingCartTransition = true;
     return true;
 }
 
-void Vm::vm_reset(){
+void Vm::vm_reset() {
     memset(&_memory->data[0x5f00], 0, 0x7f);
 
     _memory->hwState.colorBitmask = 0xff;
@@ -1379,56 +1347,56 @@ void Vm::vm_reset(){
     _graphics->pal();
 }
 
-void Vm::setTargetFps(int targetFps){
+void Vm::setTargetFps(int targetFps) {
     //currently handled by lua loop?
     //_targetFps = targetFps;
 }
 
-int Vm::getFps(){
+int Vm::getFps() {
     //TODO: return actual fps (as fix32?)
     return _targetFps;
 }
 
-int Vm::getTargetFps(){
+int Vm::getTargetFps() {
     return _targetFps;
 }
 
-int Vm::getYear(){
+int Vm::getYear() {
     std::time_t t = std::time(0);
     std::tm* now = std::localtime(&t);
 
     return now->tm_year + 1900;
 }
 
-int Vm::getMonth(){
+int Vm::getMonth() {
     std::time_t t = std::time(0);
     std::tm* now = std::localtime(&t);
 
     return now->tm_mon + 1;
 }
 
-int Vm::getDay(){
+int Vm::getDay() {
     std::time_t t = std::time(0);
     std::tm* now = std::localtime(&t);
 
     return now->tm_mday;
 }
 
-int Vm::getHour(){
+int Vm::getHour() {
     std::time_t t = std::time(0);
     std::tm* now = std::localtime(&t);
 
     return now->tm_hour;
 }
 
-int Vm::getMinute(){
+int Vm::getMinute() {
     std::time_t t = std::time(0);
     std::tm* now = std::localtime(&t);
 
     return now->tm_min;
 }
 
-int Vm::getSecond(){
+int Vm::getSecond() {
     std::time_t t = std::time(0);
     std::tm* now = std::localtime(&t);
 
@@ -1451,37 +1419,30 @@ bool Vm::consumePendingCartTransition() {
     return true;
 }
 
-
-//settings 
+//settings
 int Vm::getSetting(std::string sname) {
-    
+
     return _host->getSetting(sname);
-    
 }
 
 void Vm::setSetting(std::string sname, int sval) {
-    
-    _host->setSetting(sname,sval);
-    
-}
 
+    _host->setSetting(sname, sval);
+}
 
 void Vm::installPackins() {
-    #if LOAD_PACK_INS
-    _host->setSetting("packinloaded",0);
+#if LOAD_PACK_INS
+    _host->setSetting("packinloaded", 0);
     _host->unpackCarts();
-    #endif
+#endif
 }
 
-
-
-
 void Vm::loadLabel(std::string filename, bool mini, int minioffset) {
-    
+
     auto cartDir = _host->getCartDirectory();
-    Cart *labelcart = new Cart(filename, cartDir);
+    Cart* labelcart = new Cart(filename, cartDir);
     std::string labelstr = labelcart->LabelString;
-    if(labelstr.length() == 0){
+    if (labelstr.length() == 0) {
         labelstr = NoLabelString;
     }
     if (mini) {
@@ -1490,57 +1451,53 @@ void Vm::loadLabel(std::string filename, bool mini, int minioffset) {
         copy_string_to_sprite_memory(_memory->spriteSheetData, labelstr);
     }
     delete labelcart;
-    
 }
 
 std::string Vm::getLuaLine(string filename, int linenumber) {
-    
+
     auto cartDir = _host->getCartDirectory();
-    Cart *luacart = new Cart(filename, cartDir);
+    Cart* luacart = new Cart(filename, cartDir);
     std::string luastr = luacart->LuaString;
-    
+
     std::string line;
     std::istringstream luastream(luastr);
-    
-    while (linenumber-- >= 0){
-        std::getline(luastream,line);
-    }
-    
-    delete luacart;
-    
-    return line;
-    
-}
 
+    while (linenumber-- >= 0) {
+        std::getline(luastream, line);
+    }
+
+    delete luacart;
+
+    return line;
+}
 
 size_t Vm::serializeLuaState(char* dest) {
     lua_getglobal(_luaState, "eris");
-	lua_getfield(_luaState, -1, "persist_all");
+    lua_getfield(_luaState, -1, "persist_all");
 
-	if (lua_pcall(_luaState, 0, 1, 0) != 0) {
-		std::string e = lua_tostring(_luaState, -1);
-		lua_pop(_luaState, 1);
-		return 0;
-	}
+    if (lua_pcall(_luaState, 0, 1, 0) != 0) {
+        std::string e = lua_tostring(_luaState, -1);
+        lua_pop(_luaState, 1);
+        return 0;
+    }
 
-	size_t len;
-	const char* result = lua_tolstring(_luaState, -1, &len);
+    size_t len;
+    const char* result = lua_tolstring(_luaState, -1, &len);
     memcpy(dest, result, len);
-	lua_pop(_luaState, 2);
+    lua_pop(_luaState, 2);
 
     return len;
 }
 
 void Vm::deserializeLuaState(const char* src, size_t len) {
     lua_getglobal(_luaState, "eris");
-	lua_getfield(_luaState, -1, "restore_all");
-	lua_pushlstring(_luaState, src, len);
+    lua_getfield(_luaState, -1, "restore_all");
+    lua_pushlstring(_luaState, src, len);
 
-	if (lua_pcall(_luaState, 1, 0, 0) != 0) {
-		std::string e = lua_tostring(_luaState, -1);
-		lua_pop(_luaState, 1);
-		return;
-	}
-	lua_pop(_luaState, 1);
+    if (lua_pcall(_luaState, 1, 0, 0) != 0) {
+        std::string e = lua_tostring(_luaState, -1);
+        lua_pop(_luaState, 1);
+        return;
+    }
+    lua_pop(_luaState, 1);
 }
-

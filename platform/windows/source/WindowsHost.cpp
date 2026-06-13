@@ -32,54 +32,44 @@ using namespace std;
 
 #define KB_ENABLED true
 
-
-
-
-
 SDL_Event event;
 
 string _windowsAppData = SDL_GetPrefPath("FAKE-08", "FAKE-08");
 string _desktopSdl2SettingsDir = _windowsAppData;
 string _desktopSdl2SettingsPrefix = _windowsAppData;
 string _desktopSdl2customBiosLua = "cartpath = \"AppData\"\n"
-        "selectbtn = \"z\"\n"
-        "pausebtn = \"esc\"\n"
-        "exitbtn = \"close window\"\n"
-        "sizebtn = \"\"";
+                                   "selectbtn = \"z\"\n"
+                                   "pausebtn = \"esc\"\n"
+                                   "exitbtn = \"close window\"\n"
+                                   "sizebtn = \"\"";
 
-
-
-
-
-Host::Host(int windowWidth, int windowHeight)  
-{
+Host::Host(int windowWidth, int windowHeight) {
     struct stat st = {0};
 
     int res = chdir(getenv(_windowsAppData.c_str()));
     if (res == 0 && stat(_desktopSdl2SettingsDir.c_str(), &st) == -1) {
         res = mkdir(_desktopSdl2SettingsDir.c_str(), 0777);
     }
-    
-	
+
     string cartdatadir = _desktopSdl2SettingsPrefix + "cdata";
-	
+
     if (stat(cartdatadir.c_str(), &st) == -1) {
         res = mkdir(cartdatadir.c_str(), 0777);
     }
-	
-	string cartdir = _desktopSdl2SettingsPrefix + "p8carts";
-	if (stat(cartdir.c_str(), &st) == -1) {
+
+    string cartdir = _desktopSdl2SettingsPrefix + "p8carts";
+    if (stat(cartdir.c_str(), &st) == -1) {
         res = mkdir(cartdir.c_str(), 0777);
     }
-	
-	#if KB_ENABLED
-	SDL_StartTextInput();
-	#endif 
+
+#if KB_ENABLED
+    SDL_StartTextInput();
+#endif
 
     std::string home = _windowsAppData; // C:\Users\(username)\AppData\Roaming\FAKE-08\FAKE-08\p8carts
-    
+
     std::string fullCartDir = cartdir + "\\";
-	//fprintf( stderr, "hello" );
+    //fprintf( stderr, "hello" );
     setPlatformParams(
         WINDOW_SIZE_X,
         WINDOW_SIZE_Y,
@@ -88,74 +78,98 @@ Host::Host(int windowWidth, int windowHeight)
         PIXEL_FORMAT,
         _desktopSdl2SettingsPrefix,
         _desktopSdl2customBiosLua,
-        fullCartDir
-    );
+        fullCartDir);
 }
 
-
-
-
-InputState_t Host::scanInput(){
+InputState_t Host::scanInput() {
     currKDown = 0;
     currKHeld = 0;
     stretchKeyPressed = false;
-	
-	currKBDown = false;
-	currKBKey = "";
-	
+
+    currKBDown = false;
+    currKBKey = "";
+
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
-			
-			#if KB_ENABLED
-			case SDL_TEXTINPUT:
-				//Logger_Write( charset::upper_to_emoji(event.text.text).c_str() );
-				//Logger_Write("\n");
-				if(kbmode == Emoji){
-					currKBKey = charset::upper_to_emoji(event.text.text);
-				} else {
-					currKBKey = event.text.text;
-				}
-				currKBDown = true;
-				
-				break;
-			#endif
-			
-			
-            case SDL_KEYDOWN:
-			
-				#if KB_ENABLED
-				switch (event.key.keysym.scancode)
-				{
-					case SDL_SCANCODE_BACKSPACE: currKBDown = true; currKBKey = "\b"; break;
-					case SDL_SCANCODE_RETURN: currKBDown = true; currKBKey = "\r"; break;
-					case SDL_SCANCODE_ESCAPE: currKBDown = true; currKBKey = "\27"; break;
-					case SDL_SCANCODE_TAB: currKBDown = true; currKBKey = "\t"; break;
-					default : break;
-				}
-				#endif
-				
-                switch (event.key.keysym.sym)
-                {
-                    case SDLK_ESCAPE:currKDown |= P8_KEY_PAUSE; break;
-                    case SDLK_LEFT:  currKDown |= P8_KEY_LEFT; break;
-                    case SDLK_RIGHT: currKDown |= P8_KEY_RIGHT; break;
-                    case SDLK_UP:    currKDown |= P8_KEY_UP; break;
-                    case SDLK_DOWN:  currKDown |= P8_KEY_DOWN; break;
-                    case SDLK_z:     currKDown |= P8_KEY_X; break;
-                    case SDLK_x:     currKDown |= P8_KEY_O; break;
-                    case SDLK_c:     currKDown |= P8_KEY_X; break;
-                    case SDLK_r:     stretchKeyPressed = true; break;
-                }
-                break;
 
-            case SDL_QUIT:
-                quit = 1;
+#if KB_ENABLED
+        case SDL_TEXTINPUT:
+            //Logger_Write( charset::upper_to_emoji(event.text.text).c_str() );
+            //Logger_Write("\n");
+            if (kbmode == Emoji) {
+                currKBKey = charset::upper_to_emoji(event.text.text);
+            } else {
+                currKBKey = event.text.text;
+            }
+            currKBDown = true;
+
+            break;
+#endif
+
+        case SDL_KEYDOWN:
+
+#if KB_ENABLED
+            switch (event.key.keysym.scancode) {
+            case SDL_SCANCODE_BACKSPACE:
+                currKBDown = true;
+                currKBKey = "\b";
                 break;
+            case SDL_SCANCODE_RETURN:
+                currKBDown = true;
+                currKBKey = "\r";
+                break;
+            case SDL_SCANCODE_ESCAPE:
+                currKBDown = true;
+                currKBKey = "\27";
+                break;
+            case SDL_SCANCODE_TAB:
+                currKBDown = true;
+                currKBKey = "\t";
+                break;
+            default:
+                break;
+            }
+#endif
+
+            switch (event.key.keysym.sym) {
+            case SDLK_ESCAPE:
+                currKDown |= P8_KEY_PAUSE;
+                break;
+            case SDLK_LEFT:
+                currKDown |= P8_KEY_LEFT;
+                break;
+            case SDLK_RIGHT:
+                currKDown |= P8_KEY_RIGHT;
+                break;
+            case SDLK_UP:
+                currKDown |= P8_KEY_UP;
+                break;
+            case SDLK_DOWN:
+                currKDown |= P8_KEY_DOWN;
+                break;
+            case SDLK_z:
+                currKDown |= P8_KEY_X;
+                break;
+            case SDLK_x:
+                currKDown |= P8_KEY_O;
+                break;
+            case SDLK_c:
+                currKDown |= P8_KEY_X;
+                break;
+            case SDLK_r:
+                stretchKeyPressed = true;
+                break;
+            }
+            break;
+
+        case SDL_QUIT:
+            quit = 1;
+            break;
         }
     }
 
     int mouseX = 0;
-	int mouseY = 0;
+    int mouseY = 0;
     uint32_t sdlMouseBtnState = SDL_GetMouseState(&mouseX, &mouseY);
     //adjust for scale
     mouseX -= mouseOffsetX;
@@ -176,71 +190,69 @@ InputState_t Host::scanInput(){
     const Uint8* keystate = SDL_GetKeyboardState(NULL);
 
     //continuous-response keys
-    if(keystate[SDL_SCANCODE_LEFT]){
+    if (keystate[SDL_SCANCODE_LEFT]) {
         currKHeld |= P8_KEY_LEFT;
     }
-    if(keystate[SDL_SCANCODE_RIGHT]){
-        currKHeld |= P8_KEY_RIGHT;;
+    if (keystate[SDL_SCANCODE_RIGHT]) {
+        currKHeld |= P8_KEY_RIGHT;
+        ;
     }
-    if(keystate[SDL_SCANCODE_UP]){
+    if (keystate[SDL_SCANCODE_UP]) {
         currKHeld |= P8_KEY_UP;
     }
-    if(keystate[SDL_SCANCODE_DOWN]){
+    if (keystate[SDL_SCANCODE_DOWN]) {
         currKHeld |= P8_KEY_DOWN;
     }
-    if(keystate[SDL_SCANCODE_Z]){
+    if (keystate[SDL_SCANCODE_Z]) {
         currKHeld |= P8_KEY_X;
     }
-    if(keystate[SDL_SCANCODE_X]){
+    if (keystate[SDL_SCANCODE_X]) {
         currKHeld |= P8_KEY_O;
     }
-    if(keystate[SDL_SCANCODE_C]){
+    if (keystate[SDL_SCANCODE_C]) {
         currKHeld |= P8_KEY_X;
     }
-	
-	//keyboard stuff
-	
-	
-    
-    return InputState_t {
+
+    //keyboard stuff
+
+    return InputState_t{
         currKDown,
         currKHeld,
         (int16_t)mouseX,
         (int16_t)mouseY,
         picoMouseState,
-		currKBDown,
-		currKBKey
-    };
+        currKBDown,
+        currKBKey};
 }
 
-vector<string> Host::listcarts(){
+vector<string> Host::listcarts() {
     vector<string> carts;
 
-    DIR *dir;
-    struct dirent *ent;
-    if ((dir = opendir (_cartDirectory.c_str())) != NULL) {
+    DIR* dir;
+    struct dirent* ent;
+    if ((dir = opendir(_cartDirectory.c_str())) != NULL) {
         /* print all the files and directories within directory */
-        while ((ent = readdir (dir)) != NULL) {
-            if (isCartFile(ent->d_name)){
+        while ((ent = readdir(dir)) != NULL) {
+            if (isCartFile(ent->d_name)) {
                 carts.push_back(ent->d_name);
             }
         }
-        closedir (dir);
+        closedir(dir);
     } else {
         /* could not open directory */
-        perror ("");
+        perror("");
     }
-    
+
     return carts;
 }
 
 std::vector<std::string> Host::listdirs() {
     std::vector<std::string> dirs;
 
-    DIR *dir;
-    struct dirent *ent;
-    if ((dir = opendir (_cartDirectory.c_str())) != NULL) {
-        while ((ent = readdir (dir)) != NULL) {
+    DIR* dir;
+    struct dirent* ent;
+    if ((dir = opendir(_cartDirectory.c_str())) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
             if (ent->d_name[0] == '.') {
                 continue;
             }
@@ -251,9 +263,8 @@ std::vector<std::string> Host::listdirs() {
                 dirs.push_back(ent->d_name);
             }
         }
-        closedir (dir);
+        closedir(dir);
     }
-    
+
     return dirs;
 }
-

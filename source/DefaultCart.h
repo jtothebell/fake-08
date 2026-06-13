@@ -10,7 +10,7 @@
 //this shouldn't really count as the bios
 //this is the cart loader cart
 
-const char * fake08DefaultCart = R"#(
+const char* fake08DefaultCart = R"#(
 pico-8 cartridge // http://www.pico-8.com
 version 35
 __lua__
@@ -20,7 +20,7 @@ __lua__
 cartpath = "sdmc:/p8carts/"
 selectbtn = "a"
 pausebtn = "start"
-versionstr = ")#" VER_STR  R"#("
+versionstr = ")#" VER_STR R"#("
 exitbtn = "l + r"
 sizebtn = "select to cycle screen sizes"
 --end customizable per platform

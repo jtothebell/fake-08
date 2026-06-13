@@ -11,7 +11,6 @@
 #include "../source/fontdata.h"
 #include "../source/nibblehelpers.h"
 
-
 TEST_CASE("Vm memory functions") {
     StubHost* stubHost = new StubHost();
     PicoRam* memory = new PicoRam();
@@ -22,63 +21,58 @@ TEST_CASE("Vm memory functions") {
 
     Vm* vm = new Vm(stubHost, memory, graphics, input, audio);
 
-    SUBCASE("memory data stats with 0"){
+    SUBCASE("memory data stats with 0") {
         CHECK(memory->data[0] == 0);
     }
-    SUBCASE("resetting memory zeroes out everything except general use, color bitmask, screen data mapping, and map width"){
-        for(int i = 0; i < 0x10000; ++i) {
+    SUBCASE("resetting memory zeroes out everything except general use, color bitmask, screen data mapping, and map width") {
+        for (int i = 0; i < 0x10000; ++i) {
             memory->data[i] = i & 255;
         }
 
         memory->Reset();
 
         bool correctValues = true;
-        for(int i = 0; i < 0x8000; ++i) {
+        for (int i = 0; i < 0x8000; ++i) {
             if (i == 0x5f5e) {
                 correctValues &= memory->data[i] == 255;
-            }
-            else if (i == 0x5f55) {
+            } else if (i == 0x5f55) {
                 correctValues &= memory->data[i] == 0x60;
-            }
-            else if (i == 0x5f56) {
+            } else if (i == 0x5f56) {
                 correctValues &= memory->data[i] == 0x20;
-            }
-            else if (i == 0x5f57) {
+            } else if (i == 0x5f57) {
                 correctValues &= memory->data[i] == 128;
-            }
-            else if (i >= 0x5f60 && i <= 0x5f6f) {
+            } else if (i >= 0x5f60 && i <= 0x5f6f) {
                 uint8_t c = i - 0x5f60;
                 correctValues &= memory->data[i] == (uint8_t)(c | (c << 4));
-            }
-            else if (i < 0x4300 || i > 0x5eff) {
+            } else if (i < 0x4300 || i > 0x5eff) {
                 correctValues &= memory->data[i] == 0;
             }
         }
 
         CHECK(correctValues);
     }
-    SUBCASE("size of PicoRam struct corrct"){
+    SUBCASE("size of PicoRam struct corrct") {
         CHECK(sizeof(PicoRam) == 0x10000);
     }
-    SUBCASE("size of data correct"){
+    SUBCASE("size of data correct") {
         CHECK(sizeof(memory->data) == 0x10000);
     }
-    SUBCASE("simple peek and poke"){
+    SUBCASE("simple peek and poke") {
         vm->vm_poke(2, 232);
 
         CHECK(vm->vm_peek(2) == 232);
     }
-    SUBCASE("simple peek2 and poke2"){
+    SUBCASE("simple peek2 and poke2") {
         vm->vm_poke2(41, -1031);
 
         CHECK(vm->vm_peek2(41) == -1031);
     }
-    SUBCASE("simple peek4 and poke4"){
+    SUBCASE("simple peek4 and poke4") {
         vm->vm_poke4(0x7123, 3584.0059);
 
         CHECK(vm->vm_peek4(0x7123).bits() == ((z8::fix32)3584.0059).bits());
     }
-    SUBCASE("poking spritesheet"){
+    SUBCASE("poking spritesheet") {
         //147: 1001 0011
         //left pixel: 0011 = 3
         //right pixel: 1001 = 9
@@ -87,14 +81,14 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(graphics->sget(0, 0), 3);
         CHECK_EQ(graphics->sget(1, 0), 9);
     }
-    SUBCASE("poking map"){
+    SUBCASE("poking map") {
         vm->vm_poke(0x2000, 201);
         vm->vm_poke(0x2003, 11);
 
         CHECK_EQ(graphics->mget(0, 0), 201);
         CHECK_EQ(graphics->mget(3, 0), 11);
     }
-    SUBCASE("poking sprite flags"){
+    SUBCASE("poking sprite flags") {
         //39: 0010 0111
         vm->vm_poke(0x3000, 39);
 
@@ -102,14 +96,14 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(graphics->fget(0, 0), true);
         CHECK_EQ(graphics->fget(0, 3), false);
     }
-    SUBCASE("poking music"){
+    SUBCASE("poking music") {
         //78: 0100 1110
         vm->vm_poke(0x3100, 78);
 
         CHECK_EQ(memory->songs[0].getSfx0(), 78);
         CHECK_EQ(memory->songs[0].getStart(), 0);
     }
-    SUBCASE("poking sfx"){
+    SUBCASE("poking sfx") {
         //97: 0110 0001
         //key is first 6 bits: 10 0001 : 33
         //waveform is next 3: (0) 01 : 1
@@ -118,18 +112,18 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(memory->sfx[0].notes[0].getKey(), 33);
         CHECK_EQ(memory->sfx[0].notes[0].getWaveform(), 1);
     }
-    SUBCASE("poking general use ram"){
+    SUBCASE("poking general use ram") {
         vm->vm_poke(0x4300, 215);
 
         CHECK_EQ(memory->generalUseRam[0], 215);
     }
-    SUBCASE("setting cart data"){
+    SUBCASE("setting cart data") {
         vm->vm_cartdata("dummy");
         vm->vm_dset(13, 56);
 
         CHECK_EQ(vm->vm_dget(13), (fix32)56);
     }
-    SUBCASE("poking cart data"){
+    SUBCASE("poking cart data") {
         //need to poke after cartdata is called to set the current key, otherwise it will get wiped
         vm->vm_cartdata("dummy");
         vm->vm_poke(0x5e02, 56);
@@ -137,14 +131,14 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(memory->cartData[2], 56);
         CHECK_EQ(vm->vm_dget(0), (fix32)56);
     }
-    SUBCASE("poking and peeking cart data"){
+    SUBCASE("poking and peeking cart data") {
         vm->vm_cartdata("dummy");
         vm->vm_poke4(0x5e80, (fix32)133);
 
         CHECK_EQ(vm->vm_peek4(0x5e80), (fix32)133);
         CHECK_EQ(vm->vm_dget(32), (fix32)133);
     }
-    SUBCASE("poking draw palette data"){
+    SUBCASE("poking draw palette data") {
         //21 : 0001 0101 (transparet: true) (color mapped 5)
         vm->vm_poke(0x5f02, 21);
 
@@ -152,69 +146,69 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(graphics->getDrawPalMappedColor(2), 5);
         CHECK_EQ(graphics->isColorTransparent(2), true);
     }
-    SUBCASE("poking clip data"){
+    SUBCASE("poking clip data") {
         //7 : 0000 0111
         vm->vm_poke(0x5f21, 89);
 
         CHECK_EQ(memory->drawState.clip_yb, 89);
     }
-    SUBCASE("poking unknown ram at 0x5f24"){
+    SUBCASE("poking unknown ram at 0x5f24") {
         //7 : 0000 0111
         vm->vm_poke(0x5f24, 254);
 
         CHECK_EQ(memory->drawState.unknown05f24, 254);
     }
-    SUBCASE("poking color"){
+    SUBCASE("poking color") {
         vm->vm_poke(0x5f25, 12);
 
         CHECK_EQ(memory->drawState.color, 12);
     }
-    SUBCASE("poking text cursor"){
+    SUBCASE("poking text cursor") {
         vm->vm_poke(0x5f26, 74);
 
         CHECK_EQ(memory->drawState.text_x, 74);
     }
-    SUBCASE("poking camera position"){
+    SUBCASE("poking camera position") {
         vm->vm_poke2(0x5f2a, -72);
 
         CHECK_EQ(memory->drawState.camera_y, -72);
     }
-    SUBCASE("poking draw mode"){
+    SUBCASE("poking draw mode") {
         vm->vm_poke(0x5f2c, 2);
 
         CHECK_EQ(memory->drawState.drawMode, 2);
     }
-    SUBCASE("poking dev kit mode"){
+    SUBCASE("poking dev kit mode") {
         vm->vm_poke(0x5f2d, 2);
 
         CHECK_EQ(memory->drawState.devkitMode, 2);
     }
-    SUBCASE("poking persist palette"){
+    SUBCASE("poking persist palette") {
         vm->vm_poke(0x5f2e, 1);
 
         CHECK_EQ(memory->drawState.persistPalette, 1);
     }
-    SUBCASE("poking sound pause state"){
+    SUBCASE("poking sound pause state") {
         vm->vm_poke(0x5f2f, 4);
 
         CHECK_EQ(memory->drawState.soundPauseState, 4);
     }
-    SUBCASE("poking suppress pause"){
+    SUBCASE("poking suppress pause") {
         vm->vm_poke(0x5f30, 1);
 
         CHECK_EQ(memory->drawState.suppressPause, 1);
     }
-    SUBCASE("poking fill pattern"){
+    SUBCASE("poking fill pattern") {
         vm->vm_poke(0x5f31, 24);
 
         CHECK_EQ(memory->drawState.fillPattern[0], 24);
     }
-    SUBCASE("poking fill pattern transparency bit"){
+    SUBCASE("poking fill pattern transparency bit") {
         vm->vm_poke(0x5f33, 1);
 
         CHECK_EQ(memory->drawState.fillPatternTransparencyBit, 1);
     }
-    SUBCASE("poking color setting flag"){
+    SUBCASE("poking color setting flag") {
         /*
 -- bit  0x1000.0000 means the non-colour bits should be observed
 -- bit  0x0100.0000 transparency bit
@@ -225,37 +219,37 @@ TEST_CASE("Vm memory functions") {
 
         CHECK_EQ(memory->drawState.colorSettingFlag, 36);
     }
-    SUBCASE("poking line invalid"){
+    SUBCASE("poking line invalid") {
         vm->vm_poke(0x5f35, 1);
 
         CHECK_EQ(memory->drawState.lineInvalid, 1);
     }
-    SUBCASE("poking tline width"){
+    SUBCASE("poking tline width") {
         vm->vm_poke(0x5f38, 65);
 
         CHECK_EQ(memory->drawState.tlineMapWidth, 65);
     }
-    SUBCASE("poking tline height"){
+    SUBCASE("poking tline height") {
         vm->vm_poke(0x5f39, 66);
 
         CHECK_EQ(memory->drawState.tlineMapHeight, 66);
     }
-    SUBCASE("poking tline x"){
+    SUBCASE("poking tline x") {
         vm->vm_poke(0x5f3a, 67);
 
         CHECK_EQ(memory->drawState.tlineMapXOffset, 67);
     }
-    SUBCASE("poking tline y"){
+    SUBCASE("poking tline y") {
         vm->vm_poke(0x5f3b, 68);
 
         CHECK_EQ(memory->drawState.tlineMapYOffset, 68);
     }
-    SUBCASE("poking line x"){
+    SUBCASE("poking line x") {
         vm->vm_poke2(0x5f3c, -3);
 
         CHECK_EQ(memory->drawState.line_x, -3);
     }
-    SUBCASE("poking line y"){
+    SUBCASE("poking line y") {
         vm->vm_poke2(0x5f3e, 262);
 
         CHECK_EQ(memory->drawState.line_y, 262);
@@ -430,15 +424,15 @@ TEST_CASE("Vm memory functions") {
 
         CHECK_EQ(vm->vm_dget(34), (fix32)1923);
     }
-    SUBCASE("pico driller style input"){
+    SUBCASE("pico driller style input") {
         vm->LoadCart("drillerinputtest.p8");
         //this loads the cart + glue code into a coroutine, but does not execute anything yet
         //should probably get renamed. Same as typing LOAD() in pico 8
-        vm->vm_run(); 
+        vm->vm_run();
         vm->Step(); //this will call the cart code, init, and update once
         //30 fps game loop requires 1 step to update and update buttons, and another to draw
 
-        SUBCASE("initial state"){
+        SUBCASE("initial state") {
             bool btnbits = vm->ExecuteLua(
                 "function btnbitsinitialtest()\n"
                 " return btnbits == 0\n"
@@ -448,7 +442,7 @@ TEST_CASE("Vm memory functions") {
             CHECK(btnbits);
         }
 
-        SUBCASE("no buttons gives 0"){
+        SUBCASE("no buttons gives 0") {
             vm->Step();
             bool btnbits = vm->ExecuteLua(
                 "function btnbitstest0()\n"
@@ -458,7 +452,7 @@ TEST_CASE("Vm memory functions") {
 
             CHECK(btnbits);
         }
-        SUBCASE("left pushed returns 1"){
+        SUBCASE("left pushed returns 1") {
             stubHost->stubInput(1, 1);
             //requires two loops to ensure the button state is updated on 30 fps game
             vm->Step();
@@ -471,7 +465,7 @@ TEST_CASE("Vm memory functions") {
 
             CHECK(btnbits);
         }
-        SUBCASE("right pushed returns 2"){
+        SUBCASE("right pushed returns 2") {
             stubHost->stubInput(2, 2);
             //requires two loops to ensure the button state is updated on 30 fps game
             vm->Step();
@@ -484,7 +478,7 @@ TEST_CASE("Vm memory functions") {
 
             CHECK(btnbits);
         }
-        SUBCASE("right pushed detected by band op"){
+        SUBCASE("right pushed detected by band op") {
             stubHost->stubInput(2, 2);
             //requires two loops to ensure the button state is updated on 30 fps game
             vm->Step();
@@ -500,12 +494,12 @@ TEST_CASE("Vm memory functions") {
         vm->CloseCart();
     }
 
-    SUBCASE("emoji button variables are available in sandbox"){
+    SUBCASE("emoji button variables are available in sandbox") {
         vm->LoadCart("emojibuttons.p8");
         vm->vm_run();
         vm->Step();
 
-        SUBCASE("emoji button variables resolve to correct numeric values"){
+        SUBCASE("emoji button variables resolve to correct numeric values") {
             // Test that ⬅️ = 0, ➡️ = 1, ⬆️ = 2, ⬇️ = 3, 🅾️ = 4, ❎ = 5
             bool left_correct = vm->ExecuteLua(
                 "function test_left_val()\n"
@@ -550,7 +544,7 @@ TEST_CASE("Vm memory functions") {
             CHECK(x_correct);
         }
 
-        SUBCASE("btn with emoji argument checks correct button"){
+        SUBCASE("btn with emoji argument checks correct button") {
             // Press O button (bit 4 = 16) and verify btn(🅾️) returns true but btn(❎) returns false
             stubHost->stubInput(16, 16); // O button pressed
             vm->Step();
@@ -578,7 +572,7 @@ TEST_CASE("Vm memory functions") {
             CHECK(left_not_pressed);
         }
 
-        SUBCASE("left button does not trigger O or X button checks"){
+        SUBCASE("left button does not trigger O or X button checks") {
             // Press left button (bit 0 = 1) and verify btn(🅾️) and btn(❎) return false
             stubHost->stubInput(1, 1); // Left button pressed
             vm->Step();
@@ -616,9 +610,9 @@ TEST_CASE("Vm memory functions") {
         graphics->camera(1, 2);
         graphics->color(3);
 
-        SUBCASE("togglepausemenu resets draw state"){
+        SUBCASE("togglepausemenu resets draw state") {
             vm->togglePauseMenu();
-            
+
             CHECK_EQ(10, graphics->getDrawPalMappedColor(10));
 
             CHECK_EQ(0, memory->drawState.fillPattern[0]);
@@ -633,10 +627,10 @@ TEST_CASE("Vm memory functions") {
 
             CHECK_EQ(6, memory->drawState.color);
         }
-        SUBCASE("togglepausemenu second time restores draw state"){
+        SUBCASE("togglepausemenu second time restores draw state") {
             vm->togglePauseMenu();
             vm->togglePauseMenu();
-            
+
             CHECK_EQ(12, graphics->getDrawPalMappedColor(10));
 
             CHECK_EQ(25, memory->drawState.fillPattern[0]);
@@ -653,15 +647,15 @@ TEST_CASE("Vm memory functions") {
         }
     }
 
-    SUBCASE("getSerializedCartData for all zeroes"){
+    SUBCASE("getSerializedCartData for all zeroes") {
         vm->vm_cartdata("serializeTest");
-        for(int i = 0; i < 256; i++) {
+        for (int i = 0; i < 256; i++) {
             memory->cartData[i] = 0;
         }
 
         auto result = vm->getSerializedCartData();
 
-        std::string expected = 
+        std::string expected =
             "0000000000000000000000000000000000000000000000000000000000000000\n"
             "0000000000000000000000000000000000000000000000000000000000000000\n"
             "0000000000000000000000000000000000000000000000000000000000000000\n"
@@ -673,15 +667,15 @@ TEST_CASE("Vm memory functions") {
 
         CHECK_EQ(expected, result);
     }
-    SUBCASE("getSerializedCartData with 0-255"){
+    SUBCASE("getSerializedCartData with 0-255") {
         vm->vm_cartdata("serializeTest");
-        for(int i = 0; i < 256; i++) {
+        for (int i = 0; i < 256; i++) {
             memory->cartData[i] = (uint8_t)i;
         }
 
         auto result = vm->getSerializedCartData();
 
-        std::string expected = 
+        std::string expected =
             "03020100070605040b0a09080f0e0d0c13121110171615141b1a19181f1e1d1c\n"
             "23222120272625242b2a29282f2e2d2c33323130373635343b3a39383f3e3d3c\n"
             "43424140474645444b4a49484f4e4d4c53525150575655545b5a59585f5e5d5c\n"
@@ -693,13 +687,13 @@ TEST_CASE("Vm memory functions") {
 
         CHECK_EQ(expected, result);
     }
-    SUBCASE("deserializeCartDataToMemory for all zeroes"){
+    SUBCASE("deserializeCartDataToMemory for all zeroes") {
         vm->vm_cartdata("serializeTest");
-        for(int i = 0; i < 256; i++) {
+        for (int i = 0; i < 256; i++) {
             memory->cartData[i] = 1;
         }
 
-        std::string allZeroes = 
+        std::string allZeroes =
             "0000000000000000000000000000000000000000000000000000000000000000\n"
             "0000000000000000000000000000000000000000000000000000000000000000\n"
             "0000000000000000000000000000000000000000000000000000000000000000\n"
@@ -712,19 +706,19 @@ TEST_CASE("Vm memory functions") {
         vm->deserializeCartDataToMemory(allZeroes);
 
         bool matches = true;
-        for(int i = 0; i < 256; i++) {
+        for (int i = 0; i < 256; i++) {
             matches &= memory->cartData[i] == 0;
         }
 
         CHECK(matches);
     }
-    SUBCASE("deserializeCartDataToMemory with 0-255"){
+    SUBCASE("deserializeCartDataToMemory with 0-255") {
         vm->vm_cartdata("serializeTest");
-        for(int i = 0; i < 256; i++) {
+        for (int i = 0; i < 256; i++) {
             memory->cartData[i] = 1;
         }
 
-        std::string values = 
+        std::string values =
             "03020100070605040b0a09080f0e0d0c13121110171615141b1a19181f1e1d1c\n"
             "23222120272625242b2a29282f2e2d2c33323130373635343b3a39383f3e3d3c\n"
             "43424140474645444b4a49484f4e4d4c53525150575655545b5a59585f5e5d5c\n"
@@ -737,13 +731,13 @@ TEST_CASE("Vm memory functions") {
         vm->deserializeCartDataToMemory(values);
 
         bool matches = true;
-        for(int i = 0; i < 256; i++) {
+        for (int i = 0; i < 256; i++) {
             matches &= memory->cartData[i] == i;
         }
 
         CHECK(matches);
     }
-    SUBCASE("dset then getSerializedCartData returns correct values"){
+    SUBCASE("dset then getSerializedCartData returns correct values") {
         vm->vm_cartdata("serializeTest");
         vm->vm_dset(32, 128);
         vm->vm_dset(0, 1);
@@ -751,7 +745,7 @@ TEST_CASE("Vm memory functions") {
 
         auto actual = vm->getSerializedCartData();
 
-        std::string expected = 
+        std::string expected =
             "0001000000020000000000000000000000000000000000000000000000000000\n"
             "0000000000000000000000000000000000000000000000000000000000000000\n"
             "0000000000000000000000000000000000000000000000000000000000000000\n"
@@ -763,16 +757,16 @@ TEST_CASE("Vm memory functions") {
 
         CHECK_EQ(expected, actual);
     }
-    SUBCASE("dset then getSerializedCartData with negatives returns correct values"){
+    SUBCASE("dset then getSerializedCartData with negatives returns correct values") {
         vm->vm_cartdata("serializeTest");
         vm->vm_dset(0, -1);
-	    vm->vm_dset(1, 1);
-	    vm->vm_dset(2, 32767);
-	    vm->vm_dset(3, -32768);
+        vm->vm_dset(1, 1);
+        vm->vm_dset(2, 32767);
+        vm->vm_dset(3, -32768);
 
         auto actual = vm->getSerializedCartData();
 
-        std::string expected = 
+        std::string expected =
             "ffff0000000100007fff00008000000000000000000000000000000000000000\n"
             "0000000000000000000000000000000000000000000000000000000000000000\n"
             "0000000000000000000000000000000000000000000000000000000000000000\n"
@@ -784,7 +778,7 @@ TEST_CASE("Vm memory functions") {
 
         CHECK_EQ(expected, actual);
     }
-    SUBCASE("multiple cartdata keys can be used (up to 4)"){
+    SUBCASE("multiple cartdata keys can be used (up to 4)") {
         vm->vm_cartdata("key1");
         vm->vm_dset(0, 100);
         vm->vm_cartdata("key2");
@@ -793,89 +787,89 @@ TEST_CASE("Vm memory functions") {
         vm->vm_dset(0, 400);
 
         CHECK_EQ(vm->vm_dget(0), (fix32)400);
-        
+
         vm->vm_cartdata("key2");
         CHECK_EQ(vm->vm_dget(0), (fix32)0);
-        
+
         vm->vm_dset(0, 200);
         CHECK_EQ(vm->vm_dget(0), (fix32)200);
-        
+
         vm->vm_cartdata("key1");
         CHECK_EQ(vm->vm_dget(0), (fix32)100);
     }
-    SUBCASE("error when trying to use more than 4 cartdata keys"){
+    SUBCASE("error when trying to use more than 4 cartdata keys") {
         vm->vm_cartdata("key1");
         vm->vm_cartdata("key2");
         vm->vm_cartdata("key3");
         vm->vm_cartdata("key4");
-        
+
         // 5th key should fail
         CHECK_FALSE(vm->vm_cartdata("key5"));
         CHECK_EQ(vm->GetBiosError(), "too many cart data keys (max 4)");
     }
-    SUBCASE("switching between different cartdata keys works correctly"){
+    SUBCASE("switching between different cartdata keys works correctly") {
         vm->vm_cartdata("save1");
         vm->vm_dset(0, 111);
         vm->vm_dset(1, 222);
-        
+
         vm->vm_cartdata("save2");
         vm->vm_dset(0, 333);
         vm->vm_dset(1, 444);
-        
+
         vm->vm_cartdata("save1");
         CHECK_EQ(vm->vm_dget(0), (fix32)111);
         CHECK_EQ(vm->vm_dget(1), (fix32)222);
-        
+
         vm->vm_cartdata("save2");
         CHECK_EQ(vm->vm_dget(0), (fix32)333);
         CHECK_EQ(vm->vm_dget(1), (fix32)444);
     }
-    SUBCASE("reusing same cartdata key multiple times works"){
+    SUBCASE("reusing same cartdata key multiple times works") {
         // Use the same key multiple times - should work fine
         vm->vm_cartdata("sharedkey");
         vm->vm_dset(0, 555);
-        
+
         vm->vm_cartdata("sharedkey");
         CHECK_EQ(vm->vm_dget(0), (fix32)555);
-        
+
         vm->vm_dset(1, 666);
-        
+
         vm->vm_cartdata("sharedkey");
         CHECK_EQ(vm->vm_dget(0), (fix32)555);
         CHECK_EQ(vm->vm_dget(1), (fix32)666);
     }
-    SUBCASE("backward compatibility - single key usage still works"){
+    SUBCASE("backward compatibility - single key usage still works") {
         vm->vm_cartdata("singlekey");
         vm->vm_dset(0, 777);
         vm->vm_dset(1, 888);
-        
+
         CHECK_EQ(vm->vm_dget(0), (fix32)777);
         CHECK_EQ(vm->vm_dget(1), (fix32)888);
-        
+
         vm->vm_cartdata("singlekey");
         CHECK_EQ(vm->vm_dget(0), (fix32)777);
         CHECK_EQ(vm->vm_dget(1), (fix32)888);
     }
-    SUBCASE("current active key is tracked correctly for serialization"){
+    SUBCASE("current active key is tracked correctly for serialization") {
         vm->vm_cartdata("active1");
         vm->vm_dset(0, 999);
         vm->vm_dset(1, 1111);
-        
+
         vm->vm_cartdata("active2");
         vm->vm_dset(0, 2222);
         vm->vm_dset(1, 3333);
-        
+
         vm->vm_cartdata("active1");
         CHECK_EQ(vm->vm_dget(0), (fix32)999);
         CHECK_EQ(vm->vm_dget(1), (fix32)1111);
 
         vm->vm_dset(0, 4444);
         vm->vm_dset(1, 5555);
-        
+
         auto serialized = vm->getSerializedCartData();
-        
+
         // 4444 = 0x115C, 5555 = 0x15B3 (in little-endian format)
-        std::string expected = 
+        std::string expected =
             "115c000015b30000000000000000000000000000000000000000000000000000\n"
             "0000000000000000000000000000000000000000000000000000000000000000\n"
             "0000000000000000000000000000000000000000000000000000000000000000\n"
@@ -884,16 +878,16 @@ TEST_CASE("Vm memory functions") {
             "0000000000000000000000000000000000000000000000000000000000000000\n"
             "0000000000000000000000000000000000000000000000000000000000000000\n"
             "0000000000000000000000000000000000000000000000000000000000000000\n";
-        
+
         CHECK_EQ(expected, serialized);
     }
-    SUBCASE("deserializeCartDataToMemory with negative ints"){
+    SUBCASE("deserializeCartDataToMemory with negative ints") {
         vm->vm_cartdata("serializeTest");
-        for(int i = 0; i < 256; i++) {
+        for (int i = 0; i < 256; i++) {
             memory->cartData[i] = 0;
         }
 
-        std::string values = 
+        std::string values =
             "ffff0000000100007fff00008000000000000000000000000000000000000000\n"
             "0000000000000000000000000000000000000000000000000000000000000000\n"
             "0000000000000000000000000000000000000000000000000000000000000000\n"
@@ -910,7 +904,7 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ(vm->vm_dget(2), (fix32)32767);
         CHECK_EQ(vm->vm_dget(3), (fix32)-32768);
     }
-    SUBCASE("SFX Note getters match expected values"){
+    SUBCASE("SFX Note getters match expected values") {
         memory->sfx[0].notes[0].data[0] = 205;
         memory->sfx[0].notes[0].data[1] = 233;
 
@@ -920,7 +914,7 @@ TEST_CASE("Vm memory functions") {
         CHECK(memory->sfx[0].notes[0].getVolume() == 4);
         CHECK(memory->sfx[0].notes[0].getCustom() == 1);
     }
-    SUBCASE("SFX Note settiers set correct values"){
+    SUBCASE("SFX Note settiers set correct values") {
         memory->sfx[0].notes[0].setWaveform(7);
         memory->sfx[0].notes[0].setEffect(6);
         memory->sfx[0].notes[0].setKey(13);
@@ -930,8 +924,8 @@ TEST_CASE("Vm memory functions") {
         CHECK(memory->sfx[0].notes[0].data[0] == 205);
         CHECK(memory->sfx[0].notes[0].data[1] == 233);
     }
-    SUBCASE("cartlist gets sorted"){
-        std::vector<std::string> vec = { "Qcart.p8", "Acart.p8", "Zcart.p8.png", "Jcart.p8.png" };
+    SUBCASE("cartlist gets sorted") {
+        std::vector<std::string> vec = {"Qcart.p8", "Acart.p8", "Zcart.p8.png", "Jcart.p8.png"};
         vm->SetCartList(vec);
         auto sorted = vm->GetCartList();
 
@@ -940,7 +934,7 @@ TEST_CASE("Vm memory functions") {
         CHECK_EQ("Qcart.p8", sorted[2]);
         CHECK_EQ("Zcart.p8.png", sorted[3]);
     }
-    SUBCASE("reset sets hw and draw state back to defaults"){
+    SUBCASE("reset sets hw and draw state back to defaults") {
         graphics->pal(4, 5, 0);
         graphics->color(14);
 
@@ -964,11 +958,11 @@ TEST_CASE("Vm memory functions") {
         vm->togglePauseMenu();
         CHECK(vm->IsPaused() == false);
     }
-    SUBCASE("picoluaapi handles negative colors correctly"){
-        SUBCASE("pset negative number gets set correctly"){
+    SUBCASE("picoluaapi handles negative colors correctly") {
+        SUBCASE("pset negative number gets set correctly") {
             vm->LoadCart("cartparsetest.p8");
 
-            vm->vm_run(); 
+            vm->vm_run();
             vm->Step();
 
             bool result = vm->ExecuteLua(
@@ -979,14 +973,12 @@ TEST_CASE("Vm memory functions") {
                 "psetnegativetest");
 
             CHECK(result);
-
         }
-        SUBCASE("pal negative number gets set correctly"){
+        SUBCASE("pal negative number gets set correctly") {
             vm->LoadCart("cartpalnegativetest.p8");
 
-            vm->vm_run(); 
+            vm->vm_run();
             vm->Step();
-
 
             bool result = vm->ExecuteLua(
                 "function palnegativetest()\n"
@@ -997,7 +989,6 @@ TEST_CASE("Vm memory functions") {
                 "palnegativetest");
 
             CHECK(result);
-
         }
     }
 

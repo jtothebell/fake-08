@@ -11,80 +11,77 @@
 #define mkdir(A, B) _mkdir(A)
 #endif
 
-
 enum StretchOption {
-  PixelPerfect,
-  PixelPerfectStretch,
-  StretchToFit,
-  StretchToFill,
-  StretchAndOverflow,
-  AltScreenPixelPerfect,
-  AltScreenStretch,
-  FourByThreeVertPerfect,
-  FourByThreeStretch
+    PixelPerfect,
+    PixelPerfectStretch,
+    StretchToFit,
+    StretchToFill,
+    StretchAndOverflow,
+    AltScreenPixelPerfect,
+    AltScreenStretch,
+    FourByThreeVertPerfect,
+    FourByThreeStretch
 };
-
 
 #if LOAD_PACK_INS
 enum PackinLoadOption {
-  Unloaded,
-  Loaded
+    Unloaded,
+    Loaded
 };
 #endif
 
 enum ResizekeyOption {
-  NoResize,
-  YesResize
+    NoResize,
+    YesResize
 };
 
 enum KeyboardOption {
-  Emoji,
-  Lowercase
+    Emoji,
+    Lowercase
 };
 
 enum MenuStyleOption {
-  Classic,
-  Fancy,
-  Splore
+    Classic,
+    Fancy,
+    Splore
 };
 
 enum BgColorOption {
-  Gray,
-  Black,
-  Blue,
-  Green,
-  Purple,
-  White
+    Gray,
+    Black,
+    Blue,
+    Green,
+    Purple,
+    White
 };
 
 class Host {
     uint8_t currKDown;
     uint8_t currKHeld;
-	
+
     bool currKBDown = false;
     std::string currKBKey = "";
-	
+
     bool lDown = false;
     bool rDown = false;
     bool stretchKeyPressed = false;
-	
-	
-	//settings
-	#if LOAD_PACK_INS
+
+//settings
+#if LOAD_PACK_INS
     PackinLoadOption packinloaded = Unloaded;
-	#endif
+#endif
     StretchOption stretch = PixelPerfectStretch;
     KeyboardOption kbmode = Emoji;
     ResizekeyOption resizekey = YesResize;
     MenuStyleOption menustyle = Classic;
     BgColorOption bgcolor = Gray;
-	
+
     float scaleX = 1.0;
     float scaleY = 1.0;
     int mouseOffsetX = 0;
     int mouseOffsetY = 0;
     int quit = 0;
-    
+
     std::string _logFilePrefix;
     std::string _customBiosLua;
     std::string _cartDirectory;
@@ -96,14 +93,14 @@ class Host {
 
     Color _paletteColors[144];
 
-    public:
+  public:
     Host(int windowWidth = 0, int windowHeight = 0);
 
     void setUpPaletteColors();
     void oneTimeSetup(Audio* audio);
-	
+
     void unpackCarts();
-    
+
     void setTargetFps(int targetFps);
 
     bool shouldRunMainLoop();
@@ -113,7 +110,7 @@ class Host {
 
     void changeStretch();
     void forceStretch(StretchOption newStretch);
-    
+
     void waitForTargetFps();
 
     void drawFrame(uint8_t* picoFb, uint8_t* screenPaletteMap, uint8_t drawMode);
@@ -144,7 +141,7 @@ class Host {
     std::string getCartDirectory();
     void setCartDirectory(std::string cartDirectory);
     std::vector<std::string> listdirs();
-	
+
     //settings
     int getSetting(std::string sname);
     void setSetting(std::string sname, int sdata);

@@ -10,10 +10,10 @@ using namespace std;
 #include "host.h"
 
 //extern "C" {
-  #include <lua.h>
-  #include <lualib.h>
-  #include <lauxlib.h>
-  #include <fix32.h>
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+#include <fix32.h>
 //}
 
 using namespace z8;
@@ -61,18 +61,17 @@ class Vm {
     bool loadCart(Cart* cart);
     void vm_reload(int destaddr, int sourceaddr, int len, Cart* cart);
 
-
-    public:
+  public:
     Vm(
-       Host* host,
-       PicoRam* memory = nullptr,
-       Graphics* graphics = nullptr,
-       Input* input = nullptr,
-       Audio* audio = nullptr);
+        Host* host,
+        PicoRam* memory = nullptr,
+        Graphics* graphics = nullptr,
+        Input* input = nullptr,
+        Audio* audio = nullptr);
     ~Vm();
 
     bool LoadBiosCart();
-    
+
     void LoadSettingsCart();
 
     bool LoadCart(string filename, bool loadBiosOnFail = true);
@@ -84,7 +83,7 @@ class Vm {
     uint8_t* GetPicoInteralFb();
     uint8_t* GetScreenPaletteMap();
 
-    void FillAudioBuffer(void *audioBuffer, size_t offset, size_t size);
+    void FillAudioBuffer(void* audioBuffer, size_t offset, size_t size);
 
     void CloseCart();
 
@@ -143,7 +142,7 @@ class Vm {
 
     // void vm_flip();
     void vm_run();
-    void vm_extcmd(string  cmd);
+    void vm_extcmd(string cmd);
 
     bool vm_load(string filename, string breadcrumb, string param);
     bool vm_go_back();
@@ -160,18 +159,18 @@ class Vm {
     int getHour();
     int getMinute();
     int getSecond();
-    
+
     //settings
     int getSetting(string sname);
     void setSetting(string sname, int sval);
-    
+
     void installPackins();
-    
+
     //label
     void loadLabel(string filename, bool mini, int minioffset);
-    
+
     string getLuaLine(string filename, int linenumber);
-    
+
     string getCartBreadcrumb();
     string getCartParam();
 
@@ -180,4 +179,3 @@ class Vm {
     size_t serializeLuaState(char* dest);
     void deserializeLuaState(const char* src, size_t len);
 };
-

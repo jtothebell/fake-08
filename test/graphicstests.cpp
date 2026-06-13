@@ -51,8 +51,8 @@ TEST_CASE("graphics class behaves as expected") {
         const uint8_t testColor = 4;
         graphics->cls(testColor);
         bool isAllColor = true;
-        for(int x = 0; x < 128; x++){
-            for(int y = 0; y < 128; y++){
+        for (int x = 0; x < 128; x++) {
+            for (int y = 0; y < 128; y++) {
                 isAllColor &= graphics->pget(x, y) == testColor;
             }
         }
@@ -61,8 +61,8 @@ TEST_CASE("graphics class behaves as expected") {
     SUBCASE("cls() defaults to black") {
         bool isAllColor = true;
         graphics->cls();
-        for(int x = 0; x < 128; x++){
-            for(int y = 0; y < 128; y++){
+        for (int x = 0; x < 128; x++) {
+            for (int y = 0; y < 128; y++) {
                 isAllColor &= graphics->pget(x, y) == 0;
             }
         }
@@ -121,29 +121,29 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("line() clears line state") {
         picoRam.drawState.line_x = 10;
-	    picoRam.drawState.line_y = 30;
-	    picoRam.drawState.lineInvalid = false;
+        picoRam.drawState.line_y = 30;
+        picoRam.drawState.lineInvalid = false;
 
         graphics->line();
 
         CHECK(
-            (picoRam.drawState.line_x == 0 && 
-            picoRam.drawState.line_y == 0 &&
-            picoRam.drawState.lineInvalid == true) == true);
+            (picoRam.drawState.line_x == 0 &&
+             picoRam.drawState.line_y == 0 &&
+             picoRam.drawState.lineInvalid == true) == true);
     }
     SUBCASE("line({arg}) sets color and clears line") {
         picoRam.drawState.line_x = 10;
-	    picoRam.drawState.line_y = 30;
-	    picoRam.drawState.lineInvalid = false;
+        picoRam.drawState.line_y = 30;
+        picoRam.drawState.lineInvalid = false;
         picoRam.drawState.color = 2;
 
         graphics->line(14);
 
         CHECK(
-            (picoRam.drawState.line_x == 0 && 
-            picoRam.drawState.line_y == 0 &&
-            picoRam.drawState.lineInvalid == true &&
-            picoRam.drawState.color == 14) == true);
+            (picoRam.drawState.line_x == 0 &&
+             picoRam.drawState.line_y == 0 &&
+             picoRam.drawState.lineInvalid == true &&
+             picoRam.drawState.color == 14) == true);
     }
     SUBCASE("line({x}, {y}) after line() sets start without drawing") {
         graphics->cls();
@@ -195,9 +195,9 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->line(13, 13);
 
         CHECK(
-            (picoRam.drawState.line_x == 13 && 
-            picoRam.drawState.line_y == 13 &&
-            picoRam.drawState.lineInvalid == false) == true);
+            (picoRam.drawState.line_x == 13 &&
+             picoRam.drawState.line_y == 13 &&
+             picoRam.drawState.lineInvalid == false) == true);
     }
     SUBCASE("line({x}, {y}) draws (45 degree down-right)") {
         graphics->cls();
@@ -210,8 +210,7 @@ TEST_CASE("graphics class behaves as expected") {
         std::vector<coloredPoint> expectedPoints = {
             {10, 10, 2},
             {11, 11, 2},
-            {12, 12, 2}
-        };
+            {12, 12, 2}};
 
         checkPoints(graphics, expectedPoints);
     }
@@ -227,8 +226,7 @@ TEST_CASE("graphics class behaves as expected") {
             {20, 21, 13},
             {20, 22, 13},
             {20, 23, 13},
-            {20, 24, 13}
-        };
+            {20, 24, 13}};
 
         checkPoints(graphics, expectedPoints);
     }
@@ -244,8 +242,7 @@ TEST_CASE("graphics class behaves as expected") {
             {21, 21, 3},
             {21, 22, 3},
             {21, 23, 3},
-            {21, 24, 3}
-        };
+            {21, 24, 3}};
 
         checkPoints(graphics, expectedPoints);
     }
@@ -257,8 +254,7 @@ TEST_CASE("graphics class behaves as expected") {
         std::vector<coloredPoint> expectedPoints = {
             {20, 20, 10},
             {19, 21, 10},
-            {18, 22, 10}
-        };
+            {18, 22, 10}};
 
         checkPoints(graphics, expectedPoints);
     }
@@ -269,8 +265,7 @@ TEST_CASE("graphics class behaves as expected") {
         std::vector<coloredPoint> expectedPoints = {
             {20, 20, 4},
             {19, 20, 4},
-            {18, 20, 4}
-        };
+            {18, 20, 4}};
 
         checkPoints(graphics, expectedPoints);
     }
@@ -281,8 +276,7 @@ TEST_CASE("graphics class behaves as expected") {
         std::vector<coloredPoint> expectedPoints = {
             {20, 20, 5},
             {19, 19, 5},
-            {18, 18, 5}
-        };
+            {18, 18, 5}};
 
         checkPoints(graphics, expectedPoints);
     }
@@ -293,8 +287,7 @@ TEST_CASE("graphics class behaves as expected") {
         std::vector<coloredPoint> expectedPoints = {
             {20, 20, 5},
             {20, 19, 5},
-            {20, 18, 5}
-        };
+            {20, 18, 5}};
 
         checkPoints(graphics, expectedPoints);
     }
@@ -305,8 +298,7 @@ TEST_CASE("graphics class behaves as expected") {
         std::vector<coloredPoint> expectedPoints = {
             {20, 20, 5},
             {21, 19, 5},
-            {22, 18, 5}
-        };
+            {22, 18, 5}};
 
         checkPoints(graphics, expectedPoints);
     }
@@ -317,8 +309,7 @@ TEST_CASE("graphics class behaves as expected") {
         std::vector<coloredPoint> expectedPoints = {
             {20, 20, 5},
             {21, 20, 5},
-            {22, 20, 5}
-        };
+            {22, 20, 5}};
 
         checkPoints(graphics, expectedPoints);
     }
@@ -449,7 +440,7 @@ TEST_CASE("graphics class behaves as expected") {
         std::vector<coloredPoint> expectedPoints = {
             {0, 1, 5},
             {1, 1, 5},
-            {2, 1, 5}//etc
+            {2, 1, 5} //etc
         };
 
         checkPoints(graphics, expectedPoints);
@@ -461,7 +452,7 @@ TEST_CASE("graphics class behaves as expected") {
         std::vector<coloredPoint> expectedPoints = {
             {1, 0, 5},
             {1, 1, 5},
-            {1, 2, 5}//etc
+            {1, 2, 5} //etc
         };
 
         checkPoints(graphics, expectedPoints);
@@ -501,8 +492,7 @@ TEST_CASE("graphics class behaves as expected") {
             {43, 37, 6},
             {43, 38, 6},
             {44, 39, 6},
-            {44, 40, 6}
-        };
+            {44, 40, 6}};
 
         checkPoints(graphics, expectedPoints);
     }
@@ -569,7 +559,7 @@ TEST_CASE("graphics class behaves as expected") {
             {43, 38, 6},
             {44, 39, 6},
             {44, 40, 6},
-            {40, 40, 6},//center point
+            {40, 40, 6}, //center point
         };
 
         checkPoints(graphics, expectedPoints);
@@ -626,11 +616,11 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("circfill({ox}, {oy}, {r}, {c}) with inverted mode fills outside circle") {
         graphics->cls(8);
-        picoRam.drawState.colorSettingFlag = 0x02; // Enable inverted fill mode 
+        picoRam.drawState.colorSettingFlag = 0x02; // Enable inverted fill mode
         graphics->circfill(40, 40, 2, 13 | 0x1800);
         std::vector<coloredPoint> expectedPoints = {
             // Inside circle should be background color (8)
-            {40, 40, 8}, 
+            {40, 40, 8},
             {39, 40, 8},
             {40, 39, 8},
             {41, 40, 8},
@@ -640,7 +630,7 @@ TEST_CASE("graphics class behaves as expected") {
             {40, 43, 13},
             {37, 40, 13},
             {43, 40, 13},
-            
+
             {0, 0, 13},
             {127, 127, 13},
         };
@@ -714,15 +704,14 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->oval(40, 40, 45, 42, 13);
 
         std::vector<coloredPoint> expectedPoints = {
-            {40,41,13},
-            {41,40,13},
-            {41,42,13},
-            {42,40,13},
-            {42,42,13},
-            {43,40,13},
-            {43,42,13},
-            {44,41,13}
-        };
+            {40, 41, 13},
+            {41, 40, 13},
+            {41, 42, 13},
+            {42, 40, 13},
+            {42, 42, 13},
+            {43, 40, 13},
+            {43, 42, 13},
+            {44, 41, 13}};
 
         checkPoints(graphics, expectedPoints);
     }
@@ -739,18 +728,17 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->ovalfill(40, 40, 45, 42, 13);
 
         std::vector<coloredPoint> expectedPoints = {
-            {40,41,13},
-            {41,40,13},
-            {41,41,13},
-            {41,42,13},
-            {42,40,13},
-            {42,41,13},
-            {42,42,13},
-            {43,40,13},
-            {43,41,13},
-            {43,42,13},
-            {44,41,13}
-        };
+            {40, 41, 13},
+            {41, 40, 13},
+            {41, 41, 13},
+            {41, 42, 13},
+            {42, 40, 13},
+            {42, 41, 13},
+            {42, 42, 13},
+            {43, 40, 13},
+            {43, 41, 13},
+            {43, 42, 13},
+            {44, 41, 13}};
 
         checkPoints(graphics, expectedPoints);
     }
@@ -777,8 +765,7 @@ TEST_CASE("graphics class behaves as expected") {
             {42, 42, 15},
             {43, 40, 15},
             {43, 41, 15},
-            {43, 42, 15}
-        };
+            {43, 42, 15}};
 
         checkPoints(graphics, expectedPoints);
     }
@@ -823,8 +810,7 @@ TEST_CASE("graphics class behaves as expected") {
             {42, 40, 1},
             {42, 41, 1},
             {42, 42, 1},
-            {42, 43, 1}
-        };
+            {42, 43, 1}};
 
         checkPoints(graphics, expectedPoints);
     }
@@ -849,8 +835,7 @@ TEST_CASE("graphics class behaves as expected") {
             {43, 40, 10},
             {43, 41, 10},
             {43, 42, 10},
-            {43, 43, 10}
-        };
+            {43, 43, 10}};
 
         checkPoints(graphics, expectedPoints);
     }
@@ -870,20 +855,19 @@ TEST_CASE("graphics class behaves as expected") {
             {42, 40, 2},
             {42, 41, 2},
             {42, 42, 2},
-            {42, 43, 2}
-        };
+            {42, 43, 2}};
 
         checkPoints(graphics, expectedPoints);
     }
-    
+
     SUBCASE("spr(...) draws to screen at location") {
         graphics->cls();
-        for(uint8_t i = 0; i < 16; i++) {
-            graphics->sset(i % 8, i / 8, i%2 == 0 ? i : 0 );
+        for (uint8_t i = 0; i < 16; i++) {
+            graphics->sset(i % 8, i / 8, i % 2 == 0 ? i : 0);
         }
 
         graphics->spr(0, 101, 33, 1.0, 1.0, false, false);
-        
+
         std::vector<coloredPoint> expectedPoints = {
             {103, 33, 2},
             {105, 33, 4},
@@ -898,12 +882,12 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("spr(...) draws more than 1 horizontal sprite") {
         graphics->cls();
-        for(uint8_t i = 0; i < 16; i++) {
+        for (uint8_t i = 0; i < 16; i++) {
             graphics->sset(i, 0, i);
         }
 
         graphics->spr(0, 35, 100, 1.5, 1.0, false, false);
-        
+
         std::vector<coloredPoint> expectedPoints = {
             {35, 100, 0},
             {36, 100, 1},
@@ -924,12 +908,12 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("spr(...) draws more than 1 vertical sprite") {
         graphics->cls();
-        for(uint8_t i = 0; i < 16; i++) {
+        for (uint8_t i = 0; i < 16; i++) {
             graphics->sset(0, i, i);
         }
 
         graphics->spr(0, 35, 100, 1.0, 1.25, false, false);
-        
+
         std::vector<coloredPoint> expectedPoints = {
             {35, 100, 0},
             {35, 101, 1},
@@ -941,19 +925,18 @@ TEST_CASE("graphics class behaves as expected") {
             {35, 107, 7},
             {35, 108, 8},
             {35, 109, 9},
-            {35, 100, 0}
-        };
+            {35, 100, 0}};
 
         checkPoints(graphics, expectedPoints);
     }
     SUBCASE("spr(...) draws flipped Horizontal") {
         graphics->cls();
-        for(uint8_t i = 0; i < 16; i++) {
+        for (uint8_t i = 0; i < 16; i++) {
             graphics->sset(i, 0, i);
         }
 
         graphics->spr(0, 35, 100, 1.0, 1.0, true, false);
-        
+
         std::vector<coloredPoint> expectedPoints = {
             {34, 100, 0},
             {35, 100, 7},
@@ -971,12 +954,12 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("spr(...) draws flipped vertical") {
         graphics->cls();
-        for(uint8_t i = 0; i < 16; i++) {
+        for (uint8_t i = 0; i < 16; i++) {
             graphics->sset(0, i, i);
         }
 
         graphics->spr(0, 35, 100, 1.0, 1.0, false, true);
-        
+
         std::vector<coloredPoint> expectedPoints = {
             {35, 99, 0},
             {35, 100, 7},
@@ -994,9 +977,9 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("spr(...) draws to screen at odd numbered location") {
         graphics->cls();
-        
-        for(uint8_t i = 0; i < 16; i++) {
-            for(uint8_t j = 0; j < 16; j++) {
+
+        for (uint8_t i = 0; i < 16; i++) {
+            for (uint8_t j = 0; j < 16; j++) {
                 graphics->sset(i, j, i);
             }
         }
@@ -1021,16 +1004,16 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("spr(...) draws doesn't repeat sprites if spritesheet width is exceeded") {
         graphics->cls();
-        for(int y = 0; y < 128; y++) {
-            for(int x = 0; x < 128; x++) {
-                graphics->sset(x, y, (x+y)%15+1);
+        for (int y = 0; y < 128; y++) {
+            for (int x = 0; x < 128; x++) {
+                graphics->sset(x, y, (x + y) % 15 + 1);
             }
         }
 
         //sprite 6, but a width and height of 16 pixels goes off the edge.
         //it should end instead of wrapping
         graphics->spr(6, 0, 40, 16, 16, false, false);
-        
+
         std::vector<coloredPoint> expectedPoints = {
             {81, 40, 0},
             {81, 41, 0},
@@ -1043,16 +1026,16 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("spr(...) draws last sprite (sprite 255)") {
         graphics->cls();
-        for(int y = 0; y < 128; y++) {
-            for(int x = 0; x < 128; x++) {
-                graphics->sset(x, y, (x+y)%15+1);
+        for (int y = 0; y < 128; y++) {
+            for (int x = 0; x < 128; x++) {
+                graphics->sset(x, y, (x + y) % 15 + 1);
             }
         }
 
         graphics->spr(255, 0, 120, 1, 1, false, false);
-        
+
         std::vector<coloredPoint> expectedPoints = {
-            {0, 120, 1}, 
+            {0, 120, 1},
             {0, 121, 2},
             {0, 122, 3},
             {0, 123, 4},
@@ -1063,9 +1046,9 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("sspr(...) draws to screen at odd numbered location") {
         graphics->cls();
-        
-        for(uint8_t i = 0; i < 16; i++) {
-            for(uint8_t j = 0; j < 16; j++) {
+
+        for (uint8_t i = 0; i < 16; i++) {
+            for (uint8_t j = 0; j < 16; j++) {
                 graphics->sset(i, j, i);
             }
         }
@@ -1090,9 +1073,9 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("sspr(...) draws from odd numbered sprite sheet location") {
         graphics->cls();
-        
-        for(uint8_t i = 0; i < 16; i++) {
-            for(uint8_t j = 0; j < 16; j++) {
+
+        for (uint8_t i = 0; i < 16; i++) {
+            for (uint8_t j = 0; j < 16; j++) {
                 graphics->sset(i, j, i);
             }
         }
@@ -1126,9 +1109,9 @@ TEST_CASE("graphics class behaves as expected") {
     SUBCASE("sspr(...) draws from odd numbered sprite sheet location flipped horizontally") {
         //bug discovered in high stakes
         graphics->cls();
-        
-        for(uint8_t i = 0; i < 16; i++) {
-            for(uint8_t j = 0; j < 16; j++) {
+
+        for (uint8_t i = 0; i < 16; i++) {
+            for (uint8_t j = 0; j < 16; j++) {
                 graphics->sset(i, j, i);
             }
         }
@@ -1161,9 +1144,9 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("sspr(...) draws non-square to screen at location") {
         graphics->cls();
-        
-        for(uint8_t i = 0; i < 16; i++) {
-            for(uint8_t j = 0; j < 16; j++) {
+
+        for (uint8_t i = 0; i < 16; i++) {
+            for (uint8_t j = 0; j < 16; j++) {
                 graphics->sset(i, j, i);
             }
         }
@@ -1189,9 +1172,9 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("sspr(...) negative screen dimensions flip image") {
         graphics->cls();
-        
-        for(uint8_t i = 0; i < 16; i++) {
-            for(uint8_t j = 0; j < 16; j++) {
+
+        for (uint8_t i = 0; i < 16; i++) {
+            for (uint8_t j = 0; j < 16; j++) {
                 graphics->sset(i, j, i);
             }
         }
@@ -1217,9 +1200,9 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("sspr(...) draws doesn't repeat sprites if spritesheet width is exceeded") {
         graphics->cls();
-        for(int y = 0; y < 128; y++) {
-            for(int x = 0; x < 128; x++) {
-                graphics->sset(x, y, (x+y)%15+1);
+        for (int y = 0; y < 128; y++) {
+            for (int x = 0; x < 128; x++) {
+                graphics->sset(x, y, (x + y) % 15 + 1);
             }
         }
 
@@ -1227,7 +1210,7 @@ TEST_CASE("graphics class behaves as expected") {
         //it should end instead of wrapping
         graphics->sspr(48, 0, 128, 32, 100, 50, 3, -4, false, false);
         graphics->spr(6, 0, 40, 16, 16, false, false);
-        
+
         std::vector<coloredPoint> expectedPoints = {
             {81, 40, 0},
             {81, 41, 0},
@@ -1240,9 +1223,9 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("sspr(...) draws last sprite (sprite 255)") {
         graphics->cls();
-        for(int y = 0; y < 128; y++) {
-            for(int x = 0; x < 128; x++) {
-                graphics->sset(x, y, (x+y)%15+1);
+        for (int y = 0; y < 128; y++) {
+            for (int x = 0; x < 128; x++) {
+                graphics->sset(x, y, (x + y) % 15 + 1);
             }
         }
 
@@ -1290,183 +1273,165 @@ TEST_CASE("graphics class behaves as expected") {
         checkPoints(graphics, expectedPoints);
     }
     */
-   SUBCASE("fget for sprite with none set")
-   {
-       auto result = graphics->fget(0);
+    SUBCASE("fget for sprite with none set") {
+        auto result = graphics->fget(0);
 
-       CHECK_EQ(result, 0);
-   }
-   SUBCASE("fget for sprite with flags set")
-   {
-       uint8_t flags = 47;
-       picoRam.spriteFlags[4] = flags;
-       auto result = graphics->fget(4);
+        CHECK_EQ(result, 0);
+    }
+    SUBCASE("fget for sprite with flags set") {
+        uint8_t flags = 47;
+        picoRam.spriteFlags[4] = flags;
+        auto result = graphics->fget(4);
 
-       CHECK_EQ(result, flags);
-   }
-   SUBCASE("fget for sprite and flag number with flags set")
-   {
-       //118 in binary: 0111 0110
-       uint8_t flags = 118;
-       picoRam.spriteFlags[12] = flags;
-       auto result0 = graphics->fget(12, 0);
-       auto result1 = graphics->fget(12, 1);
-       auto result2 = graphics->fget(12, 2);
-       auto result3 = graphics->fget(12, 3);
-       auto result4 = graphics->fget(12, 4);
-       auto result5 = graphics->fget(12, 5);
-       auto result6 = graphics->fget(12, 6);
-       auto result7 = graphics->fget(12, 7);
+        CHECK_EQ(result, flags);
+    }
+    SUBCASE("fget for sprite and flag number with flags set") {
+        //118 in binary: 0111 0110
+        uint8_t flags = 118;
+        picoRam.spriteFlags[12] = flags;
+        auto result0 = graphics->fget(12, 0);
+        auto result1 = graphics->fget(12, 1);
+        auto result2 = graphics->fget(12, 2);
+        auto result3 = graphics->fget(12, 3);
+        auto result4 = graphics->fget(12, 4);
+        auto result5 = graphics->fget(12, 5);
+        auto result6 = graphics->fget(12, 6);
+        auto result7 = graphics->fget(12, 7);
 
-       bool offBitsCorrect = result0 == false && result3 == false && result7 == false;
-       bool onBitsCorrect = result1 == true && result2 == true && result4 == true
-                         && result5 == true && result6 == true;
+        bool offBitsCorrect = result0 == false && result3 == false && result7 == false;
+        bool onBitsCorrect = result1 == true && result2 == true && result4 == true && result5 == true && result6 == true;
 
-       CHECK(offBitsCorrect);
-       CHECK(onBitsCorrect);
-   }
-   SUBCASE("fset sets value in ram")
-   {
-       uint8_t flags = 65;
-       graphics->fset(31, flags);
-       auto result = picoRam.spriteFlags[31];
+        CHECK(offBitsCorrect);
+        CHECK(onBitsCorrect);
+    }
+    SUBCASE("fset sets value in ram") {
+        uint8_t flags = 65;
+        graphics->fset(31, flags);
+        auto result = picoRam.spriteFlags[31];
 
-       CHECK_EQ(result, flags);
-   }
-   SUBCASE("fset for single flag sets value in ram")
-   {
-       //fifth bit and second bit 0010 0100 == 36 in decimal
-       graphics->fset(17, 5, true);
-       graphics->fset(17, 2, true);
+        CHECK_EQ(result, flags);
+    }
+    SUBCASE("fset for single flag sets value in ram") {
+        //fifth bit and second bit 0010 0100 == 36 in decimal
+        graphics->fset(17, 5, true);
+        graphics->fset(17, 2, true);
 
-       auto result = picoRam.spriteFlags[17];
+        auto result = picoRam.spriteFlags[17];
 
-       CHECK_EQ(result, 36);
-   }
-   SUBCASE("sget defaults to 0 when nothing on sprite sheet")
-   {
-       auto result = graphics->sget(14, 41);
+        CHECK_EQ(result, 36);
+    }
+    SUBCASE("sget defaults to 0 when nothing on sprite sheet") {
+        auto result = graphics->sget(14, 41);
 
-       CHECK_EQ(result, 0);
-   }
-   SUBCASE("sget returns correct value for even x pixel")
-   {
-       int x = 40;
-       int y = 10;
-       int combinedIdx = y * 64 + (x / 2);
-       picoRam.spriteSheetData[combinedIdx] = 137; //10001001
-       auto result = graphics->sget(x, y);
+        CHECK_EQ(result, 0);
+    }
+    SUBCASE("sget returns correct value for even x pixel") {
+        int x = 40;
+        int y = 10;
+        int combinedIdx = y * 64 + (x / 2);
+        picoRam.spriteSheetData[combinedIdx] = 137; //10001001
+        auto result = graphics->sget(x, y);
 
-       CHECK_EQ(result, 9);
-   }
-   SUBCASE("sget returns correct value for odd x pixel")
-   {
-       int x = 41;
-       int y = 11;
-       int combinedIdx = y * 64 + (x / 2);
-       picoRam.spriteSheetData[combinedIdx] = 200; //11001000
-       auto result = graphics->sget(x, y);
+        CHECK_EQ(result, 9);
+    }
+    SUBCASE("sget returns correct value for odd x pixel") {
+        int x = 41;
+        int y = 11;
+        int combinedIdx = y * 64 + (x / 2);
+        picoRam.spriteSheetData[combinedIdx] = 200; //11001000
+        auto result = graphics->sget(x, y);
 
-       CHECK_EQ(result, 12);
-   }
-   SUBCASE("sget returns 0 when out of bounds") {
+        CHECK_EQ(result, 12);
+    }
+    SUBCASE("sget returns 0 when out of bounds") {
         graphics->cls();
-        for(int y = 0; y < 128; y++) {
-            for(int x = 0; x < 128; x++) {
-                graphics->sset(x, y, (x+y)%15+1);
+        for (int y = 0; y < 128; y++) {
+            for (int x = 0; x < 128; x++) {
+                graphics->sset(x, y, (x + y) % 15 + 1);
             }
         }
 
         auto result = graphics->sget(128, 128);
 
-       CHECK_EQ(result, 0);
+        CHECK_EQ(result, 0);
     }
-   SUBCASE("sset sets value in ram for even x pixel")
-   {
-       uint8_t x = 60;
-       uint8_t y = 23;
-       graphics->sset(x, y, 14); //14 = 1110
+    SUBCASE("sset sets value in ram for even x pixel") {
+        uint8_t x = 60;
+        uint8_t y = 23;
+        graphics->sset(x, y, 14); //14 = 1110
 
-       int combinedIdx = y * 64 + (x / 2);
-       auto result = picoRam.spriteSheetData[combinedIdx];
+        int combinedIdx = y * 64 + (x / 2);
+        auto result = picoRam.spriteSheetData[combinedIdx];
 
-       CHECK_EQ(result, 14);
-   }
-   SUBCASE("sset sets value in ram for odd x pixel")
-   {
-       uint8_t x = 61;
-       uint8_t y = 23;
-       graphics->sset(x, y, 12); //12 = 1100
+        CHECK_EQ(result, 14);
+    }
+    SUBCASE("sset sets value in ram for odd x pixel") {
+        uint8_t x = 61;
+        uint8_t y = 23;
+        graphics->sset(x, y, 12); //12 = 1100
 
-       int combinedIdx = y * 64 + (x / 2);
-       auto result = picoRam.spriteSheetData[combinedIdx];
+        int combinedIdx = y * 64 + (x / 2);
+        auto result = picoRam.spriteSheetData[combinedIdx];
 
-       CHECK_EQ(result, 192);
-   }
-   SUBCASE("sset does nothing for out of bounds pixel")
-   {
-       uint8_t x = 128;
-       uint8_t y = 0;
-       graphics->sset(x, y, 14); //14 = 1110
+        CHECK_EQ(result, 192);
+    }
+    SUBCASE("sset does nothing for out of bounds pixel") {
+        uint8_t x = 128;
+        uint8_t y = 0;
+        graphics->sset(x, y, 14); //14 = 1110
 
-       int combinedIdx = y * 64 + (x / 2);
-       auto result = picoRam.spriteSheetData[combinedIdx];
+        int combinedIdx = y * 64 + (x / 2);
+        auto result = picoRam.spriteSheetData[combinedIdx];
 
-       CHECK_EQ(result, 0);
-   }
-   SUBCASE("camera({x}, {y}) sets values in memory")
-   {
-       uint8_t x = 33;
-       uint8_t y = 120;
-       graphics->camera(x, y);
+        CHECK_EQ(result, 0);
+    }
+    SUBCASE("camera({x}, {y}) sets values in memory") {
+        uint8_t x = 33;
+        uint8_t y = 120;
+        graphics->camera(x, y);
 
-       CHECK_EQ(picoRam.drawState.camera_x, x);
-       CHECK_EQ(picoRam.drawState.camera_y, y);
-   }
-   SUBCASE("camera() sets values in memory to 0")
-   {
-       picoRam.drawState.camera_x = 33;
-       picoRam.drawState.camera_y = 120;
-       graphics->camera();
+        CHECK_EQ(picoRam.drawState.camera_x, x);
+        CHECK_EQ(picoRam.drawState.camera_y, y);
+    }
+    SUBCASE("camera() sets values in memory to 0") {
+        picoRam.drawState.camera_x = 33;
+        picoRam.drawState.camera_y = 120;
+        graphics->camera();
 
-       CHECK_EQ(picoRam.drawState.camera_x, 0);
-       CHECK_EQ(picoRam.drawState.camera_y, 0);
-   }
-   SUBCASE("camera({x}, {y}) returns previous values")
-   {
-       uint8_t x = 33;
-       uint8_t y = 120;
-       graphics->camera(x, y);
-       auto prev = graphics->camera(120, 31);
+        CHECK_EQ(picoRam.drawState.camera_x, 0);
+        CHECK_EQ(picoRam.drawState.camera_y, 0);
+    }
+    SUBCASE("camera({x}, {y}) returns previous values") {
+        uint8_t x = 33;
+        uint8_t y = 120;
+        graphics->camera(x, y);
+        auto prev = graphics->camera(120, 31);
 
-       CHECK_EQ(std::get<0>(prev), x);
-       CHECK_EQ(std::get<1>(prev), y);
-   }
-   SUBCASE("camera values applies to pget")
-   {
-       uint8_t col = 13;
-       picoRam.drawState.camera_x = -44;
-       picoRam.drawState.camera_y = -3;
-       graphics->pset(14, 32, 13);
-       
-       auto result = graphics->pget(14, 32);
+        CHECK_EQ(std::get<0>(prev), x);
+        CHECK_EQ(std::get<1>(prev), y);
+    }
+    SUBCASE("camera values applies to pget") {
+        uint8_t col = 13;
+        picoRam.drawState.camera_x = -44;
+        picoRam.drawState.camera_y = -3;
+        graphics->pset(14, 32, 13);
 
-       CHECK_EQ(result, col);
-   }
-   SUBCASE("camera values applies to pset")
-   {
-       uint8_t col = 13;
-       picoRam.drawState.camera_x = -44;
-       picoRam.drawState.camera_y = -3;
-       graphics->pset(14, 32, 13);
-       graphics->camera();
-       
-       auto result = graphics->pget(58, 35);
+        auto result = graphics->pget(14, 32);
 
-       CHECK_EQ(result, col);
-   }
-   SUBCASE("camera values apply to line")
-   {
+        CHECK_EQ(result, col);
+    }
+    SUBCASE("camera values applies to pset") {
+        uint8_t col = 13;
+        picoRam.drawState.camera_x = -44;
+        picoRam.drawState.camera_y = -3;
+        graphics->pset(14, 32, 13);
+        graphics->camera();
+
+        auto result = graphics->pget(58, 35);
+
+        CHECK_EQ(result, col);
+    }
+    SUBCASE("camera values apply to line") {
         graphics->cls();
         graphics->camera(-10, -10);
         graphics->line(20, 20, 18, 22, 10);
@@ -1475,13 +1440,11 @@ TEST_CASE("graphics class behaves as expected") {
         std::vector<coloredPoint> expectedPoints = {
             {30, 30, 10},
             {29, 31, 10},
-            {28, 32, 10}
-        };
+            {28, 32, 10}};
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("camera values apply to circ")
-    {
+    SUBCASE("camera values apply to circ") {
         graphics->cls();
         graphics->camera(-20, -20);
         graphics->circ(40, 40, 1, 14);
@@ -1496,8 +1459,7 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("camera values apply to circfill")
-    {
+    SUBCASE("camera values apply to circfill") {
         graphics->cls();
         graphics->camera(-30, -30);
         graphics->circfill(40, 40, 1, 3);
@@ -1513,8 +1475,7 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("camera values apply to rect")
-    {
+    SUBCASE("camera values apply to rect") {
         graphics->cls();
         graphics->camera(-50, -50);
         graphics->rect(-10, -10, -8, -8, 4);
@@ -1533,8 +1494,7 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("camera values apply to rectfill")
-    {
+    SUBCASE("camera values apply to rectfill") {
         graphics->cls();
         graphics->camera(-100, -100);
         graphics->rectfill(0, 0, 1, 1, 3);
@@ -1549,14 +1509,13 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("camera values apply to spr")
-    {
-        for(uint8_t i = 0; i < 16; i++) {
-            for(uint8_t j = 0; j < 16; j++) {
+    SUBCASE("camera values apply to spr") {
+        for (uint8_t i = 0; i < 16; i++) {
+            for (uint8_t j = 0; j < 16; j++) {
                 graphics->sset(i, j, i);
             }
         }
-        
+
         graphics->cls();
         graphics->camera(-100, -100);
         graphics->spr(0, 10, 10, 1, 1, false, false);
@@ -1578,19 +1537,17 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("camera values apply to sspr")
-    {
-        for(uint8_t i = 0; i < 16; i++) {
-            for(uint8_t j = 0; j < 16; j++) {
+    SUBCASE("camera values apply to sspr") {
+        for (uint8_t i = 0; i < 16; i++) {
+            for (uint8_t j = 0; j < 16; j++) {
                 graphics->sset(i, j, i);
             }
         }
-        
+
         graphics->cls();
         graphics->camera(-100, -100);
         graphics->sspr(0, 0, 8, 8, 10, 10, 8, 8, false, false);
         graphics->camera();
-
 
         //diagonal across sprite
         std::vector<coloredPoint> expectedPoints = {
@@ -1608,8 +1565,7 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("clip() resets clip memory to entire screen")
-    {
+    SUBCASE("clip() resets clip memory to entire screen") {
         picoRam.drawState.clip_xb = 28;
         picoRam.drawState.clip_xe = 28;
         picoRam.drawState.clip_yb = 50;
@@ -1622,8 +1578,7 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(picoRam.drawState.clip_yb, 0);
         CHECK_EQ(picoRam.drawState.clip_ye, 128);
     }
-    SUBCASE("clip({x}, {y}, {w}, {h}) sets clip in memory")
-    {
+    SUBCASE("clip({x}, {y}, {w}, {h}) sets clip in memory") {
         graphics->clip(50, 75, 25, 25);
 
         CHECK_EQ(picoRam.drawState.clip_xb, 50);
@@ -1631,8 +1586,7 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(picoRam.drawState.clip_yb, 75);
         CHECK_EQ(picoRam.drawState.clip_ye, 100);
     }
-    SUBCASE("clip() returns prev value")
-    {
+    SUBCASE("clip() returns prev value") {
         picoRam.drawState.clip_xb = 28;
         picoRam.drawState.clip_xe = 29;
         picoRam.drawState.clip_yb = 50;
@@ -1645,17 +1599,15 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(std::get<2>(prev), 50);
         CHECK_EQ(std::get<3>(prev), 51);
     }
-    SUBCASE("clip values applies to pset")
-    {
-       graphics->clip(100, 100, 28, 28);
-       graphics->pset(32, 32, 13);
-       
-       auto result = graphics->pget(32, 32);
+    SUBCASE("clip values applies to pset") {
+        graphics->clip(100, 100, 28, 28);
+        graphics->pset(32, 32, 13);
 
-       CHECK_EQ(result, 0);
+        auto result = graphics->pget(32, 32);
+
+        CHECK_EQ(result, 0);
     }
-    SUBCASE("clip values apply to diagonal line") 
-    {
+    SUBCASE("clip values apply to diagonal line") {
         graphics->cls();
         graphics->clip(100, 100, 28, 28);
         graphics->line(98, 98, 102, 102, 10);
@@ -1670,8 +1622,7 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("clip values apply to horizontal line") 
-    {
+    SUBCASE("clip values apply to horizontal line") {
         graphics->cls();
         graphics->clip(100, 100, 28, 28);
         graphics->line(98, 102, 102, 102, 10);
@@ -1686,15 +1637,14 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("clip values apply to vertical line") 
-    {
+    SUBCASE("clip values apply to vertical line") {
         graphics->cls();
         graphics->clip(100, 100, 28, 28);
         graphics->line(102, 98, 102, 102, 10);
 
         std::vector<coloredPoint> expectedPoints = {
-            {102, 98,   0},
-            {102, 99,   0},
+            {102, 98, 0},
+            {102, 99, 0},
             {102, 100, 10},
             {102, 101, 10},
             {102, 102, 10},
@@ -1770,12 +1720,12 @@ TEST_CASE("graphics class behaves as expected") {
         checkPoints(graphics, expectedPoints);
     }
     SUBCASE("clip values apply to spr") {
-        for(uint8_t i = 0; i < 16; i++) {
-            for(uint8_t j = 0; j < 16; j++) {
+        for (uint8_t i = 0; i < 16; i++) {
+            for (uint8_t j = 0; j < 16; j++) {
                 graphics->sset(i, j, i);
             }
         }
-        
+
         graphics->cls();
         graphics->clip(111, 111, 17, 17);
         graphics->spr(0, 110, 110, 1, 1, false, false);
@@ -1797,16 +1747,15 @@ TEST_CASE("graphics class behaves as expected") {
         checkPoints(graphics, expectedPoints);
     }
     SUBCASE("clip values apply to sspr") {
-        for(uint8_t i = 0; i < 16; i++) {
-            for(uint8_t j = 0; j < 16; j++) {
+        for (uint8_t i = 0; i < 16; i++) {
+            for (uint8_t j = 0; j < 16; j++) {
                 graphics->sset(i, j, i);
             }
         }
-        
+
         graphics->cls();
         graphics->clip(100, 100, 28, 28);
         graphics->sspr(1, 1, 2, 2, 96, 96, 8, 8, false, false);
-
 
         //diagonal across sprite
         std::vector<coloredPoint> expectedPoints = {
@@ -1823,7 +1772,7 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("mget from upper half of map data (non-shared)"){
+    SUBCASE("mget from upper half of map data (non-shared)") {
         int x = 78;
         int y = 17;
         int idx = y * 128 + x;
@@ -1833,7 +1782,7 @@ TEST_CASE("graphics class behaves as expected") {
 
         CHECK_EQ(242, result);
     }
-    SUBCASE("mget from lower half of map data (shared)"){
+    SUBCASE("mget from lower half of map data (shared)") {
         int x = 121;
         int y = 57;
         int idx = y * 128 + x;
@@ -1843,10 +1792,10 @@ TEST_CASE("graphics class behaves as expected") {
 
         CHECK_EQ(71, result);
     }
-    SUBCASE("mget out of bounds returns 0"){
-        for(int y = 0; y < 64; y++){
-            for(int x = 0; x < 128; x++){
-                graphics->mset(x,y,1);
+    SUBCASE("mget out of bounds returns 0") {
+        for (int y = 0; y < 64; y++) {
+            for (int x = 0; x < 128; x++) {
+                graphics->mset(x, y, 1);
             }
         }
         auto result1 = graphics->mget(-1, 16);
@@ -1859,7 +1808,7 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(0, result3);
         CHECK_EQ(0, result4);
     }
-    SUBCASE("mset from upper half of map data (non-shared)"){
+    SUBCASE("mset from upper half of map data (non-shared)") {
         int x = 13;
         int y = 7;
         int idx = y * 128 + x;
@@ -1869,7 +1818,7 @@ TEST_CASE("graphics class behaves as expected") {
 
         CHECK_EQ(177, result);
     }
-    SUBCASE("mset from lower half of map data (shared)"){
+    SUBCASE("mset from lower half of map data (shared)") {
         int x = 12;
         int y = 63;
         int idx = y * 128 + x;
@@ -1879,7 +1828,7 @@ TEST_CASE("graphics class behaves as expected") {
 
         CHECK_EQ(251, result);
     }
-    SUBCASE("mset out of bounds does nothing"){
+    SUBCASE("mset out of bounds does nothing") {
         graphics->mset(-1, 16, 1);
         graphics->mset(128, 16, 1);
         graphics->mset(10, -1, 1);
@@ -1898,7 +1847,7 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(0, result4);
         CHECK_EQ(0, result5);
     }
-    SUBCASE("mset out of bounds of big map doesn't crash"){
+    SUBCASE("mset out of bounds of big map doesn't crash") {
         picoRam.data[0x5f56] = 0x80;
         const int cely = 128;
         const int celx = 128; //128 is out of bounds, but the index is inbounds
@@ -1913,18 +1862,18 @@ TEST_CASE("graphics class behaves as expected") {
 
         CHECK_EQ(resultBefore, resultAfter);
     }
-    SUBCASE("map with no layer argument draws map cell sprite"){
-        for(int i = 0; i < 128; i++) {
+    SUBCASE("map with no layer argument draws map cell sprite") {
+        for (int i = 0; i < 128; i++) {
             for (int j = 0; j < 32; j++)
-            graphics->sset(i, j, 5);
+                graphics->sset(i, j, 5);
         }
-        for(int x = 0; x < 128; x++) {
+        for (int x = 0; x < 128; x++) {
             for (int y = 0; y < 32; y++) {
                 graphics->mset(x, y, 1);
             }
         }
 
-        graphics->map(0,0,0,0,2,2);
+        graphics->map(0, 0, 0, 0, 2, 2);
 
         //diagonal across screen- 2x2 cells, 16x16 pixels
         std::vector<coloredPoint> expectedPoints = {
@@ -1938,18 +1887,18 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("map with unfilled layer argument doesn't draw"){
-        for(int i = 0; i < 128; i++) {
+    SUBCASE("map with unfilled layer argument doesn't draw") {
+        for (int i = 0; i < 128; i++) {
             for (int j = 0; j < 32; j++)
-            graphics->sset(i, j, 5);
+                graphics->sset(i, j, 5);
         }
-        for(int x = 0; x < 128; x++) {
+        for (int x = 0; x < 128; x++) {
             for (int y = 0; y < 32; y++) {
                 graphics->mset(x, y, 1);
             }
         }
 
-        graphics->map(0,0,0,0,2,2,5);
+        graphics->map(0, 0, 0, 0, 2, 2, 5);
 
         std::vector<coloredPoint> expectedPoints = {
             {0, 0, 0},
@@ -1961,12 +1910,12 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("map with filled layer argument doesn't draw"){
-        for(int i = 0; i < 128; i++) {
+    SUBCASE("map with filled layer argument doesn't draw") {
+        for (int i = 0; i < 128; i++) {
             for (int j = 0; j < 32; j++)
-            graphics->sset(i, j, 5);
+                graphics->sset(i, j, 5);
         }
-        for(int x = 0; x < 128; x++) {
+        for (int x = 0; x < 128; x++) {
             for (int y = 0; y < 32; y++) {
                 graphics->mset(x, y, 1);
             }
@@ -1974,7 +1923,7 @@ TEST_CASE("graphics class behaves as expected") {
         uint8_t layer = 3;
         graphics->fset(1, layer);
 
-        graphics->map(0,0,0,0,2,2,layer);
+        graphics->map(0, 0, 0, 0, 2, 2, layer);
 
         //diagonal across screen- 2x2 cells, 16x16 pixels
         std::vector<coloredPoint> expectedPoints = {
@@ -2086,10 +2035,10 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(5, graphics->getDrawPalMappedColor(14));
         CHECK_EQ(13, graphics->getScreenPalMappedColor(13));
     }
-    SUBCASE("pal changes sprite colors"){
-        for(int i = 0; i < 128; i++) {
+    SUBCASE("pal changes sprite colors") {
+        for (int i = 0; i < 128; i++) {
             for (int j = 0; j < 32; j++)
-            graphics->sset(i, j, 5);
+                graphics->sset(i, j, 5);
         }
         graphics->pal(5, 2, 0);
         graphics->spr(1, 0, 0, 1.0, 1.0, false, false);
@@ -2103,10 +2052,10 @@ TEST_CASE("graphics class behaves as expected") {
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("palt changes sprite transparency"){
-        for(int i = 0; i < 128; i++) {
+    SUBCASE("palt changes sprite transparency") {
+        for (int i = 0; i < 128; i++) {
             for (int j = 0; j < 32; j++)
-            graphics->sset(i, j, 5);
+                graphics->sset(i, j, 5);
         }
         graphics->palt(5, true);
         graphics->spr(1, 0, 0, 1.0, 1.0, false, false);
@@ -2131,20 +2080,20 @@ TEST_CASE("graphics class behaves as expected") {
 
         CHECK(graphics->isColorTransparent(4) == true);
     }
-    SUBCASE("cursor({x}, {y}) sets cursor loc in memory"){
+    SUBCASE("cursor({x}, {y}) sets cursor loc in memory") {
         graphics->cursor(4, 13);
 
         CHECK_EQ(picoRam.drawState.text_x, 4);
         CHECK_EQ(picoRam.drawState.text_y, 13);
     }
-    SUBCASE("cursor({x}, {y}, {c}) sets cursor loc in memory and color"){
+    SUBCASE("cursor({x}, {y}, {c}) sets cursor loc in memory and color") {
         graphics->cursor(42, 99, 3);
 
         CHECK_EQ(picoRam.drawState.text_x, 42);
         CHECK_EQ(picoRam.drawState.text_y, 99);
         CHECK_EQ(picoRam.drawState.color, 3);
     }
-    SUBCASE("cursor() resets cursor but not color"){
+    SUBCASE("cursor() resets cursor but not color") {
         graphics->cursor(42, 99, 3);
         graphics->cursor();
 
@@ -2152,8 +2101,7 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(picoRam.drawState.text_y, 0);
         CHECK_EQ(picoRam.drawState.color, 3);
     }
-    SUBCASE("cursor() returns previous values")
-    {
+    SUBCASE("cursor() returns previous values") {
         uint8_t x = 33;
         uint8_t y = 120;
         graphics->cursor(x, y);
@@ -2162,12 +2110,12 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(std::get<0>(prev), x);
         CHECK_EQ(std::get<1>(prev), y);
     }
-    SUBCASE("tline draws sprites from map"){
-        for(int i = 0; i < 128; i++) {
+    SUBCASE("tline draws sprites from map") {
+        for (int i = 0; i < 128; i++) {
             for (int j = 0; j < 32; j++)
-            graphics->sset(i, j, i%16);
+                graphics->sset(i, j, i % 16);
         }
-        for(int x = 0; x < 128; x++) {
+        for (int x = 0; x < 128; x++) {
             for (int y = 0; y < 32; y++) {
                 graphics->mset(x, y, (x + y) % 16);
             }
@@ -2177,19 +2125,18 @@ TEST_CASE("graphics class behaves as expected") {
 
         //diagonal across screen- 2x2 cells, 16x16 pixels
         std::vector<coloredPoint> expectedPoints = {
-            {27,34,8},
-            {28,35,9},
-            {29,36,10},
-            {30,37,11},
-            {31,38,12},
-            {32,39,13},
-            {33,40,14},
-            {34,41,15}
-        };
+            {27, 34, 8},
+            {28, 35, 9},
+            {29, 36, 10},
+            {30, 37, 11},
+            {31, 38, 12},
+            {32, 39, 13},
+            {33, 40, 14},
+            {34, 41, 15}};
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("tline frac bits change texture coordinate scale"){
+    SUBCASE("tline frac bits change texture coordinate scale") {
         auto fillSprite = [&](uint8_t snum, uint8_t col) {
             const int sx = (snum % 16) * 8;
             const int sy = (snum / 16) * 8;
@@ -2226,7 +2173,7 @@ TEST_CASE("graphics class behaves as expected") {
 
         graphics->setTlineFracBits(13);
     }
-    SUBCASE("fillp(pat) sets values in memory"){
+    SUBCASE("fillp(pat) sets values in memory") {
         //0011001111001100 - 2x2 checkerboard
         graphics->fillp(0x33cc);
 
@@ -2238,14 +2185,14 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(picoRam.data[0x5f32], 0x33);
         CHECK_EQ(picoRam.data[0x5f33], 0);
     }
-    SUBCASE("fillp(pat) returns previous"){
+    SUBCASE("fillp(pat) returns previous") {
         graphics->fillp(0x33cc);
 
         auto prev = graphics->fillp(0x44dd);
 
         CHECK_EQ(prev.bits(), 0x33cc0000);
     }
-    SUBCASE("fillp sprite flag sets 0x5f33 bit 1"){
+    SUBCASE("fillp sprite flag sets 0x5f33 bit 1") {
         graphics->fillp(49110.25);
 
         CHECK_EQ(picoRam.drawState.fillPattern[0], 0xd6);
@@ -2254,7 +2201,7 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(picoRam.data[0x5f33], 0x02);
         CHECK_EQ(picoRam.hwState.alternatePaletteFlag, 0);
     }
-    SUBCASE("fillp 0xbfd6.4 hex pattern matches sprite flag in 0x5f33"){
+    SUBCASE("fillp 0xbfd6.4 hex pattern matches sprite flag in 0x5f33") {
         graphics->fillp(49110.25);
 
         CHECK_EQ(picoRam.drawState.fillPattern[0], 0xd6);
@@ -2262,13 +2209,13 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(picoRam.data[0x5f33], 0x02);
         CHECK_EQ(picoRam.data[0x5f5f], 0);
     }
-    SUBCASE("fillp transparency flag sets 0x5f33 bit 0"){
+    SUBCASE("fillp transparency flag sets 0x5f33 bit 0") {
         graphics->fillp(23130.5);
 
         CHECK((picoRam.drawState.fillPatternTransparencyBit & 0x01) != 0);
         CHECK_EQ(picoRam.data[0x5f33] & 0x01, 0x01);
     }
-    SUBCASE("pal p=2 maps secondary palette for sprite fillp"){
+    SUBCASE("pal p=2 maps secondary palette for sprite fillp") {
         for (int x = 0; x < 8; x++) {
             for (int y = 0; y < 8; y++) {
                 graphics->sset(x, y, 2);
@@ -2286,7 +2233,7 @@ TEST_CASE("graphics class behaves as expected") {
         CHECK_EQ(picoRam.hwState.alternatePaletteMap[2], 0xff);
         CHECK(graphics->pget(14, 14) != 0);
     }
-    SUBCASE("pal p=2 all-zero secondary makes sprite fillp transparent"){
+    SUBCASE("pal p=2 all-zero secondary makes sprite fillp transparent") {
         for (int x = 0; x < 8; x++) {
             for (int y = 0; y < 8; y++) {
                 graphics->sset(x, y, 2);
@@ -2302,7 +2249,7 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->sspr(0, 0, 8, 8, 10, 10, 16, 16, false, false);
         CHECK_EQ(graphics->pget(14, 14), 0);
     }
-    SUBCASE("fill pattern affects rectfill"){
+    SUBCASE("fill pattern affects rectfill") {
         //0b0101101001011010 - 1x1 checkerboard
         graphics->fillp(0x5A5A);
         graphics->cls(8);
@@ -2311,76 +2258,75 @@ TEST_CASE("graphics class behaves as expected") {
 
         //black and yellow 4x4 checkerboard, with pink elsewhere
         std::vector<coloredPoint> expectedPoints = {
-            { 0, 0,10},
-            { 1, 0, 0},
-            { 2, 0,10},
-            { 3, 0, 0},
-            { 4, 0,10},
-            { 5, 0, 8},
-            { 0, 1, 0},
-            { 1, 1,10},
-            { 2, 1, 0},
-            { 3, 1,10},
-            { 4, 1, 0},
-            { 5, 1, 8},
-            { 0, 2,10},
-            { 1, 2, 0},
-            { 2, 2,10},
-            { 3, 2, 0},
-            { 4, 2,10},
-            { 5, 2, 8},
-            { 0, 3, 0},
-            { 1, 3,10},
-            { 2, 3, 0},
-            { 3, 3,10},
-            { 4, 3, 0},
-            { 5, 3, 8},
-            { 0, 4,10},
-            { 1, 4, 0},
-            { 2, 4,10},
-            { 3, 4, 0},
-            { 4, 4,10},
-            { 5, 4, 8},
-            { 0, 5, 8},
-            { 1, 5, 8},
-            { 2, 5, 8},
-            { 3, 5, 8},
-            { 4, 5, 8},
-            { 5, 5, 8},
+            {0, 0, 10},
+            {1, 0, 0},
+            {2, 0, 10},
+            {3, 0, 0},
+            {4, 0, 10},
+            {5, 0, 8},
+            {0, 1, 0},
+            {1, 1, 10},
+            {2, 1, 0},
+            {3, 1, 10},
+            {4, 1, 0},
+            {5, 1, 8},
+            {0, 2, 10},
+            {1, 2, 0},
+            {2, 2, 10},
+            {3, 2, 0},
+            {4, 2, 10},
+            {5, 2, 8},
+            {0, 3, 0},
+            {1, 3, 10},
+            {2, 3, 0},
+            {3, 3, 10},
+            {4, 3, 0},
+            {5, 3, 8},
+            {0, 4, 10},
+            {1, 4, 0},
+            {2, 4, 10},
+            {3, 4, 0},
+            {4, 4, 10},
+            {5, 4, 8},
+            {0, 5, 8},
+            {1, 5, 8},
+            {2, 5, 8},
+            {3, 5, 8},
+            {4, 5, 8},
+            {5, 5, 8},
         };
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("fill pattern with transparency"){
+    SUBCASE("fill pattern with transparency") {
         //0b0101101001011010.1 - 1x1 checkerboard with transparency
         graphics->fillp(23130.5);
         graphics->cls(3);
 
         graphics->rectfill(0, 0, 2, 2, 11);
-        
+
         //3x3 checkerboard, with alt set to transparent
         std::vector<coloredPoint> expectedPoints = {
-            { 0, 0,11},
-            { 1, 0, 3},
-            { 2, 0,11},
-            { 3, 0, 3},
-            { 0, 1, 3},
-            { 1, 1,11},
-            { 2, 1, 3},
-            { 3, 1, 3},
-            { 0, 2,11},
-            { 1, 2, 3},
-            { 2, 2,11},
-            { 3, 2, 3},
-            { 0, 3, 3},
-            { 1, 3, 3},
-            { 2, 3, 3},
-            { 3, 3, 3}
-        };
+            {0, 0, 11},
+            {1, 0, 3},
+            {2, 0, 11},
+            {3, 0, 3},
+            {0, 1, 3},
+            {1, 1, 11},
+            {2, 1, 3},
+            {3, 1, 3},
+            {0, 2, 11},
+            {1, 2, 3},
+            {2, 2, 11},
+            {3, 2, 3},
+            {0, 3, 3},
+            {1, 3, 3},
+            {2, 3, 3},
+            {3, 3, 3}};
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("fill pattern oriented correctly"){
+    SUBCASE("fill pattern oriented correctly") {
         //311 = 0b0000000100110111
         //0000
         //0001
@@ -2394,32 +2340,31 @@ TEST_CASE("graphics class behaves as expected") {
 
         //black and yellow 4x4 checkerboard, with pink elsewhere
         std::vector<coloredPoint> expectedPoints = {
-            { 0, 0, 8},
-            { 1, 0, 8},
-            { 2, 0, 8},
-            { 3, 0, 8},
-            { 4, 0, 0},
-            { 0, 1, 8},
-            { 1, 1, 8},
-            { 2, 1, 8},
-            { 3, 1,14},
-            { 4, 1, 0},
-            { 0, 2, 8},
-            { 1, 2, 8},
-            { 2, 2,14},
-            { 3, 2,14},
-            { 4, 2, 0},
-            { 0, 3, 8},
-            { 1, 3,14},
-            { 2, 3,14},
-            { 3, 3,14},
-            { 4, 3, 0},
-            { 0, 4, 0},
-            { 1, 4, 0},
-            { 2, 4, 0},
-            { 3, 4, 0},
-            { 4, 4, 0}
-        };
+            {0, 0, 8},
+            {1, 0, 8},
+            {2, 0, 8},
+            {3, 0, 8},
+            {4, 0, 0},
+            {0, 1, 8},
+            {1, 1, 8},
+            {2, 1, 8},
+            {3, 1, 14},
+            {4, 1, 0},
+            {0, 2, 8},
+            {1, 2, 8},
+            {2, 2, 14},
+            {3, 2, 14},
+            {4, 2, 0},
+            {0, 3, 8},
+            {1, 3, 14},
+            {2, 3, 14},
+            {3, 3, 14},
+            {4, 3, 0},
+            {0, 4, 0},
+            {1, 4, 0},
+            {2, 4, 0},
+            {3, 4, 0},
+            {4, 4, 0}};
 
         checkPoints(graphics, expectedPoints);
     }
@@ -2467,7 +2412,7 @@ TEST_CASE("graphics class behaves as expected") {
         checkPoints(graphics, expectedPoints);
     }
     */
-    SUBCASE("Remap spritesheet to screen (after drawing character to screen)"){
+    SUBCASE("Remap spritesheet to screen (after drawing character to screen)") {
         graphics->cls();
 
         //emulate print("zo",8,0)
@@ -2480,98 +2425,97 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->spr(1, 0, 64, 1.0, 1.0, false, false);
 
         std::vector<coloredPoint> expectedPoints = {
-            {0,64,6},
-            {1,64,6},
-            {2,64,6},
-            {3,64,0},
-            {4,64,0},
-            {5,64,6},
-            {6,64,6},
-            {7,64,0},
-            {8,64,0},
-            {0,65,0},
-            {1,65,0},
-            {2,65,6},
-            {3,65,0},
-            {4,65,6},
-            {5,65,0},
-            {6,65,6},
-            {7,65,0},
-            {8,65,0},
-            {0,66,0},
-            {1,66,6},
-            {2,66,0},
-            {3,66,0},
-            {4,66,6},
-            {5,66,0},
-            {6,66,6},
-            {7,66,0},
-            {8,66,0},
-            {0,67,6},
-            {1,67,0},
-            {2,67,0},
-            {3,67,0},
-            {4,67,6},
-            {5,67,0},
-            {6,67,6},
-            {7,67,0},
-            {8,67,0},
-            {0,68,6},
-            {1,68,6},
-            {2,68,6},
-            {3,68,0},
-            {4,68,6},
-            {5,68,6}
-       };
+            {0, 64, 6},
+            {1, 64, 6},
+            {2, 64, 6},
+            {3, 64, 0},
+            {4, 64, 0},
+            {5, 64, 6},
+            {6, 64, 6},
+            {7, 64, 0},
+            {8, 64, 0},
+            {0, 65, 0},
+            {1, 65, 0},
+            {2, 65, 6},
+            {3, 65, 0},
+            {4, 65, 6},
+            {5, 65, 0},
+            {6, 65, 6},
+            {7, 65, 0},
+            {8, 65, 0},
+            {0, 66, 0},
+            {1, 66, 6},
+            {2, 66, 0},
+            {3, 66, 0},
+            {4, 66, 6},
+            {5, 66, 0},
+            {6, 66, 6},
+            {7, 66, 0},
+            {8, 66, 0},
+            {0, 67, 6},
+            {1, 67, 0},
+            {2, 67, 0},
+            {3, 67, 0},
+            {4, 67, 6},
+            {5, 67, 0},
+            {6, 67, 6},
+            {7, 67, 0},
+            {8, 67, 0},
+            {0, 68, 6},
+            {1, 68, 6},
+            {2, 68, 6},
+            {3, 68, 0},
+            {4, 68, 6},
+            {5, 68, 6}};
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("Remap screen to spritesheet"){
+    SUBCASE("Remap screen to spritesheet") {
         graphics->cls();
-        graphics->sset(125,125,4);
-        graphics->sset(126,126,5);
-        graphics->sset(127,127,6);
-        graphics->sset(128,128,13);
+        graphics->sset(125, 125, 4);
+        graphics->sset(126, 126, 5);
+        graphics->sset(127, 127, 6);
+        graphics->sset(128, 128, 13);
 
         picoRam.hwState.screenDataMemMapping = 0x00;
 
         std::vector<coloredPoint> expectedPoints = {
-            {124,124,0},
-            {125,124,0},
-            {126,124,0},
-            {127,124,0},
-            {128,124,0},
-            {124,125,0},
-            {125,125,4},
-            {126,125,0},
-            {127,125,0},
-            {128,125,0},
-            {124,126,0},
-            {125,126,0},
-            {126,126,5},
-            {127,126,0},
-            {128,126,0},
-            {124,127,0},
-            {125,127,0},
-            {126,127,0},
-            {127,127,6},
-            {128,127,0},
-            {124,128,0},
-            {125,128,0},
-            {126,128,0},
-            {127,128,0},
-            {128,128,0}
+            {124, 124, 0},
+            {125, 124, 0},
+            {126, 124, 0},
+            {127, 124, 0},
+            {128, 124, 0},
+            {124, 125, 0},
+            {125, 125, 4},
+            {126, 125, 0},
+            {127, 125, 0},
+            {128, 125, 0},
+            {124, 126, 0},
+            {125, 126, 0},
+            {126, 126, 5},
+            {127, 126, 0},
+            {128, 126, 0},
+            {124, 127, 0},
+            {125, 127, 0},
+            {126, 127, 0},
+            {127, 127, 6},
+            {128, 127, 0},
+            {124, 128, 0},
+            {125, 128, 0},
+            {126, 128, 0},
+            {127, 128, 0},
+            {128, 128, 0}
 
-       };
+        };
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("change map width"){
+    SUBCASE("change map width") {
         picoRam.data[0x5f57] = 4;
 
-        for(int y = 0; y < 8; y++){
-            for(int x = 0; x < 32; x++) {
-                graphics->sset(x,y,(x/8) + 1);
+        for (int y = 0; y < 8; y++) {
+            for (int x = 0; x < 32; x++) {
+                graphics->sset(x, y, (x / 8) + 1);
             }
         }
 
@@ -2591,29 +2535,29 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->map(0, 2040, 64, 64, 4, 8);
 
         CHECK_EQ(picoRam.hwState.widthOfTheMap, 4);
-        CHECK_EQ(graphics->mget(0,0), 1);
-        CHECK_EQ(graphics->mget(3,2047), 2);
-        
-        std::vector<coloredPoint> expectedPoints = {
-            {6,6,2},
-            {14,6,3},
-            {6,14,3},
-            {14,14,2},
+        CHECK_EQ(graphics->mget(0, 0), 1);
+        CHECK_EQ(graphics->mget(3, 2047), 2);
 
-            {82,118,3},
-            {90,118,4},
-            {82,126,4},
-            {90,126,3},
-       };
+        std::vector<coloredPoint> expectedPoints = {
+            {6, 6, 2},
+            {14, 6, 3},
+            {6, 14, 3},
+            {14, 14, 2},
+
+            {82, 118, 3},
+            {90, 118, 4},
+            {82, 126, 4},
+            {90, 126, 3},
+        };
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("use extended ram for big map"){
+    SUBCASE("use extended ram for big map") {
         picoRam.data[0x5f56] = 0x80;
-        
-        for(int y = 0; y < 8; y++){
-            for(int x = 64; x < 96; x++) {
-                graphics->sset(x,y,(x/8) + 1);
+
+        for (int y = 0; y < 8; y++) {
+            for (int x = 64; x < 96; x++) {
+                graphics->sset(x, y, (x / 8) + 1);
             }
         }
 
@@ -2633,34 +2577,34 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->map(126, 254, 112, 112, 2, 2);
 
         CHECK_EQ(picoRam.hwState.mapMemMapping, 0x80);
-        CHECK_EQ(graphics->mget(0,0), 8);
+        CHECK_EQ(graphics->mget(0, 0), 8);
         CHECK_EQ(picoRam.data[0x8000], 8);
         CHECK_EQ(picoRam.userData[0], 8);
-        CHECK_EQ(graphics->mget(127,255), 9);
+        CHECK_EQ(graphics->mget(127, 255), 9);
         CHECK_EQ(picoRam.data[0xFFFF], 9);
         CHECK_EQ(picoRam.userData[0x7FFF], 9);
-        
-        std::vector<coloredPoint> expectedPoints = {
-            {12,12,9},
-            {20,12,10},
-            {12,20,10},
-            {20,20,9},
 
-            {116,116,10},
-            {124,116,11},
-            {116,124,11},
-            {124,124,10},
-       };
+        std::vector<coloredPoint> expectedPoints = {
+            {12, 12, 9},
+            {20, 12, 10},
+            {12, 20, 10},
+            {20, 20, 9},
+
+            {116, 116, 10},
+            {124, 116, 11},
+            {116, 124, 11},
+            {124, 124, 10},
+        };
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("use only part of extended ram for big map"){
+    SUBCASE("use only part of extended ram for big map") {
         picoRam.data[0x5f56] = 0xb6;
         //18944 total map bytes, 148 lines (using default 128 width)
-        
-        for(int y = 0; y < 8; y++){
-            for(int x = 64; x < 96; x++) {
-                graphics->sset(x,y,(x/8) + 3);
+
+        for (int y = 0; y < 8; y++) {
+            for (int x = 64; x < 96; x++) {
+                graphics->sset(x, y, (x / 8) + 3);
             }
         }
 
@@ -2681,32 +2625,32 @@ TEST_CASE("graphics class behaves as expected") {
 
         CHECK_EQ(picoRam.hwState.mapMemMapping, 0xb6);
         CHECK_EQ(picoRam.data[0x5f56], 0xb6);
-        CHECK_EQ(graphics->mget(0,0), 8);
+        CHECK_EQ(graphics->mget(0, 0), 8);
         CHECK_EQ(picoRam.data[0xb600], 8);
-        CHECK_EQ(graphics->mget(127,147), 9);
+        CHECK_EQ(graphics->mget(127, 147), 9);
         CHECK_EQ(picoRam.data[0xFFFF], 9);
-        
-        std::vector<coloredPoint> expectedPoints = {
-            {12,12,11},
-            {20,12,12},
-            {12,20,12},
-            {20,20,11},
 
-            {116,116,12},
-            {124,116,13},
-            {116,124,13},
-            {124,124,12},
-       };
+        std::vector<coloredPoint> expectedPoints = {
+            {12, 12, 11},
+            {20, 12, 12},
+            {12, 20, 12},
+            {20, 20, 11},
+
+            {116, 116, 12},
+            {124, 116, 13},
+            {116, 124, 13},
+            {124, 124, 12},
+        };
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("map width set to 256 functions as expected"){
+    SUBCASE("map width set to 256 functions as expected") {
         picoRam.data[0x5f56] = 0x80;
         picoRam.data[0x5f57] = 0;
-        
-        for(int y = 0; y < 8; y++){
-            for(int x = 64; x < 96; x++) {
-                graphics->sset(x,y,(x/8) + 1);
+
+        for (int y = 0; y < 8; y++) {
+            for (int x = 64; x < 96; x++) {
+                graphics->sset(x, y, (x / 8) + 1);
             }
         }
 
@@ -2726,14 +2670,14 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->map(254, 126, 112, 112, 2, 2);
 
         CHECK_EQ(picoRam.hwState.widthOfTheMap, 0);
-        CHECK_EQ(graphics->mget(0,0), 8);
+        CHECK_EQ(graphics->mget(0, 0), 8);
         CHECK_EQ(picoRam.data[0x8000], 8);
         CHECK_EQ(picoRam.userData[0], 8);
         CHECK_EQ(graphics->mget(255, 127), 9);
         CHECK_EQ(picoRam.data[0xFFFF], 9);
         CHECK_EQ(picoRam.userData[0x7FFF], 9);
     }
-    SUBCASE("drawCharacter with forced width and height for wide character"){
+    SUBCASE("drawCharacter with forced width and height for wide character") {
         graphics->cls();
 
         //emulate print("\^x0\^y1▤a",10,10,9)
@@ -2743,30 +2687,30 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->drawCharacter(65, 10, 10, 9, 0, 0, 0, 1);
 
         std::vector<coloredPoint> expectedPoints = {
-            {9,10,0},
-            {10,10,9},
-            {11,10,9},
-            {12,10,9},
-            {13,10,9},
-            {14,10,0},
-            {9,11,0},
-            {10,11,0},
-            {11,11,0},
-            {12,11,0},
-            {13,11,0},
-            {14,11,0},
-            {9,12,0},
-            {10,12,0},
-            {11,12,0},
-            {12,12,0},
-            {13,12,0},
-            {14,12,0},
+            {9, 10, 0},
+            {10, 10, 9},
+            {11, 10, 9},
+            {12, 10, 9},
+            {13, 10, 9},
+            {14, 10, 0},
+            {9, 11, 0},
+            {10, 11, 0},
+            {11, 11, 0},
+            {12, 11, 0},
+            {13, 11, 0},
+            {14, 11, 0},
+            {9, 12, 0},
+            {10, 12, 0},
+            {11, 12, 0},
+            {12, 12, 0},
+            {13, 12, 0},
+            {14, 12, 0},
 
-       };
+        };
 
         checkPoints(graphics, expectedPoints);
     }
-    SUBCASE("drawCharacter with forced width and height for normal character"){
+    SUBCASE("drawCharacter with forced width and height for normal character") {
         graphics->cls();
 
         //emulate print("\^x3\^y3a",10,10,9)
@@ -2774,32 +2718,32 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->drawCharacter(97, 10, 10, 9, 0, 0, 3, 3);
 
         std::vector<coloredPoint> expectedPoints = {
-            {9,10,0},
-            {10,10,9},
-            {11,10,9},
-            {12,10,9},
-            {13,10,0},
-            {14,10,0},
-            {9,11,0},
-            {10,11,9},
-            {11,11,0},
-            {12,11,9},
-            {13,11,0},
-            {14,11,0},
-            {9,12,0},
-            {10,12,9},
-            {11,12,9},
-            {12,12,9},
-            {13,12,0},
-            {14,12,0},
-            {9,14,0},
-            {10,14,0},
-            {11,14,0},
-            {12,14,0},
-            {13,14,0},
-            {14,14,0},
+            {9, 10, 0},
+            {10, 10, 9},
+            {11, 10, 9},
+            {12, 10, 9},
+            {13, 10, 0},
+            {14, 10, 0},
+            {9, 11, 0},
+            {10, 11, 9},
+            {11, 11, 0},
+            {12, 11, 9},
+            {13, 11, 0},
+            {14, 11, 0},
+            {9, 12, 0},
+            {10, 12, 9},
+            {11, 12, 9},
+            {12, 12, 9},
+            {13, 12, 0},
+            {14, 12, 0},
+            {9, 14, 0},
+            {10, 14, 0},
+            {11, 14, 0},
+            {12, 14, 0},
+            {13, 14, 0},
+            {14, 14, 0},
 
-       };
+        };
 
         checkPoints(graphics, expectedPoints);
     }
@@ -2827,7 +2771,7 @@ TEST_CASE("graphics class behaves as expected") {
     SUBCASE("rrectfill with no radius draws a rect") {
         graphics->cls();
         graphics->rrectfill(40, 40, 3, 3, 0, 15);
-    
+
         std::vector<coloredPoint> expectedPoints = {
             {40, 40, 15},
             {40, 41, 15},
@@ -2867,14 +2811,40 @@ TEST_CASE("graphics class behaves as expected") {
 
         std::vector<coloredPoint> expectedPoints = {
             // Row 0: cut 1 from each side
-            {11, 10, 8}, {12, 10, 8}, {13, 10, 8}, {14, 10, 8},
+            {11, 10, 8},
+            {12, 10, 8},
+            {13, 10, 8},
+            {14, 10, 8},
             // Rows 1-4: full width
-            {10, 11, 8}, {11, 11, 8}, {12, 11, 8}, {13, 11, 8}, {14, 11, 8}, {15, 11, 8},
-            {10, 12, 8}, {11, 12, 8}, {12, 12, 8}, {13, 12, 8}, {14, 12, 8}, {15, 12, 8},
-            {10, 13, 8}, {11, 13, 8}, {12, 13, 8}, {13, 13, 8}, {14, 13, 8}, {15, 13, 8},
-            {10, 14, 8}, {11, 14, 8}, {12, 14, 8}, {13, 14, 8}, {14, 14, 8}, {15, 14, 8},
+            {10, 11, 8},
+            {11, 11, 8},
+            {12, 11, 8},
+            {13, 11, 8},
+            {14, 11, 8},
+            {15, 11, 8},
+            {10, 12, 8},
+            {11, 12, 8},
+            {12, 12, 8},
+            {13, 12, 8},
+            {14, 12, 8},
+            {15, 12, 8},
+            {10, 13, 8},
+            {11, 13, 8},
+            {12, 13, 8},
+            {13, 13, 8},
+            {14, 13, 8},
+            {15, 13, 8},
+            {10, 14, 8},
+            {11, 14, 8},
+            {12, 14, 8},
+            {13, 14, 8},
+            {14, 14, 8},
+            {15, 14, 8},
             // Row 5: cut 1 from each side
-            {11, 15, 8}, {12, 15, 8}, {13, 15, 8}, {14, 15, 8},
+            {11, 15, 8},
+            {12, 15, 8},
+            {13, 15, 8},
+            {14, 15, 8},
         };
 
         checkPoints(graphics, expectedPoints);
@@ -2901,18 +2871,62 @@ TEST_CASE("graphics class behaves as expected") {
 
         std::vector<coloredPoint> expectedPoints = {
             // Row 0: cut 2 from each side
-            {22, 20, 7}, {23, 20, 7}, {24, 20, 7}, {25, 20, 7},
+            {22, 20, 7},
+            {23, 20, 7},
+            {24, 20, 7},
+            {25, 20, 7},
             // Row 1: cut 1 from each side
-            {21, 21, 7}, {22, 21, 7}, {23, 21, 7}, {24, 21, 7}, {25, 21, 7}, {26, 21, 7},
+            {21, 21, 7},
+            {22, 21, 7},
+            {23, 21, 7},
+            {24, 21, 7},
+            {25, 21, 7},
+            {26, 21, 7},
             // Middle rows: full width
-            {20, 22, 7}, {21, 22, 7}, {22, 22, 7}, {23, 22, 7}, {24, 22, 7}, {25, 22, 7}, {26, 22, 7}, {27, 22, 7},
-            {20, 23, 7}, {21, 23, 7}, {22, 23, 7}, {23, 23, 7}, {24, 23, 7}, {25, 23, 7}, {26, 23, 7}, {27, 23, 7},
-            {20, 24, 7}, {21, 24, 7}, {22, 24, 7}, {23, 24, 7}, {24, 24, 7}, {25, 24, 7}, {26, 24, 7}, {27, 24, 7},
-            {20, 25, 7}, {21, 25, 7}, {22, 25, 7}, {23, 25, 7}, {24, 25, 7}, {25, 25, 7}, {26, 25, 7}, {27, 25, 7},
+            {20, 22, 7},
+            {21, 22, 7},
+            {22, 22, 7},
+            {23, 22, 7},
+            {24, 22, 7},
+            {25, 22, 7},
+            {26, 22, 7},
+            {27, 22, 7},
+            {20, 23, 7},
+            {21, 23, 7},
+            {22, 23, 7},
+            {23, 23, 7},
+            {24, 23, 7},
+            {25, 23, 7},
+            {26, 23, 7},
+            {27, 23, 7},
+            {20, 24, 7},
+            {21, 24, 7},
+            {22, 24, 7},
+            {23, 24, 7},
+            {24, 24, 7},
+            {25, 24, 7},
+            {26, 24, 7},
+            {27, 24, 7},
+            {20, 25, 7},
+            {21, 25, 7},
+            {22, 25, 7},
+            {23, 25, 7},
+            {24, 25, 7},
+            {25, 25, 7},
+            {26, 25, 7},
+            {27, 25, 7},
             // Row 6: cut 1 from each side
-            {21, 26, 7}, {22, 26, 7}, {23, 26, 7}, {24, 26, 7}, {25, 26, 7}, {26, 26, 7},
+            {21, 26, 7},
+            {22, 26, 7},
+            {23, 26, 7},
+            {24, 26, 7},
+            {25, 26, 7},
+            {26, 26, 7},
             // Row 7: cut 2 from each side
-            {22, 27, 7}, {23, 27, 7}, {24, 27, 7}, {25, 27, 7},
+            {22, 27, 7},
+            {23, 27, 7},
+            {24, 27, 7},
+            {25, 27, 7},
         };
 
         checkPoints(graphics, expectedPoints);
@@ -2940,14 +2954,40 @@ TEST_CASE("graphics class behaves as expected") {
         std::vector<coloredPoint> expectedPoints = {
             // Test key points based on r=6 pattern: {5,3,2,1,1,0}
             // Row 0: cut 5 from each side -> width 6
-            {15, 10, 12}, {16, 10, 12}, {17, 10, 12}, {18, 10, 12}, {19, 10, 12}, {20, 10, 12},
+            {15, 10, 12},
+            {16, 10, 12},
+            {17, 10, 12},
+            {18, 10, 12},
+            {19, 10, 12},
+            {20, 10, 12},
             // Row 1: cut 3 from each side -> width 10
-            {13, 11, 12}, {14, 11, 12}, {15, 11, 12}, {16, 11, 12}, {17, 11, 12}, 
-            {18, 11, 12}, {19, 11, 12}, {20, 11, 12}, {21, 11, 12}, {22, 11, 12},
+            {13, 11, 12},
+            {14, 11, 12},
+            {15, 11, 12},
+            {16, 11, 12},
+            {17, 11, 12},
+            {18, 11, 12},
+            {19, 11, 12},
+            {20, 11, 12},
+            {21, 11, 12},
+            {22, 11, 12},
             // Row 5: cut 0 -> full width (16 pixels)
-            {10, 15, 12}, {11, 15, 12}, {12, 15, 12}, {13, 15, 12}, {14, 15, 12}, {15, 15, 12}, 
-            {16, 15, 12}, {17, 15, 12}, {18, 15, 12}, {19, 15, 12}, {20, 15, 12}, {21, 15, 12}, 
-            {22, 15, 12}, {23, 15, 12}, {24, 15, 12}, {25, 15, 12},
+            {10, 15, 12},
+            {11, 15, 12},
+            {12, 15, 12},
+            {13, 15, 12},
+            {14, 15, 12},
+            {15, 15, 12},
+            {16, 15, 12},
+            {17, 15, 12},
+            {18, 15, 12},
+            {19, 15, 12},
+            {20, 15, 12},
+            {21, 15, 12},
+            {22, 15, 12},
+            {23, 15, 12},
+            {24, 15, 12},
+            {25, 15, 12},
         };
 
         checkPoints(graphics, expectedPoints);
@@ -2957,14 +2997,30 @@ TEST_CASE("graphics class behaves as expected") {
         graphics->rrect(30, 30, 10, 8, 10, 5); // radius 10 should be clamped to 4 (8/2)
 
         std::vector<coloredPoint> expectedPoints = {
-            {33, 30, 5}, {34, 30, 5}, {35, 30, 5}, {36, 30, 5},
-            {31, 31, 5}, {32, 31, 5}, {37, 31, 5}, {38, 31, 5},
-            {31, 32, 5}, {38, 32, 5},
-            {30, 33, 5}, {39, 33, 5},
-            {30, 34, 5}, {39, 34, 5},
-            {31, 35, 5}, {38, 35, 5},
-            {31, 36, 5}, {32, 36, 5}, {37, 36, 5}, {38, 36, 5},
-            {33, 37, 5}, {34, 37, 5}, {35, 37, 5}, {36, 37, 5},
+            {33, 30, 5},
+            {34, 30, 5},
+            {35, 30, 5},
+            {36, 30, 5},
+            {31, 31, 5},
+            {32, 31, 5},
+            {37, 31, 5},
+            {38, 31, 5},
+            {31, 32, 5},
+            {38, 32, 5},
+            {30, 33, 5},
+            {39, 33, 5},
+            {30, 34, 5},
+            {39, 34, 5},
+            {31, 35, 5},
+            {38, 35, 5},
+            {31, 36, 5},
+            {32, 36, 5},
+            {37, 36, 5},
+            {38, 36, 5},
+            {33, 37, 5},
+            {34, 37, 5},
+            {35, 37, 5},
+            {36, 37, 5},
         };
 
         checkPoints(graphics, expectedPoints);
@@ -2976,12 +3032,28 @@ TEST_CASE("graphics class behaves as expected") {
         // Should behave like radius 4: pattern {3,2,1,0}
         std::vector<coloredPoint> expectedPoints = {
             // Row 0: cut 3 from each side -> width 4
-            {33, 30, 5}, {34, 30, 5}, {35, 30, 5}, {36, 30, 5},
-            // Row 1: cut 2 from each side -> width 6  
-            {32, 31, 5}, {33, 31, 5}, {34, 31, 5}, {35, 31, 5}, {36, 31, 5}, {37, 31, 5},
+            {33, 30, 5},
+            {34, 30, 5},
+            {35, 30, 5},
+            {36, 30, 5},
+            // Row 1: cut 2 from each side -> width 6
+            {32, 31, 5},
+            {33, 31, 5},
+            {34, 31, 5},
+            {35, 31, 5},
+            {36, 31, 5},
+            {37, 31, 5},
             // Row 3: cut 0 -> full width (10 pixels)
-            {30, 33, 5}, {31, 33, 5}, {32, 33, 5}, {33, 33, 5}, {34, 33, 5}, 
-            {35, 33, 5}, {36, 33, 5}, {37, 33, 5}, {38, 33, 5}, {39, 33, 5},
+            {30, 33, 5},
+            {31, 33, 5},
+            {32, 33, 5},
+            {33, 33, 5},
+            {34, 33, 5},
+            {35, 33, 5},
+            {36, 33, 5},
+            {37, 33, 5},
+            {38, 33, 5},
+            {39, 33, 5},
         };
 
         checkPoints(graphics, expectedPoints);
@@ -3066,13 +3138,27 @@ TEST_CASE("graphics class behaves as expected") {
         // Only pixels within clip area (12-15, 12-15) should be drawn
         std::vector<coloredPoint> expectedPoints = {
             // Check that pixels outside clip are not drawn
-            {10, 10, 0}, {11, 10, 0},
-            {10, 11, 0}, {11, 11, 0},
+            {10, 10, 0},
+            {11, 10, 0},
+            {10, 11, 0},
+            {11, 11, 0},
             // Check that pixels inside clip are drawn (filled)
-            {12, 12, 11}, {13, 12, 11}, {14, 12, 11}, {15, 12, 11},
-            {12, 13, 11}, {13, 13, 11}, {14, 13, 11}, {15, 13, 11},
-            {12, 14, 11}, {13, 14, 11}, {14, 14, 11}, {15, 14, 11},
-            {12, 15, 11}, {13, 15, 11}, {14, 15, 11}, {15, 15, 11},
+            {12, 12, 11},
+            {13, 12, 11},
+            {14, 12, 11},
+            {15, 12, 11},
+            {12, 13, 11},
+            {13, 13, 11},
+            {14, 13, 11},
+            {15, 13, 11},
+            {12, 14, 11},
+            {13, 14, 11},
+            {14, 14, 11},
+            {15, 14, 11},
+            {12, 15, 11},
+            {13, 15, 11},
+            {14, 15, 11},
+            {15, 15, 11},
         };
 
         checkPoints(graphics, expectedPoints);
@@ -3129,19 +3215,19 @@ TEST_CASE("graphics class behaves as expected") {
     }
     SUBCASE("Sprite rendering with upper memory mapping") {
         picoRam.hwState.spriteSheetMemMapping = 0xC0;
-        
+
         uint8_t* spriteBuffer = graphics->GetP8SpriteSheetBuffer();
-        
+
         for (int y = 0; y < 8; y++) {
             for (int byteX = 0; byteX < 4; byteX++) { // 4 bytes = 8 pixels wide
-                int byteIdx = y * 64 + byteX; // 64 bytes per row
-                spriteBuffer[byteIdx] = 0x55; // Pattern: 5,5 (both pixels are color 5)
+                int byteIdx = y * 64 + byteX;         // 64 bytes per row
+                spriteBuffer[byteIdx] = 0x55;         // Pattern: 5,5 (both pixels are color 5)
             }
         }
-        
+
         graphics->cls();
         graphics->spr(0, 10, 10, 1.0, 1.0, false, false);
-        
+
         CHECK_EQ(graphics->pget(10, 10), 5); // top-left should be color 5
         CHECK_EQ(graphics->pget(11, 10), 5); // next pixel should be color 5
         CHECK_EQ(graphics->pget(10, 11), 5); // below should be color 5
@@ -3150,9 +3236,9 @@ TEST_CASE("graphics class behaves as expected") {
     SUBCASE("Sprite transparency with upper memory mapping") {
         //map sprite sheet to upper memory
         picoRam.hwState.spriteSheetMemMapping = 0xC0;
-        
+
         graphics->palt();
-        
+
         //create a sprite with alternating pixels
         for (int y = 0; y < 8; y++) {
             for (int x = 0; x < 8; x++) {
@@ -3161,21 +3247,20 @@ TEST_CASE("graphics class behaves as expected") {
                 graphics->sset(x, y, color);
             }
         }
-        
+
         graphics->cls(2);
         graphics->spr(0, 10, 10, 1.0, 1.0, false, false);
-        
+
         // Even X positions should be opaque (color 5)
         CHECK_EQ(graphics->pget(10, 10), 5);
         CHECK_EQ(graphics->pget(12, 10), 5);
         CHECK_EQ(graphics->pget(14, 10), 5);
-        
+
         // Odd X positions should be background color (color 2)
         CHECK_EQ(graphics->pget(11, 10), 2);
         CHECK_EQ(graphics->pget(13, 10), 2);
         CHECK_EQ(graphics->pget(15, 10), 2);
     }
-
 
     //general teardown
     delete graphics;

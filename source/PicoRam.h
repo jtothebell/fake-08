@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <cstring> 
+#include <cstring>
 #include <string>
 
 /*
@@ -19,36 +19,35 @@
 0x6000 	0x7fff 	Screen data (8k) 
 */
 
-
 //used to use a bitfield union for song and sfx. but this caused problems on big endian platforms
 //now use specific getter/setters that make sure bits are in the right spot
 struct song {
     // The four song channels that should play, 0…63 (each msb holds a flag)
     uint8_t data[4];
 
-    uint8_t getSfx0()const {
+    uint8_t getSfx0() const {
         return (data[0] & 0b01111111);
     }
-    uint8_t getSfx1()const {
+    uint8_t getSfx1() const {
         return (data[1] & 0b01111111);
     }
-    uint8_t getSfx2()const {
+    uint8_t getSfx2() const {
         return (data[2] & 0b01111111);
     }
-    uint8_t getSfx3()const {
+    uint8_t getSfx3() const {
         return (data[3] & 0b01111111);
     }
 
-    uint8_t getStart()const {
+    uint8_t getStart() const {
         return (data[0] & 0b10000000) >> 7;
     }
-    uint8_t getLoop()const {
+    uint8_t getLoop() const {
         return (data[1] & 0b10000000) >> 7;
     }
-    uint8_t getStop()const {
+    uint8_t getStop() const {
         return (data[2] & 0b10000000) >> 7;
     }
-    uint8_t getMode()const {
+    uint8_t getMode() const {
         return (data[3] & 0b10000000) >> 7;
     }
 };
@@ -56,11 +55,11 @@ struct song {
 struct note {
     uint8_t data[2];
 
-    void setKey(uint8_t val){
+    void setKey(uint8_t val) {
         uint8_t mask = 0b00111111;
         data[0] = (data[0] & ~mask) | (val & mask);
     }
-    void setWaveform(uint8_t val){
+    void setWaveform(uint8_t val) {
         //waveform spans both bytes
         uint8_t val0 = val << 6;
         uint8_t mask0 = 0b11000000;
@@ -70,42 +69,40 @@ struct note {
         uint8_t mask1 = 0b00000001;
         data[1] = (data[1] & ~mask1) | (val1 & mask1);
     }
-    void setVolume(uint8_t val){
+    void setVolume(uint8_t val) {
         uint8_t mask = 0b00001110;
         data[1] = (data[1] & ~mask) | ((val << 1) & mask);
     }
-    void setEffect(uint8_t val){
+    void setEffect(uint8_t val) {
         uint8_t mask = 0b01110000;
         data[1] = (data[1] & ~mask) | ((val << 4) & mask);
     }
-    void setCustom(uint8_t val){
+    void setCustom(uint8_t val) {
         uint8_t mask = 0b10000000;
         data[1] = (data[1] & ~mask) | ((val << 7) & mask);
     }
 
-
-    uint8_t getKey()const {
+    uint8_t getKey() const {
         return (data[0] & 0b00111111);
     }
-    uint8_t getWaveform()const {
+    uint8_t getWaveform() const {
         //waveform spans both bytes
         return ((data[1] & 0b00000001) << 2) + ((data[0] & 0b11000000) >> 6);
     }
-    uint8_t getVolume()const {
+    uint8_t getVolume() const {
         return ((data[1] & 0b00001110) >> 1);
     }
-    uint8_t getEffect()const {
+    uint8_t getEffect() const {
         return ((data[1] & 0b01110000) >> 4);
     }
-    uint8_t getCustom()const {
+    uint8_t getCustom() const {
         return ((data[1] & 0b10000000) >> 7);
     }
 };
 
 struct sfx {
-    union
-    {
-        struct 
+    union {
+        struct
         {
             note notes[32];
 
@@ -128,7 +125,7 @@ struct musicChannel {
     float volume = 0.f;
     float volume_step = 0.f;
     float offset = 0.f;
-	uint8_t length = 0;
+    uint8_t length = 0;
 };
 
 struct noteChannel {
@@ -143,11 +140,11 @@ struct rawSfxChannel {
     bool is_music = false;
     noteChannel current_note;
     noteChannel prev_note;
-    virtual rawSfxChannel *getChildChannel() {
-      return NULL;
+    virtual rawSfxChannel* getChildChannel() {
+        return NULL;
     }
-    virtual rawSfxChannel *getPrevChildChannel() {
-      return NULL;
+    virtual rawSfxChannel* getPrevChildChannel() {
+        return NULL;
     }
     virtual void rotateChannels() {
     }
@@ -156,14 +153,14 @@ struct rawSfxChannel {
 struct sfxChannel : rawSfxChannel {
     rawSfxChannel customInstrumentChannel;
     rawSfxChannel prevInstrumentChannel;
-    virtual rawSfxChannel *getChildChannel() {
-      return &(this->customInstrumentChannel);
+    virtual rawSfxChannel* getChildChannel() {
+        return &(this->customInstrumentChannel);
     }
-    virtual rawSfxChannel *getPrevChildChannel() {
-      return &(this->prevInstrumentChannel);
+    virtual rawSfxChannel* getPrevChildChannel() {
+        return &(this->prevInstrumentChannel);
     }
     virtual void rotateChannels() {
-      prevInstrumentChannel = customInstrumentChannel;
+        prevInstrumentChannel = customInstrumentChannel;
     }
 };
 
@@ -174,22 +171,22 @@ struct audioState_t {
 
 struct drawState_t {
     uint8_t drawPaletteMap[16];
-	uint8_t screenPaletteMap[16];
+    uint8_t screenPaletteMap[16];
 
     uint8_t clip_xb;
-	uint8_t clip_yb;
-	uint8_t clip_xe;
-	uint8_t clip_ye;
+    uint8_t clip_yb;
+    uint8_t clip_xe;
+    uint8_t clip_ye;
 
     uint8_t unknown05f24;
 
     uint8_t color;
 
     uint8_t text_x;
-	uint8_t text_y;
+    uint8_t text_y;
 
     int16_t camera_x;
-	int16_t camera_y;
+    int16_t camera_y;
 
     uint8_t drawMode;
 
@@ -222,12 +219,11 @@ struct drawState_t {
     int16_t line_y;
 };
 
-
 struct hwState_t {
     //audio hardware mods
     //0x5f40
     uint8_t half_rate;
-    //0x5f41 
+    //0x5f41
     uint8_t reverb;
     //0x5f42
     uint8_t distort;
@@ -267,13 +263,9 @@ struct hwState_t {
     uint8_t alternatePaletteScreenLineBitfield[16];
     //0x5f80..0x5fff
     uint8_t gpioPins[128];
-
 };
 
-
-
-struct PicoRam
-{
+struct PicoRam {
     void Reset() {
         memset(data, 0, 0x4300);
         //leave general use memory
@@ -288,17 +280,16 @@ struct PicoRam
             hwState.alternatePaletteMap[c] = c | (c << 4);
         }
     }
-    
-    union
-    {
-        struct 
+
+    union {
+        struct
         {
             //0x0     0x0fff    Sprite sheet (0-127)
-            //0x1000  0x1fff    Sprite sheet (128-255) / Map (rows 32-63) (shared) 
+            //0x1000  0x1fff    Sprite sheet (128-255) / Map (rows 32-63) (shared)
             uint8_t spriteSheetData[128 * 64];
-            //0x2000  0x2fff    Map (rows 0-31) 
+            //0x2000  0x2fff    Map (rows 0-31)
             uint8_t mapData[128 * 32];
-            //0x3000  0x30ff    Sprite flags 
+            //0x3000  0x30ff    Sprite flags
             uint8_t spriteFlags[256];
             //0x3100  0x31ff    Music
             struct song songs[64];
@@ -308,7 +299,7 @@ struct PicoRam
             uint8_t generalUseRam[6912];
             //0x5e00  0x5eff    Persistent cart data (64 numbers = 256 bytes)
             uint8_t cartData[256];
-            
+
             drawState_t drawState;
 
             hwState_t hwState;

@@ -5,14 +5,14 @@
 #include "../source/stringToDataHelpers.h"
 #include "../source/nibblehelpers.h"
 
-#define BITMASK(n) (1U<<(n))
+#define BITMASK(n) (1U << (n))
 
 TEST_CASE("checking fontdata exists") {
     CHECK(get_font_data().length() == 15995);
 }
 
 TEST_CASE("checking defaultFontBinaryData exists") {
-    CHECK(defaultFontBinaryData[8*16] > 0);
+    CHECK(defaultFontBinaryData[8 * 16] > 0);
 }
 
 /*
