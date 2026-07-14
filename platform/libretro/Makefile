@@ -105,9 +105,9 @@ else ifneq (,$(findstring qnx,$(platform)))
    fpic := -fPIC
    SHARED := -shared -Wl,--version-script=link.T -Wl,--no-undefined
 else ifeq ($(platform), emscripten)
-   TARGET := $(TARGET_NAME)_libretro_emscripten.bc
-   fpic := -fPIC
-   SHARED := -shared -Wl,--version-script=link.T -Wl,--no-undefined
+   TARGET := fake08.js
+   fpic := 
+   SHARED := -lidbfs.js --no-entry -s EXPORT_ALL=1 -s MODULARIZE=1 -s EXPORT_NAME=EJS_Runtime -s EXPORTED_RUNTIME_METHODS="['cwrap','ccall','setValue','getValue','FS']"
 else ifeq ($(platform), vita)
    TARGET := $(TARGET_NAME)_vita.a
    CC = arm-vita-eabi-gcc
