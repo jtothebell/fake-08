@@ -118,37 +118,32 @@ Host::Host(int windowWidth, int windowHeight)
 
 
 InputState_t Host::scanInput(){
-    //SDL input doesn't seem to work correctly on the switch, so I've left the switch specific one
-    //the issue may be related to having multiple controllers?
     padUpdate(&pad);
-
     currKDown_64 = padGetButtonsDown(&pad);
     currKHeld_64 = padGetButtons(&pad);
 
+    // --- ADD THIS BLOCK ---
+    HidAnalogStickState analog_l = padGetStickPos(&pad, 0);
+    #define ANALOG_DEADZONE 15000
+    
+    uint8_t analogP8 = 0;
+    if (analog_l.x < -ANALOG_DEADZONE) analogP8 |= P8_KEY_LEFT;
+    if (analog_l.x >  ANALOG_DEADZONE) analogP8 |= P8_KEY_RIGHT;
+    if (analog_l.y < -ANALOG_DEADZONE) analogP8 |= P8_KEY_UP;
+    if (analog_l.y >  ANALOG_DEADZONE) analogP8 |= P8_KEY_DOWN;
+    // ----------------------
+
     lDown = currKHeld_64 & HidNpadButton_L;
-	rDown = currKDown_64 & HidNpadButton_R;
+    rDown = currKDown_64 & HidNpadButton_R;
 
     if (lDown && rDown){
         quit = 1;
     }
-
-    stretchKeyPressed = currKDown_64 & HidNpadButton_Minus;
-
-    HidTouchScreenState state={0};
-    if (hidGetTouchScreenStates(&state, 1)) {
-        if (state.count >= 1){
-            touchLocationX = (state.touches[0].x - mouseOffsetX) / scaleX;
-            touchLocationY = (state.touches[0].y - mouseOffsetY) / scaleY;
-            mouseBtnState = 1;
-        }
-        else{
-            mouseBtnState = 0;
-        }
-    }
+    // ... touch code ...
 
     return InputState_t {
-        ConvertInputToP8(currKDown_64),
-        ConvertInputToP8(currKHeld_64),
+        ConvertInputToP8(currKDown_64) | analogP8,  // OR analog in
+        ConvertInputToP8(currKHeld_64) | analogP8,  // OR analog in
         (int16_t)touchLocationX,
         (int16_t)touchLocationY,
         mouseBtnState
