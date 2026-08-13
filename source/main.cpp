@@ -81,6 +81,7 @@ int main(int argc, char* argv[])
 	}
 	#endif
 
+	bool launchedFromLibrary = loadCart;
 	
 	if (loadCart){
 		Logger_Write("Loading arg cart \n");
@@ -101,6 +102,9 @@ int main(int argc, char* argv[])
 	Logger_Write("Turning off vm and exiting logger\n");
 	vm->CloseCart();
 
+	if (launchedFromLibrary) {
+    envSetNextLoad("sdmc:/switch/pico8-library/pico8-library.nro", "");
+}
 	Logger_Write("calling one time cleanup\n");
 	host->oneTimeCleanup();
 
