@@ -283,3 +283,24 @@ jobs:
           path: |
             platform/libretro/fake08_libretro.info
             retroarch/fake08_libretro_libnx.nro
+
+  macos-libretro:
+    name: macOS ARM64 Libretro
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build
+        run: |
+          cd platform/libretro
+          make platform=osx
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macOS-ARM64-libretro
+          path: platform/libretro/fake08_libretro.dylib
+
