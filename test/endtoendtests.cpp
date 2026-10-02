@@ -292,6 +292,66 @@ TEST_CASE("Loading and running carts") {
 
         vm->CloseCart();
     }
+    SUBCASE("Save state round trip"){
+        vm->LoadCart("savestatetest.p8", false);
+        vm->vm_run();
+        for (int i = 0; i < 30; i++) {
+            vm->Step();
+        }
+        uint8_t saved = vm->vm_peek(0x4300);
+        std::vector<char> state(1024 * 1024);
+        size_t len = vm->serializeLuaState(state.data());
+
+        SUBCASE("lua state serializes"){
+            CHECK(len > 0);
+        }
+        SUBCASE("restoring brings back the lua counter"){
+            for (int i = 0; i < 30; i++) {
+                vm->Step();
+            }
+            vm->deserializeLuaState(state.data(), len);
+            // the cart runs at 30fps: _update (and its poke) every other step
+            vm->Step();
+            vm->Step();
+
+            CHECK(vm->vm_peek(0x4300) == (uint8_t)(saved + 1));
+        }
+        SUBCASE("restoring before the first frame, after another cart ran"){
+            // a frontend restores right after loading, before the first
+            // Step; the previous cart's _update60 must not take over
+            vm->LoadCart("update60test.p8", false);
+            vm->vm_run();
+            vm->Step();
+            vm->LoadCart("savestatetest.p8", false);
+            vm->vm_run();
+            vm->deserializeLuaState(state.data(), len);
+            vm->Step();
+            vm->Step();
+
+            CHECK(vm->vm_peek(0x4300) == (uint8_t)(saved + 1));
+        }
+        SUBCASE("restoring every frame does not pile up garbage"){
+            // rewind restores once a frame; each restore builds a whole
+            // heap (~7 MB here), and the GC must still be made to pay for
+            // it. stat(0) is a fix16: keep the total under 32 MB.
+            vm->deserializeLuaState(state.data(), len);
+            vm->Step();
+            vm->ExecuteLua("poke2(0x4400, stat(0)\\1)", "");
+            int once = vm->vm_peek2(0x4400);
+            for (int i = 0; i < 3; i++) {
+                vm->deserializeLuaState(state.data(), len);
+                vm->Step();
+            }
+            vm->ExecuteLua("poke2(0x4400, stat(0)\\1)", "");
+            int after = vm->vm_peek2(0x4400);
+
+            INFO("lua heap KB after one restore ", once, ", after four ", after);
+            CHECK(once > 0);
+            CHECK(after < once + once / 2);
+        }
+
+        vm->CloseCart();
+    }
     SUBCASE("tonum test cart"){
         vm->LoadCart("tonumtest2.p8", false);
         vm->vm_run();

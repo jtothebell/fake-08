@@ -171,17 +171,17 @@ bool _initializeLuaState(lua_State* luaState) {
     // we call this function to establish the default global state of things not to save in the save state
     // needs to be called after globals are loaded but before the cart is run, or _init is called
     //TODO: move these calls to the glue code?
-    // lua_getglobal(luaState, "eris");
-	// lua_getfield(luaState, -1, "init_persist_all");
+    lua_getglobal(luaState, "eris");
+	lua_getfield(luaState, -1, "init_persist_all");
 
-    // if (lua_pcall(luaState, 0, 0, 0)){
-    //     Logger_Write("Error setting up lua persistence: %s\n", lua_tostring(luaState, -1));
-    //     lua_pop(luaState, 1);
-    //     return false;
-    // }
+    if (lua_pcall(luaState, 0, 0, 0)){
+        Logger_Write("Error setting up lua persistence: %s\n", lua_tostring(luaState, -1));
+        lua_pop(luaState, 2);
+        return false;
+    }
 
-    // //pop the eris.init_persist_all fuction off the stack now that we're done with it
-    // lua_pop(luaState, 1);
+    //pop the eris table off the stack now that we're done with it
+    lua_pop(luaState, 1);
 
 
     return true;
@@ -1509,11 +1509,22 @@ size_t Vm::serializeLuaState(char* dest) {
 }
 
 void Vm::deserializeLuaState(const char* src, size_t len) {
+    // eris links half-built protos into objects the incremental GC may have
+    // already marked, with no write barrier, so a GC step mid-restore frees
+    // them. Hold the GC until the restore is done.
+    lua_gc(_luaState, LUA_GCSTOP, 0);
     lua_getglobal(_luaState, "eris");
 	lua_getfield(_luaState, -1, "restore_all");
 	lua_pushlstring(_luaState, src, len);
 
-	if (lua_pcall(_luaState, 1, 0, 0) != 0) {
+	int status = lua_pcall(_luaState, 1, 0, 0);
+	lua_gc(_luaState, LUA_GCRESTART, 0);
+	// GCRESTART zeroes the GC's debt, so everything the restore allocated -
+	// a whole Lua heap - would never be paid for. A frontend that rewinds
+	// restores every frame: the old heaps pile up as garbage the GC thinks
+	// it does not owe. Collect it now while it is all fresh garbage.
+	lua_gc(_luaState, LUA_GCCOLLECT, 0);
+	if (status != 0) {
 		std::string e = lua_tostring(_luaState, -1);
 		lua_pop(_luaState, 1);
 		return;

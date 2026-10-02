@@ -376,6 +376,10 @@ eris.restore_all = function(persisted)
   for k,v in pairs(new_symbols) do
     _G[k] = v
   end
+  -- __z8_run_cart registers the sandbox from inside the cart coroutine, which
+  -- a restore replaces before it ever runs; without this the VM's nil-global
+  -- fallback keeps reading the previous cart's sandbox (its _update60, say).
+  rawset(debug.getregistry(), "__PICO8_SANDBOX", __cart_sandbox)
 end
 
 function __z8_strlen(s)

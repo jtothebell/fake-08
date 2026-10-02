@@ -823,8 +823,8 @@ int stat(lua_State *L) {
     switch(n){
         //0 memory usage
         case 0:
-            //TODO: get from z8lua
-            lua_pushnumber(L, 1);
+            // memory in use, in KB, as PICO-8 reports it
+            lua_pushnumber(L, lua_gc(L, LUA_GCCOUNT, 0) + lua_gc(L, LUA_GCCOUNTB, 0) / 1024.0);
             return 1;
         break;
         //cpu usage
