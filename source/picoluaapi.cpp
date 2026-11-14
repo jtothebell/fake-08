@@ -765,7 +765,7 @@ int fillp(lua_State *L) {
 int btn(lua_State *L){
     int numArgs = lua_gettop(L);
     if (numArgs == 0) {
-        uint8_t btnstate = _inputForLuaApi->btn();
+        uint16_t btnstate = _inputForLuaApi->btn();
 
         lua_pushnumber(L, btnstate);
     }
@@ -786,7 +786,7 @@ int btn(lua_State *L){
 int btnp(lua_State *L){
     int numArgs = lua_gettop(L);
     if (numArgs == 0) {
-        uint8_t btnpstate = _inputForLuaApi->btnp();
+        uint16_t btnpstate = _inputForLuaApi->btnp();
 
         lua_pushnumber(L, btnpstate);
     }
@@ -1309,7 +1309,8 @@ int srand(lua_State *L) {
 }
 
 int _update_buttons(lua_State *L) {
-    _vmForLuaApi->update_buttons();
+    int scale = lua_gettop(L) > 0 ? (int)lua_tonumber(L, 1) : 1;
+    _vmForLuaApi->update_buttons(scale == 2 ? 2 : 1);
     
     return 0;
 }

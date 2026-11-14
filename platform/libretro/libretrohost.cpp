@@ -26,8 +26,11 @@ static uint8_t stubMouseBtns;
 
 std::string _currentCartDirectory;
 
+static uint8_t stubPDown[7];
+static uint8_t stubPHeld[7];
+
 void setInputState(uint8_t kDown, uint8_t kHeld, int16_t mouseX, int16_t mouseY, uint8_t mouseBtns) {
-    stubCurrKDown = kDown;
+    stubCurrKDown |= kDown;
     stubCurrKHeld = kHeld;
     stubMouseX = mouseX;
     stubMouseY = mouseY;
@@ -65,8 +68,22 @@ void Host::forceStretch(StretchOption newStretch) {
 
 
 
+void setPlayerInputState(int player, uint8_t kDown, uint8_t kHeld) {
+    if (player < 1 || player > 7) return;
+    stubPDown[player - 1] |= kDown;
+    stubPHeld[player - 1] = kHeld;
+}
+
 InputState_t Host::scanInput(){
-    return InputState_t {stubCurrKDown, stubCurrKHeld, stubMouseX, stubMouseY, stubMouseBtns, stubCurrKBdown, stubCurrKBkey};
+    InputState_t state {stubCurrKDown, stubCurrKHeld, stubMouseX, stubMouseY, stubMouseBtns, stubCurrKBdown, stubCurrKBkey};
+    for (int p = 0; p < 7; p++) {
+        state.PDown[p] = stubPDown[p];
+        state.PHeld[p] = stubPHeld[p];
+        stubPDown[p] = 0;
+    }
+    // the cart has seen these presses
+    stubCurrKDown = 0;
+    return state;
 }
 
 bool Host::shouldQuit() {

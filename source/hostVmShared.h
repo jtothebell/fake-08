@@ -77,6 +77,11 @@ struct InputState_t {
 	uint8_t mouseBtnState;
 	bool KBdown;
 	std::string KBkey;
+
+	// players 1-7 (PICO-8 numbers players from 0); hosts that leave these
+	// out have one player
+	uint8_t PDown[7];
+	uint8_t PHeld[7];
 };
 
 enum PrintMode_t
