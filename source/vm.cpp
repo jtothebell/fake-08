@@ -1157,7 +1157,8 @@ void Vm::vm_memcpy(int destaddr, int sourceaddr, int len){
         return;
     }
 
-    memcpy(&_memory->data[destaddr], &_memory->data[sourceaddr], len);
+    // PICO-8's memcpy allows overlapping ranges (scrolling the screen)
+    memmove(&_memory->data[destaddr], &_memory->data[sourceaddr], len);
 }
 
 void Vm::update_prng()
