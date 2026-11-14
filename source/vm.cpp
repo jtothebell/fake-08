@@ -1190,7 +1190,7 @@ void Vm::api_srand(fix32 seed)
     }
 }
 
-void Vm::update_buttons() {
+void Vm::update_buttons(int scale) {
     //get button states from hardware
     auto inputState = _host->scanInput();
     
@@ -1208,6 +1208,10 @@ void Vm::update_buttons() {
         return;
     }
     
+    // update_buttons runs once per cart frame: the Lua loop says whether
+    // that is 30 or 60 times a second (the libretro build's _targetFps is
+    // always 60)
+    _input->SetFrameScale(scale);
     _input->SetState(inputState.KDown, inputState.KHeld);
     if (_memory->drawState.devkitMode) {
         _input->SetMouse(inputState.mouseX, inputState.mouseY, inputState.mouseBtnState);

@@ -1309,7 +1309,8 @@ int srand(lua_State *L) {
 }
 
 int _update_buttons(lua_State *L) {
-    _vmForLuaApi->update_buttons();
+    int scale = lua_gettop(L) > 0 ? (int)lua_tonumber(L, 1) : 1;
+    _vmForLuaApi->update_buttons(scale == 2 ? 2 : 1);
     
     return 0;
 }

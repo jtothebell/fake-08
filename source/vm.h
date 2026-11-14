@@ -138,7 +138,8 @@ class Vm {
     fix32 api_rnd(fix32 inRange);
     void api_srand(fix32 seed);
 
-    void update_buttons();
+    // scale: calls per 30 fps frame (2 at 60 Hz)
+    void update_buttons(int scale = 1);
 
     // void vm_flip();
     void vm_run();

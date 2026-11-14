@@ -6,11 +6,16 @@
 
 Input::Input(PicoRam* memory):
     _currentKDown(0),
-    _currentKHeld(0)
+    _currentKHeld(0),
+    _frameScale(1)
 {
     _memory = memory;
 
     std::fill(_framesHeld, _framesHeld + 8, 0);
+}
+
+void Input::SetFrameScale(uint8_t scale){
+    _frameScale = scale == 0 ? 1 : scale;
 }
 
 void Input::SetState(uint8_t kdown, uint8_t kheld){
@@ -23,35 +28,25 @@ void Input::SetState(uint8_t kdown, uint8_t kheld){
     //memory only stores buttons 0-5, not 6 or 7
     _memory->hwState.buttonStates[0] = kheld & 0x3F;
 
-    uint8_t repeatDelay = _memory->hwState.btnpRepeatDelay == 0 
-        ? 15 
+    // btnp() repeat, from the PICO-8 manual: held for 15 frames it counts as
+    // pressed again, then every 4 frames. Custom delays (0x5f5c, 0x5f5d) are
+    // in frames at 30 fps, 255 turns repeat off. SetState runs once per
+    // 30 fps frame or twice (_frameScale) at 60 Hz, so the counts scale.
+    uint8_t delayFrames = _memory->hwState.btnpRepeatDelay == 0
+        ? 15
         : _memory->hwState.btnpRepeatDelay;
+    uint8_t intervalFrames = _memory->hwState.btnpRepeatInterval == 0
+        ? 4
+        : _memory->hwState.btnpRepeatInterval;
+    bool repeat = delayFrames != 255;
+    uint16_t delay = delayFrames * _frameScale;
+    uint16_t interval = intervalFrames * _frameScale;
 
-    if (repeatDelay == 255){
-        return;
-    }
-
-    uint8_t repeatInterval = _memory->hwState.btnpRepeatInterval == 0 
-        ? 4 
-        : _memory->hwState.btnpRepeatDelay;
-
-    for (int i = 0; i < 7; i ++) {
-        bool down = BITMASK(i) & kheld;
-
-        _framesHeld[i] = down ? _framesHeld[i] + 1 : 0;
-
-        //update kdown to be true if held for 15 frames, then every 4th after that.
-        //from wiki:
-        //btnp() implements a keyboard-like repeat mechanism: if the player holds 
-        //the button for 15 frames, it registers as on again for one frame, then 
-        //again every four frames after that. The frame counter resets when the 
-        //player releases the button. 
-
-        bool repeatPressed = 
-            (_framesHeld[i] == repeatDelay) ||
-            (_framesHeld[i] / repeatDelay >= 1 && _framesHeld[i] % repeatInterval == 0);
-
-        if (repeatPressed) {
+    for (int i = 0; i < 7; i++) {
+        bool isHeld = BITMASK(i) & kheld;
+        _framesHeld[i] = isHeld ? _framesHeld[i] + 1 : 0;
+        uint16_t f = _framesHeld[i];
+        if (repeat && (f == delay || (f > delay && (f - delay) % interval == 0))) {
             _currentKDown = _currentKDown | BITMASK(i);
         }
     }

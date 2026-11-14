@@ -27,7 +27,7 @@ static uint8_t stubMouseBtns;
 std::string _currentCartDirectory;
 
 void setInputState(uint8_t kDown, uint8_t kHeld, int16_t mouseX, int16_t mouseY, uint8_t mouseBtns) {
-    stubCurrKDown = kDown;
+    stubCurrKDown |= kDown;
     stubCurrKHeld = kHeld;
     stubMouseX = mouseX;
     stubMouseY = mouseY;
@@ -66,7 +66,10 @@ void Host::forceStretch(StretchOption newStretch) {
 
 
 InputState_t Host::scanInput(){
-    return InputState_t {stubCurrKDown, stubCurrKHeld, stubMouseX, stubMouseY, stubMouseBtns, stubCurrKBdown, stubCurrKBkey};
+    InputState_t state {stubCurrKDown, stubCurrKHeld, stubMouseX, stubMouseY, stubMouseBtns, stubCurrKBdown, stubCurrKBkey};
+    // the cart has seen these presses
+    stubCurrKDown = 0;
+    return state;
 }
 
 bool Host::shouldQuit() {
