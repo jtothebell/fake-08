@@ -414,6 +414,20 @@ TEST_CASE("Vm memory functions") {
 
         CHECK_EQ(memory->spriteSheetData[1], 1);
     }
+    SUBCASE("memcpy handles overlapping ranges") {
+        for (int i = 0; i < 256; i++) {
+            memory->data[0x6000 + i] = i;
+        }
+        // up: scroll the screen down a row; down: back again
+        vm->vm_memcpy(0x6040, 0x6000, 0x80);
+        for (int i = 0; i < 0x80; i++) {
+            REQUIRE_EQ(memory->data[0x6040 + i], i);
+        }
+        vm->vm_memcpy(0x6000, 0x6040, 0x80);
+        for (int i = 0; i < 0x80; i++) {
+            REQUIRE_EQ(memory->data[0x6000 + i], i);
+        }
+    }
     SUBCASE("dget before setting cart data is allowed for backward compat") {
         vm->vm_dset(34, 1925);
 
