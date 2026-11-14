@@ -60,6 +60,18 @@ TEST_CASE("btnp repeat") {
         CHECK_FALSE(input->btn(6));
     }
 
+    SUBCASE("players 0-7, player 1 in bits 8-13 of btn()") {
+        uint8_t down[8] = {0, BITMASK(4)};
+        uint8_t held[8] = {BITMASK(0), BITMASK(4), 0, 0, 0, 0, 0, BITMASK(3)};
+        input->SetState(down, held, 8);
+        CHECK_EQ(input->btn(), BITMASK(0) | BITMASK(12));
+        CHECK_EQ(input->btnp(), BITMASK(12));
+        CHECK(input->btnp(4, 1));
+        CHECK(input->btn(3, 7));
+        CHECK_FALSE(input->btn(3, 6));
+        CHECK_EQ(memory->hwState.buttonStates[7], BITMASK(3));
+    }
+
     delete input;
     delete memory;
 }

@@ -302,6 +302,8 @@ static std::array<int, 7> buttons
 
 uint8_t kHeld = 0;
 uint8_t kDown = 0;
+// players 1-7: held buttons last frame
+uint8_t playerHeld[8];
 
 int16_t picoMouseX = 0;
 int16_t picoMouseY = 0;
@@ -339,6 +341,18 @@ EXPORT void retro_run()
                 currKDown |= BITMASK(i);
             }
         }
+    }
+
+    // players 1-7 on the frontend's ports 2-8 (no pause button)
+    for (int p = 1; p < 8; p++) {
+        uint8_t held = 0;
+        for (int i = 0; i < 6; i++) {
+            if (input_state_cb(p, RETRO_DEVICE_JOYPAD, 0, buttons[i])) {
+                held |= BITMASK(i);
+            }
+        }
+        setPlayerInputState(p, held & ~playerHeld[p], held);
+        playerHeld[p] = held;
     }
 
     mouseBtnState = 0;

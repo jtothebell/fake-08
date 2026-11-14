@@ -2,6 +2,7 @@
 #include <cstdint>
 
 
+void setPlayerInputState(int player, uint8_t kDown, uint8_t kHeld);
 void setInputState(
     uint8_t kDown,
     uint8_t kHeld,

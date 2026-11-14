@@ -765,7 +765,7 @@ int fillp(lua_State *L) {
 int btn(lua_State *L){
     int numArgs = lua_gettop(L);
     if (numArgs == 0) {
-        uint8_t btnstate = _inputForLuaApi->btn();
+        uint16_t btnstate = _inputForLuaApi->btn();
 
         lua_pushnumber(L, btnstate);
     }
@@ -786,7 +786,7 @@ int btn(lua_State *L){
 int btnp(lua_State *L){
     int numArgs = lua_gettop(L);
     if (numArgs == 0) {
-        uint8_t btnpstate = _inputForLuaApi->btnp();
+        uint16_t btnpstate = _inputForLuaApi->btnp();
 
         lua_pushnumber(L, btnpstate);
     }
