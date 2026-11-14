@@ -396,6 +396,10 @@ bool Cart::loadCartFromString(std::string cartStr) {
 }
 
 Cart::Cart (const unsigned char* cartData, size_t size){
+    // as the file constructor does: a text cart without __gfx__, __map__ or
+    // __sfx__ must not start with whatever the heap held
+    initCartRom();
+
     if (size < 5) {
         LoadError = "Invalid cart. Less than 5 bytes";
         return;
